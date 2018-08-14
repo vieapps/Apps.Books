@@ -33,13 +33,25 @@
 	[class]="css.label">{{label}}</ion-list-header>
 
 <div *ngIf="isFormGroup">
-	<div *ngFor="let ctrl of childControls">
-		<app-form-element [formGroup]="childFormGroup" [control]="ctrl"></app-form-element>
-	</div>
+	<app-form-element *ngFor="let ctrl of subControls"
+		[formGroup]="subFormGroup"
+		[control]="ctrl"></app-form-element>
 </div>
 
-<div *ngIf="isFormArray">
-	<div *ngFor="let ctrl of childControls; let i=index">
-		<app-form-element [formGroup]="childFormGroup" [control]="ctrl" [index]="i"></app-form-element>
+<div *ngIf="isSimpleFormArray">
+	<app-form-element *ngFor="let ctrl of subControls; let idx = index"
+		[formGroup]="subFormGroup"
+		[control]="ctrl"
+		[index]="idx"></app-form-element>
+</div>
+
+<div *ngIf="isComplexFormArray">
+	<div *ngFor="let ctrl of subControls; let idx = index">
+		<ion-list-header *ngIf="getSubLabel(ctrl)"
+			[color]="getSubColor(ctrl)"
+			[class]="getSubCss(ctrl)">{{getSubLabel(ctrl)}}</ion-list-header>
+		<app-form-element *ngFor="let subctrl of getSubControls(ctrl)"
+			[formGroup]="getSubFormGroup(idx)"
+			[control]="subctrl"></app-form-element>
 	</div>
 </div>

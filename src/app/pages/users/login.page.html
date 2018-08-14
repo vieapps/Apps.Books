@@ -12,6 +12,6 @@
 <ion-content padding>
 	<app-form [form]="loginForm.form" [config]="loginForm.config"></app-form>
 	<div class="buttons">
-		<ion-button slot="end" color="primary" (click)="loginAsync()" [disabled]="!loginForm.form.valid">Log In</ion-button>
+		<ion-button slot="end" color="primary" (click)="loginAsync()" [disabled]="!configSvc.isReady || !loginForm.form.valid">Log In</ion-button>
 	</div>
 </ion-content>

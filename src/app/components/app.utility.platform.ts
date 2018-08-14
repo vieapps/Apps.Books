@@ -6,6 +6,7 @@ declare var FB: any;
 
 /** Servicing component for working with app on a specific platform */
 export class PlatformUtility {
+
 	/** Gets the state that determines the app is running on Apple iOS */
 	static get isAppleOS() {
 		return AppConfig.app.platform.indexOf("iOS") === 0;

@@ -10,6 +10,8 @@ export class AppFormsControl {
 	Required = false;
 	Validators: Array<ValidatorFn> | Array<string> = undefined;
 	AsyncValidators: Array<AsyncValidatorFn> | Array<string> = undefined;
+	Order = 0;
+	Excluded = false;
 	Control = {
 		Type: "text",
 		Label: undefined as string,
@@ -43,27 +45,31 @@ export class AppFormsControl {
 		ReadOnly: false,
 		AutoFocus: false
 	};
-	Children: {
+	SubControls: {
+		Controls: Array<AppFormsControl>,
 		AsArray: boolean,
-		Controls: Array<AppFormsControl>
+		AsComplexArray: boolean
 	} = undefined;
 
-	constructor(options: any = {}) {
-		this.assign(options, this);
+	constructor(options: any = {}, order?: number) {
+		this.assign(options, this, order);
 	}
 
 	/** Gets the controls */
 	static getControls(config: Array<any> = []) {
-		return config.map(options => new AppFormsControl(options));
+		return config.map((options, order) => new AppFormsControl(options, order)).filter(c => !c.Excluded).sort((a, b) => a.Order - b.Order);
 	}
 
-	private assign(options: any, ctrl?: AppFormsControl) {
+	private assign(options: any, ctrl?: AppFormsControl, order?: number, altKey?: string) {
 		ctrl = ctrl || new AppFormsControl();
+		ctrl.Order = options.Order || options.order || order || 0;
+		ctrl.Excluded = !!options.Excluded;
 
-		ctrl.Key = options.Key || options.key || "";
+		ctrl.Key = options.Key || options.key || (altKey ? `${altKey}_${ctrl.Order}` : `c_${ctrl.Order}`) || "";
 		ctrl.Value = options.Value || options.value || "";
 		ctrl.Type = options.Type || options.type || "TextBox";
 		ctrl.Required = !!options.Required;
+
 		ctrl.Validators = options.Validators;
 		ctrl.AsyncValidators = options.AsyncValidators;
 
@@ -128,15 +134,16 @@ export class AppFormsControl {
 				: !!(control.AutoFocus || control.autofocus);
 		}
 
-		ctrl.Children = undefined;
-		const children = options.Children || options.children;
-		if (children !== undefined && children !== null) {
-			const controls = children.Controls || children.controls;
-			if (controls !== undefined && controls !== null && Array.isArray(controls)) {
-				ctrl.Children = {
-					AsArray: !!(children.AsArray || children.asarray),
-					Controls: (controls as Array<any>).map(opts => this.assign(opts))
+		const subControls = options.SubControls || options.subcontrols;
+		if (subControls !== undefined && subControls !== null) {
+			const subConfig = subControls.Controls || subControls.controls;
+			if (subConfig !== undefined && subConfig !== null && Array.isArray(subConfig)) {
+				ctrl.SubControls = {
+					Controls: (subConfig as Array<any>).map((subOptions, subOrder) => this.assign(subOptions, undefined, subOrder, ctrl.Key)).filter(c => !c.Excluded).sort((a, b) => a.Order - b.Order),
+					AsArray: !!(subControls.AsArray || subControls.asarray),
+					AsComplexArray: false
 				};
+				ctrl.SubControls.AsComplexArray = ctrl.SubControls.AsArray && ctrl.SubControls.Controls.filter(c => c.SubControls).length > 0;
 			}
 		}
 
@@ -152,23 +159,23 @@ export class AppFormsService {
 	}
 
 	/** Gets the controls */
-	getControls(config: Array<any>) {
+	getControls(config: Array<any> = []) {
 		return AppFormsControl.getControls(config);
 	}
 
 	/** Builds the form */
-	buildForm(formGroup: FormGroup, controls: Array<AppFormsControl>) {
+	buildForm(formGroup: FormGroup, controls: Array<AppFormsControl> = []) {
 		this.getFormGroup(controls, formGroup);
 	}
 
 	private getFormGroup(controls: Array<AppFormsControl>, formGroup?: FormGroup) {
 		formGroup = formGroup || new FormGroup({});
 		controls.forEach(control => {
-			const formControl: AbstractControl = control.Children === undefined
+			const formControl: AbstractControl = control.SubControls === undefined
 				? this.getFormControl(control)
-				: control.Children.AsArray
+				: control.SubControls.AsArray
 					? this.getFormArray(control)
-					: this.getFormGroup(control.Children.Controls);
+					: this.getFormGroup(control.SubControls.Controls);
 			formGroup.addControl(control.Key, formControl);
 		});
 		return formGroup;
@@ -176,12 +183,12 @@ export class AppFormsService {
 
 	private getFormArray(control: AppFormsControl) {
 		const formArray = new FormArray([]);
-		control.Children.Controls.forEach(ctrl => {
-			const formControl: AbstractControl = ctrl.Children === undefined
+		control.SubControls.Controls.forEach(ctrl => {
+			const formControl: AbstractControl = ctrl.SubControls === undefined
 				? this.getFormControl(ctrl)
-				: ctrl.Children.AsArray
+				: ctrl.SubControls.AsArray
 					? this.getFormArray(ctrl)
-					: this.getFormGroup(ctrl.Children.Controls);
+					: this.getFormGroup(ctrl.SubControls.Controls);
 			formArray.push(formControl);
 		});
 		return formArray;

@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core";
-import { FormGroup } from "@angular/forms";
+import { FormGroup, FormArray } from "@angular/forms";
 import { AppFormsControl } from "./forms.service";
 
 @Component({
@@ -16,15 +16,23 @@ export class AppFormsElementComponent {
 	}
 
 	get isFormControl() {
-		return !this.control.Children;
-	}
-
-	get isFormArray() {
-		return !this.isFormControl && this.control.Children.AsArray;
+		return !this.control.SubControls;
 	}
 
 	get isFormGroup() {
-		return !this.isFormControl && !this.control.Children.AsArray;
+		return this.control.SubControls && !this.control.SubControls.AsArray;
+	}
+
+	get isFormArray() {
+		return this.control.SubControls && this.control.SubControls.AsArray;
+	}
+
+	get isSimpleFormArray() {
+		return this.isFormArray && !this.control.SubControls.AsComplexArray;
+	}
+
+	get isComplexFormArray() {
+		return this.isFormArray && this.control.SubControls.AsComplexArray;
 	}
 
 	isControl(type: string) {
@@ -52,10 +60,6 @@ export class AppFormsElementComponent {
 
 	get type() {
 		return this.control.Control.Type;
-	}
-
-	get formControlName() {
-		return this.index !== undefined ? this.index : this.control.Key;
 	}
 
 	get required() {
@@ -117,11 +121,36 @@ export class AppFormsElementComponent {
 		return style !== "" ? style : undefined;
 	}
 
-	get childControls() {
-		return this.control.Children.Controls;
+	get formControlName() {
+		return this.index !== undefined ? this.index : this.control.Key;
 	}
 
-	get childFormGroup() {
+	get subControls() {
+		return this.control.SubControls.Controls;
+	}
+
+	get subFormGroup() {
 		return this.formGroup.controls[this.control.Key];
 	}
+
+	getSubFormGroup(index: number) {
+		return (this.subFormGroup as FormArray).controls[index];
+	}
+
+	getSubControls(control: AppFormsControl) {
+		return control.SubControls.Controls;
+	}
+
+	getSubLabel(control: AppFormsControl) {
+		return control.Control.Label;
+	}
+
+	getSubColor(control: AppFormsControl) {
+		return control.Control.LabelOptions.Color;
+	}
+
+	getSubCss(control: AppFormsControl) {
+		return control.Control.LabelOptions.Css;
+	}
+
 }

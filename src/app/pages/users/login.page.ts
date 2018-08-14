@@ -3,7 +3,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 import { FormGroup } from "@angular/forms";
 import { first } from "rxjs/operators";
 import { LoadingController, AlertController } from "@ionic/angular";
-import { AppFormsService } from "../../components/forms.service";
+import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { AppUtility } from "../../components/app.utility";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
@@ -33,6 +33,7 @@ export class LogInPage implements OnInit {
 	loginForm = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
+		controls: undefined as Array<AppFormsControl>
 	};
 
 	constructor (
@@ -52,13 +53,14 @@ export class LogInPage implements OnInit {
 
 	initialize() {
 		this.loginForm.form.valueChanges.subscribe(value => {
-			console.log("Changed value", value);
+			// console.log("Changed value", value);
 		});
 
 		this.loginForm.config = [
 			{
 				Key: "Email",
-				Value: "",
+				Value: "email@company.com",
+				Required: true,
 				Type: "TextBox",
 				Control: {
 					Type: "email",
@@ -71,12 +73,12 @@ export class LogInPage implements OnInit {
 					MinLength: 1,
 					MaxLength: 150,
 					AutoFocus: true
-				},
-				Required: true
+				}
 			},
 			{
 				Key: "Password",
-				Value: "",
+				Value: "thePasswORd",
+				Required: true,
 				Type: "TextBox",
 				Control: {
 					Type: "password",
@@ -88,9 +90,8 @@ export class LogInPage implements OnInit {
 					},
 					MinLength: 1,
 					MaxLength: 150,
-				},
-				Required: true
-			}, /**/
+				}
+			},
 			{
 				Key: "OTP",
 				Control: {
@@ -100,34 +101,35 @@ export class LogInPage implements OnInit {
 						Css: ""
 					},
 				},
-				Children: {
-					AsArray: true,
+				SubControls: {
+					AsArray: false,
 					Controls: [
 						{
-							Key: "Value1",
-							Value: "",
+							Key: "SMS",
+							Value: "qwert",
+							Required: true,
 							Type: "TextBox",
 							Control: {
 								Type: "text",
-								Label: "Mật khẩu OTP 1",
+								Label: "Mật khẩu SMS OTP",
 								LabelSettings: {
 									Position: "floating",
 									Color: "primary",
 									Css: ""
 								},
-								PlaceHolder: "Nhập mã OTP trong ứng dụng vào đây",
+								PlaceHolder: "Nhập mã OTP trong SMS vào đây",
 								MinLength: 4,
 								MaxLength: 10,
-							},
-							Required: true
+							}
 						},
 						{
-							Key: "Value2",
-							Value: "",
+							Key: "App",
+							Value: "123456",
+							Required: true,
 							Type: "TextBox",
 							Control: {
 								Type: "text",
-								Label: "Mật khẩu OTP 2",
+								Label: "Mật khẩu App OTP",
 								LabelSettings: {
 									Position: "floating",
 									Color: "primary",
@@ -136,12 +138,119 @@ export class LogInPage implements OnInit {
 								PlaceHolder: "Nhập mã OTP trong ứng dụng vào đây",
 								MinLength: 4,
 								MaxLength: 10,
-							},
-							Required: true
+							}
 						}
 					]
 				}
-			}/**/
+			},
+			{
+				Key: "Technologies",
+				Control: {
+					Label: "Technologies",
+					LabelSettings: {
+						Color: undefined,
+						Css: ""
+					},
+				},
+				SubControls: {
+					AsArray: true,
+					Controls: [
+						{
+							Key: "",
+							Value: "",
+							Type: "TextBox",
+							Control: {
+								Label: "Tech name"
+							}
+						},
+						{
+							Key: "",
+							Value: "",
+							Type: "TextBox",
+							Control: {
+								Label: "Tech name"
+							}
+						}
+					]
+				}
+			}, /**/
+			{
+				Key: "SocialNetworks",
+				Control: {
+					Label: "Mạng xã hội",
+					LabelSettings: {
+						Color: undefined,
+						Css: ""
+					},
+				},
+				SubControls: {
+					AsArray: true,
+					Controls: [
+						{
+							Key: "Facebook",
+							Value: "",
+							Type: "TextBox",
+							Control: {
+								Type: "text",
+								Label: "Facebook"
+							},
+							SubControls: {
+								Controls: [
+									{
+										Key: "DisplayName",
+										Value: "",
+										Type: "TextBox",
+										Control: {
+											Type: "text",
+											Label: "Display name"
+										}
+									},
+									{
+										Key: "Alias",
+										Value: "",
+										Type: "TextBox",
+										Control: {
+											Type: "text",
+											Label: "Alias"
+										}
+									}
+								]
+							}
+						},
+						{
+							Key: "Twitter",
+							Value: "",
+							Type: "TextBox",
+							Control: {
+								Type: "text",
+								Label: "Twitter"
+							},
+							SubControls: {
+								Controls: [
+									{
+										Key: "DisplayName",
+										Value: "",
+										Type: "TextBox",
+										Control: {
+											Type: "text",
+											Label: "Display name"
+										}
+									},
+									{
+										Key: "Alias",
+										Value: "",
+										Type: "TextBox",
+										Control: {
+											Type: "text",
+											Label: "Alias"
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			} /**/
 		];
 
 		this.activatedRoute.params.pipe(first()).subscribe(params => {

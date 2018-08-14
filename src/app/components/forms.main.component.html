@@ -1,7 +1,7 @@
 <form (ngSubmit)="onSubmit()" [formGroup]="form">
 	<ion-list>
-		<div *ngFor="let ctrl of controls">
-			<app-form-element [formGroup]="form" [control]="ctrl"></app-form-element>
-		</div>
+		<app-form-element *ngFor="let ctrl of controls"
+			[formGroup]="form"
+			[control]="ctrl"></app-form-element>
 	</ion-list>
 </form>

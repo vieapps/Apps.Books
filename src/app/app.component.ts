@@ -2,9 +2,12 @@ import { Component } from "@angular/core";
 import { Platform } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
+import { Device } from "@ionic-native/device/ngx";
+import { LoadingController, AlertController } from "@ionic/angular";
 
 import { AppEvents } from "./components/app.events";
 import { AppRTU } from "./components/app.rtu";
+import { AppUtility } from "./components/app.utility";
 import { ConfigurationService } from "./providers/configuration.service";
 
 @Component({
@@ -31,26 +34,55 @@ export class AppComponent {
 	];
 
 	constructor(
-		private platform: Platform,
-		private splashScreen: SplashScreen,
-		private statusBar: StatusBar,
-		private configSvc: ConfigurationService
+		public platform: Platform,
+		public splashScreen: SplashScreen,
+		public statusBar: StatusBar,
+		public device: Device,
+		public loadingController: LoadingController,
+		public alertController: AlertController,
+		public configSvc: ConfigurationService
 	) {
-		this.platform.ready().then(() => this.initialize());
+		this.platform.ready().then(() => this.initializeAsync());
 	}
 
-	initialize() {
-		this.statusBar.styleDefault();
-		this.splashScreen.hide();
-		this.configSvc.initializeAsync(
-			data => {
-				this.configSvc.registerSessionAsync(session => {
-					console.log("Registered session", this.configSvc.appConfig.session);
-					AppRTU.start();
-				});
-			},
-			error => {
+	async initializeAsync() {
+		// show loading
+		const loading = await this.loadingController.create({
+			content: "Tải dữ liệu..."
+		});
+		await loading.present();
 
+		// iPhone X: footers need special paddings
+		const iPhoneX = this.device.platform !== undefined && this.device.platform === "iOS"
+			&& this.device.model !== undefined && this.device.model !== null
+			&& AppUtility.indexOf(this.device.model, "iPhone1") === 0
+			&& AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2;
+
+		// prepare status bar
+		this.statusBar.styleDefault();
+		if (iPhoneX) {
+			this.statusBar.backgroundColorByHexString("f8f8f8");
+		}
+		this.statusBar.overlaysWebView(false);
+
+		// hide the splash screen
+		this.splashScreen.hide();
+
+		// initialize
+		this.configSvc.initializeAsync(
+			async data => {
+				this.configSvc.registerSessionAsync(
+					async session => {
+						await loading.dismiss();
+						AppRTU.start();
+					},
+					async error => {
+						await loading.dismiss();
+					}
+				);
+			},
+			async error => {
+				await loading.dismiss();
 			}
 		);
 	}

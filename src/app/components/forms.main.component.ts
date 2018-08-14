@@ -23,7 +23,7 @@ export class AppFormsComponent implements OnInit {
 				this.controls = this.appFormsSvc.getControls(this.config);
 			}
 			else {
-				throw new Error("You must initialize controls of the form (via [controls] attribute) or set the config (via [config] attributes) for initializing");
+				throw new Error("Controls or config of the form need to be initialized first (controls/config attributes)");
 			}
 		}
 		this.appFormsSvc.buildForm(this.form, this.controls);

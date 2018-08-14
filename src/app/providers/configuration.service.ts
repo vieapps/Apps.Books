@@ -44,7 +44,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Prepare the working environments of the app */
-	prepare(onCompleted?: () => void) {
+	async prepareAsync(onCompleted?: () => void) {
 		this.appConfig.app.mode = this.platform.is("cordova") && this.device.platform !== "browser" ? "NTA" : "PWA";
 		this.appConfig.app.os = PlatformUtility.getOSPlatform();
 
@@ -65,6 +65,7 @@ export class ConfigurationService extends BaseService {
 			}
 		}
 
+		await this.storage.ready();
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
@@ -74,7 +75,7 @@ export class ConfigurationService extends BaseService {
 	async initializeAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void, dontInitializeSession?: boolean) {
 		// prepare environment
 		if (this.appConfig.app.mode === "") {
-			this.prepare();
+			await this.prepareAsync();
 		}
 
 		// load saved session
@@ -94,7 +95,7 @@ export class ConfigurationService extends BaseService {
 	/** Initializes the session with REST API */
 	initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return super.readAsync("users/session",
-			async (data) => {
+			async data => {
 				await this.updateSessionAsync(data, () => {
 					if (this.isAuthenticated) {
 						this.appConfig.session.account = AppUtility.isObject(this.appConfig.session.account, true)
@@ -126,7 +127,7 @@ export class ConfigurationService extends BaseService {
 	/** Registers the initialized session (anonymous) with REST API */
 	registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.readAsync("users/session?register=" + this.appConfig.session.id,
-			async (data) => {
+			async data => {
 				this.appConfig.session.account = this.getAccount(true);
 				await this.storeSessionAsync(() => {
 					AppEvents.broadcast("Session", { Type: "Register", Info: this.appConfig.session });
@@ -181,7 +182,7 @@ export class ConfigurationService extends BaseService {
 				if (this.appConfig.session.account !== null && this.appConfig.session.account.profile !== null) {
 					this.appConfig.session.account.profile = Profile.deserialize(this.appConfig.session.account.profile);
 				}
-				AppEvents.broadcast("SessionIsLoaded", this.appConfig.session);
+				AppEvents.broadcast("Session", { Type: "Loaded", Info: this.appConfig.session });
 			}
 		}
 		catch (error) {
@@ -249,14 +250,9 @@ export class ConfigurationService extends BaseService {
 
 	/** Prepares account information */
 	prepareAccount(data: any) {
-		const account: {
-			Roles: Array<string>,
-			Privileges: Array<Privilege>,
-			Status: string,
-			TwoFactorsAuthentication: { Required: boolean, Providers: Array<{Label: string, Type: string, Time: Date, Info: string}> }
-		} = {
-			Roles: [],
-			Privileges: [],
+		const account = {
+			Roles: new Array<string>(),
+			Privileges: new Array<Privilege>(),
 			Status: "Registered",
 			TwoFactorsAuthentication: {
 				Required: false,
@@ -264,14 +260,11 @@ export class ConfigurationService extends BaseService {
 			}
 		};
 
-		if (data.Roles && AppUtility.isArray(data.Roles)) {
-			account.Roles = new List<string>(data.Roles)
-				.Select(r => r.trim())
-				.Distinct()
-				.ToArray();
+		if (AppUtility.isArray(data.Roles, true)) {
+			account.Roles = new List<string>(data.Roles).Select(r => r.trim()).Distinct().ToArray();
 		}
 
-		if (data.Privileges && AppUtility.isArray(data.Privileges)) {
+		if (AppUtility.isArray(data.Privileges, true)) {
 			account.Privileges = (data.Privileges as Array<any>).map(p => Privilege.deserialize(p));
 		}
 
@@ -281,7 +274,7 @@ export class ConfigurationService extends BaseService {
 
 		if (AppUtility.isObject(data.TwoFactorsAuthentication, true)) {
 			account.TwoFactorsAuthentication.Required = AppUtility.isTrue(data.TwoFactorsAuthentication.Required);
-			if (AppUtility.isArray(data.TwoFactorsAuthentication.Providers)) {
+			if (AppUtility.isArray(data.TwoFactorsAuthentication.Providers, true)) {
 				account.TwoFactorsAuthentication.Providers = (data.TwoFactorsAuthentication.Providers as Array<any>).map(p => {
 					return {
 						Label: p.Label,
@@ -332,7 +325,7 @@ export class ConfigurationService extends BaseService {
 	/** Store the information of current account profile into storage */
 	async storeProfileAsync(onCompleted?: (data?: any) => void) {
 		await this.storeSessionAsync();
-		AppEvents.broadcast("AccountIsUpdated", { Type: "Profile" });
+		AppEvents.broadcast("Session", { Type: "Updated", Info: this.appConfig.session });
 		if (onCompleted !== undefined) {
 			onCompleted(this.appConfig.session);
 		}

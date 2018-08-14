@@ -8,12 +8,12 @@ export class AppData {
 	/** Account profiles */
 	static profiles = new Collections.Dictionary<string, Profile>();
 
+	/** Paginations */
+	static paginations = new Collections.Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
+
 	/** Books */
 	static books = new Collections.Dictionary<string, Book>();
 
 	/** Statistics */
 	static statistics = new Statistics();
-
-	/** Paginations */
-	static paginations = new Collections.Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
 }

@@ -161,15 +161,18 @@ export class UserService extends BaseService {
 			+ "&language=" + AppUtility.getLanguage()
 			+ "&host=" + PlatformUtility.getHost();
 		return this.readAsync(path,
-			async (data) => {
-				await this.configSvc.updateSessionAsync(data, () => {
-					this.configSvc.appConfig.session.account.id = this.configSvc.appConfig.session.token.uid;
-					this.configSvc.storeSessionAsync();
-					console.log("[User]: Activated...", this.configSvc.appConfig.isDebug ? this.configSvc.appConfig.session : "");
-					if (onNext !== undefined) {
-						onNext(data);
+			async data => {
+				await this.configSvc.updateSessionAsync(data,
+					async () => {
+						this.configSvc.appConfig.session.account.id = this.configSvc.appConfig.session.token.uid;
+						await this.configSvc.storeSessionAsync(() => {
+							console.log("[User]: Activated...", this.configSvc.appConfig.isDebug ? this.configSvc.appConfig.session : "");
+							if (onNext !== undefined) {
+								onNext(data);
+							}
+						});
 					}
-				});
+				);
 			},
 			error => this.showError("Error occurred while activating (" + mode + ")", error, onError)
 		);

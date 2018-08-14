@@ -5,7 +5,7 @@ import { AppRTU } from "../components/app.rtu";
 import { AppUtility } from "../components/app.utility";
 import { AppPagination } from "../components/app.pagination";
 
-/** Base of all services/providers */
+/** Base of all providers/services */
 export class Base {
 
 	/** Name of the service (for working with paginations as prefix, display error, ...) */
@@ -144,12 +144,14 @@ export class Base {
 		try {
 			request.Pagination.PageNumber++;
 			const response = await AppAPI.getAsync(path);
-			const data = response.json();
-			if (processPagination) {
-				AppPagination.set(data, this.Name);
-			}
-			if (onNext !== undefined) {
-				onNext(data);
+			if (processPagination || onNext !== undefined) {
+				const data = response.json();
+				if (processPagination) {
+					AppPagination.set(data, this.Name);
+				}
+				if (onNext !== undefined) {
+					onNext(data);
+				}
 			}
 		}
 		catch (error) {

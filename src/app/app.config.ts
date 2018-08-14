@@ -13,8 +13,8 @@ export class AppConfig {
 		// files: "https://fs.vieapps.com/",
 
 		/** URI to perform activation (on the web) */
-		activations: "https://books.vieapps.com/"
-		// activations: "https://viebooks.net/"
+		activations: "https://viebooks.net/"
+		// activations: "https://books.vieapps.com/"
 	};
 
 	/** Settings of the app */
@@ -29,7 +29,7 @@ export class AppConfig {
 		language: "vi-VN",
 		service: "books",
 		debug: true,
-		offline: false,
+		offline: false
 	};
 
 	/** Session information */
@@ -62,7 +62,7 @@ export class AppConfig {
 	/** Tracking information */
 	static tracking = {
 		google: "UA-3060572-8",
-		googleDomains: ["viebooks.net", "books.vieapps.net", "books.vieapps.com", "books.apps.prj.vn"],
+		googleDomains: ["viebooks.net", "books.vieapps.net", "books.vieapps.com"],
 		facebook: ""
 	};
 
@@ -74,9 +74,9 @@ export class AppConfig {
 		version: "v3.1",
 	};
 
-	static refer: {
-		id: null,
-		section: null
+	static refer = {
+		id: null as string,
+		section: null as string
 	};
 
 	/** Gets the state that determines is native app */
@@ -99,6 +99,7 @@ export class AppConfig {
 		return this.app.offline;
 	}
 
+	/** Gets the reading options fo the book app */
 	static readingOptions = {
 		font: "default",
 		size: "normal",

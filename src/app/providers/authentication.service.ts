@@ -89,7 +89,7 @@ export class AuthenticationService extends BaseService {
 			Password: AppCrypto.rsaEncrypt(password)
 		};
 		return this.createAsync("users/session", body,
-			data => {
+			async data => {
 				if (AppUtility.isFalse(data.Require2FA)) {
 					AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
 					this.configSvc.patchSession();
@@ -98,11 +98,12 @@ export class AuthenticationService extends BaseService {
 				if (onNext !== undefined) {
 					onNext(data);
 				}
-			}, error => {
+			},
+			async error => {
 				if (AppUtility.isObject(error, true) && "InvalidSessionException" === error.Type && AppUtility.indexOf(error.Message, "not issued by the system") > 0) {
-					this.configSvc.deleteSessionAsync(() => {
-						this.configSvc.initializeSessionAsync(() => {
-							this.configSvc.registerSessionAsync(() => {
+					await this.configSvc.deleteSessionAsync(async () => {
+						await this.configSvc.initializeSessionAsync(async () => {
+							await this.configSvc.registerSessionAsync(() => {
 								console.log(`[${this.Name}]: The session is re-registered (anonymous)`);
 							});
 						});
@@ -115,7 +116,7 @@ export class AuthenticationService extends BaseService {
 
 	logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.deleteAsync("users/session",
-			async (data) => {
+			async data => {
 				await this.configSvc.updateSessionAsync(data);
 				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
 				await this.configSvc.registerSessionAsync(() => {
