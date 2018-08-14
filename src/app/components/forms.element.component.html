@@ -1,0 +1,45 @@
+<ion-item *ngIf="isFormControl" [formGroup]="formGroup">
+	<ion-label *ngIf="label"
+		[color]="color"
+		[position]="position"
+		[class]="css.label">{{label}}</ion-label>
+	<ion-input *ngIf="isControl('TextBox')"
+		[formControlName]="formControlName"
+		[type]="type"
+		[placeholder]="placeholder"
+		[class]="css.control"
+		[required]="required"
+		[readonly]="readonly"
+		[autofocus]="autofocus"
+		[min]="min"
+		[max]="max"
+		[minlength]="minLength"
+		[maxlength]="maxLength"
+		[clearOnEdit]="clearOnEdit"
+		[attr.style]="style"></ion-input>
+	<ion-textarea *ngIf="isControl('TextArea')" rows="4"
+		[formControlName]="formControlName"
+		[placeholder]="placeholder"
+		[class]="css.control"
+		[required]="required"
+		[readonly]="readonly"
+		[minlength]="minLength"
+		[maxlength]="maxLength"
+		[attr.style]="style"></ion-textarea>
+</ion-item>
+
+<ion-list-header *ngIf="label && !isFormControl"
+	[color]="color"
+	[class]="css.label">{{label}}</ion-list-header>
+
+<div *ngIf="isFormGroup">
+	<div *ngFor="let ctrl of childControls">
+		<app-form-element [formGroup]="childFormGroup" [control]="ctrl"></app-form-element>
+	</div>
+</div>
+
+<div *ngIf="isFormArray">
+	<div *ngFor="let ctrl of childControls; let i=index">
+		<app-form-element [formGroup]="childFormGroup" [control]="ctrl" [index]="i"></app-form-element>
+	</div>
+</div>

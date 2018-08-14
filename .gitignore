@@ -11,6 +11,7 @@ log.txt
 *.sublime-workspace
 .vscode/
 npm-debug.log*
+package-lock.json
 
 .idea/
 .ionic/
@@ -25,8 +26,8 @@ tmp/
 temp/
 platforms/
 plugins/
-plugins/android.json
-plugins/ios.json
+resources/android/
+resources/ios/
 $RECYCLE.BIN/
 
 .DS_Store

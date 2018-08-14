@@ -1,0 +1,52 @@
+<ion-header>
+	<ion-toolbar>
+		<ion-buttons slot="start">
+			<ion-menu-button></ion-menu-button>
+		</ion-buttons>
+		<ion-title>
+			Home
+		</ion-title>
+	</ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+	The world is your oyster.
+	<p>If you get lost, the
+		<a target="_blank" href="https://ionicframework.com/docs">docs</a> will be your guide.
+	</p>
+	
+	<form [formGroup]="form" (ngSubmit)="manage(form.value)">
+		<ion-list margin-bottom>
+			<ion-item margin-bottom no-lines>
+				<ion-label position="fixed">Framework name:</ion-label>
+				<ion-input type="text" maxlength="40" formControlName="name"></ion-input>
+			</ion-item>
+
+			<div formArrayName="technologies" margin-bottom>
+				<section [formGroupName]="i" *ngFor="let tech of form.controls['technologies'].controls; let i = index">
+					<ion-item-group>
+						<ion-item-divider color="light">Name #{{ i + 1 }}</ion-item-divider>
+						<ion-item>
+							<ion-label floating>Technology name:</ion-label>
+							<ion-input type="text" maxlength="50" formControlName="name"></ion-input>
+						</ion-item>
+						<!-- Allow generated input field to be removed -->
+						<span float-right ion-button icon-left clear *ngIf="form.controls['technologies'].length > 1" (click)="removeInputField(i)">
+							<ion-icon name="close"></ion-icon>
+							Remove
+						</span>
+					</ion-item-group>
+				</section>
+			</div>
+
+			<span ion-button float-left icon-left clear (click)="addNewInputField()">
+				<ion-icon name="add"></ion-icon>
+				Add a new technology
+			</span>
+				 
+			<button ion-button block margin-top color="primary" text-center [disabled]="!form.valid">Submit</button>
+
+		</ion-list>
+	</form>
+
+</ion-content>
