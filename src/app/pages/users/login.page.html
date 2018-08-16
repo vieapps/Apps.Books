@@ -1,7 +1,7 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-back-button></ion-back-button>
+			<ion-back-button defaultHref="/home" icon="close"></ion-back-button>
 		</ion-buttons>
 		<ion-title>
 			{{info.state.title}}
@@ -10,8 +10,13 @@
 </ion-header>
 
 <ion-content padding>
-	<app-form [form]="loginForm.form" [config]="loginForm.config"></app-form>
+	<app-form
+		[form]="loginForm.form"
+		[config]="loginForm.config"
+		[controls]="loginForm.controls"
+		(readyEvent)="onLoginFormReady($event)"
+		(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
 	<div class="buttons">
-		<ion-button slot="end" color="primary" (click)="loginAsync()" [disabled]="!configSvc.isReady || !loginForm.form.valid">Log In</ion-button>
+		<ion-button color="primary" (click)="loginAsync()">Log In</ion-button>
 	</div>
 </ion-content>

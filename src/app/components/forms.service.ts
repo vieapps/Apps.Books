@@ -16,7 +16,7 @@ export class AppFormsControl {
 		Type: "text",
 		Label: undefined as string,
 		LabelOptions: {
-			Position: "floating",
+			Position: "stacked",
 			Color: "",
 			Css: ""
 		},
@@ -25,7 +25,7 @@ export class AppFormsControl {
 			Color: "",
 			Css: ""
 		},
-		PlaceHolder: "",
+		PlaceHolder: undefined as string,
 		Css: "",
 		Min: undefined as number,
 		Max: undefined as number,
@@ -50,14 +50,10 @@ export class AppFormsControl {
 		AsArray: boolean,
 		AsComplexArray: boolean
 	} = undefined;
+	Extra: any = {};
 
 	constructor(options: any = {}, order?: number) {
 		this.assign(options, this, order);
-	}
-
-	/** Gets the controls */
-	static getControls(config: Array<any> = []) {
-		return config.map((options, order) => new AppFormsControl(options, order)).filter(c => !c.Excluded).sort((a, b) => a.Order - b.Order);
 	}
 
 	private assign(options: any, ctrl?: AppFormsControl, order?: number, altKey?: string) {
@@ -80,7 +76,7 @@ export class AppFormsControl {
 			ctrl.Control.Label = control.Label || control.label;
 			const labelOptions = control.LabelOptions || control.labeloptions;
 			if (labelOptions !== undefined && labelOptions !== null) {
-				ctrl.Control.LabelOptions.Position = labelOptions.Position || labelOptions.position || "floating";
+				ctrl.Control.LabelOptions.Position = labelOptions.Position || labelOptions.position || "stacked";
 				ctrl.Control.LabelOptions.Color = labelOptions.Color || labelOptions.color || "";
 				ctrl.Control.LabelOptions.Css = labelOptions.Css || labelOptions.css || "";
 			}
@@ -147,6 +143,8 @@ export class AppFormsControl {
 			}
 		}
 
+		ctrl.Extra = options.Extra || options.extra || {};
+
 		return ctrl;
 	}
 }
@@ -159,8 +157,49 @@ export class AppFormsService {
 	}
 
 	/** Gets the controls */
-	getControls(config: Array<any> = []) {
-		return AppFormsControl.getControls(config);
+	getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
+		controls = controls || new Array<AppFormsControl>();
+		config.map((options, order) => new AppFormsControl(options, order))
+			.filter(c => !c.Excluded)
+			.sort((a, b) => a.Order - b.Order)
+			.forEach(control => controls.push(control));
+		return controls;
+	}
+
+	/** Highlights all invalid controls (by mark as dirty all invalid controls) */
+	highlightInvalids(form: FormGroup) {
+		this.highlightInvalidsFormGroup(form);
+	}
+
+	private highlightInvalidsFormGroup(formGroup: FormGroup) {
+		Object.keys(formGroup.controls).forEach(key => {
+			const control = formGroup.controls[key];
+			if (control.invalid) {
+				if (control instanceof FormGroup) {
+					this.highlightInvalidsFormGroup(control as FormGroup);
+				}
+				else if (control instanceof FormArray) {
+					this.highlightInvalidsFormArray(control as FormArray);
+				}
+				else {
+					control.markAsDirty();
+				}
+			}
+		});
+	}
+
+	private highlightInvalidsFormArray(formArray: FormArray) {
+		formArray.controls.filter(control => control.invalid).forEach(control => {
+			if (control instanceof FormGroup) {
+				this.highlightInvalidsFormGroup(control as FormGroup);
+			}
+			else if (control instanceof FormArray) {
+				this.highlightInvalidsFormArray(control as FormArray);
+			}
+			else {
+				control.markAsDirty();
+			}
+		});
 	}
 
 	/** Builds the form */

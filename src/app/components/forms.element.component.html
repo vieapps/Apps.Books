@@ -1,13 +1,14 @@
-<ion-item *ngIf="isFormControl" [formGroup]="formGroup">
+<ion-item *ngIf="isFormControl && !isControl('Captcha')" [formGroup]="formGroup" [class.invalid]="invalid">
 	<ion-label *ngIf="label"
 		[color]="color"
 		[position]="position"
 		[class]="css.label">{{label}}</ion-label>
-	<ion-input *ngIf="isControl('TextBox')"
+	<ion-input *ngIf="isControl('TextBox') || isControl('Captcha')"
 		[formControlName]="formControlName"
 		[type]="type"
 		[placeholder]="placeholder"
 		[class]="css.control"
+		[class.captcha]="isControl('Captcha')"
 		[required]="required"
 		[readonly]="readonly"
 		[autofocus]="autofocus"
@@ -28,7 +29,28 @@
 		[attr.style]="style"></ion-textarea>
 </ion-item>
 
-<ion-list-header *ngIf="label && !isFormControl"
+<div *ngIf="isFormControl && isControl('Captcha')" class="captcha">
+	<ion-item [formGroup]="formGroup" [class.invalid]="invalid">
+		<ion-label *ngIf="label"
+			[color]="color"
+			[position]="position"
+			[class]="css.label">{{label}}</ion-label>
+		<ion-input type="text" clearOnEdit="true"
+			[formControlName]="formControlName"
+			[placeholder]="placeholder"
+			[required]="required"
+			[minlength]="minLength"
+			[maxlength]="maxLength"></ion-input>
+	</ion-item>
+	<ion-item>
+		<ion-button fill="clear" (click)="refreshCaptcha()">
+			<ion-icon icon="refresh"></ion-icon>
+		</ion-button>
+		<img *ngIf="control.Extra['Uri']" slot="start" [src]="control.Extra['Uri']"/>
+	</ion-item>
+</div>
+
+<ion-list-header *ngIf="(isFormGroup || isFormArray) && label"
 	[color]="color"
 	[class]="css.label">{{label}}</ion-list-header>
 

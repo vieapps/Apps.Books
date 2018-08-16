@@ -11,3 +11,8 @@
 @import "~@ionic/angular/css/flex-utils.css";
 
 @import "~app/pages/users/login.page.scss";
+
+/* lable of invalid controls */
+.invalid > ion-label {
+	color: #f04141;
+}

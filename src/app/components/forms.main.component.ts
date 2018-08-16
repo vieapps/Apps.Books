@@ -10,7 +10,9 @@ export class AppFormsComponent implements OnInit {
 	@Input() form: FormGroup;
 	@Input() controls: Array<AppFormsControl>;
 	@Input() config: Array<any>;
-	@Output() submit: EventEmitter<any> = new EventEmitter();
+	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
+	@Output() readyEvent: EventEmitter<any> = new EventEmitter();
+	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 
 	constructor (
 		public appFormsSvc: AppFormsService
@@ -18,19 +20,30 @@ export class AppFormsComponent implements OnInit {
 	}
 
 	ngOnInit() {
-		if (this.controls === undefined || this.controls === null) {
+		if (this.controls === undefined || this.controls === null || this.controls.length < 1) {
 			if (this.config !== undefined && this.config !== null) {
-				this.controls = this.appFormsSvc.getControls(this.config);
-			}
-			else {
-				throw new Error("Controls or config of the form need to be initialized first (controls/config attributes)");
+				this.controls = this.appFormsSvc.getControls(this.config, this.controls);
 			}
 		}
-		this.appFormsSvc.buildForm(this.form, this.controls);
+
+		if (this.controls === undefined || this.controls === null) {
+			throw new Error("Controls or config of the form need to be initialized first (controls/config attributes)");
+		}
+		else {
+			if (this.controls.length < 1) {
+				console.warn("[AppForms]: No control");
+			}
+			this.appFormsSvc.buildForm(this.form, this.controls);
+			this.readyEvent.emit(this);
+		}
 	}
 
 	onSubmit() {
-		this.submit.next(this.form.value);
+		this.submitEvent.next(this.form.value);
+	}
+
+	onRefreshCaptcha($event) {
+		this.refreshCaptchaEvent.emit($event);
 	}
 
 }

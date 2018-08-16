@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
 import { AppFormsControl } from "./forms.service";
 
@@ -10,6 +10,7 @@ export class AppFormsElementComponent {
 	@Input() formGroup: FormGroup;
 	@Input() control: AppFormsControl;
 	@Input() index: number;
+	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 
 	constructor (
 	) {
@@ -125,6 +126,11 @@ export class AppFormsElementComponent {
 		return this.index !== undefined ? this.index : this.control.Key;
 	}
 
+	get invalid() {
+		const control = this.formGroup.controls[this.formControlName];
+		return control.invalid && control.dirty;
+	}
+
 	get subControls() {
 		return this.control.SubControls.Controls;
 	}
@@ -151,6 +157,11 @@ export class AppFormsElementComponent {
 
 	getSubCss(control: AppFormsControl) {
 		return control.Control.LabelOptions.Css;
+	}
+
+	refreshCaptcha() {
+		this.formGroup.controls[this.control.Key].setValue("");
+		this.refreshCaptchaEvent.emit(this.control);
 	}
 
 }

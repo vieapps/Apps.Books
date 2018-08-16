@@ -1,7 +1,8 @@
-<form (ngSubmit)="onSubmit()" [formGroup]="form">
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
 	<ion-list>
 		<app-form-element *ngFor="let ctrl of controls"
 			[formGroup]="form"
-			[control]="ctrl"></app-form-element>
+			[control]="ctrl"
+			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form-element>
 	</ion-list>
 </form>

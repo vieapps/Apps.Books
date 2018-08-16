@@ -33,7 +33,8 @@ export class LogInPage implements OnInit {
 	loginForm = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
-		controls: undefined as Array<AppFormsControl>
+		controls: new Array<AppFormsControl>(),
+		invalid: {}
 	};
 
 	constructor (
@@ -53,23 +54,18 @@ export class LogInPage implements OnInit {
 
 	initialize() {
 		this.loginForm.form.valueChanges.subscribe(value => {
-			// console.log("Changed value", value);
+			// console.log("Form", this.loginForm.form);
 		});
 
 		this.loginForm.config = [
 			{
 				Key: "Email",
-				Value: "email@company.com",
+				Value: "email@company.c",
 				Required: true,
 				Type: "TextBox",
 				Control: {
 					Type: "email",
 					Label: "Email",
-					LabelSettings: {
-						Position: "floating",
-						Color: "primary",
-						Css: ""
-					},
 					MinLength: 1,
 					MaxLength: 150,
 					AutoFocus: true
@@ -83,174 +79,22 @@ export class LogInPage implements OnInit {
 				Control: {
 					Type: "password",
 					Label: "Mật khẩu",
-					LabelSettings: {
-						Position: "floating",
-						Color: "primary",
-						Css: ""
-					},
 					MinLength: 1,
 					MaxLength: 150,
 				}
 			},
 			{
-				Key: "OTP",
+				Key: "CaptchaCode",
+				Value: "",
+				Required: true,
+				Type: "Captcha",
 				Control: {
-					Label: "One time password",
-					LabelSettings: {
-						Color: undefined,
-						Css: ""
-					},
-				},
-				SubControls: {
-					AsArray: false,
-					Controls: [
-						{
-							Key: "SMS",
-							Value: "qwert",
-							Required: true,
-							Type: "TextBox",
-							Control: {
-								Type: "text",
-								Label: "Mật khẩu SMS OTP",
-								LabelSettings: {
-									Position: "floating",
-									Color: "primary",
-									Css: ""
-								},
-								PlaceHolder: "Nhập mã OTP trong SMS vào đây",
-								MinLength: 4,
-								MaxLength: 10,
-							}
-						},
-						{
-							Key: "App",
-							Value: "123456",
-							Required: true,
-							Type: "TextBox",
-							Control: {
-								Type: "text",
-								Label: "Mật khẩu App OTP",
-								LabelSettings: {
-									Position: "floating",
-									Color: "primary",
-									Css: ""
-								},
-								PlaceHolder: "Nhập mã OTP trong ứng dụng vào đây",
-								MinLength: 4,
-								MaxLength: 10,
-							}
-						}
-					]
+					Type: "text",
+					Label: "Captcha",
+					MinLength: 4,
+					MaxLength: 4
 				}
-			},
-			{
-				Key: "Technologies",
-				Control: {
-					Label: "Technologies",
-					LabelSettings: {
-						Color: undefined,
-						Css: ""
-					},
-				},
-				SubControls: {
-					AsArray: true,
-					Controls: [
-						{
-							Key: "",
-							Value: "",
-							Type: "TextBox",
-							Control: {
-								Label: "Tech name"
-							}
-						},
-						{
-							Key: "",
-							Value: "",
-							Type: "TextBox",
-							Control: {
-								Label: "Tech name"
-							}
-						}
-					]
-				}
-			}, /**/
-			{
-				Key: "SocialNetworks",
-				Control: {
-					Label: "Mạng xã hội",
-					LabelSettings: {
-						Color: undefined,
-						Css: ""
-					},
-				},
-				SubControls: {
-					AsArray: true,
-					Controls: [
-						{
-							Key: "Facebook",
-							Value: "",
-							Type: "TextBox",
-							Control: {
-								Type: "text",
-								Label: "Facebook"
-							},
-							SubControls: {
-								Controls: [
-									{
-										Key: "DisplayName",
-										Value: "",
-										Type: "TextBox",
-										Control: {
-											Type: "text",
-											Label: "Display name"
-										}
-									},
-									{
-										Key: "Alias",
-										Value: "",
-										Type: "TextBox",
-										Control: {
-											Type: "text",
-											Label: "Alias"
-										}
-									}
-								]
-							}
-						},
-						{
-							Key: "Twitter",
-							Value: "",
-							Type: "TextBox",
-							Control: {
-								Type: "text",
-								Label: "Twitter"
-							},
-							SubControls: {
-								Controls: [
-									{
-										Key: "DisplayName",
-										Value: "",
-										Type: "TextBox",
-										Control: {
-											Type: "text",
-											Label: "Display name"
-										}
-									},
-									{
-										Key: "Alias",
-										Value: "",
-										Type: "TextBox",
-										Control: {
-											Type: "text",
-											Label: "Alias"
-										}
-									}
-								]
-							}
-						}
-					]
-				}
-			} /**/
+			}
 		];
 
 		this.activatedRoute.params.pipe(first()).subscribe(params => {
@@ -259,9 +103,9 @@ export class LogInPage implements OnInit {
 	}
 
 	async showErrorAsync(error: any, handler?: () => void) {
-		if (this.info.state.mode === "renew") {
-			this.renewCaptchaAsync();
-		}
+		// if (this.info.state.mode === "renew") {
+		// 	this.renewCaptchaAsync(undefined);
+		// }
 
 		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
 			? "Email hoặc mật khẩu không đúng!"
@@ -294,6 +138,9 @@ export class LogInPage implements OnInit {
 	}
 
 	async loginAsync() {
+		if (this.loginForm.form.invalid) {
+			this.appFormsSvc.highlightInvalids(this.loginForm.form);
+		}
 		const formValue = this.loginForm.form.value;
 		console.log("Form value", typeof formValue, formValue);
 		return;
@@ -310,19 +157,25 @@ export class LogInPage implements OnInit {
 		});
 	}
 
-	async renewCaptchaAsync () {
+	onLoginFormReady($event) {
+		this.renewCaptchaAsync();
+	}
+
+	onRefreshCaptcha($event) {
+		this.renewCaptchaAsync($event as AppFormsControl);
+	}
+
+	async renewCaptchaAsync(control?: AppFormsControl) {
+		control = control || this.loginForm.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
 		await this.authSvc.registerCaptchaAsync(() => {
-			this.info.captcha = {
-				code: "",
-				uri: this.configSvc.appConfig.session.captcha.uri
-			};
+			control.Extra["Uri"] = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
 
 	async openResetPasswordAsync() {
 		this.info.state.mode = "renew";
 		this.info.state.title = "Lấy mật khẩu mới";
-		await this.renewCaptchaAsync();
+		// await this.renewCaptchaAsync(undefined);
 	}
 
 	async resetPasswordAsync() {
