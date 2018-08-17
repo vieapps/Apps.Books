@@ -89,14 +89,21 @@ export class AuthenticationService extends BaseService {
 			Password: AppCrypto.rsaEncrypt(password)
 		};
 		return this.createAsync("users/session", body,
-			async data => {
-				if (AppUtility.isFalse(data.Require2FA)) {
-					AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
-					this.configSvc.patchSession();
-					console.log(`[${this.Name}]: Log in successful`);
+			data => {
+				if (AppUtility.isTrue(data.Require2FA)) {
+					console.log(`[${this.Name}]: Log in with static password successful, need to verify with 2FA`);
+					if (onNext !== undefined) {
+						onNext(data);
+					}
 				}
-				if (onNext !== undefined) {
-					onNext(data);
+				else {
+					AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
+					this.patchSessionInfo(() => {
+						console.log(`[${this.Name}]: Log in successful`);
+						if (onNext !== undefined) {
+							onNext(data);
+						}
+					});
 				}
 			},
 			async error => {
@@ -120,11 +127,12 @@ export class AuthenticationService extends BaseService {
 				await this.configSvc.updateSessionAsync(data);
 				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
 				await this.configSvc.registerSessionAsync(() => {
-					this.configSvc.patchSession();
-					console.log(`[${this.Name}]: Log out successful`);
-					if (onNext !== undefined) {
-						onNext(data);
-					}
+					this.configSvc.patchSession(() => {
+						console.log(`[${this.Name}]: Log out successful`);
+						if (onNext !== undefined) {
+							onNext(data);
+						}
+					});
 				}, onError);
 			},
 			error => this.showError("Error occurred while logging out", error, onError)
@@ -186,6 +194,14 @@ export class AuthenticationService extends BaseService {
 			Email: AppCrypto.rsaEncrypt(email)
 		};
 		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while requesting new password", error, onError), AppAPI.getCaptchaHeaders(captcha));
+	}
+
+	patchSessionInfo(onNext: () => void) {
+		this.configSvc.patchSession(() => {
+			this.configSvc.patchAccount(() => {
+				this.configSvc.getProfile(onNext);
+			});
+		});
 	}
 
 }

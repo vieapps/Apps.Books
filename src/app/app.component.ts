@@ -1,4 +1,5 @@
 import { Component } from "@angular/core";
+import { Router, NavigationEnd } from "@angular/router";
 import { Platform } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
@@ -34,6 +35,7 @@ export class AppComponent {
 	];
 
 	constructor(
+		public router: Router,
 		public platform: Platform,
 		public splashScreen: SplashScreen,
 		public statusBar: StatusBar,
@@ -42,6 +44,15 @@ export class AppComponent {
 		public alertController: AlertController,
 		public configSvc: ConfigurationService
 	) {
+		// url
+		this.configSvc.setCurrentUrl("/home");
+		this.router.events.subscribe(event => {
+			if (event instanceof NavigationEnd) {
+				this.configSvc.currentUrl = (event as NavigationEnd).url;
+			}
+		});
+
+		// initliaze app
 		this.platform.ready().then(() => this.initializeAsync());
 	}
 

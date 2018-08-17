@@ -1,9 +1,11 @@
 declare var FB: any;
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
+import { Title } from "@angular/platform-browser";
 import { Platform } from "@ionic/angular";
 import { Storage } from "@ionic/storage";
 import { Device } from "@ionic-native/device/ngx";
+import { AppVersion } from "@ionic-native/app-version/ngx";
 import { List } from "linqts";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "../components/app.api";
@@ -23,7 +25,9 @@ export class ConfigurationService extends BaseService {
 		public http: Http,
 		public platform: Platform,
 		public device: Device,
-		public storage: Storage
+		public storage: Storage,
+		public appVer: AppVersion,
+		public docTitle: Title
 	) {
 		super(http, "Configuration");
 	}
@@ -41,6 +45,46 @@ export class ConfigurationService extends BaseService {
 	/** Gets the state that determines the current account is authenticated or not */
 	get isAuthenticated() {
 		return AppUtility.isObject(this.appConfig.session.token, true) && AppUtility.isNotEmpty(this.appConfig.session.token.uid);
+	}
+
+	/** Sets the previous url */
+	setPreviousUrl(value: string) {
+		this.appConfig.app.url.previous = value;
+	}
+
+	/** Sets the current url */
+	setCurrentUrl(value: string) {
+		this.appConfig.app.url.current = value;
+	}
+
+	/** Gets the previous url */
+	get previousUrl() {
+		return this.appConfig.app.url.previous || "/home";
+	}
+
+	/** Gets the current url */
+	get currentUrl() {
+		return this.appConfig.app.url.current || "/home";
+	}
+
+	/** Sets the current url */
+	set currentUrl(value: string) {
+		if (value !== this.currentUrl) {
+			if (this.currentUrl !== this.previousUrl) {
+				this.setPreviousUrl(this.currentUrl);
+			}
+			this.setCurrentUrl(value);
+		}
+	}
+
+	/** Gets the current version of the app title */
+	get appVersion() {
+		return this.appConfig.app.version;
+	}
+
+	/** Sets the app title (means of title of the current app page) */
+	set appTitle(value: string) {
+		this.docTitle.setTitle(`${value} :: ${this.appConfig.app.name}`);
 	}
 
 	/** Prepare the working environments of the app */
@@ -64,6 +108,10 @@ export class ConfigurationService extends BaseService {
 				this.appConfig.app.platform += " " + this.appConfig.app.mode;
 			}
 		}
+
+		this.appVer.getVersionCode()
+			.then(version => this.appConfig.app.version = version as string)
+			.catch(error => this.showError("Cannot get app version", error));
 
 		await this.storage.ready();
 		if (onCompleted !== undefined) {
@@ -320,6 +368,27 @@ export class ConfigurationService extends BaseService {
 				onNext();
 			}
 		}, defer || 345);
+	}
+
+	/** Sends the request to get profile information of current account via WebSocket connection */
+	getProfile(onNext?: () => void) {
+		this.send({
+			ServiceName: "users",
+			ObjectName: "profile",
+			Verb: "GET",
+			Query: {
+				"object-identity": this.getAccount().id,
+				"related-service": this.appConfig.app.service,
+				"language": AppUtility.getLanguage(),
+				"host": PlatformUtility.getHost()
+			},
+			Header: null,
+			Body: null,
+			Extra: null
+		});
+		if (onNext !== undefined) {
+			onNext();
+		}
 	}
 
 	/** Store the information of current account profile into storage */

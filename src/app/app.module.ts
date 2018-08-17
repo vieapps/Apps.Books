@@ -5,16 +5,19 @@ import { RouteReuseStrategy } from "@angular/router";
 
 import { IonicModule, IonicRouteStrategy } from "@ionic/angular";
 import { IonicStorageModule } from "@ionic/storage";
+
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
 import { Device } from "@ionic-native/device/ngx";
+import { AppVersion } from "@ionic-native/app-version/ngx";
+import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 
 import { Ng2CompleterModule } from "ng2-completer";
-import { AppFormsModule } from "./components/forms.module";
-import { VinumberPipe } from "./components/app.pipes";
 
 import { AppComponent } from "./app.component";
+import { AppFormsModule } from "./components/forms.module";
 import { AppRoutingModule } from "./app.routes";
+import { VinumberPipe } from "./components/app.pipes";
 
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
@@ -38,6 +41,8 @@ import { UserService } from "./providers/user.service";
 		StatusBar,
 		SplashScreen,
 		Device,
+		AppVersion,
+		GoogleAnalytics,
 		ConfigurationService,
 		AuthenticationService,
 		UserService,

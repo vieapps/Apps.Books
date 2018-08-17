@@ -203,29 +203,6 @@ export class UserService extends BaseService {
 		}
 	}
 
-	requestProfile(id?: string, onNext?: () => void) {
-		id = id || this.configSvc.getAccount().id;
-		if (!AppData.profiles.containsKey(id)) {
-			this.send({
-				ServiceName: "users",
-				ObjectName: "profile",
-				Verb: "GET",
-				Query: {
-					"object-identity": id,
-					"related-service": this.configSvc.appConfig.app.service,
-					"language": AppUtility.getLanguage(),
-					"host": PlatformUtility.getHost()
-				},
-				Header: null,
-				Body: null,
-				Extra: null
-			});
-		}
-		if (onNext !== undefined) {
-			onNext();
-		}
-	}
-
 	updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/profile/" + (body.ID || this.configSvc.getAccount().id)
 			+ "?related-service=" + this.configSvc.appConfig.app.service

@@ -18,13 +18,17 @@ export class AppConfig {
 	static app = {
 		id: "online-books",
 		name: "VIEApps Online Books",
-		version: "0.9.1",
+		version: "1.0.0.0-beta",
 		mode: "",
 		platform: "",
 		os: "",
 		host: "",
 		language: "vi-VN",
 		service: "books",
+		url: {
+			previous: "",
+			current: ""
+		},
 		debug: true,
 		offline: false
 	};

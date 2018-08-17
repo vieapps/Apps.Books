@@ -1,7 +1,7 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-back-button defaultHref="/home" icon="close"></ion-back-button>
+			<ion-back-button [defaultHref]="configSvc.previousUrl" icon="close"></ion-back-button>
 		</ion-buttons>
 		<ion-title>
 			{{info.state.title}}
@@ -10,13 +10,37 @@
 </ion-header>
 
 <ion-content padding>
-	<app-form
-		[form]="loginForm.form"
-		[config]="loginForm.config"
-		[controls]="loginForm.controls"
-		(readyEvent)="onLoginFormReady($event)"
-		(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
-	<div class="buttons">
-		<ion-button color="primary" (click)="loginAsync()">Log In</ion-button>
+
+	<div *ngIf="info.state.mode === 'log-in'">
+		<app-form [form]="login.form" [config]="login.config"></app-form>
+		<ion-buttons class="buttons">
+			<ion-button [fill]="info.buttons.login.fill" [color]="info.buttons.login.color" (click)="loginAsync()">
+				<ion-icon *ngIf="info.buttons.login.icon" slot="start" [icon]="info.buttons.login.icon"></ion-icon>
+				{{info.buttons.login.label}}
+			</ion-button>
+			<ion-button [fill]="info.buttons.reset.fill" [color]="info.buttons.reset.color" (click)="openResetPassword()">
+				<ion-icon *ngIf="info.buttons.reset.icon" slot="start" [icon]="info.buttons.reset.icon"></ion-icon>
+				{{info.buttons.reset.label}}
+			</ion-button>
+		</ion-buttons>
 	</div>
+
+	<div *ngIf="info.state.mode === 'otp'">
+	</div>
+
+	<div *ngIf="info.state.mode === 'reset'">
+		<app-form
+			[form]="reset.form"
+			[config]="reset.config"
+			[controls]="reset.controls"
+			(readyEvent)="onResetFormReady($event)"
+			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
+		<ion-buttons class="buttons">
+			<ion-button [fill]="info.buttons.reset.fill" [color]="info.buttons.reset.color" (click)="resetPasswordAsync()">
+				<ion-icon *ngIf="info.buttons.reset.icon" slot="start" [icon]="info.buttons.reset.icon"></ion-icon>
+				{{info.buttons.reset.label}}
+			</ion-button>
+		</ion-buttons>
+	</div>
+
 </ion-content>

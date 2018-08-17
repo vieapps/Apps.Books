@@ -5,7 +5,7 @@ import { AppUtility } from "./app.utility";
 /** Servicing component for tracking use of app */
 export class TrackingUtility {
 
-	private static _ga: GoogleAnalytics = null;
+	private static _ga: GoogleAnalytics = undefined;
 
 	/** Sets the object of Google Analytics */
 	static initialize(ga?: GoogleAnalytics) {
@@ -18,7 +18,7 @@ export class TrackingUtility {
 				})
 				.catch(e => {
 					console.error("Error occurred while starting Google Analytics", e);
-					this._ga = null;
+					this._ga = undefined;
 				});
 		}
 	}
