@@ -8,7 +8,7 @@ export class StatisticBase {
 	Title = "";
 	Counters = 0;
 
-	static deserialize(json: any, obj?: StatisticBase) {
+	public static deserialize(json: any, obj?: StatisticBase) {
 		obj = obj || new StatisticBase();
 		AppUtility.copy(json, obj, data => {
 			obj.Title = AppUtility.toANSI(obj.Name).toLowerCase();
@@ -22,7 +22,7 @@ export class StatisticInfo extends StatisticBase {
 	FullName = "";
 	Children: Array<StatisticInfo> = [];
 
-	static deserialize(json: any, obj?: StatisticInfo) {
+	public static deserialize(json: any, obj?: StatisticInfo) {
 		obj = obj || new StatisticInfo();
 		AppUtility.copy(json, obj, data => {
 			obj.FullName = obj.Name;
@@ -42,7 +42,7 @@ export class StatisticInfo extends StatisticBase {
 		return obj;
 	}
 
-	toJSON() {
+	public toJSON() {
 		const json = {
 			Name: this.Name,
 			Counters: this.Counters,

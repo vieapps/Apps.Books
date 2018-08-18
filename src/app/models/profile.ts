@@ -44,13 +44,13 @@ export class BaseProfile extends BaseModel {
 		this.Status = "Activated";
 	}
 
-	static deserialize(json: any, obj?: BaseProfile) {
+	public static deserialize(json: any, obj?: BaseProfile) {
 		obj = obj || new BaseProfile();
 		obj.copy(json, data => { });
 		return obj;
 	}
 
-	copy(source: any, onCompleted?: (data: any) => void) {
+	public copy(source: any, onCompleted?: (data: any) => void) {
 		super.copy(source, data => {
 			if (AppUtility.isNotEmpty(this.BirthDay)) {
 				this.BirthDay = this.BirthDay.replace(/--/g, "01").replace(/\//g, "-");
@@ -84,7 +84,7 @@ export class Profile extends BaseProfile {
 		this.Reputation = "Unknown";
 	}
 
-	static deserialize(json: any, obj?: Profile) {
+	public static deserialize(json: any, obj?: Profile) {
 		obj = obj || new Profile();
 		obj.copy(json, data => { });
 		return obj;
@@ -99,7 +99,7 @@ export class Profile extends BaseProfile {
 		}
 	}
 
-	copy(source: any, onCompleted?: (data: any) => void) {
+	public copy(source: any, onCompleted?: (data: any) => void) {
 		super.copy(source, data => {
 			this.RatingPoints = new Collections.Dictionary<string, RatingPoint>();
 			if (AppUtility.isArray(data.RatingPoints)) {

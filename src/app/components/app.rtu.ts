@@ -19,7 +19,7 @@ export class AppRTU {
 	private static _objectScopeSubject: Rx.Subject<{ service: string, object: string, message: any }> = undefined;
 
 	/** Gets the state that determines weather WebSocket is ready for work */
-	static get isReady() {
+	public static get isReady() {
 		return this._websocket !== undefined && this._status === "ready";
 	}
 
@@ -29,7 +29,7 @@ export class AppRTU {
 	  * @param handler The function for processing when got a message from APIs
 	  * @param identity The string that presents identity of the handler for unregistering later
 	*/
-	static registerAsServiceScopeProcessor(service: string, handler: (message: any) => void, identity?: string) {
+	public static registerAsServiceScopeProcessor(service: string, handler: (message: any) => void, identity?: string) {
 		if (AppUtility.isNotEmpty(service) && handler !== undefined) {
 			this._serviceScopeHandlers[service] = this._serviceScopeHandlers[service] || [];
 			this._serviceScopeHandlers[service].push({ func: handler, identity: AppUtility.isNotEmpty(identity) ? identity : "" });
@@ -43,7 +43,7 @@ export class AppRTU {
 	  * @param handler The function for processing when got a message from APIs
 	  * @param identity The string that presents identity of the handler for unregistering later
 	*/
-	static registerAsObjectScopeProcessor(service: string, object: string, handler: (message: any) => void, identity?: string) {
+	public static registerAsObjectScopeProcessor(service: string, object: string, handler: (message: any) => void, identity?: string) {
 		if (AppUtility.isNotEmpty(service) && handler !== undefined) {
 			const type = service + "#" + (object || "");
 			this._serviceScopeHandlers[type] = this._serviceScopeHandlers[type] || [];
@@ -57,7 +57,7 @@ export class AppRTU {
 	  * @param service The string that presents type of a message
 	  * @param object The string that presents name of an object in the service
 	*/
-	static unregister(identity: string, service: string, object?: string) {
+	public static unregister(identity: string, service: string, object?: string) {
 		if (AppUtility.isNotEmpty(identity) && AppUtility.isNotEmpty(service)) {
 			if (this._serviceScopeHandlers[service]) {
 				const index = AppUtility.find<any>(this._serviceScopeHandlers[service], handler => identity === handler.identity);
@@ -78,7 +78,7 @@ export class AppRTU {
 	}
 
 	/** Parses the message */
-	static parse(type: string): { Service: string, Object: string, Event: string } {
+	public static parse(type: string): { Service: string, Object: string, Event: string } {
 		let pos = AppUtility.indexOf(type, "#");
 		const service = pos > 0 ? type.substring(0, pos) : type;
 		let object = "", event = "";
@@ -98,7 +98,7 @@ export class AppRTU {
 	}
 
 	/** Starts the real-time updater */
-	static start(onCompleted?: () => void, isRestart?: boolean) {
+	public static start(onCompleted?: () => void, isRestart?: boolean) {
 		// check
 		if (typeof WebSocket === "undefined") {
 			console.warn("[RTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
@@ -246,7 +246,7 @@ export class AppRTU {
 	}
 
 	/** Restarts the real-time updater */
-	static restart(reason?: string, defer?: number) {
+	public static restart(reason?: string, defer?: number) {
 		this._status = "restarting";
 		console.warn(`[RTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
 
@@ -261,7 +261,7 @@ export class AppRTU {
 	}
 
 	/** Stops the real-time updater */
-	static stop(onCompleted?: () => void) {
+	public static stop(onCompleted?: () => void) {
 		this._uri = null;
 		this._status = "closed";
 		if (this._websocket !== undefined) {
@@ -275,7 +275,7 @@ export class AppRTU {
 	}
 
 	/** Sends a request to a service */
-	static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: any, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
+	public static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: any, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
 		if (this.isReady) {
 			this._websocket.send(JSON.stringify(request));
 		}

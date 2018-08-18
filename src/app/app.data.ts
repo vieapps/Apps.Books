@@ -6,14 +6,14 @@ import { Statistics } from "./models/statistics";
 /** All data of the app */
 export class AppData {
 	/** Account profiles */
-	static profiles = new Collections.Dictionary<string, Profile>();
+	public static profiles = new Collections.Dictionary<string, Profile>();
 
 	/** Paginations */
-	static paginations = new Collections.Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
+	public static paginations = new Collections.Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
 
 	/** Books */
-	static books = new Collections.Dictionary<string, Book>();
+	public static books = new Collections.Dictionary<string, Book>();
 
 	/** Statistics */
-	static statistics = new Statistics();
+	public static statistics = new Statistics();
 }

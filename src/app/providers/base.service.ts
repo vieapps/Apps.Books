@@ -11,6 +11,10 @@ export class Base {
 	/** Name of the service (for working with paginations as prefix, display error, ...) */
 	protected Name = "";
 
+	private get serviceName() {
+		return AppUtility.isNotEmpty(this.Name) ? this.Name : this.constructor.name;
+	}
+
 	constructor(http: Http, name?: string) {
 		AppAPI.initialize(http);
 		this.Name = name || "";
@@ -36,7 +40,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.showError("Error occurred while creating", error);
+				this.error("Error occurred while creating", error);
 			}
 		}
 	}
@@ -60,7 +64,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.showError("Error occurred while reading", error);
+				this.error("Error occurred while reading", error);
 			}
 		}
 	}
@@ -85,7 +89,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.showError("Error occurred while updating", error);
+				this.error("Error occurred while updating", error);
 			}
 		}
 	}
@@ -109,7 +113,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.showError("Error occurred while deleting", error);
+				this.error("Error occurred while deleting", error);
 			}
 		}
 	}
@@ -159,7 +163,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.showError("Error occurred while searching", error);
+				this.error("Error occurred while searching", error);
 			}
 		}
 	}
@@ -207,16 +211,20 @@ export class Base {
 					onError(AppUtility.parseError(error));
 				}
 				else {
-					this.showError("Error occurred while searching", error);
+					this.error("Error occurred while searching", error);
 				}
 			}
 		);
 	}
 
-	/** Shows the error to console and run the next action */
-	protected showError(message: string, error?: any, onError?: (error?: any) => void) {
-		const name = AppUtility.isNotEmpty(this.Name) ? this.Name : this.constructor.name;
-		AppUtility.showError(`[${name}]: ${message}`, error, onError);
+	/** Prints the error message to console/log file and run the next action */
+	protected error(message: string, error?: any, onError?: (error?: any) => void) {
+		AppUtility.showError(`[${this.serviceName}]: ${message}`, error, onError);
+	}
+
+	/** Prints the log message to console/log file */
+	protected log(message: string, ...params) {
+		console.log(`[${this.serviceName}]: ${message}`, params);
 	}
 
 }

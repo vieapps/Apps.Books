@@ -19,7 +19,7 @@ export class AppFormsComponent implements OnInit {
 	) {
 	}
 
-	ngOnInit() {
+	public ngOnInit() {
 		if (this.controls === undefined || this.controls === null || this.controls.length < 1) {
 			if (this.config !== undefined && this.config !== null) {
 				this.controls = this.appFormsSvc.getControls(this.config, this.controls);
@@ -38,11 +38,11 @@ export class AppFormsComponent implements OnInit {
 		}
 	}
 
-	onSubmit() {
+	public onSubmit() {
 		this.submitEvent.next(this.form.value);
 	}
 
-	onRefreshCaptcha($event) {
+	public onRefreshCaptcha($event) {
 		this.refreshCaptchaEvent.emit($event);
 	}
 

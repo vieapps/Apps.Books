@@ -7,7 +7,7 @@ export abstract class Base {
 	Privileges: Privileges = undefined;
 
 	/** Copys data from source (object or JSON) and fill into this objects" properties */
-	copy(source: any, onCompleted?: (data: any) => void) {
+	public copy(source: any, onCompleted?: (data: any) => void) {
 		AppUtility.copy(source, this, data => {
 			if (AppUtility.isObject(data.Privileges, true)) {
 				this.Privileges = Privileges.deserialize(data.Privileges);

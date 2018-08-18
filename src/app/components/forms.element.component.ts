@@ -16,90 +16,90 @@ export class AppFormsElementComponent {
 	) {
 	}
 
-	get isFormControl() {
+	public get isFormControl() {
 		return !this.control.SubControls;
 	}
 
-	get isFormGroup() {
+	public get isFormGroup() {
 		return this.control.SubControls && !this.control.SubControls.AsArray;
 	}
 
-	get isFormArray() {
+	public get isFormArray() {
 		return this.control.SubControls && this.control.SubControls.AsArray;
 	}
 
-	get isSimpleFormArray() {
+	public get isSimpleFormArray() {
 		return this.isFormArray && !this.control.SubControls.AsComplexArray;
 	}
 
-	get isComplexFormArray() {
+	public get isComplexFormArray() {
 		return this.isFormArray && this.control.SubControls.AsComplexArray;
 	}
 
-	isControl(type: string) {
+	public isControl(type: string) {
 		return this.control.Type.toLowerCase() === type.toLowerCase();
 	}
 
-	get label() {
+	public get label() {
 		return this.control.Control.Label;
 	}
 
-	get color() {
+	public get color() {
 		return this.control.Control.LabelOptions.Color;
 	}
 
-	get position() {
+	public get position() {
 		return this.control.Control.LabelOptions.Position;
 	}
 
-	get css() {
+	public get css() {
 		return {
 			label: this.control.Control.LabelOptions.Css,
 			control: this.control.Control.Css
 		};
 	}
 
-	get type() {
+	public get type() {
 		return this.control.Control.Type;
 	}
 
-	get required() {
+	public get required() {
 		return this.control.Required ? true : undefined;
 	}
 
-	get readonly() {
+	public get readonly() {
 		return this.control.Control.ReadOnly ? true : undefined;
 	}
 
-	get autofocus() {
+	public get autofocus() {
 		return this.control.Control.AutoFocus ? true : undefined;
 	}
 
-	get placeholder() {
+	public get placeholder() {
 		return this.control.Control.PlaceHolder;
 	}
 
-	get min() {
+	public get min() {
 		return this.control.Control.Min;
 	}
 
-	get max() {
+	public get max() {
 		return this.control.Control.Max;
 	}
 
-	get minLength() {
+	public get minLength() {
 		return this.control.Control.MinLength;
 	}
 
-	get maxLength() {
+	public get maxLength() {
 		return this.control.Control.MaxLength;
 	}
 
-	get clearOnEdit() {
+	public get clearOnEdit() {
 		return this.control.Control.Type.toLowerCase() === "password" ? false : undefined;
 	}
 
-	get style() {
+	public get style() {
 		let style = "";
 		if (this.control.Control.Width) {
 			style += `width:${this.control.Control.Width}px;`;
@@ -122,44 +122,44 @@ export class AppFormsElementComponent {
 		return style !== "" ? style : undefined;
 	}
 
-	get formControlName() {
+	public get formControlName() {
 		return this.index !== undefined ? this.index : this.control.Key;
 	}
 
-	get invalid() {
+	public get invalid() {
 		const control = this.formGroup.controls[this.formControlName];
 		return control.invalid && control.dirty;
 	}
 
-	get subControls() {
+	public get subControls() {
 		return this.control.SubControls.Controls;
 	}
 
-	get subFormGroup() {
+	public get subFormGroup() {
 		return this.formGroup.controls[this.control.Key];
 	}
 
-	getSubFormGroup(index: number) {
+	public getSubFormGroup(index: number) {
 		return (this.subFormGroup as FormArray).controls[index];
 	}
 
-	getSubControls(control: AppFormsControl) {
+	public getSubControls(control: AppFormsControl) {
 		return control.SubControls.Controls;
 	}
 
-	getSubLabel(control: AppFormsControl) {
+	public getSubLabel(control: AppFormsControl) {
 		return control.Control.Label;
 	}
 
-	getSubColor(control: AppFormsControl) {
+	public getSubColor(control: AppFormsControl) {
 		return control.Control.LabelOptions.Color;
 	}
 
-	getSubCss(control: AppFormsControl) {
+	public getSubCss(control: AppFormsControl) {
 		return control.Control.LabelOptions.Css;
 	}
 
-	refreshCaptcha() {
+	public refreshCaptcha() {
 		this.formGroup.controls[this.control.Key].setValue("");
 		this.refreshCaptchaEvent.emit(this.control);
 	}

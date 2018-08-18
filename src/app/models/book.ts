@@ -50,7 +50,7 @@ export class Book extends BaseModel {
 		this.Language = "vi";
 	}
 
-	static deserialize(json: any, book?: Book) {
+	public static deserialize(json: any, book?: Book) {
 		book = book || new Book();
 		book.copy(json, data => {
 			book.Counters = new Collections.Dictionary<string, CounterInfo>();
@@ -72,7 +72,7 @@ export class Book extends BaseModel {
 		return book;
 	}
 
-	static update(data: any) {
+	public static update(data: any) {
 		if (AppUtility.isObject(data, true)) {
 			const book = data instanceof Book
 				? data as Book

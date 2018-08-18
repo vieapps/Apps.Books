@@ -2,11 +2,12 @@ import * as Collections from "typescript-collections";
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
 import { List } from "linqts";
-import { AppUtility } from "../components/app.utility";
-import { PlatformUtility } from "../components/app.utility.platform";
+import { AppRTU } from "./../components/app.rtu";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
 import { AppAPI } from "../components/app.api";
+import { AppUtility } from "../components/app.utility";
+import { PlatformUtility } from "../components/app.utility.platform";
 import { Account } from "../models/account";
 import { Privilege } from "../models/privileges";
 import { Base as BaseService } from "./base.service";
@@ -39,19 +40,19 @@ export class AuthenticationService extends BaseService {
 	}
 
 	/** Checks to see the account is system administrator or not */
-	isSystemAdministrator(account?: Account) {
+	public isSystemAdministrator(account?: Account) {
 		account = account || this.configSvc.getAccount();
 		return this.isGotRole("SystemAdministrator", account.roles);
 	}
 
 	/** Checks to see the account is service administrator or not */
-	isServiceAdministrator(account?: Account) {
+	public isServiceAdministrator(account?: Account) {
 		account = account || this.configSvc.getAccount();
 		return this.isGotServiceRole(this.configSvc.appConfig.app.service, "Administrator", account.privileges) || this.isSystemAdministrator(account);
 	}
 
 	/** Checks to see the account is service moderator or not */
-	isServiceModerator(account?: Account) {
+	public isServiceModerator(account?: Account) {
 		account = account || this.configSvc.getAccount();
 		return this.isGotServiceRole(this.configSvc.appConfig.app.service, "Moderator", account.privileges) || this.isServiceAdministrator(account);
 	}
@@ -69,85 +70,88 @@ export class AuthenticationService extends BaseService {
 	}
 
 	/** Checks to see the visitor can register new account or not */
-	get canRegisterNewAccounts() {
+	public get canRegisterNewAccounts() {
 		return this.configSvc.appConfig.accountRegistrations.registrable;
 	}
 
 	/** Checks to see the user can send invitations or not */
-	get canSendInvitations() {
+	public get canSendInvitations() {
 		return this.canDo(this.configSvc.appConfig.accountRegistrations.sendInvitationRole);
 	}
 
 	/** Checks to see the user can set privileges or not */
-	get canSetPrivilegs() {
+	public get canSetPrivilegs() {
 		return this.canDo(this.configSvc.appConfig.accountRegistrations.setPrivilegsRole);
 	}
 
-	logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const body = {
 			Email: AppCrypto.rsaEncrypt(email),
 			Password: AppCrypto.rsaEncrypt(password)
 		};
 		return this.createAsync("users/session", body,
-			data => {
+			async data => {
 				if (AppUtility.isTrue(data.Require2FA)) {
-					console.log(`[${this.Name}]: Log in with static password successful, need to verify with 2FA`);
+					this.log("Log in with static password successful, need to verify with 2FA", this.configSvc.isDebug ? data : "");
 					if (onNext !== undefined) {
 						onNext(data);
 					}
 				}
 				else {
-					AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
-					this.patchSessionInfo(() => {
-						console.log(`[${this.Name}]: Log in successful`);
-						if (onNext !== undefined) {
-							onNext(data);
-						}
+					this.log("Log in successful", this.configSvc.isDebug ? data : "");
+					await this.configSvc.updateSessionAsync(data, () => {
+						AppRTU.start();
+						AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
+						this.patchSessionInfo(() => {
+							if (onNext !== undefined) {
+								onNext(data);
+							}
+						});
 					});
 				}
 			},
 			async error => {
-				if (AppUtility.isObject(error, true) && "InvalidSessionException" === error.Type && AppUtility.indexOf(error.Message, "not issued by the system") > 0) {
+				if (AppUtility.isGotSecurityException(error)) {
 					await this.configSvc.deleteSessionAsync(async () => {
 						await this.configSvc.initializeSessionAsync(async () => {
 							await this.configSvc.registerSessionAsync(() => {
-								console.log(`[${this.Name}]: The session is re-registered (anonymous)`);
+								this.log("The session is re-registered (anonymous)");
 							});
 						});
 					});
 				}
-				this.showError("Error occurred while logging in", error, onError);
+				this.error("Error occurred while logging in", error, onError);
 			}
 		);
 	}
 
-	logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.deleteAsync("users/session",
 			async data => {
 				await this.configSvc.updateSessionAsync(data);
 				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
 				await this.configSvc.registerSessionAsync(() => {
 					this.configSvc.patchSession(() => {
-						console.log(`[${this.Name}]: Log out successful`);
+						this.log("Log out successful", this.configSvc.isDebug ? data : "");
 						if (onNext !== undefined) {
 							onNext(data);
 						}
 					});
 				}, onError);
 			},
-			error => this.showError("Error occurred while logging out", error, onError)
+			error => this.error("Error occurred while logging out", error, onError)
 		);
 	}
 
-	prepareOTPAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public prepareOTPAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp"
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
 			+ "&host=" + PlatformUtility.getHost();
-		return this.readAsync(path, onNext, error => this.showError("Error occurred while preparing OTP", error, onError));
+		return this.readAsync(path, onNext, error => this.error("Error occurred while preparing OTP", error, onError));
 	}
 
-	validateOTPAsync(id: string, otp: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public validateOTPAsync(id: string, otp: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/session"
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
@@ -160,16 +164,16 @@ export class AuthenticationService extends BaseService {
 		return this.updateAsync(path, body,
 			data => {
 				AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
-				console.log(`[${this.Name}]: Log in with OTP successful`);
+				this.log("Log in with OTP successful");
 				if (onNext !== undefined) {
 					onNext(data);
 				}
 			},
-			error => this.showError("Error occurred while validating OTP", error, onError)
+			error => this.error("Error occurred while validating OTP", error, onError)
 		);
 	}
 
-	registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.readAsync("users/captcha?register=" + this.configSvc.appConfig.session.id,
 			data => {
 				this.configSvc.appConfig.session.captcha = {
@@ -180,11 +184,11 @@ export class AuthenticationService extends BaseService {
 					onNext(data);
 				}
 			},
-			error => this.showError("Error occurred while registering session captcha", error, onError)
+			error => this.error("Error occurred while registering session captcha", error, onError)
 		);
 	}
 
-	resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/reset"
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
@@ -193,10 +197,10 @@ export class AuthenticationService extends BaseService {
 		const body = {
 			Email: AppCrypto.rsaEncrypt(email)
 		};
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while requesting new password", error, onError), AppAPI.getCaptchaHeaders(captcha));
+		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while requesting new password", error, onError), AppAPI.getCaptchaHeaders(captcha));
 	}
 
-	patchSessionInfo(onNext: () => void) {
+	public patchSessionInfo(onNext: () => void) {
 		this.configSvc.patchSession(() => {
 			this.configSvc.patchAccount(() => {
 				this.configSvc.getProfile(onNext);

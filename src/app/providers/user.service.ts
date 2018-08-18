@@ -100,7 +100,7 @@ export class UserService extends BaseService {
 		});
 	}
 
-	search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/profile/search"
 			+ "?x-request=" + AppUtility.toBase64Url(request)
 			+ "&related-service=" + this.configSvc.appConfig.app.service
@@ -114,7 +114,7 @@ export class UserService extends BaseService {
 		return super.search(path, request, onNext, onError);
 	}
 
-	registerAsync(info: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public registerAsync(info: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account"
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
@@ -130,12 +130,12 @@ export class UserService extends BaseService {
 		return this.createAsync(path, body, onNext, onError, AppAPI.getCaptchaHeaders(captcha));
 	}
 
-	sendInvitationAsync(name: string, email: string, privileges?: Array<Privilege>, relatedInfo?: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public sendInvitationAsync(name: string, email: string, privileges?: Array<Privilege>, relatedInfo?: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/invite"
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
 			+ "&host=" + PlatformUtility.getHost()
-			+ "&uri=" + AppCrypto.urlEncode(PlatformUtility.getURI("/home") + "?prego=activate&mode={mode}&code={code}");
+			+ "&uri=" + AppCrypto.urlEncode(PlatformUtility.getActivateURI());
 
 		const body = {
 			Name: name,
@@ -150,10 +150,10 @@ export class UserService extends BaseService {
 			body["RelatedInfo"] = AppCrypto.rsaEncrypt(JSON.stringify(relatedInfo));
 		}
 
-		return this.createAsync(path, body, onNext, error => this.showError("Error occurred while sending an invitation", error, onError));
+		return this.createAsync(path, body, onNext, error => this.error("Error occurred while sending an invitation", error, onError));
 	}
 
-	activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/activate"
 			+ "?mode=" + mode
 			+ "&code=" + code
@@ -162,23 +162,21 @@ export class UserService extends BaseService {
 			+ "&host=" + PlatformUtility.getHost();
 		return this.readAsync(path,
 			async data => {
-				await this.configSvc.updateSessionAsync(data,
-					async () => {
-						this.configSvc.appConfig.session.account.id = this.configSvc.appConfig.session.token.uid;
-						await this.configSvc.storeSessionAsync(() => {
-							console.log("[User]: Activated...", this.configSvc.appConfig.isDebug ? this.configSvc.appConfig.session : "");
-							if (onNext !== undefined) {
-								onNext(data);
-							}
-						});
-					}
-				);
+				await this.configSvc.updateSessionAsync(data, async () => {
+					this.configSvc.appConfig.session.account.id = this.configSvc.appConfig.session.token.uid;
+					await this.configSvc.storeSessionAsync(() => {
+						this.log("Activated...", this.configSvc.appConfig.isDebug ? this.configSvc.appConfig.session : "");
+						if (onNext !== undefined) {
+							onNext(data);
+						}
+					});
+				});
 			},
-			error => this.showError("Error occurred while activating (" + mode + ")", error, onError)
+			error => this.error("Error occurred while activating (" + mode + ")", error, onError)
 		);
 	}
 
-	getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		id = id || this.configSvc.getAccount().id;
 		if (AppData.profiles.containsKey(id)) {
 			if (onNext !== undefined) {
@@ -198,12 +196,12 @@ export class UserService extends BaseService {
 						onNext(data);
 					}
 				},
-				error => this.showError("Error occurred while reading profile", error, onError)
+				error => this.error("Error occurred while reading profile", error, onError)
 			);
 		}
 	}
 
-	updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/profile/" + (body.ID || this.configSvc.getAccount().id)
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
@@ -217,11 +215,11 @@ export class UserService extends BaseService {
 					onNext(data);
 				}
 			},
-			error => this.showError("Error occurred while updating profile", error, onError)
+			error => this.error("Error occurred while updating profile", error, onError)
 		);
 	}
 
-	updatePasswordAsync(oldPassword: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public updatePasswordAsync(oldPassword: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/password"
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
@@ -230,10 +228,10 @@ export class UserService extends BaseService {
 			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
 			Password: AppCrypto.rsaEncrypt(password)
 		};
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating password", error, onError));
+		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while updating password", error, onError));
 	}
 
-	updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/email"
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
@@ -242,35 +240,35 @@ export class UserService extends BaseService {
 			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
 			Email: AppCrypto.rsaEncrypt(email)
 		};
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating email", error, onError));
+		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while updating email", error, onError));
 	}
 
-	add2FAMethodAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public add2FAMethodAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp"
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
 			+ "&host=" + PlatformUtility.getHost();
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while adding new an 2FA method", error, onError));
+		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while adding new an 2FA method", error, onError));
 	}
 
-	delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp"
 			+ "?info=" + info
 			+ "&related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
 			+ "&host=" + PlatformUtility.getHost();
-		return this.deleteAsync(path, onNext, error => this.showError("Error occurred while deleting an 2FA method", error, onError));
+		return this.deleteAsync(path, onNext, error => this.error("Error occurred while deleting an 2FA method", error, onError));
 	}
 
-	getPrivilegesAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public getPrivilegesAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/" + (id || this.configSvc.getAccount().id)
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
 			+ "&host=" + PlatformUtility.getHost();
-		return this.readAsync(path, onNext, error => this.showError("Error occurred while reading privileges", error, onError));
+		return this.readAsync(path, onNext, error => this.error("Error occurred while reading privileges", error, onError));
 	}
 
-	updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/" + id
 			+ "?related-service=" + this.configSvc.appConfig.app.service
 			+ "&language=" + AppUtility.getLanguage()
@@ -278,7 +276,7 @@ export class UserService extends BaseService {
 		const body = {
 			Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
 		};
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating privileges", error, onError));
+		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while updating privileges", error, onError));
 	}
 
 }

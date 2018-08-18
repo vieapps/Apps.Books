@@ -8,7 +8,7 @@ declare var FB: any;
 export class PlatformUtility {
 
 	/** Gets the state that determines the app is running on Apple iOS */
-	static get isAppleOS() {
+	public static get isAppleOS() {
 		return AppConfig.app.platform.indexOf("iOS") === 0;
 	}
 
@@ -17,7 +17,7 @@ export class PlatformUtility {
 	 * @param action The action to run
 	 * @param defer The defer times (in miliseconds)
 	 */
-	static setTimeout(action: () => void, defer?: number) {
+	public static setTimeout(action: () => void, defer?: number) {
 		if (AppUtility.isNotNull(action)) {
 			window.setTimeout(() => {
 				action();
@@ -26,7 +26,7 @@ export class PlatformUtility {
 	}
 
 	/** Gets the running platform of the app */
-	static getAppPlatform(userAgent?: string) {
+	public static getAppPlatform(userAgent?: string) {
 		userAgent = userAgent || window.navigator.userAgent;
 		return /iPhone|iPad|iPod|Windows Phone|Android|BlackBerry|BB10|IEMobile|webOS|Opera Mini/i.test(userAgent)
 			? /iPhone|iPad|iPod/i.test(userAgent)
@@ -42,7 +42,7 @@ export class PlatformUtility {
 	}
 
 	/** Gets the running OS platform of the app */
-	static getOSPlatform(userAgent?: string) {
+	public static getOSPlatform(userAgent?: string) {
 		userAgent = userAgent || window.navigator.userAgent;
 		const platform = this.getAppPlatform(userAgent);
 		return platform !== "Desktop"
@@ -57,7 +57,7 @@ export class PlatformUtility {
 	}
 
 	/** Gets the avatar image */
-	static getAvatarImage(data?: any, noAvatar?: string) {
+	public static getAvatarImage(data?: any, noAvatar?: string) {
 		const avatar: string = AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.Avatar)
 			? data.Avatar
 			: AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.Gravatar)
@@ -78,7 +78,7 @@ export class PlatformUtility {
 	}
 
 	/** Gets the current host name */
-	static getHost() {
+	public static getHost() {
 		if (AppUtility.indexOf(window.location.hostname, ".") < 0) {
 			return window.location.hostname;
 		}
@@ -94,39 +94,80 @@ export class PlatformUtility {
 	}
 
 	/** Opens an uri by OS/In-App browser */
-	static openURI(uri?: string) {
+	public static openURI(uri?: string) {
 		if (AppUtility.isNotEmpty(uri) && AppUtility.indexOf(uri, "http") === 0) {
 			window.open(uri);
 		}
 	}
 
+	/** Parses an uri */
+	public static parseURI(uri?: string) {
+		const parser = window.document.createElement("a");
+		parser.href = uri || window.location.href;
+
+		// convert query string to object
+		const searchParams = {};
+		if (parser.search !== "") {
+			const queries = parser.search.replace(/^\?/, "").split("&");
+			for (let index = 0; index < queries.length; index++ ) {
+				const split = queries[index].split("=");
+				searchParams[split[0]] = split[1];
+			}
+		}
+
+		// convert hash string to object
+		const hashParams = {};
+		let hash = parser.hash;
+		while (hash.indexOf("#") === 0 || hash.indexOf("?") === 0) {
+			hash = hash.substring(1);
+		}
+		if (hash !== "") {
+			const queries = hash.replace(/^\?/, "").split("&");
+			for (let index = 0; index < queries.length; index++ ) {
+				const split = queries[index].split("=");
+				hashParams[split[0]] = split[1];
+			}
+		}
+
+		return {
+			protocol: parser.protocol + "//",
+			host: parser.hostname,
+			port: parser.port,
+			path: parser.pathname,
+			search: parser.search,
+			searchParams: searchParams,
+			hash: parser.hash,
+			hashParams: hashParams
+		};
+	}
+
 	/** Gets the URI of current request */
-	static getURI(path?: string) {
+	public static getURI(path?: string) {
 		if (!AppConfig.isWebApp || AppUtility.indexOf(window.location.href, "file://") > - 1) {
 			return AppConfig.URIs.activations;
 		}
 		else {
-			const uri = AppUtility.parseURI(window.location.href);
+			const uri = this.parseURI();
 			return uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + (path || uri.path);
 		}
 	}
 
-	static getActivateURI() {
+	public static getActivateURI() {
 		return this.getURI("/home") + "?prego=activate&mode={mode}&code={code}";
 	}
 
 	/** Gets the CSS classes for working with label */
-	static get cssTextLabel() {
+	public static get cssTextLabel() {
 		return "label " + (this.isAppleOS ? "label-ios" : "label-md");
 	}
 
 	/** Gets the CSS classes for working with input control */
-	static get cssTextInput() {
+	public static get cssTextInput() {
 		return "text-input " + (this.isAppleOS ? "text-input-ios" : "text-input-md");
 	}
 
 	/** Get the button for working with action sheet */
-	static getActionButton(text: string, icon?: string, handler?: () => boolean | void, role?: string) {
+	public static getActionButton(text: string, icon?: string, handler?: () => boolean | void, role?: string) {
 		return {
 			text: text,
 			icon: this.isAppleOS ? undefined : icon,
@@ -136,12 +177,12 @@ export class PlatformUtility {
 	}
 
 	/** Opens Google Maps by address or location via query */
-	static openGoogleMaps(info: string) {
+	public static openGoogleMaps(info: string) {
 		this.openURI("https://www.google.com/maps?q=" + encodeURIComponent(info));
 	}
 
 	/** Sets environments of the PWA */
-	static setPWAEnvironment() {
+	public static setPWAEnvironment() {
 		// Javascript libraries (only available when working in web browser)
 		if (window.location.href.indexOf("file://") < 0) {
 			// Facebook SDK

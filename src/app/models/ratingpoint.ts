@@ -7,7 +7,7 @@ export class RatingPoint {
 	Points = 0.0;
 	Average = 0.0;
 
-	static deserialize(json: any, obj?: RatingPoint) {
+	public static deserialize(json: any, obj?: RatingPoint) {
 		obj = obj || new RatingPoint();
 		AppUtility.copy(json, obj);
 		return obj;

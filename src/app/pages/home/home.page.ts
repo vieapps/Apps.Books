@@ -1,5 +1,4 @@
-import { Component } from "@angular/core";
-import { FormBuilder, FormArray, FormGroup, Validators } from "@angular/forms";
+import { Component, OnInit } from "@angular/core";
 import { AppUtility } from "../../components/app.utility";
 import { ConfigurationService } from "../../providers/configuration.service";
 
@@ -8,12 +7,14 @@ import { ConfigurationService } from "../../providers/configuration.service";
 	templateUrl: "home.page.html",
 	styleUrls: ["home.page.scss"],
 })
-export class HomePage {
-	public form: FormGroup;
+export class HomePage implements OnInit {
 
 	constructor(
 		public configSvc: ConfigurationService
 	) {
+	}
+
+	public ngOnInit() {
 		this.configSvc.appTitle = "Màn hình chính";
 	}
 

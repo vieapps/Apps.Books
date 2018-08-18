@@ -12,7 +12,7 @@ export class CounterBase {
 		}
 	}
 
-	static deserialize(json: any) {
+	public static deserialize(json: any) {
 		const obj = new CounterBase();
 		AppUtility.copy(json, obj);
 		return obj;
@@ -25,7 +25,7 @@ export class CounterInfo extends CounterBase {
 	Month = 0;
 	Week = 0;
 
-	static deserialize(json: any, obj?: CounterInfo) {
+	public static deserialize(json: any, obj?: CounterInfo) {
 		obj = obj || new CounterInfo();
 		AppUtility.copy(json, obj);
 		return obj;

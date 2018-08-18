@@ -33,42 +33,47 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Gets the configuration of the app */
-	get appConfig() {
+	public get appConfig() {
 		return AppConfig;
 	}
 
 	/** Gets the state that determines the app is ready to go */
-	get isReady() {
+	public get isReady() {
 		return AppUtility.isObject(this.appConfig.session.keys, true) && AppUtility.isObject(this.appConfig.session.token, true);
 	}
 
 	/** Gets the state that determines the current account is authenticated or not */
-	get isAuthenticated() {
+	public get isAuthenticated() {
 		return AppUtility.isObject(this.appConfig.session.token, true) && AppUtility.isNotEmpty(this.appConfig.session.token.uid);
 	}
 
+	/** Gets the state that determines the app is running in debug mode or not */
+	public get isDebug() {
+		return this.appConfig.isDebug;
+	}
+
 	/** Sets the previous url */
-	setPreviousUrl(value: string) {
+	public setPreviousUrl(value: string) {
 		this.appConfig.app.url.previous = value;
 	}
 
 	/** Sets the current url */
-	setCurrentUrl(value: string) {
+	public setCurrentUrl(value: string) {
 		this.appConfig.app.url.current = value;
 	}
 
 	/** Gets the previous url */
-	get previousUrl() {
+	public get previousUrl() {
 		return this.appConfig.app.url.previous || "/home";
 	}
 
 	/** Gets the current url */
-	get currentUrl() {
+	public get currentUrl() {
 		return this.appConfig.app.url.current || "/home";
 	}
 
 	/** Sets the current url */
-	set currentUrl(value: string) {
+	public set currentUrl(value: string) {
 		if (value !== this.currentUrl) {
 			if (this.currentUrl !== this.previousUrl) {
 				this.setPreviousUrl(this.currentUrl);
@@ -78,17 +83,17 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Gets the current version of the app title */
-	get appVersion() {
+	public get appVersion() {
 		return this.appConfig.app.version;
 	}
 
 	/** Sets the app title (means of title of the current app page) */
-	set appTitle(value: string) {
+	public set appTitle(value: string) {
 		this.docTitle.setTitle(`${value} :: ${this.appConfig.app.name}`);
 	}
 
 	/** Prepare the working environments of the app */
-	async prepareAsync(onCompleted?: () => void) {
+	public async prepareAsync(onCompleted?: () => void) {
 		this.appConfig.app.mode = this.platform.is("cordova") && this.device.platform !== "browser" ? "NTA" : "PWA";
 		this.appConfig.app.os = PlatformUtility.getOSPlatform();
 
@@ -111,7 +116,7 @@ export class ConfigurationService extends BaseService {
 
 		this.appVer.getVersionCode()
 			.then(version => this.appConfig.app.version = version as string)
-			.catch(error => this.showError("Cannot get app version", error));
+			.catch(error => this.error("Cannot get app version", error));
 
 		await this.storage.ready();
 		if (onCompleted !== undefined) {
@@ -120,7 +125,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Initializes the configuration settings of the app */
-	async initializeAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void, dontInitializeSession?: boolean) {
+	public async initializeAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void, dontInitializeSession?: boolean) {
 		// prepare environment
 		if (this.appConfig.app.mode === "") {
 			await this.prepareAsync();
@@ -141,7 +146,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Initializes the session with REST API */
-	initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return super.readAsync("users/session",
 			async data => {
 				await this.updateSessionAsync(data, () => {
@@ -162,35 +167,35 @@ export class ConfigurationService extends BaseService {
 					else {
 						AppEvents.broadcast("Session", { Type: "Initialize", Info: this.appConfig.session });
 					}
-					console.log(`[${this.Name}]: The session is initialized`);
+					this.log("The session is initialized");
 					if (onNext !== undefined) {
 						onNext(data);
 					}
 				});
 			},
-			error => this.showError("Error occurred while initializing the session", error, onError)
+			error => this.error("Error occurred while initializing the session", error, onError)
 		);
 	}
 
 	/** Registers the initialized session (anonymous) with REST API */
-	registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.readAsync("users/session?register=" + this.appConfig.session.id,
 			async data => {
 				this.appConfig.session.account = this.getAccount(true);
 				await this.storeSessionAsync(() => {
 					AppEvents.broadcast("Session", { Type: "Register", Info: this.appConfig.session });
-					console.log(`[${this.Name}]: The session is registered`);
+					this.log("The session is registered");
 				});
 				if (onNext !== undefined) {
 					onNext(data);
 				}
 			},
-			error => this.showError("Error occurred while registering the session", error, onError)
+			error => this.error("Error occurred while registering the session", error, onError)
 		);
 	}
 
 	/** Updates the session and stores into storage */
-	updateSessionAsync(session: any, onCompleted?: () => void) {
+	public updateSessionAsync(session: any, onCompleted?: () => void) {
 		if (AppUtility.isNotEmpty(session.ID)) {
 			this.appConfig.session.id = session.ID;
 		}
@@ -222,7 +227,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Loads the session from storage */
-	async loadSessionAsync(onCompleted?: () => void) {
+	public async loadSessionAsync(onCompleted?: () => void) {
 		try {
 			const data = await this.storage.get("VIEApps-Session");
 			if (AppUtility.isNotEmpty(data) && data !== "{}") {
@@ -234,7 +239,7 @@ export class ConfigurationService extends BaseService {
 			}
 		}
 		catch (error) {
-			this.showError("Error occurred while loading the saved/offline session", error);
+			this.error("Error occurred while loading the saved/offline session", error);
 		}
 		if (onCompleted !== undefined) {
 			onCompleted();
@@ -242,13 +247,13 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Stores the session into storage */
-	async storeSessionAsync(onCompleted?: () => void) {
+	public async storeSessionAsync(onCompleted?: () => void) {
 		try {
 			const session = AppUtility.clone(this.appConfig.session, ["jwt", "captcha"]);
 			await this.storage.set("VIEApps-Session", JSON.stringify(session));
 		}
 		catch (error) {
-			this.showError("Error occurred while saving/storing the session", error);
+			this.error("Error occurred while saving/storing the session", error);
 		}
 		if (onCompleted !== undefined) {
 			onCompleted();
@@ -256,7 +261,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Deletes the session from storage */
-	async deleteSessionAsync(onCompleted?: () => void) {
+	public async deleteSessionAsync(onCompleted?: () => void) {
 		this.appConfig.session.id = null;
 		this.appConfig.session.token = null;
 		this.appConfig.session.keys = null;
@@ -269,7 +274,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Send request to patch the session */
-	patchSession(onNext?: () => void, defer?: number): void {
+	public patchSession(onNext?: () => void, defer?: number): void {
 		PlatformUtility.setTimeout(() => {
 			this.send({
 				ServiceName: "users",
@@ -289,7 +294,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Gets the information of the current/default account */
-	getAccount(getDefault?: boolean) {
+	public getAccount(getDefault?: boolean) {
 		const account = AppUtility.isTrue(getDefault) || this.appConfig.session.account === null
 			? undefined
 			: this.appConfig.session.account;
@@ -297,7 +302,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Prepares account information */
-	prepareAccount(data: any) {
+	public prepareAccount(data: any) {
 		const account = {
 			Roles: new Array<string>(),
 			Privileges: new Array<Privilege>(),
@@ -338,7 +343,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Updates information of the account */
-	updateAccount(data: any, onCompleted?: () => void) {
+	public updateAccount(data: any, onCompleted?: () => void) {
 		const info = this.prepareAccount(data);
 		this.appConfig.session.account.roles = info.Roles;
 		this.appConfig.session.account.privileges = info.Privileges;
@@ -353,7 +358,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Send request to patch information of the account */
-	patchAccount(onNext?: () => void, defer?: number) {
+	public patchAccount(onNext?: () => void, defer?: number) {
 		PlatformUtility.setTimeout(() => {
 			this.send({
 				ServiceName: "users",
@@ -371,7 +376,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Sends the request to get profile information of current account via WebSocket connection */
-	getProfile(onNext?: () => void) {
+	public getProfile(onNext?: () => void) {
 		this.send({
 			ServiceName: "users",
 			ObjectName: "profile",
@@ -392,7 +397,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Store the information of current account profile into storage */
-	async storeProfileAsync(onCompleted?: (data?: any) => void) {
+	public async storeProfileAsync(onCompleted?: (data?: any) => void) {
 		await this.storeSessionAsync();
 		AppEvents.broadcast("Session", { Type: "Updated", Info: this.appConfig.session });
 		if (onCompleted !== undefined) {
@@ -401,14 +406,13 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Watch the connection of Facebook */
-	watchFacebookConnect() {
+	public watchFacebookConnect() {
 		FB.Event.subscribe("auth.authResponseChange",
 			response => {
 				if (response.status === "connected") {
 					this.appConfig.facebook.token = response.authResponse.accessToken;
 					this.appConfig.facebook.id = response.authResponse.userID;
-					console.log(`[${this.Name}]: Facebook is connected`, this.appConfig.isDebug ? this.appConfig.facebook : "");
-
+					this.log("Facebook is connected", this.appConfig.isDebug ? this.appConfig.facebook : "");
 					if (this.appConfig.session.account.facebook !== null) {
 						this.getFacebookProfile();
 					}
@@ -421,7 +425,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Get the information of Facebook profile */
-	getFacebookProfile() {
+	public getFacebookProfile() {
 		FB.api("/" + this.appConfig.facebook.version + "/me?fields=id,name,picture&access_token=" + this.appConfig.facebook.token,
 			response => {
 				this.appConfig.session.account.facebook = {
@@ -430,25 +434,23 @@ export class ConfigurationService extends BaseService {
 					profileUrl: "https://www.facebook.com/app_scoped_user_id/" + response.id,
 					pictureUrl: undefined
 				};
-
 				this.storeProfileAsync(() => {
-					console.log(`[${this.Name}]: Account profile is updated with information of Facebook profile`, this.appConfig.isDebug ? this.appConfig.session.account : "");
+					this.log("Account profile is updated with information of Facebook profile", this.appConfig.isDebug ? this.appConfig.session.account : "");
 				});
-
 				this.getFacebookAvatar();
 			}
 		);
 	}
 
 	/** Get the avatar picture (large picture) of Facebook profile */
-	getFacebookAvatar() {
+	public getFacebookAvatar() {
 		if (this.appConfig.session.account.facebook && this.appConfig.session.account.facebook.id && this.appConfig.session.token && this.appConfig.session.token.oauths
 			&& this.appConfig.session.token.oauths["facebook"] && this.appConfig.session.token.oauths["facebook"] === this.appConfig.session.account.facebook.id) {
 			FB.api("/" + this.appConfig.facebook.version + "/" + this.appConfig.session.account.facebook.id + "/picture?type=large&redirect=false&access_token=" + this.appConfig.facebook.token,
 				response => {
 					this.appConfig.session.account.facebook.pictureUrl = response.data.url;
 					this.storeProfileAsync(() => {
-						console.log(`[${this.Name}]: Account is updated with information of Facebook profile (large profile picture)`, this.appConfig.isDebug ? response : "");
+						this.log("Account is updated with information of Facebook profile (large profile picture)", this.appConfig.isDebug ? response : "");
 					});
 				}
 			);

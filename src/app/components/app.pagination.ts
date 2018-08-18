@@ -36,7 +36,7 @@ export class AppPagination {
 	}
 
 	/** Gets the default pagination */
-	static getDefault(info?: any): { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } {
+	public static getDefault(info?: any): { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } {
 		const pagination = info !== undefined
 			? info.Pagination
 			: undefined;
@@ -57,7 +57,7 @@ export class AppPagination {
 	}
 
 	/** Gets a pagination */
-	static get(info?: any, prefix?: string): { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } {
+	public static get(info?: any, prefix?: string): { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } {
 		const id = this.getKey(info, prefix);
 		return AppUtility.isNotEmpty(id)
 			? AppData.paginations[id]
@@ -65,7 +65,7 @@ export class AppPagination {
 	}
 
 	/** Sets a pagination */
-	static set(info?: any, prefix?: string) {
+	public static set(info?: any, prefix?: string) {
 		const id = this.getKey(info, prefix);
 		if (AppUtility.isNotEmpty(id)) {
 			AppData.paginations[id] = this.getDefault(info);
@@ -73,7 +73,7 @@ export class AppPagination {
 	}
 
 	/** Removes a pagination */
-	static remove(info?: any, prefix?: string) {
+	public static remove(info?: any, prefix?: string) {
 		const id = this.getKey(info, prefix);
 		if (AppUtility.isNotEmpty(id)) {
 			delete AppData.paginations[id];
@@ -81,7 +81,7 @@ export class AppPagination {
 	}
 
 	/** Computes the total of records */
-	static computeTotal(pageNumber: number, pagination?: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }) {
+	public static computeTotal(pageNumber: number, pagination?: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }) {
 		let totalRecords = pageNumber * (AppUtility.isObject(pagination, true) ? pagination.PageSize : 20);
 		if (AppUtility.isObject(pagination, true) && totalRecords > pagination.TotalRecords) {
 			totalRecords = pagination.TotalRecords;
@@ -90,7 +90,7 @@ export class AppPagination {
 	}
 
 	/** Builds the well-formed request (contains filter, sort and pagination) for working with remote APIs */
-	static buildRequest(filterBy?: any, sortBy?: any, pagination?: any, onPreCompleted?: (req: { FilterBy: any, SortBy: any, Pagination: any }) => void): { FilterBy: any, SortBy: any, Pagination: any } {
+	public static buildRequest(filterBy?: any, sortBy?: any, pagination?: any, onPreCompleted?: (req: { FilterBy: any, SortBy: any, Pagination: any }) => void): { FilterBy: any, SortBy: any, Pagination: any } {
 		const request = {
 			FilterBy: AppUtility.isObject(filterBy, true) ? AppUtility.clone(filterBy) : {},
 			SortBy: AppUtility.isObject(sortBy, true) ? AppUtility.clone(sortBy) : {},

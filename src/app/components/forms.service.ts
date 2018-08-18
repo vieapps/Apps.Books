@@ -157,7 +157,7 @@ export class AppFormsService {
 	}
 
 	/** Gets the controls */
-	getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
+	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
 		controls = controls || new Array<AppFormsControl>();
 		config.map((options, order) => new AppFormsControl(options, order))
 			.filter(c => !c.Excluded)
@@ -167,7 +167,7 @@ export class AppFormsService {
 	}
 
 	/** Highlights all invalid controls (by mark as dirty all invalid controls) */
-	highlightInvalids(form: FormGroup) {
+	public highlightInvalids(form: FormGroup) {
 		this.highlightInvalidsFormGroup(form);
 	}
 
@@ -203,7 +203,7 @@ export class AppFormsService {
 	}
 
 	/** Builds the form */
-	buildForm(formGroup: FormGroup, controls: Array<AppFormsControl> = []) {
+	public buildForm(formGroup: FormGroup, controls: Array<AppFormsControl> = []) {
 		this.getFormGroup(controls, formGroup);
 	}
 

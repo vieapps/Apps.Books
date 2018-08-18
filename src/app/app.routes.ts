@@ -12,13 +12,13 @@ const appRoutes: Routes = [
 		loadChildren: "./pages/home/home.module#HomePageModule"
 	},
 	{
-		path: "list-items",
-		loadChildren: "./pages/list/list.module#ListPageModule"
+		path: "log-in",
+		loadChildren: "./pages/users/login.module#LogInPageModule"
 	},
 	{
-		path: "sign-in",
-		loadChildren: "./pages/users/login.module#LogInPageModule"
-	}
+		path: "register-account",
+		loadChildren: "./pages/users/register.module#RegisterAccountPageModule"
+	},
 ];
 
 @NgModule({

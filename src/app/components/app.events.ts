@@ -26,7 +26,7 @@ export class AppEvents {
 	  * @param handler The function to handler data when an event was raised
 	  * @param identity The string that presents identity of the handler for unregistering later
 	*/
-	static on(event: string, handler: (info: any) => void, identity?: string) {
+	public static on(event: string, handler: (info: any) => void, identity?: string) {
 		this.initialize();
 		if (AppUtility.isNotEmpty(event) && handler !== undefined) {
 			this._handlers[event] = this._handlers[event] || [];
@@ -39,7 +39,7 @@ export class AppEvents {
 	  * @param event The string that presents the name of an event
 	  * @param identity The string that presents the identity of the handler for unregistering
 	*/
-	static off(event: string, identity: string) {
+	public static off(event: string, identity: string) {
 		this.initialize();
 		if (AppUtility.isNotEmpty(event) && AppUtility.isNotEmpty(identity) && this._handlers[event]) {
 			const index = AppUtility.find<any>(this._handlers[event], handler => identity === handler.identity);
@@ -54,7 +54,7 @@ export class AppEvents {
 	  * @param event The string that presents the name of an event
 	  * @param args The JSON object that presents the arguments of an event
 	*/
-	static broadcast(event: string, args?: any) {
+	public static broadcast(event: string, args?: any) {
 		this.initialize();
 		this._subject.next({ event, args });
 	}

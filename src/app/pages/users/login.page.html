@@ -4,31 +4,38 @@
 			<ion-back-button [defaultHref]="configSvc.previousUrl" icon="close"></ion-back-button>
 		</ion-buttons>
 		<ion-title>
-			{{info.state.title}}
+			{{title}}
 		</ion-title>
 	</ion-toolbar>
 </ion-header>
 
 <ion-content padding>
 
-	<div *ngIf="info.state.mode === 'log-in'">
+	<div *ngIf="mode === 'log-in'">
 		<app-form [form]="login.form" [config]="login.config"></app-form>
 		<ion-buttons class="buttons">
-			<ion-button [fill]="info.buttons.login.fill" [color]="info.buttons.login.color" (click)="loginAsync()">
-				<ion-icon *ngIf="info.buttons.login.icon" slot="start" [icon]="info.buttons.login.icon"></ion-icon>
-				{{info.buttons.login.label}}
+			<ion-button [fill]="login.button.fill" [color]="login.button.color" (click)="loginAsync()">
+				<ion-icon *ngIf="login.button.icon" slot="start" [icon]="login.button.icon"></ion-icon>
+				{{login.button.label}}
 			</ion-button>
-			<ion-button [fill]="info.buttons.reset.fill" [color]="info.buttons.reset.color" (click)="openResetPassword()">
-				<ion-icon *ngIf="info.buttons.reset.icon" slot="start" [icon]="info.buttons.reset.icon"></ion-icon>
-				{{info.buttons.reset.label}}
+			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="openResetPassword()">
+				<ion-icon *ngIf="reset.button.icon" slot="start" [icon]="reset.button.icon"></ion-icon>
+				{{reset.button.label}}
 			</ion-button>
 		</ion-buttons>
 	</div>
 
-	<div *ngIf="info.state.mode === 'otp'">
+	<div *ngIf="mode === 'otp'">
+		<app-form [form]="otp.form" [config]="otp.config"></app-form>
+		<ion-buttons class="buttons">
+			<ion-button [fill]="otp.button.fill" [color]="otp.button.color" (click)="validateOTPAsync()">
+				<ion-icon *ngIf="otp.button.icon" slot="start" [icon]="otp.button.icon"></ion-icon>
+				{{otp.button.label}}
+			</ion-button>
+		</ion-buttons>
 	</div>
 
-	<div *ngIf="info.state.mode === 'reset'">
+	<div *ngIf="mode === 'reset'">
 		<app-form
 			[form]="reset.form"
 			[config]="reset.config"
@@ -36,9 +43,9 @@
 			(readyEvent)="onResetFormReady($event)"
 			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
 		<ion-buttons class="buttons">
-			<ion-button [fill]="info.buttons.reset.fill" [color]="info.buttons.reset.color" (click)="resetPasswordAsync()">
-				<ion-icon *ngIf="info.buttons.reset.icon" slot="start" [icon]="info.buttons.reset.icon"></ion-icon>
-				{{info.buttons.reset.label}}
+			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="resetPasswordAsync()">
+				<ion-icon *ngIf="reset.button.icon" slot="start" [icon]="reset.button.icon"></ion-icon>
+				{{reset.button.label}}
 			</ion-button>
 		</ion-buttons>
 	</div>

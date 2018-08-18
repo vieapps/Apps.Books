@@ -26,58 +26,50 @@ export class LogInPage implements OnInit {
 	) {
 	}
 
-	// state info
-	info = {
-		state: {
-			title: "Đăng nhập",
-			mode: "log-in"
-		},
-		buttons: {
-			login: {
-				label: "Đăng nhập",
-				icon: undefined,
-				color: "primary",
-				fill: "solid"
-			},
-			otp: {
-				label: "Xác thực",
-				icon: undefined,
-				color: "primary"
-			},
-			reset: {
-				label: "Quên mật khẩu",
-				icon: "key",
-				color: "primary",
-				fill: "clear"
-			}
-		}
-	};
-
-	// forms
+	title = "Đăng nhập";
+	mode = "log-in";
 	login = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
-		controls: new Array<AppFormsControl>()
+		controls: new Array<AppFormsControl>(),
+		button: {
+			label: "Đăng nhập",
+			icon: undefined,
+			color: "primary",
+			fill: "solid"
+		}
 	};
 	otp = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
-		controls: new Array<AppFormsControl>()
+		controls: new Array<AppFormsControl>(),
+		button: {
+			label: "Xác thực",
+			icon: undefined,
+			color: "primary",
+			fill: "solid"
+		}
 	};
 	reset = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
-		controls: new Array<AppFormsControl>()
+		controls: new Array<AppFormsControl>(),
+		button: {
+			label: "Quên mật khẩu",
+			icon: "key",
+			color: "primary",
+			fill: "clear"
+		}
 	};
 
-	ngOnInit() {
+	public ngOnInit() {
 		// this.activatedRoute.params.pipe(first()).subscribe(params => {
 		// });
 		// this.router.events.su
 		this.openLogin();
 	}
 
-	async showAlertAsync(message: any, header?: string, postProcess?: () => void) {
+	private async showAlertAsync(message: any, header?: string, postProcess?: () => void) {
 		const alert = await this.alertController.create({
 			header: header || "Chú ý",
 			message: message,
@@ -94,7 +86,7 @@ export class LogInPage implements OnInit {
 		await alert.present();
 	}
 
-	async showErrorAsync(error: any, postProcess?: () => void) {
+	private async showErrorAsync(error: any, postProcess?: () => void) {
 		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
 			? "Email hoặc mật khẩu không đúng!"
 			: AppUtility.isGotCaptchaException(error)
@@ -105,7 +97,7 @@ export class LogInPage implements OnInit {
 		await this.showAlertAsync(message, "Lỗi", postProcess);
 	}
 
-	openLogin() {
+	public openLogin() {
 		this.login.config = [
 			{
 				Key: "Email",
@@ -134,18 +126,18 @@ export class LogInPage implements OnInit {
 			}
 		];
 
-		this.info.state.mode = "log-in";
-		this.info.state.title = "Đăng nhập";
-		this.configSvc.appTitle = this.info.state.title;
+		this.mode = "log-in";
+		this.title = "Đăng nhập";
+		this.configSvc.appTitle = this.title;
 	}
 
-	async loginAsync() {
+	public async loginAsync() {
 		if (this.login.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.login.form);
 			return;
 		}
 
-		const loading = await this.loadingController.create({ content: this.info.state.title });
+		const loading = await this.loadingController.create({ content: this.title });
 		await loading.present();
 
 		const form = this.login.form.value;
@@ -166,17 +158,17 @@ export class LogInPage implements OnInit {
 		);
 	}
 
-	openValidateOTP() {
+	public openValidateOTP() {
 	}
 
-	async validateOTPAsync() {
+	public async validateOTPAsync() {
 		if (this.otp.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.otp.form);
 			return;
 		}
 	}
 
-	openResetPassword() {
+	public openResetPassword() {
 		this.reset.config = [
 			{
 				Key: "Email",
@@ -204,33 +196,33 @@ export class LogInPage implements OnInit {
 				}
 			}
 		];
-		this.info.state.mode = "reset";
-		this.info.state.title = "Lấy mật khẩu mới";
-		this.info.buttons.reset = {
+		this.mode = "reset";
+		this.title = "Lấy mật khẩu mới";
+		this.reset.button = {
 			label: "Lấy mật khẩu",
 			icon: undefined,
 			color: "primary",
 			fill: "solid"
 		};
-		this.configSvc.appTitle = this.info.state.title;
+		this.configSvc.appTitle = this.title;
 	}
 
-	onResetFormReady($event) {
+	public onResetFormReady($event) {
 		this.renewCaptchaAsync();
 	}
 
-	onRefreshCaptcha($event) {
+	public onRefreshCaptcha($event) {
 		this.renewCaptchaAsync($event as AppFormsControl);
 	}
 
-	async renewCaptchaAsync(control?: AppFormsControl) {
+	public async renewCaptchaAsync(control?: AppFormsControl) {
 		control = control || this.reset.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
 		await this.authSvc.registerCaptchaAsync(() => {
 			control.Extra["Uri"] = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
 
-	async resetPasswordAsync() {
+	public async resetPasswordAsync() {
 		if (this.reset.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.reset.form);
 			return;

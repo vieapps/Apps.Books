@@ -3,19 +3,19 @@ import { Account } from "./models/account";
 /** Configuration of the app */
 export class AppConfig {
 	/** URIs of the remote API and resources */
-	static URIs = {
+	public static URIs = {
 		/** URI of the remote API */
-		apis: "https://apis.vieapps.net/",
+		apis: "https://apis.vieapps.com/",
 
 		/** URI of the remote HTTP Files service */
-		files: "https://fs.vieapps.net/",
+		files: "https://fs.vieapps.com/",
 
 		/** URI to perform activation (on the web) */
-		activations: "https://books.vieapps.net/"
+		activations: "https://books.vieapps.com/"
 	};
 
 	/** Settings of the app */
-	static app = {
+	public static app = {
 		id: "online-books",
 		name: "VIEApps Online Books",
 		version: "1.0.0.0-beta",
@@ -34,7 +34,7 @@ export class AppConfig {
 	};
 
 	/** Session information */
-	static session = {
+	public static session = {
 		id: null as string,
 		token: null,
 		account: null as Account,
@@ -47,61 +47,61 @@ export class AppConfig {
 	};
 
 	/** Settings for working with user accounts */
-	static accountRegistrations = {
+	public static accountRegistrations = {
 		registrable: true,
 		sendInvitationRole: "All",
 		setPrivilegsRole: "ServiceAdministrator"
 	};
 
 	/** Common meta data */
-	static meta = {
+	public static meta = {
 		country: "VN",
 		countries: [],
 		provinces: {}
 	};
 
 	/** Tracking information */
-	static tracking = {
+	public static tracking = {
 		google: "UA-3060572-8",
 		googleDomains: ["viebooks.net", "books.vieapps.net", "books.vieapps.com"],
 		facebook: ""
 	};
 
 	/** Facebook integration */
-	static facebook = {
+	public static facebook = {
 		id: null,
 		token: null,
 		url: null,
 		version: "v3.1",
 	};
 
-	static refer = {
+	public static refer = {
 		id: null as string,
 		section: null as string
 	};
 
 	/** Gets the state that determines is native app */
-	static get isNativeApp() {
+	public static get isNativeApp() {
 		return this.app.mode === "NTA";
 	}
 
 	/** Gets the state that determines is web progressive app */
-	static get isWebApp() {
+	public static get isWebApp() {
 		return this.app.mode === "PWA";
 	}
 
 	/** Gets the state that determines the app is running in debug mode */
-	static get isDebug() {
+	public static get isDebug() {
 		return this.app.debug;
 	}
 
 	/** Gets the state that determines the app is running in offline mode */
-	static get isOffline() {
+	public static get isOffline() {
 		return this.app.offline;
 	}
 
 	/** Gets the reading options fo the book app */
-	static readingOptions = {
+	public static readingOptions = {
 		font: "default",
 		size: "normal",
 		color: "white",

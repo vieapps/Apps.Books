@@ -14,68 +14,68 @@ export class AppUtility {
 	private static _counties: any = {};
 
 	/** Checks to see the object is boolean and equals to true */
-	static isTrue(obj?: any): boolean {
+	public static isTrue(obj?: any): boolean {
 		return obj !== undefined && typeof obj === "boolean" && obj === true;
 	}
 
 	/** Checks to see the object is boolean (or not defined) and equals to false */
-	static isFalse(obj?: any) {
+	public static isFalse(obj?: any) {
 		return obj === undefined || (typeof obj === "boolean" && obj === false);
 	}
 
 	/** Checks to see the object is really object or not */
-	static isObject(obj?: any, notNull?: boolean) {
+	public static isObject(obj?: any, notNull?: boolean) {
 		return obj !== undefined && typeof obj === "object" && (this.isTrue(notNull) ? obj !== null : true);
 	}
 
 	/** Checks to see the object is array or not */
-	static isArray(obj?: any, notNull?: boolean) {
+	public static isArray(obj?: any, notNull?: boolean) {
 		return obj instanceof Array && (this.isTrue(notNull) ? obj !== undefined && obj !== null : true);
 	}
 
 	/** Checks to see the object is date or not */
-	static isDate(obj?: any) {
+	public static isDate(obj?: any) {
 		return obj instanceof Date;
 	}
 
 	/** Checks to see the object is null or not */
-	static isNull(obj?: any) {
+	public static isNull(obj?: any) {
 		return obj === undefined || obj === null;
 	}
 
 	/** Checks to see the object is defined and null or not */
-	static isNotNull(obj?: any) {
+	public static isNotNull(obj?: any) {
 		return obj !== undefined && obj !== null;
 	}
 
 	/** Checks to see the string is defined and not empty */
-	static isNotEmpty(obj?: string) {
+	public static isNotEmpty(obj?: string) {
 		return this.isNotNull(obj) && typeof obj === "string" && obj.trim() !== "";
 	}
 
 	/** Gets the state that determines the emai address is valid or not */
-	static isValidEmail(email?: string) {
+	public static isValidEmail(email?: string) {
 		const atPos = this.isNotEmpty(email) ? email.indexOf("@") : -1;
 		const dotPos = this.isNotEmpty(email) ? email.indexOf(".", atPos + 1) : -1;
 		return atPos > 0 && dotPos > atPos;
 	}
 
 	/** Checks the error to see that is security exception or not */
-	static isGotSecurityException(error?: any) {
+	public static isGotSecurityException(error?: any) {
 		return this.isObject(error, true) && this.isNotEmpty(error.Type)
 			? new List(this._exceptions).FirstOrDefault(e => e === error.Type) !== undefined
 			: false;
 	}
 
 	/** Checks the error to see that is wrong account or password exception or not */
-	static isGotWrongAccountOrPasswordException(error?: any) {
+	public static isGotWrongAccountOrPasswordException(error?: any) {
 		return this.isObject(error, true) && this.isNotEmpty(error.Type)
 			? error.Type === "WrongAccountException"
 			: false;
 	}
 
 	/** Checks the error to see that is captcha exception or not */
-	static isGotCaptchaException(error?: any) {
+	public static isGotCaptchaException(error?: any) {
 		return this.isObject(error, true) && this.isNotEmpty(error.Type) && this.isNotEmpty(error.Message)
 			? error.Type === "InformationInvalidException" && error.Message.indexOf("Captcha code is invalid") > -1
 			: false;
@@ -87,7 +87,7 @@ export class AppUtility {
 	 * @param obj The instance of an object to copy data into
 	 * @param onPreCompleted The handler to run when copying process is completed
 	*/
-	static copy(source: any, obj: any, onPreCompleted?: (data: any) => void) {
+	public static copy(source: any, obj: any, onPreCompleted?: (data: any) => void) {
 		try {
 			const data = this.isNotEmpty(source)
 				? JSON.parse(source)
@@ -118,7 +118,7 @@ export class AppUtility {
 	  * @param source The source object for cloning
 	  * @param beRemoved The array of attributes of the cloning object to be removed before returing
 	*/
-	static clone(source?: any, beRemoved?: Array<string>): any {
+	public static clone(source?: any, beRemoved?: Array<string>): any {
 		const exists = [];
 		const json = JSON.stringify(source, (key: string, value: any) => {
 			if (this.isObject(value, true)) {
@@ -141,7 +141,7 @@ export class AppUtility {
 	 * @param instance The instance of an object to process
 	 * @param onPreCompleted The handler to run when cleaning process is completed
 	*/
-	static clean(instance: any, onPreCompleted?: (obj: any) => void) {
+	public static clean(instance: any, onPreCompleted?: (obj: any) => void) {
 		const properties = Object.getOwnPropertyNames(instance);
 		for (const property of properties) {
 			if (this.isNull(instance[property])) {
@@ -161,14 +161,14 @@ export class AppUtility {
 	}
 
 	/** Gets the position of the sub-string in the string */
-	static indexOf(str: string, substr: string, start?: number) {
+	public static indexOf(str: string, substr: string, start?: number) {
 		return this.isNotEmpty(str) && this.isNotEmpty(substr)
 			? str.indexOf(substr, start)
 			: -1;
 	}
 
 	/** Finds the index of an item in the sequence base on a predicate */
-	static find<T>(items: Array<T>, predicate: (item: T) => boolean): number {
+	public static find<T>(items: Array<T>, predicate: (item: T) => boolean): number {
 		for (let index = 0; index < items.length; index++) {
 			if (predicate(items[index])) {
 				return index;
@@ -178,7 +178,7 @@ export class AppUtility {
 	}
 
 	/** Removes items in the sequence base on number that count from end */
-	static splice<T>(items: Array<T>, number?: number) {
+	public static splice<T>(items: Array<T>, number?: number) {
 		number = number || 1;
 		const index = items.length - number;
 		if (index > 0 && index < items.length) {
@@ -187,7 +187,7 @@ export class AppUtility {
 	}
 
 	/** Gets the query of JSON */
-	static getQueryOfJson(json: any): string {
+	public static getQueryOfJson(json: any): string {
 		let query = "";
 		try {
 			if (this.isObject(json, true)) {
@@ -203,7 +203,7 @@ export class AppUtility {
 	}
 
 	/** Gets the JSON of a query param (means decode by Base64Url and parse to JSON) */
-	static getJsonOfQuery(value: string): any {
+	public static getJsonOfQuery(value: string): any {
 		try {
 			return this.isNotEmpty(value)
 				? JSON.parse(AppCrypto.urlDecode(value))
@@ -214,49 +214,8 @@ export class AppUtility {
 		}
 	}
 
-	/** Parses an uri */
-	static parseURI(uri?: string) {
-		const parser = document.createElement("a");
-		parser.href = uri || "";
-
-		// convert query string to object
-		const searchParams = {};
-		if (parser.search !== "") {
-			const queries = parser.search.replace(/^\?/, "").split("&");
-			for (let index = 0; index < queries.length; index++ ) {
-				const split = queries[index].split("=");
-				searchParams[split[0]] = split[1];
-			}
-		}
-
-		// convert hash string to object
-		const hashParams = {};
-		let hash = parser.hash;
-		while (hash.indexOf("#") === 0 || hash.indexOf("?") === 0) {
-			hash = hash.substring(1);
-		}
-		if (hash !== "") {
-			const queries = hash.replace(/^\?/, "").split("&");
-			for (let index = 0; index < queries.length; index++ ) {
-				const split = queries[index].split("=");
-				hashParams[split[0]] = split[1];
-			}
-		}
-
-		return {
-			protocol: parser.protocol + "//",
-			host: parser.hostname,
-			port: parser.port,
-			path: parser.pathname,
-			search: parser.search,
-			searchParams: searchParams,
-			hash: parser.hash,
-			hashParams: hashParams
-		};
-	}
-
 	/** Gets the array of objects with random scoring number (for ordering) */
-	static getTopScores(objects: Array<any>, take?: number, excluded?: string, dontAddRandomScore?: boolean, nameOfRandomScore?: string) {
+	public static getTopScores(objects: Array<any>, take?: number, excluded?: string, dontAddRandomScore?: boolean, nameOfRandomScore?: string) {
 		dontAddRandomScore = dontAddRandomScore !== undefined
 			? dontAddRandomScore
 			: false;
@@ -285,7 +244,7 @@ export class AppUtility {
 	}
 
 	/** Gets the listing of counties of a specified country */
-	static getCounties(country?: string) {
+	public static getCounties(country?: string) {
 		country = this.isNotEmpty(country)
 			? country
 			: AppConfig.meta.country;
@@ -308,7 +267,7 @@ export class AppUtility {
 	}
 
 	/** Initializes an address for working with type-a-head */
-	static initializeAddress(address?: any): { current: any, addresses: Array<any> } {
+	public static initializeAddress(address?: any): { current: any, addresses: Array<any> } {
 		const info = {
 			addresses: this.getCounties(),
 			current: undefined
@@ -334,14 +293,14 @@ export class AppUtility {
 	}
 
 	/** Removes tags from the HTML content */
-	static removeTags(html?: string) {
+	public static removeTags(html?: string) {
 		return this.isNotEmpty(html)
 			? html.replace(/<\/?[^>]+(>|$)/g, "")
 			: "";
 	}
 
 	/** Normalizes the HTML content */
-	static normalizeHtml(html?: string, removeTags?: boolean) {
+	public static normalizeHtml(html?: string, removeTags?: boolean) {
 		const wellHtml = this.isNotEmpty(html)
 			? this.isTrue(removeTags)
 				? this.removeTags(html)
@@ -353,7 +312,7 @@ export class AppUtility {
 	}
 
 	/** Parses the error */
-	static parseError(error: any) {
+	public static parseError(error: any) {
 		try {
 			return error !== undefined && error instanceof Response
 				? error.json()
@@ -365,7 +324,7 @@ export class AppUtility {
 	}
 
 	/** Shows the error to console (and run next action) */
-	static showError(message: string, error: any, next?: (error?: any) => void) {
+	public static showError(message: string, error: any, next?: (error?: any) => void) {
 		error = this.parseError(error);
 		if (AppUtility.isObject(error, true) && error.Type && error.Message) {
 			console.error(message + " => [" + error.Type + "]: " + error.Message + "\n" + "Correlation ID: " + error.CorrelationID);
@@ -382,7 +341,7 @@ export class AppUtility {
 	}
 
 	/** Gets all the available characters (0 and A-Z) */
-	static getChars() {
+	public static getChars() {
 		const chars = new Array<string>("0");
 		for (let code = 65; code < 91; code++) {
 			chars.push(String.fromCharCode(code));
@@ -391,21 +350,21 @@ export class AppUtility {
 	}
 
 	/** Gets the culture language for working with UI */
-	static getLanguage() {
+	public static getLanguage() {
 		return this.isNotNull(AppConfig.session.account) && this.isNotNull(AppConfig.session.account.profile)
 			? AppConfig.session.account.profile.Language
 			: AppConfig.app.language;
 	}
 
 	/** Stringifys the JSON and encode as base64-url */
-	static toBase64Url(json: any) {
+	public static toBase64Url(json: any) {
 		return this.isObject(json, true)
 			? AppCrypto.urlEncode(JSON.stringify(json))
 			: "";
 	}
 
 	/** Splits the string into the array of strings */
-	static toArray(obj: any, separator?: any): Array<string> | Array<any> | Array<{ name: string, value: any }> {
+	public static toArray(obj: any, separator?: any): Array<string> | Array<any> | Array<{ name: string, value: any }> {
 		if (this.isArray(obj)) {
 			return obj as Array<any>;
 		}
@@ -434,14 +393,14 @@ export class AppUtility {
 	}
 
 	/** Converts object to integer */
-	static toInt(value: any) {
+	public static toInt(value: any) {
 		return this.isNotEmpty(value)
 			? parseInt(value, 0)
 			: 0;
 	}
 
 	/** Converts the Vietnamese string to ANSI string */
-	static toANSI(input?: string): string {
+	public static toANSI(input?: string): string {
 		if (!this.isNotEmpty(input) || input.trim() === "") {
 			return "";
 		}

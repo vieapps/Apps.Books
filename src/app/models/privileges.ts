@@ -10,7 +10,7 @@ export class Privilege {
 	Role = "";
 	Actions = new Array<string>();
 
-	static deserialize(json: any, obj?: Privilege) {
+	public static deserialize(json: any, obj?: Privilege) {
 		obj = obj || new Privilege();
 		AppUtility.copy(json, obj);
 		return obj;
@@ -32,7 +32,7 @@ export class Privileges {
 	AdministrativeRoles = new Collections.Set<string>();
 	AdministrativeUsers = new Collections.Set<string>();
 
-	static deserialize(json: any, obj?: Privileges) {
+	public static deserialize(json: any, obj?: Privileges) {
 		obj = obj || new Privileges();
 		const properties = Object.getOwnPropertyNames(obj);
 		for (const property of properties) {
