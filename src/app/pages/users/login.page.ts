@@ -73,7 +73,6 @@ export class LogInPage implements OnInit {
 		const alert = await this.alertController.create({
 			header: header || "Chú ý",
 			message: message,
-			enableBackdropDismiss: false,
 			buttons: [{
 				text: "Đóng",
 				handler: () => {
