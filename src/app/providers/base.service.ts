@@ -2,8 +2,9 @@ import { Http } from "@angular/http";
 import { map } from "rxjs/operators";
 import { AppAPI } from "../components/app.api";
 import { AppRTU } from "../components/app.rtu";
-import { AppUtility } from "../components/app.utility";
 import { AppPagination } from "../components/app.pagination";
+import { AppUtility } from "../components/app.utility";
+import { PlatformUtility } from "../components/app.utility.platform";
 
 /** Base of all providers/services */
 export class Base {
@@ -15,7 +16,10 @@ export class Base {
 		return AppUtility.isNotEmpty(this.Name) ? this.Name : this.constructor.name;
 	}
 
-	constructor(http: Http, name?: string) {
+	constructor (
+		http: Http,
+		name?: string
+	) {
 		AppAPI.initialize(http);
 		this.Name = name || "";
 	}
@@ -217,14 +221,19 @@ export class Base {
 		);
 	}
 
-	/** Prints the error message to console/log file and run the next action */
-	protected error(message: string, error?: any, onError?: (error?: any) => void) {
-		AppUtility.showError(`[${this.serviceName}]: ${message}`, error, onError);
+	/** Prints the log message to console/log file */
+	protected log(message: string, ...optionalParams: any[]) {
+		PlatformUtility.showLog(`[${this.serviceName}]: ${message}`, optionalParams);
 	}
 
-	/** Prints the log message to console/log file */
-	protected log(message: string, ...params) {
-		console.log(`[${this.serviceName}]: ${message}`, params);
+	/** Prints the warning message to console/log file */
+	protected warn(message: string, ...optionalParams: any[]) {
+		PlatformUtility.showWarning(`[${this.serviceName}]: ${message}`, optionalParams);
+	}
+
+	/** Prints the error message to console/log file and run the next action */
+	protected error(message: string, error?: any, onError?: (error?: any) => void) {
+		PlatformUtility.showError(`[${this.serviceName}]: ${message}`, error, onError);
 	}
 
 }

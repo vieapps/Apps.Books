@@ -3,17 +3,36 @@
 		<ion-menu>
 			<ion-header>
 				<ion-toolbar>
-					<ion-avatar *ngIf="sidebar.left.avatar">
+					<ion-thumbnail *ngIf="sidebar.left.avatar" slot="start">
 						<img [src]="sidebar.left.avatar"/>
-					</ion-avatar>
-					<ion-title>{{sidebar.left.title}}</ion-title>
+					</ion-thumbnail>
+					<ion-title>
+						{{sidebar.left.title}}
+					</ion-title>
 				</ion-toolbar>
 			</ion-header>
 			<ion-content>
-				<ion-list *ngFor="let menu of sidebar.left.menu">
-					<ion-list-header *ngIf="menu.title">{{menu.title}}</ion-list-header>
-					<ion-item *ngFor="let item of menu.items" [routerLink]="[item.url]" [routerDirection]="item.direction">
+				<ion-list *ngFor="let menu of sidebar.left.menu; trackBy: sidebarTrackBy">
+					<ion-list-header *ngIf="menu.title">
+						<ion-icon *ngIf="menu.icon" [name]="menu.icon" slot="start"></ion-icon>
+						<ion-thumbnail *ngIf="menu.thumbnail" slot="start">
+							<img [src]="menu.thumbnail"/>
+						</ion-thumbnail>
+						<ion-label>
+							{{menu.title}}
+						</ion-label>	
+					</ion-list-header>
+					<ion-item *ngIf="menu.parent" [routerLink]="[menu.parent.url]" [routerDirection]="menu.parent.direction">
+						<ion-icon name="arrow-back" slot="start"></ion-icon>
+						<ion-label>
+							{{menu.parent.title}}
+						</ion-label>	
+					</ion-item>
+					<ion-item *ngFor="let item of menu.items; trackBy: sidebarTrackBy" [routerLink]="[item.url]" [detail]="item.detail" [routerDirection]="item.direction">
 						<ion-icon *ngIf="item.icon" [name]="item.icon" slot="start"></ion-icon>
+						<ion-thumbnail *ngIf="item.thumbnail" slot="start">
+							<img [src]="item.thumbnail"/>
+						</ion-thumbnail>
 						<ion-label>
 							{{item.title}}
 						</ion-label>

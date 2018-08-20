@@ -2,6 +2,7 @@ declare var FB: any;
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
 import { Title } from "@angular/platform-browser";
+import { NavigationExtras } from "@angular/router";
 import { Platform } from "@ionic/angular";
 import { Storage } from "@ionic/storage";
 import { Device } from "@ionic-native/device/ngx";
@@ -52,6 +53,11 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.isDebug;
 	}
 
+	/** Gets the state that determines is web progressive app */
+	public get isWebApp() {
+		return this.appConfig.isWebApp;
+	}
+
 	/** Sets the previous url */
 	public setPreviousUrl(value: string) {
 		this.appConfig.app.url.previous = value;
@@ -92,6 +98,11 @@ export class ConfigurationService extends BaseService {
 		this.docTitle.setTitle(`${value} :: ${this.appConfig.app.name}`);
 	}
 
+	/** Gets the query with related service, language and host */
+	public get relatedQuery() {
+		return "related-service=" + this.appConfig.app.service + "&language=" + AppUtility.language + "&host=" + PlatformUtility.host;
+	}
+
 	/** Prepare the working environments of the app */
 	public async prepareAsync(onCompleted?: () => void) {
 		this.appConfig.app.mode = this.platform.is("cordova") && this.device.platform !== "browser" ? "NTA" : "PWA";
@@ -103,7 +114,7 @@ export class ConfigurationService extends BaseService {
 		}
 
 		else {
-			this.appConfig.app.host = PlatformUtility.getHost();
+			this.appConfig.app.host = PlatformUtility.host;
 			this.appConfig.app.platform = this.device.platform;
 			if (!AppUtility.isNotEmpty(this.appConfig.app.platform) || this.appConfig.app.platform === "browser") {
 				this.appConfig.app.platform = PlatformUtility.getAppPlatform();
@@ -150,16 +161,13 @@ export class ConfigurationService extends BaseService {
 		return super.readAsync("users/session",
 			async data => {
 				await this.updateSessionAsync(data, () => {
-					if (this.isAuthenticated) {
-						this.appConfig.session.account = AppUtility.isObject(this.appConfig.session.account, true)
-							? this.appConfig.session.account
-							: this.getAccount(true);
-						if (!this.appConfig.session.account.id) {
-							this.appConfig.session.account.id = this.appConfig.session.token.uid;
-						}
+					this.initializeAccount();
+					if (this.isAuthenticated && !this.appConfig.session.account.id) {
+						this.appConfig.session.account.id = this.appConfig.session.token.uid;
 					}
-					else {
-						this.appConfig.session.account = this.getAccount(true);
+
+					if (this.isDebug) {
+						this.log("The session is initialized by APIs");
 					}
 					if (this.isAuthenticated) {
 						AppEvents.broadcast("Session", { Type: "Register", Info: this.appConfig.session });
@@ -167,7 +175,7 @@ export class ConfigurationService extends BaseService {
 					else {
 						AppEvents.broadcast("Session", { Type: "Initialize", Info: this.appConfig.session });
 					}
-					this.log("The session is initialized");
+
 					if (onNext !== undefined) {
 						onNext(data);
 					}
@@ -182,20 +190,18 @@ export class ConfigurationService extends BaseService {
 		return this.readAsync("users/session?register=" + this.appConfig.session.id,
 			async data => {
 				this.appConfig.session.account = this.getAccount(true);
-				await this.storeSessionAsync(() => {
-					AppEvents.broadcast("Session", { Type: "Register", Info: this.appConfig.session });
-					this.log("The session is registered");
-				});
-				if (onNext !== undefined) {
-					onNext(data);
+				if (this.isDebug) {
+					this.log("The session is registered by APIs");
 				}
+				AppEvents.broadcast("Session", { Type: "Register", Info: this.appConfig.session });
+				await this.storeSessionAsync(onNext);
 			},
 			error => this.error("Error occurred while registering the session", error, onError)
 		);
 	}
 
 	/** Updates the session and stores into storage */
-	public updateSessionAsync(session: any, onCompleted?: () => void) {
+	public updateSessionAsync(session: any, onCompleted?: (data?: any) => void) {
 		if (AppUtility.isNotEmpty(session.ID)) {
 			this.appConfig.session.id = session.ID;
 		}
@@ -223,17 +229,27 @@ export class ConfigurationService extends BaseService {
 			this.appConfig.session.token = AppCrypto.jwtDecode(session.Token, AppUtility.isObject(this.appConfig.session.keys, true) ? this.appConfig.session.keys.jwt : this.appConfig.app.name);
 		}
 
+		if (this.isAuthenticated) {
+			this.initializeAccount();
+			if (!this.appConfig.session.account.id) {
+				this.appConfig.session.account.id = this.appConfig.session.token.uid;
+			}
+		}
+
 		return this.storeSessionAsync(onCompleted);
 	}
 
 	/** Loads the session from storage */
-	public async loadSessionAsync(onCompleted?: () => void) {
+	public async loadSessionAsync(onCompleted?: (data?: any) => void) {
 		try {
-			const data = await this.storage.get("VIEApps-Session");
-			if (AppUtility.isNotEmpty(data) && data !== "{}") {
-				this.appConfig.session = JSON.parse(data as string);
+			const session = await this.storage.get("VIEApps-Session");
+			if (AppUtility.isNotEmpty(session) && session !== "{}") {
+				this.appConfig.session = JSON.parse(session as string);
 				if (this.appConfig.session.account !== null && this.appConfig.session.account.profile !== null) {
 					this.appConfig.session.account.profile = Profile.deserialize(this.appConfig.session.account.profile);
+				}
+				if (this.isDebug) {
+					this.log("The session is loaded from storage");
 				}
 				AppEvents.broadcast("Session", { Type: "Loaded", Info: this.appConfig.session });
 			}
@@ -242,35 +258,34 @@ export class ConfigurationService extends BaseService {
 			this.error("Error occurred while loading the saved/offline session", error);
 		}
 		if (onCompleted !== undefined) {
-			onCompleted();
+			onCompleted(this.appConfig.session);
 		}
 	}
 
 	/** Stores the session into storage */
-	public async storeSessionAsync(onCompleted?: () => void) {
+	public async storeSessionAsync(onCompleted?: (data?: any) => void) {
 		try {
-			const session = AppUtility.clone(this.appConfig.session, ["jwt", "captcha"]);
-			await this.storage.set("VIEApps-Session", JSON.stringify(session));
+			await this.storage.set("VIEApps-Session", JSON.stringify(AppUtility.clone(this.appConfig.session, ["jwt", "captcha"])));
+			if (this.isDebug) {
+				this.log("The session is stored into storage");
+			}
+			AppEvents.broadcast("Session", { Type: "Updated", Info: this.appConfig.session });
 		}
 		catch (error) {
 			this.error("Error occurred while saving/storing the session", error);
 		}
 		if (onCompleted !== undefined) {
-			onCompleted();
+			onCompleted(this.appConfig.session);
 		}
 	}
 
 	/** Deletes the session from storage */
-	public async deleteSessionAsync(onCompleted?: () => void) {
+	public deleteSessionAsync(onCompleted?: (data?: any) => void) {
 		this.appConfig.session.id = null;
 		this.appConfig.session.token = null;
 		this.appConfig.session.keys = null;
 		this.appConfig.session.account = this.getAccount(true);
-		const session = AppUtility.clone(this.appConfig.session, ["jwt", "captcha"]);
-		await this.storage.set("VIEApps-Session", JSON.stringify(session));
-		if (onCompleted !== undefined) {
-			onCompleted();
-		}
+		return this.storeSessionAsync(onCompleted);
 	}
 
 	/** Send request to patch the session */
@@ -291,6 +306,10 @@ export class ConfigurationService extends BaseService {
 				onNext();
 			}
 		}, defer || 456);
+	}
+
+	private initializeAccount() {
+		this.appConfig.session.account = this.getAccount(!this.isAuthenticated);
 	}
 
 	/** Gets the information of the current/default account */
@@ -384,8 +403,8 @@ export class ConfigurationService extends BaseService {
 			Query: {
 				"object-identity": this.getAccount().id,
 				"related-service": this.appConfig.app.service,
-				"language": AppUtility.getLanguage(),
-				"host": PlatformUtility.getHost()
+				"language": AppUtility.language,
+				"host": PlatformUtility.host
 			},
 			Header: null,
 			Body: null,
@@ -397,12 +416,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Store the information of current account profile into storage */
-	public async storeProfileAsync(onCompleted?: (data?: any) => void) {
-		await this.storeSessionAsync();
-		AppEvents.broadcast("Session", { Type: "Updated", Info: this.appConfig.session });
-		if (onCompleted !== undefined) {
-			onCompleted(this.appConfig.session);
-		}
+	public storeProfileAsync(onCompleted?: (data?: any) => void) {
+		return this.storeSessionAsync(onCompleted);
 	}
 
 	/** Watch the connection of Facebook */
@@ -455,6 +470,41 @@ export class ConfigurationService extends BaseService {
 				}
 			);
 		}
+	}
+
+	/** Sends a request to tell app component navigates forward one step */
+	public goForward(url: string, animated: boolean = true, extras?: NavigationExtras) {
+		AppEvents.broadcast("GoForward", {
+			url: url,
+			animated: AppUtility.isTrue(animated),
+			extras: extras
+		});
+	}
+
+	/** Sends a request to tell app component navigates back one step */
+	public goBack(url: string = null, animated: boolean = true, extras?: NavigationExtras) {
+		AppEvents.broadcast("GoBack", {
+			url: url || this.previousUrl,
+			animated: AppUtility.isTrue(animated),
+			extras: extras
+		});
+	}
+
+	/** Sends a request to tell app component navigates as root */
+	public goRoot(url: string, animated: boolean = true, extras?: NavigationExtras) {
+		AppEvents.broadcast("GoRoot", {
+			url: url,
+			animated: AppUtility.isTrue(animated),
+			extras: extras
+		});
+	}
+
+	/** Sends a request to tell app component navigates to home screen as root */
+	public goHome(animated: boolean = true, extras?: NavigationExtras) {
+		AppEvents.broadcast("GoHome", {
+			animated: AppUtility.isTrue(animated),
+			extras: extras
+		});
 	}
 
 }

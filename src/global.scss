@@ -12,7 +12,18 @@
 
 /*@import "~app/pages/users/login.page.scss";*/
 
-/* lable of invalid controls */
+/* label of invalid controls */
 .invalid > ion-label {
-	color: #f04141;
+	color: var(--ion-color-danger);
+}
+
+/* avatar of side menu */
+ion-app ion-menu ion-header ion-toolbar ion-thumbnail img {
+	border-radius: 50%;
+}
+
+/* description label of an input control */
+.label.description, label.description {
+	font-size: 12px;
+	color: var(--ion-color-medium);
 }

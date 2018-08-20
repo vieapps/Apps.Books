@@ -177,12 +177,20 @@ export class AppUtility {
 		return -1;
 	}
 
-	/** Removes items in the sequence base on number that count from end */
-	public static splice<T>(items: Array<T>, number?: number) {
-		number = number || 1;
-		const index = items.length - number;
-		if (index > 0 && index < items.length) {
-			items.splice(index, number);
+	/** Removes an item from the sequence base on index */
+	public static removeAt<T>(items: Array<T>, index: number) {
+		if (index > -1 && index < items.length) {
+			items.splice(index, 1);
+		}
+	}
+
+	/** Insert an item into the sequence by the specific index */
+	public static insertAt<T>(items: Array<T>, item: T, index: number = -1) {
+		if (index > -1 && index < items.length) {
+			items.splice(index, 0, item);
+		}
+		else {
+			items.push(item);
 		}
 	}
 
@@ -323,23 +331,6 @@ export class AppUtility {
 		}
 	}
 
-	/** Shows the error to console (and run next action) */
-	public static showError(message: string, error: any, next?: (error?: any) => void) {
-		error = this.parseError(error);
-		if (AppUtility.isObject(error, true) && error.Type && error.Message) {
-			console.error(message + " => [" + error.Type + "]: " + error.Message + "\n" + "Correlation ID: " + error.CorrelationID);
-			if (next !== undefined) {
-				next(error);
-			}
-		}
-		else {
-			console.error(message, error);
-			if (next !== undefined) {
-				next(error);
-			}
-		}
-	}
-
 	/** Gets all the available characters (0 and A-Z) */
 	public static getChars() {
 		const chars = new Array<string>("0");
@@ -350,7 +341,7 @@ export class AppUtility {
 	}
 
 	/** Gets the culture language for working with UI */
-	public static getLanguage() {
+	public static get language() {
 		return this.isNotNull(AppConfig.session.account) && this.isNotNull(AppConfig.session.account.profile)
 			? AppConfig.session.account.profile.Language
 			: AppConfig.app.language;

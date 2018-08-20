@@ -17,7 +17,8 @@
 		[minlength]="minLength"
 		[maxlength]="maxLength"
 		[clearOnEdit]="clearOnEdit"
-		[attr.style]="style"></ion-input>
+		[attr.autofocus]="!!autofocus"
+		[attr.style]="style.control"></ion-input>
 	<ion-textarea *ngIf="isControl('TextArea')" rows="4"
 		[formControlName]="formControlName"
 		[placeholder]="placeholder"
@@ -26,28 +27,43 @@
 		[readonly]="readonly"
 		[minlength]="minLength"
 		[maxlength]="maxLength"
-		[attr.style]="style"></ion-textarea>
+		[attr.style]="style.control"></ion-textarea>
 </ion-item>
 
+<ion-item *ngIf="isFormControl && !isControl('Captcha') && description">
+	<label
+		[class]="css.description"
+		[style]="style.description">{{description}}</label>
+</ion-item>
+	
 <div *ngIf="isFormControl && isControl('Captcha')" class="captcha">
+
 	<ion-item [formGroup]="formGroup" [class.invalid]="invalid">
 		<ion-label *ngIf="label"
 			[color]="color"
 			[position]="position"
 			[class]="css.label">{{label}}</ion-label>
-		<ion-input type="text" clearOnEdit="true"
+		<ion-input type="text" clearOnEdit="true" style="text-transform:uppercase"
 			[formControlName]="formControlName"
 			[placeholder]="placeholder"
 			[required]="required"
 			[minlength]="minLength"
 			[maxlength]="maxLength"></ion-input>
 	</ion-item>
+
+	<ion-item *ngIf="description">
+		<label
+			[class]="css.description"
+			[style]="style.description">{{description}}</label>
+	</ion-item>
+
 	<ion-item>
 		<ion-button fill="clear" (click)="refreshCaptcha()">
 			<ion-icon icon="refresh"></ion-icon>
 		</ion-button>
-		<img *ngIf="control.Extra['Uri']" slot="start" [src]="control.Extra['Uri']"/>
+		<img *ngIf="control.Extra['Uri']" [src]="control.Extra['Uri']" slot="start" />
 	</ion-item>
+
 </div>
 
 <ion-list-header *ngIf="(isFormGroup || isFormArray) && label"
@@ -55,24 +71,24 @@
 	[class]="css.label">{{label}}</ion-list-header>
 
 <div *ngIf="isFormGroup">
-	<app-form-element *ngFor="let ctrl of subControls"
+	<app-form-element *ngFor="let ctrl of subControls; trackBy: controlTrackBy"
 		[formGroup]="subFormGroup"
 		[control]="ctrl"></app-form-element>
 </div>
 
 <div *ngIf="isSimpleFormArray">
-	<app-form-element *ngFor="let ctrl of subControls; let idx = index"
+	<app-form-element *ngFor="let ctrl of subControls; let idx = index; trackBy: controlTrackBy"
 		[formGroup]="subFormGroup"
 		[control]="ctrl"
 		[index]="idx"></app-form-element>
 </div>
 
 <div *ngIf="isComplexFormArray">
-	<div *ngFor="let ctrl of subControls; let idx = index">
+	<div *ngFor="let ctrl of subControls; let idx = index; trackBy: controlTrackBy">
 		<ion-list-header *ngIf="getSubLabel(ctrl)"
 			[color]="getSubColor(ctrl)"
 			[class]="getSubCss(ctrl)">{{getSubLabel(ctrl)}}</ion-list-header>
-		<app-form-element *ngFor="let subctrl of getSubControls(ctrl)"
+		<app-form-element *ngFor="let subctrl of getSubControls(ctrl); trackBy: controlTrackBy"
 			[formGroup]="getSubFormGroup(idx)"
 			[control]="subctrl"></app-form-element>
 	</div>

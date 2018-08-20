@@ -7,9 +7,41 @@ declare var FB: any;
 /** Servicing component for working with app on a specific platform */
 export class PlatformUtility {
 
-	/** Gets the state that determines the app is running on Apple iOS */
-	public static get isAppleOS() {
-		return AppConfig.app.platform.indexOf("iOS") === 0;
+	/** Prints the log message to console/log file */
+	public static showLog(message: string, ...optionalParams: any[]) {
+		if (optionalParams.length < 1 || (AppUtility.isArray(optionalParams[0]) && optionalParams[0].length < 1)) {
+			console.log(message);
+		}
+		else {
+			console.log(message, optionalParams);
+		}
+	}
+
+	/** Prints the warning message to console/log file */
+	public static showWarning(message: string, ...optionalParams: any[]) {
+		if (optionalParams.length < 1 || (AppUtility.isArray(optionalParams[0]) && optionalParams[0].length < 1)) {
+			console.warn(message);
+		}
+		else {
+			console.warn(message, optionalParams);
+		}
+	}
+
+	/** Prints the error to console/log file (and run next action) */
+	public static showError(message: string, error: any, next?: (error?: any) => void) {
+		error = AppUtility.parseError(error);
+		if (AppUtility.isObject(error, true) && error.Type && error.Message) {
+			console.error(message + " => [" + error.Type + "]: " + error.Message + "\n" + "Correlation ID: " + error.CorrelationID);
+			if (next !== undefined) {
+				next(error);
+			}
+		}
+		else {
+			console.error(message, error);
+			if (next !== undefined) {
+				next(error);
+			}
+		}
 	}
 
 	/**
@@ -23,6 +55,11 @@ export class PlatformUtility {
 				action();
 			}, defer || 0);
 		}
+	}
+
+	/** Gets the state that determines the app is running on Apple iOS */
+	public static get isAppleOS() {
+		return AppConfig.app.platform.indexOf("iOS") === 0;
 	}
 
 	/** Gets the running platform of the app */
@@ -78,7 +115,7 @@ export class PlatformUtility {
 	}
 
 	/** Gets the current host name */
-	public static getHost() {
+	public static get host() {
 		if (AppUtility.indexOf(window.location.hostname, ".") < 0) {
 			return window.location.hostname;
 		}
@@ -141,28 +178,23 @@ export class PlatformUtility {
 		};
 	}
 
-	/** Gets the URI of current request */
-	public static getURI(path?: string) {
-		if (!AppConfig.isWebApp || AppUtility.indexOf(window.location.href, "file://") > - 1) {
-			return AppConfig.URIs.activations;
-		}
-		else {
+	/** Gets the URI for activating */
+	public static get activateURI() {
+		let url = AppConfig.URIs.activations;
+		if (AppConfig.isWebApp && AppUtility.indexOf(window.location.href, "file://") < 0) {
 			const uri = this.parseURI();
-			return uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + (path || uri.path);
+			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + "/";
 		}
+		return url + "home?prego=activate&mode={mode}&code={code}";
 	}
 
-	public static getActivateURI() {
-		return this.getURI("/home") + "?prego=activate&mode={mode}&code={code}";
-	}
-
-	/** Gets the CSS classes for working with label */
-	public static get cssTextLabel() {
+	/** Gets the CSS classes for working with label in Ionic */
+	public static get labelCss() {
 		return "label " + (this.isAppleOS ? "label-ios" : "label-md");
 	}
 
-	/** Gets the CSS classes for working with input control */
-	public static get cssTextInput() {
+	/** Gets the CSS classes for working with input control in Ionic */
+	public static get inputCss() {
 		return "text-input " + (this.isAppleOS ? "text-input-ios" : "text-input-md");
 	}
 
@@ -182,7 +214,7 @@ export class PlatformUtility {
 	}
 
 	/** Sets environments of the PWA */
-	public static setPWAEnvironment() {
+	public static setPWAEnvironment(onFacebookInit?: () => void) {
 		// Javascript libraries (only available when working in web browser)
 		if (window.location.href.indexOf("file://") < 0) {
 			// Facebook SDK
@@ -205,7 +237,9 @@ export class PlatformUtility {
 						xfbml: true,
 						version: AppConfig.facebook.version
 					});
-					this.auth.watchFacebookConnect();
+					if (onFacebookInit !== undefined) {
+						onFacebookInit();
+					}
 				};
 			}
 		}

@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppFormsControl, AppFormsService } from "./forms.service";
+import { PlatformUtility } from "./app.utility.platform";
 
 @Component({
 	selector: "app-form",
@@ -11,7 +12,7 @@ export class AppFormsComponent implements OnInit {
 	@Input() controls: Array<AppFormsControl>;
 	@Input() config: Array<any>;
 	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
-	@Output() readyEvent: EventEmitter<any> = new EventEmitter();
+	@Output() renderedEvent: EventEmitter<any> = new EventEmitter();
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 
 	constructor (
@@ -31,10 +32,10 @@ export class AppFormsComponent implements OnInit {
 		}
 		else {
 			if (this.controls.length < 1) {
-				console.warn("[AppForms]: No control");
+				PlatformUtility.showWarning("[DynamicForms]: No control");
 			}
 			this.appFormsSvc.buildForm(this.form, this.controls);
-			this.readyEvent.emit(this);
+			this.renderedEvent.emit(this);
 		}
 	}
 
@@ -44,6 +45,10 @@ export class AppFormsComponent implements OnInit {
 
 	public onRefreshCaptcha($event) {
 		this.refreshCaptchaEvent.emit($event);
+	}
+
+	public controlTrackBy(index: number, item: AppFormsControl) {
+		return item.Key;
 	}
 
 }

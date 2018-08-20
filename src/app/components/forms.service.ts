@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/forms";
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
+import { PlatformUtility } from "./app.utility.platform";
 
 /** Configuration of a control in the dynamic forms */
 export class AppFormsControl {
@@ -12,6 +13,7 @@ export class AppFormsControl {
 	AsyncValidators: Array<AsyncValidatorFn> | Array<string> = undefined;
 	Order = 0;
 	Excluded = false;
+	Extra: any = {};
 	Control = {
 		Type: "text",
 		Label: undefined as string,
@@ -22,8 +24,8 @@ export class AppFormsControl {
 		},
 		Description: undefined as string,
 		DescriptionOptions: {
-			Color: "",
-			Css: ""
+			Css: "",
+			Style: ""
 		},
 		PlaceHolder: undefined as string,
 		Css: "",
@@ -50,9 +52,11 @@ export class AppFormsControl {
 		AsArray: boolean,
 		AsComplexArray: boolean
 	} = undefined;
-	Extra: any = {};
 
-	constructor(options: any = {}, order?: number) {
+	constructor (
+		options: any = {},
+		order?: number
+	) {
 		this.assign(options, this, order);
 	}
 
@@ -84,8 +88,8 @@ export class AppFormsControl {
 			ctrl.Control.Description = control.Description || control.description;
 			const descriptionOptions = control.DescriptionOptions || control.descriptionoptions;
 			if (descriptionOptions !== undefined && descriptionOptions !== null) {
-				ctrl.Control.DescriptionOptions.Color = descriptionOptions.Color || descriptionOptions.color || "";
-				ctrl.Control.DescriptionOptions.Css = descriptionOptions.Css || descriptionOptions.css || "";
+				ctrl.Control.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--platform-label-css", PlatformUtility.labelCss).replace("--description-label-css", "description");
+				ctrl.Control.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
 			}
 
 			ctrl.Control.PlaceHolder = control.PlaceHolder || control.placeholder;
@@ -147,6 +151,7 @@ export class AppFormsControl {
 
 		return ctrl;
 	}
+
 }
 
 @Injectable()
@@ -156,7 +161,7 @@ export class AppFormsService {
 	) {
 	}
 
-	/** Gets the controls */
+	/** Gets the definition of all controls */
 	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
 		controls = controls || new Array<AppFormsControl>();
 		config.map((options, order) => new AppFormsControl(options, order))
@@ -164,42 +169,6 @@ export class AppFormsService {
 			.sort((a, b) => a.Order - b.Order)
 			.forEach(control => controls.push(control));
 		return controls;
-	}
-
-	/** Highlights all invalid controls (by mark as dirty all invalid controls) */
-	public highlightInvalids(form: FormGroup) {
-		this.highlightInvalidsFormGroup(form);
-	}
-
-	private highlightInvalidsFormGroup(formGroup: FormGroup) {
-		Object.keys(formGroup.controls).forEach(key => {
-			const control = formGroup.controls[key];
-			if (control.invalid) {
-				if (control instanceof FormGroup) {
-					this.highlightInvalidsFormGroup(control as FormGroup);
-				}
-				else if (control instanceof FormArray) {
-					this.highlightInvalidsFormArray(control as FormArray);
-				}
-				else {
-					control.markAsDirty();
-				}
-			}
-		});
-	}
-
-	private highlightInvalidsFormArray(formArray: FormArray) {
-		formArray.controls.filter(control => control.invalid).forEach(control => {
-			if (control instanceof FormGroup) {
-				this.highlightInvalidsFormGroup(control as FormGroup);
-			}
-			else if (control instanceof FormArray) {
-				this.highlightInvalidsFormArray(control as FormArray);
-			}
-			else {
-				control.markAsDirty();
-			}
-		});
 	}
 
 	/** Builds the form */
@@ -271,6 +240,42 @@ export class AppFormsService {
 		const asyncValidators = new Array<AsyncValidatorFn>();
 
 		return new FormControl({ value: control.Value, disabled: control.Control.Disabled }, validators, asyncValidators);
+	}
+
+	/** Highlights all invalid controls (by mark as dirty on all invalid controls) */
+	public highlightInvalids(form: FormGroup) {
+		this.highlightInvalidsFormGroup(form);
+	}
+
+	private highlightInvalidsFormGroup(formGroup: FormGroup) {
+		Object.keys(formGroup.controls).forEach(key => {
+			const control = formGroup.controls[key];
+			if (control.invalid) {
+				if (control instanceof FormGroup) {
+					this.highlightInvalidsFormGroup(control as FormGroup);
+				}
+				else if (control instanceof FormArray) {
+					this.highlightInvalidsFormArray(control as FormArray);
+				}
+				else {
+					control.markAsDirty();
+				}
+			}
+		});
+	}
+
+	private highlightInvalidsFormArray(formArray: FormArray) {
+		formArray.controls.filter(control => control.invalid).forEach(control => {
+			if (control instanceof FormGroup) {
+				this.highlightInvalidsFormGroup(control as FormGroup);
+			}
+			else if (control instanceof FormArray) {
+				this.highlightInvalidsFormArray(control as FormArray);
+			}
+			else {
+				control.markAsDirty();
+			}
+		});
 	}
 
 }

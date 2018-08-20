@@ -25,6 +25,10 @@ export class CompleterCustomSearch extends Rx.Subject<CompleterItem[]> implement
 		if (this.doCancel !== undefined) {
 			this.doCancel();
 		}
+		this.destroy();
+	}
+
+	public destroy() {
 		if (this._subscription) {
 			this._subscription.unsubscribe();
 		}

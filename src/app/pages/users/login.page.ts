@@ -1,23 +1,23 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { FormGroup } from "@angular/forms";
 import { first } from "rxjs/operators";
-import { LoadingController, AlertController, NavController } from "@ionic/angular";
+import { LoadingController, AlertController } from "@ionic/angular";
 import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { AppUtility } from "../../components/app.utility";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
+import { TrackingUtility } from "../../components/app.utility.trackings";
 
 @Component({
 	selector: "page-login",
 	templateUrl: "./login.page.html",
 	styleUrls: ["./login.page.scss"],
 })
-export class LogInPage implements OnInit {
+export class LogInPage implements OnInit, OnDestroy {
 
 	constructor (
 		public activatedRoute: ActivatedRoute,
-		public navController: NavController,
 		public loadingController: LoadingController,
 		public alertController: AlertController,
 		public appFormsSvc: AppFormsService,
@@ -48,7 +48,9 @@ export class LogInPage implements OnInit {
 			icon: undefined,
 			color: "primary",
 			fill: "solid"
-		}
+		},
+		id: undefined as string,
+		providers: undefined as Array<any>
 	};
 	reset = {
 		form: new FormGroup({}),
@@ -61,6 +63,7 @@ export class LogInPage implements OnInit {
 			fill: "clear"
 		}
 	};
+	loading = undefined;
 
 	public ngOnInit() {
 		// this.activatedRoute.params.pipe(first()).subscribe(params => {
@@ -69,9 +72,28 @@ export class LogInPage implements OnInit {
 		this.openLogin();
 	}
 
-	private async showAlertAsync(message: any, header?: string, postProcess?: () => void) {
+	public ngOnDestroy() {
+	}
+
+	private async showLoadingAsync(message?: string) {
+		this.loading = await this.loadingController.create({
+			content: message || this.title
+		});
+		await this.loading.present();
+	}
+
+	private async hideLoadingAsync() {
+		if (this.loading !== undefined) {
+			await this.loading.dismiss();
+			this.loading = undefined;
+		}
+	}
+
+	private async showAlertAsync(message: any, header?: string, subHeader?: string, postProcess?: () => void) {
 		const alert = await this.alertController.create({
 			header: header || "Chú ý",
+			subHeader: subHeader,
+			backdropDismiss: false,
 			message: message,
 			buttons: [{
 				text: "Đóng",
@@ -85,15 +107,14 @@ export class LogInPage implements OnInit {
 		await alert.present();
 	}
 
-	private async showErrorAsync(error: any, postProcess?: () => void) {
+	private async showErrorAsync(error: any, subHeader?: string, postProcess?: () => void) {
+		await this.hideLoadingAsync();
 		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
 			? "Email hoặc mật khẩu không đúng!"
 			: AppUtility.isGotCaptchaException(error)
 				? "Mã xác thực không đúng"
-				: AppUtility.isNotEmpty(error.Message)
-					? error.Message
-					: "Đã xảy ra lỗi!";
-		await this.showAlertAsync(message, "Lỗi", postProcess);
+				: AppUtility.isNotEmpty(error.Message) ? error.Message : "Đã xảy ra lỗi!";
+		await this.showAlertAsync(message, "Lỗi", subHeader, postProcess);
 	}
 
 	public openLogin() {
@@ -136,28 +157,48 @@ export class LogInPage implements OnInit {
 			return;
 		}
 
-		const loading = await this.loadingController.create({ content: this.title });
-		await loading.present();
-
-		const form = this.login.form.value;
-		await this.authSvc.logInAsync(form.Email, form.Password,
+		await this.showLoadingAsync();
+		await this.authSvc.logInAsync(this.login.form.value.Email, this.login.form.value.Password,
 			async data => {
-				await loading.dismiss();
+				await TrackingUtility.trackAsync("Log In", "/session/login");
+				await this.hideLoadingAsync();
 				if (data.Require2FA) {
-					this.openValidateOTP();
+					this.openValidateOTP(data);
 				}
 				else {
-					this.navController.goBack(this.configSvc.previousUrl);
+					this.configSvc.goBack();
 				}
 			},
 			async error => {
-				await loading.dismiss();
-				await this.showErrorAsync(error);
+				await this.showErrorAsync(error, "Không thể đăng nhập");
 			}
 		);
 	}
 
-	public openValidateOTP() {
+	public openValidateOTP(data: any) {
+		this.otp.config = [
+			{
+				Key: "OTP",
+				Value: "",
+				Required: true,
+				Control: {
+					Type: "text",
+					Label: `Mã xác thực lần hai`,
+					Description: "SMS" === data.Providers[0].Type ? "Nhập mã OTP trong SMS được gửi tới số trên điện thoại đã đăng ký" : `Nhập mã OTP được sinh bởi ứng dụng ${data.Providers[0].Label} trên điện thoại`,
+					DescriptionOptions: {
+						Css: "--description-label-css"
+					},
+					MinLength: 6,
+					MaxLength: 6,
+					AutoFocus: true
+				}
+			}
+		];
+		this.otp.id = data.ID;
+		this.otp.providers = data.Providers;
+		this.mode = "otp";
+		this.title = "Xác thực lần hai";
+		this.configSvc.appTitle = this.title;
 	}
 
 	public async validateOTPAsync() {
@@ -165,13 +206,25 @@ export class LogInPage implements OnInit {
 			this.appFormsSvc.highlightInvalids(this.otp.form);
 			return;
 		}
+
+		await this.showLoadingAsync();
+		await this.authSvc.validateOTPAsync(this.otp.id, this.otp.form.value.OTP, this.otp.providers[0].Info,
+			async data => {
+				await TrackingUtility.trackAsync("OTP Validation", "/session/otp");
+				await this.hideLoadingAsync();
+				this.configSvc.goBack();
+			},
+			async error => {
+				await this.showErrorAsync(error, "Không thể xác thực lần hai");
+			}
+		);
 	}
 
 	public openResetPassword() {
 		this.reset.config = [
 			{
 				Key: "Email",
-				Value: this.login.form.value.Email,
+				Value: this.login.form.value.Email || "",
 				Required: true,
 				Type: "TextBox",
 				Control: {
@@ -183,13 +236,18 @@ export class LogInPage implements OnInit {
 				}
 			},
 			{
-				Key: "CaptchaCode",
+				Key: "Captcha",
 				Value: "",
 				Required: true,
 				Type: "Captcha",
 				Control: {
 					Type: "text",
 					Label: "Mã xác thực",
+					// PlaceHolder: "Nhập mã xác thực trong ảnh ở dưới",
+					Description: "Nhập mã xác thực trong ảnh ở dưới",
+					DescriptionOptions: {
+						Css: "--description-label-css"
+					},
 					MinLength: 4,
 					MaxLength: 4
 				}
@@ -206,7 +264,7 @@ export class LogInPage implements OnInit {
 		this.configSvc.appTitle = this.title;
 	}
 
-	public onResetFormReady($event) {
+	public onResetFormRendered($event) {
 		this.renewCaptchaAsync();
 	}
 
@@ -226,6 +284,22 @@ export class LogInPage implements OnInit {
 			this.appFormsSvc.highlightInvalids(this.reset.form);
 			return;
 		}
+
+		await this.showLoadingAsync();
+		await this.authSvc.resetPasswordAsync(this.reset.form.value.Email, this.reset.form.value.Captcha,
+			async data => {
+				await TrackingUtility.trackAsync("Reset Password", "/session/reset");
+				await this.hideLoadingAsync();
+				await this.showAlertAsync("Vui lòng kiểm tra email và làm theo hướng dẫn để lấy mật khẩu mới!", "Mật khẩu mới");
+				this.configSvc.goBack();
+			},
+			async error => {
+				await Promise.all([
+					this.renewCaptchaAsync(),
+					this.showErrorAsync(error)
+				]);
+			}
+		);
 	}
 
 }

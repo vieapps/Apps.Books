@@ -99,15 +99,7 @@ export class AuthenticationService extends BaseService {
 				}
 				else {
 					this.log("Log in successful", this.configSvc.isDebug ? data : "");
-					await this.configSvc.updateSessionAsync(data, () => {
-						AppRTU.start();
-						AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
-						this.patchSessionInfo(() => {
-							if (onNext !== undefined) {
-								onNext(data);
-							}
-						});
-					});
+					await this.runPostAuthenticateProcessAsync(data, onNext);
 				}
 			},
 			async error => {
@@ -128,8 +120,8 @@ export class AuthenticationService extends BaseService {
 	public logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.deleteAsync("users/session",
 			async data => {
-				await this.configSvc.updateSessionAsync(data);
 				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
+				await this.configSvc.updateSessionAsync(data);
 				await this.configSvc.registerSessionAsync(() => {
 					this.configSvc.patchSession(() => {
 						this.log("Log out successful", this.configSvc.isDebug ? data : "");
@@ -144,30 +136,21 @@ export class AuthenticationService extends BaseService {
 	}
 
 	public prepareOTPAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/otp"
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/otp?" + this.configSvc.relatedQuery;
 		return this.readAsync(path, onNext, error => this.error("Error occurred while preparing OTP", error, onError));
 	}
 
 	public validateOTPAsync(id: string, otp: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/session"
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/session?" + this.configSvc.relatedQuery;
 		const body = {
 			ID: AppCrypto.rsaEncrypt(id),
 			OTP: AppCrypto.rsaEncrypt(otp),
 			Info: AppCrypto.rsaEncrypt(info)
 		};
 		return this.updateAsync(path, body,
-			data => {
-				AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
-				this.log("Log in with OTP successful");
-				if (onNext !== undefined) {
-					onNext(data);
-				}
+			async data => {
+				this.log("Validate OTP successful");
+				await this.runPostAuthenticateProcessAsync(data, onNext);
 			},
 			error => this.error("Error occurred while validating OTP", error, onError)
 		);
@@ -189,21 +172,25 @@ export class AuthenticationService extends BaseService {
 	}
 
 	public resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/reset"
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost()
-			+ "&uri=" + AppCrypto.urlEncode(PlatformUtility.getActivateURI());
+		const path = "users/account/reset?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
 		const body = {
 			Email: AppCrypto.rsaEncrypt(email)
 		};
 		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while requesting new password", error, onError), AppAPI.getCaptchaHeaders(captcha));
 	}
 
-	public patchSessionInfo(onNext: () => void) {
-		this.configSvc.patchSession(() => {
-			this.configSvc.patchAccount(() => {
-				this.configSvc.getProfile(onNext);
+	public runPostAuthenticateProcessAsync(data: any, onNext: (data?: any) => void) {
+		AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
+		return this.configSvc.updateSessionAsync(data, () => {
+			AppRTU.start();
+			this.configSvc.patchSession(() => {
+				this.configSvc.patchAccount(() => {
+					this.configSvc.getProfile(() => {
+						if (onNext !== undefined) {
+							onNext(data);
+						}
+					});
+				});
 			});
 		});
 	}

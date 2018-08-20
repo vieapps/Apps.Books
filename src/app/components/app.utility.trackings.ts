@@ -10,35 +10,25 @@ export class TrackingUtility {
 
 	/** Sets the object of Google Analytics */
 	public static initialize(ga?: GoogleAnalytics) {
-		if (ga !== undefined && AppConfig.tracking.google !== "") {
+		if (this._ga === undefined && ga !== undefined && AppUtility.isNotEmpty(AppConfig.tracking.google)) {
 			this._ga = ga;
 			this._ga.startTrackerWithId(AppConfig.tracking.google)
 				.then(() => {
 					this._ga.setAppVersion(AppConfig.app.version);
-					console.log("Google Analytics is ready now...", AppConfig.isDebug ? this._ga : "");
+					PlatformUtility.showLog("[Tracking]: Google Analytics is ready now...", AppConfig.isDebug ? this._ga : "");
 				})
-				.catch(e => {
-					console.error("Error occurred while starting Google Analytics", e);
+				.catch(error => {
+					PlatformUtility.showError("[Tracking]: Error occurred while initializing Google Analytics", error);
 					this._ga = undefined;
 				});
 		}
 	}
 
-	/** Tracks a view (page-view or screen view) */
-	public static track(title?: string, path?: string, params?: any) {
-		// prepare url
-		let url = "";
-		if (AppUtility.isObject(params, true)) {
-			for (const param in params) {
-				url += (url !== "" ? "&" : "") + param + "=" + params[param];
-			}
-		}
-		const uri = PlatformUtility.parseURI();
-		url = uri.path + (AppUtility.isNotEmpty(path) ? path + "/" : "") + (uri.hash !== "" ? uri.hash + "&" : "#?") + url;
-
+	/** Tracks a view of an app page/screen */
+	public static async trackAsync(title?: string, path?: string, params?: any) {
 		// Google Analytics
-		if (this._ga !== null) {
-			this._ga.trackView(title || document.title, uri.protocol + uri.host + url);
+		if (this._ga !== undefined) {
+			await this._ga.trackView(title || AppConfig.app.name, path || "/");
 		}
 	}
 

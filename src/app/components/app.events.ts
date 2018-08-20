@@ -7,15 +7,16 @@ export class AppEvents {
 	private static _handlers = {};
 	private static _subject: Rx.Subject<{ event: string, args: any }> = undefined;
 
+	private static getHandlers(event: string) {
+		this._handlers[event] = this._handlers[event] || [];
+		return this._handlers[event] as Array<{ func: (info: { event: string, args: any }) => void, identity: string }>;
+	}
+
 	private static initialize() {
 		if (this._subject === undefined) {
 			this._subject = new Rx.Subject<{ event: string, args: any }>();
 			this._subject.subscribe(({ event, args }) => {
-				if (this._handlers[event]) {
-					for (const handler of this._handlers[event]) {
-						handler.func({ "event": event, "args": args });
-					}
-				}
+				this.getHandlers(event).forEach(handler => handler.func({ event: event, args: args }));
 			});
 		}
 	}
@@ -26,11 +27,13 @@ export class AppEvents {
 	  * @param handler The function to handler data when an event was raised
 	  * @param identity The string that presents identity of the handler for unregistering later
 	*/
-	public static on(event: string, handler: (info: any) => void, identity?: string) {
+	public static on(event: string, handler: (info: { event: string, args: any }) => void, identity?: string) {
 		this.initialize();
 		if (AppUtility.isNotEmpty(event) && handler !== undefined) {
-			this._handlers[event] = this._handlers[event] || [];
-			this._handlers[event].push({ func: handler, identity: AppUtility.isNotEmpty(identity) ? identity : "" });
+			this.getHandlers(event).push({
+				func: handler,
+				identity: AppUtility.isNotEmpty(identity) ? identity : ""
+			});
 		}
 	}
 
@@ -41,11 +44,9 @@ export class AppEvents {
 	*/
 	public static off(event: string, identity: string) {
 		this.initialize();
-		if (AppUtility.isNotEmpty(event) && AppUtility.isNotEmpty(identity) && this._handlers[event]) {
-			const index = AppUtility.find<any>(this._handlers[event], handler => identity === handler.identity);
-			if (index !== -1) {
-				this._handlers[event].splice(index, 1);
-			}
+		if (AppUtility.isNotEmpty(event) && AppUtility.isNotEmpty(identity)) {
+			const handlers = this.getHandlers(event);
+			AppUtility.removeAt(handlers, AppUtility.find(handlers, handler => identity === handler.identity));
 		}
 	}
 
@@ -54,7 +55,7 @@ export class AppEvents {
 	  * @param event The string that presents the name of an event
 	  * @param args The JSON object that presents the arguments of an event
 	*/
-	public static broadcast(event: string, args?: any) {
+	public static broadcast(event: string, args: any = {}) {
 		this.initialize();
 		this._subject.next({ event, args });
 	}

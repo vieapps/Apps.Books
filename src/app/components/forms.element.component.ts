@@ -55,7 +55,8 @@ export class AppFormsElementComponent {
 	public get css() {
 		return {
 			label: this.control.Control.LabelOptions.Css,
-			control: this.control.Control.Css
+			control: this.control.Control.Css,
+			description: this.control.Control.DescriptionOptions.Css
 		};
 	}
 
@@ -119,7 +120,17 @@ export class AppFormsElementComponent {
 		if (this.control.Control.MaxHeight) {
 			style += `max-height:${this.control.Control.MaxHeight}px;`;
 		}
-		return style !== "" ? style : undefined;
+		if (this.control.Type === "Captcha") {
+			style += "text-transform:uppercase";
+		}
+		return {
+			control: style !== "" ? style : undefined,
+			description: this.control.Control.DescriptionOptions.Style !== "" ? this.control.Control.DescriptionOptions.Style : undefined
+		};
+	}
+
+	public get description() {
+		return this.control.Control.Description;
 	}
 
 	public get formControlName() {
@@ -162,6 +173,10 @@ export class AppFormsElementComponent {
 	public refreshCaptcha() {
 		this.formGroup.controls[this.control.Key].setValue("");
 		this.refreshCaptchaEvent.emit(this.control);
+	}
+
+	public controlTrackBy(index: number, item: AppFormsControl) {
+		return item.Key;
 	}
 
 }

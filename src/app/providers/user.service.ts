@@ -1,6 +1,5 @@
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
-import { List } from "linqts";
 import { AppAPI } from "../components/app.api";
 import { AppCrypto } from "../components/app.crypto";
 import { AppRTU } from "../components/app.rtu";
@@ -21,34 +20,24 @@ export class UserService extends BaseService {
 		public configSvc: ConfigurationService
 	) {
 		super(http, "Users");
-		AppRTU.registerAsServiceScopeProcessor(this.Name, async (message) => {
-			const info = AppRTU.parse(message.Type);
-			switch (info.Object) {
-				case "Account":
-					if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID) {
-						this.configSvc.updateAccount(message.Data);
-					}
-					break;
-
+		AppRTU.registerAsServiceScopeProcessor(this.Name, async message => {
+			switch (message.Type.Object) {
 				case "Session":
 					if (this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.UserID) {
-						switch (info.Event) {
+						switch (message.Type.Event) {
 							case "Update":
 								await this.configSvc.updateSessionAsync(message.Data, () => {
-									if (this.configSvc.appConfig.isDebug) {
-										console.warn(`[${this.Name}]: Update session with the new token`, this.configSvc.appConfig.session);
-									}
+									this.warn("Update session with the new token", this.configSvc.appConfig.session);
 									this.configSvc.patchSession(() => this.configSvc.patchAccount());
 								});
 								break;
 
 							case "Revoke":
 								await this.configSvc.deleteSessionAsync(async () => {
-									AppEvents.broadcast("AccountIsUpdated", { Type: "Revoke" });
 									await this.configSvc.initializeSessionAsync(async () => {
 										await this.configSvc.registerSessionAsync(() => {
-											console.log(`[${this.Name}]: Revoke session`, this.configSvc.appConfig.isDebug ? this.configSvc.appConfig.session : "");
-											AppEvents.broadcast("OpenHomePage");
+											this.log("Revoke session", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+											AppEvents.broadcast("GoHome");
 											this.configSvc.patchSession();
 										});
 									});
@@ -68,12 +57,18 @@ export class UserService extends BaseService {
 								break;
 
 							default:
-								console.warn(`[${this.Name}]: Got an update of session`, message);
+								this.warn("Got an update of session", message);
 								break;
 						}
 					}
 					else {
-						console.warn(`[${this.Name}]: Got an update of session`, message);
+						this.warn("Got an update of session", message);
+					}
+					break;
+
+				case "Account":
+					if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID) {
+						this.configSvc.updateAccount(message.Data);
 					}
 					break;
 
@@ -83,8 +78,8 @@ export class UserService extends BaseService {
 						this.configSvc.appConfig.session.account.id = message.Data.ID;
 						this.configSvc.appConfig.session.account.profile = AppData.profiles.getValue(message.Data.ID);
 						await this.configSvc.storeProfileAsync(() => {
-							if (this.configSvc.appConfig.isDebug) {
-								console.log(`[${this.Name}]: Account profile is updated`, this.configSvc.appConfig.session.account);
+							if (this.configSvc.isDebug) {
+								this.log("Account profile is updated", this.configSvc.appConfig.session.account);
 							}
 							if (this.configSvc.appConfig.facebook.token && this.configSvc.appConfig.facebook.id) {
 								this.configSvc.getFacebookProfile();
@@ -94,17 +89,14 @@ export class UserService extends BaseService {
 					break;
 
 				default:
-					console.warn(`[${this.Name}]: Got an update`, message);
+					this.warn("Got an update", message);
 					break;
 			}
 		});
 	}
 
 	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/profile/search"
-			+ "?x-request=" + AppUtility.toBase64Url(request)
-			+ "&related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage();
+		const path = "users/profile/search?x-request=" + AppUtility.toBase64Url(request) + "&" + this.configSvc.relatedQuery;
 		onNext = AppUtility.isNull(onNext)
 			? undefined
 			: data => {
@@ -115,28 +107,17 @@ export class UserService extends BaseService {
 	}
 
 	public registerAsync(info: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account"
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost()
-			+ "&uri=" + AppCrypto.urlEncode(PlatformUtility.getActivateURI());
-
+		const path = "users/account?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
 		const body = AppUtility.clone(info, ["ConfirmEmail", "ConfirmPassword", "Captcha"]);
 		body.Email = AppCrypto.rsaEncrypt(body.Email);
 		body.Password = AppCrypto.rsaEncrypt(body.Password);
 		body.ReferID = this.configSvc.appConfig.refer.id;
 		body.ReferSection = this.configSvc.appConfig.refer.section;
-
 		return this.createAsync(path, body, onNext, onError, AppAPI.getCaptchaHeaders(captcha));
 	}
 
 	public sendInvitationAsync(name: string, email: string, privileges?: Array<Privilege>, relatedInfo?: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/invite"
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost()
-			+ "&uri=" + AppCrypto.urlEncode(PlatformUtility.getActivateURI());
-
+		const path = "users/account/invite?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
 		const body = {
 			Name: name,
 			Email: AppCrypto.rsaEncrypt(email),
@@ -149,23 +130,17 @@ export class UserService extends BaseService {
 		if (relatedInfo) {
 			body["RelatedInfo"] = AppCrypto.rsaEncrypt(JSON.stringify(relatedInfo));
 		}
-
 		return this.createAsync(path, body, onNext, error => this.error("Error occurred while sending an invitation", error, onError));
 	}
 
 	public activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/activate"
-			+ "?mode=" + mode
-			+ "&code=" + code
-			+ "&related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/activate?mode=" + mode + "&code=" + code + "&" + this.configSvc.relatedQuery;
 		return this.readAsync(path,
 			async data => {
 				await this.configSvc.updateSessionAsync(data, async () => {
 					this.configSvc.appConfig.session.account.id = this.configSvc.appConfig.session.token.uid;
 					await this.configSvc.storeSessionAsync(() => {
-						this.log("Activated...", this.configSvc.appConfig.isDebug ? this.configSvc.appConfig.session : "");
+						this.log("Activated...", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 						if (onNext !== undefined) {
 							onNext(data);
 						}
@@ -184,10 +159,7 @@ export class UserService extends BaseService {
 			}
 		}
 		else {
-			const path = "users/profile/" + id
-				+ "?related-service=" + this.configSvc.appConfig.app.service
-				+ "&language=" + AppUtility.getLanguage()
-				+ "&host=" + PlatformUtility.getHost();
+			const path = "users/profile/" + id + "?" + this.configSvc.relatedQuery;
 			return this.readAsync(path,
 				data => {
 					const profile = Profile.deserialize(data);
@@ -202,15 +174,12 @@ export class UserService extends BaseService {
 	}
 
 	public updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/profile/" + (body.ID || this.configSvc.getAccount().id)
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/profile/" + (body.ID || this.configSvc.getAccount().id) + "?" + this.configSvc.relatedQuery;
 		return this.updateAsync(path, body,
 			data => {
 				const profile = Profile.deserialize(data);
 				AppData.profiles.setValue(profile.ID, profile);
-				AppEvents.broadcast("Session", { Type: "Update", Info: data });
+				AppEvents.broadcast("Session", { Type: "Update", Info: profile });
 				if (onNext !== undefined) {
 					onNext(data);
 				}
@@ -220,10 +189,7 @@ export class UserService extends BaseService {
 	}
 
 	public updatePasswordAsync(oldPassword: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/password"
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/account/password?" + this.configSvc.relatedQuery;
 		const body = {
 			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
 			Password: AppCrypto.rsaEncrypt(password)
@@ -232,10 +198,7 @@ export class UserService extends BaseService {
 	}
 
 	public updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/email"
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/account/email?" + this.configSvc.relatedQuery;
 		const body = {
 			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
 			Email: AppCrypto.rsaEncrypt(email)
@@ -244,35 +207,22 @@ export class UserService extends BaseService {
 	}
 
 	public add2FAMethodAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/otp"
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/otp?" + this.configSvc.relatedQuery;
 		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while adding new an 2FA method", error, onError));
 	}
 
 	public delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/otp"
-			+ "?info=" + info
-			+ "&related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/otp?info=" + info + "&" + this.configSvc.relatedQuery;
 		return this.deleteAsync(path, onNext, error => this.error("Error occurred while deleting an 2FA method", error, onError));
 	}
 
 	public getPrivilegesAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/" + (id || this.configSvc.getAccount().id)
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/account/" + (id || this.configSvc.getAccount().id) + "?" + this.configSvc.relatedQuery;
 		return this.readAsync(path, onNext, error => this.error("Error occurred while reading privileges", error, onError));
 	}
 
 	public updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/" + id
-			+ "?related-service=" + this.configSvc.appConfig.app.service
-			+ "&language=" + AppUtility.getLanguage()
-			+ "&host=" + PlatformUtility.getHost();
+		const path = "users/account/" + id + "?" + this.configSvc.relatedQuery;
 		const body = {
 			Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
 		};

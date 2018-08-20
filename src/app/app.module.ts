@@ -13,11 +13,11 @@ import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 
 import { Ng2CompleterModule } from "ng2-completer";
+import { VinumberPipe } from "./components/app.vinumber.pipe";
 
 import { AppComponent } from "./app.component";
-import { AppFormsModule } from "./components/forms.module";
 import { AppRoutingModule } from "./app.routes";
-import { VinumberPipe } from "./components/app.pipes";
+import { AppFormsModule } from "./components/forms.module";
 
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
