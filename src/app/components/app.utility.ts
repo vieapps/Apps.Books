@@ -118,7 +118,7 @@ export class AppUtility {
 	  * @param source The source object for cloning
 	  * @param beRemoved The array of attributes of the cloning object to be removed before returing
 	*/
-	public static clone(source?: any, beRemoved?: Array<string>): any {
+	public static clone(source?: any, beRemoved?: Array<string>) {
 		const exists = [];
 		const json = JSON.stringify(source, (key: string, value: any) => {
 			if (this.isObject(value, true)) {

@@ -2,6 +2,7 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule } from "@angular/forms";
 import { IonicModule } from "@ionic/angular";
+import { Ng2CompleterModule } from "ng2-completer";
 import { AppFormsService } from "./forms.service";
 import { AppFormsComponent } from "./forms.main.component";
 import { AppFormsElementComponent } from "./forms.element.component";
@@ -10,7 +11,8 @@ import { AppFormsElementComponent } from "./forms.element.component";
 	imports: [
 		CommonModule,
 		ReactiveFormsModule,
-		IonicModule
+		IonicModule,
+		Ng2CompleterModule
 	],
 	providers: [
 		AppFormsService

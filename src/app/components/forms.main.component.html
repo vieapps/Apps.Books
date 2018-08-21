@@ -1,6 +1,6 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
 	<ion-list>
-		<app-form-element *ngFor="let ctrl of controls; trackBy: controlTrackBy"
+		<app-form-element *ngFor="let ctrl of controls; trackBy: trackControl"
 			[formGroup]="form"
 			[control]="ctrl"
 			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form-element>

@@ -5,12 +5,13 @@ import { PlatformUtility } from "./app.utility.platform";
 
 @Component({
 	selector: "app-form",
-	templateUrl: "forms.main.component.html"
+	templateUrl: "./forms.main.component.html"
 })
 export class AppFormsComponent implements OnInit {
 	@Input() form: FormGroup;
 	@Input() controls: Array<AppFormsControl>;
 	@Input() config: Array<any>;
+	@Input() value: any;
 	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
 	@Output() renderedEvent: EventEmitter<any> = new EventEmitter();
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
@@ -34,7 +35,9 @@ export class AppFormsComponent implements OnInit {
 			if (this.controls.length < 1) {
 				PlatformUtility.showWarning("[DynamicForms]: No control");
 			}
-			this.appFormsSvc.buildForm(this.form, this.controls);
+			else {
+				this.appFormsSvc.buildForm(this.form, this.controls, this.value);
+			}
 			this.renderedEvent.emit(this);
 		}
 	}
@@ -47,8 +50,8 @@ export class AppFormsComponent implements OnInit {
 		this.refreshCaptchaEvent.emit($event);
 	}
 
-	public controlTrackBy(index: number, item: AppFormsControl) {
-		return item.Key;
+	public trackControl(index: number, control: AppFormsControl) {
+		return control.Key;
 	}
 
 }

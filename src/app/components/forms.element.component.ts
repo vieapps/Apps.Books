@@ -4,7 +4,7 @@ import { AppFormsControl } from "./forms.service";
 
 @Component({
 	selector: "app-form-element",
-	templateUrl: "forms.element.component.html"
+	templateUrl: "./forms.element.component.html"
 })
 export class AppFormsElementComponent {
 	@Input() formGroup: FormGroup;
@@ -12,28 +12,41 @@ export class AppFormsElementComponent {
 	@Input() index: number;
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 
+	private _style: string = undefined;
+
 	constructor (
 	) {
 	}
 
+	public get visible() {
+		return !this.control.Excluded;
+	}
+
+	public get invalid() {
+		const control = this.formGroup.controls[this.control.Key];
+		return control !== undefined
+			? control.invalid && control.dirty
+			: false;
+	}
+
 	public get isFormControl() {
-		return !this.control.SubControls;
+		return this.control.SubControls === undefined;
 	}
 
 	public get isFormGroup() {
-		return this.control.SubControls && !this.control.SubControls.AsArray;
+		return this.control.SubControls !== undefined && !this.control.SubControls.AsArray;
 	}
 
 	public get isFormArray() {
-		return this.control.SubControls && this.control.SubControls.AsArray;
+		return this.control.SubControls !== undefined && this.control.SubControls.AsArray;
 	}
 
 	public get isSimpleFormArray() {
-		return this.isFormArray && !this.control.SubControls.AsComplexArray;
+		return this.isFormArray && this.control.SubControls.Controls.filter(subcontrol => subcontrol.SubControls !== undefined).length < 1;
 	}
 
 	public get isComplexFormArray() {
-		return this.isFormArray && this.control.SubControls.AsComplexArray;
+		return this.isFormArray && this.control.SubControls.Controls.filter(subcontrol => subcontrol.SubControls !== undefined).length > 0;
 	}
 
 	public isControl(type: string) {
@@ -41,27 +54,35 @@ export class AppFormsElementComponent {
 	}
 
 	public get label() {
-		return this.control.Control.Label;
+		return this.control.Options.Label;
 	}
 
 	public get color() {
-		return this.control.Control.LabelOptions.Color;
+		return this.control.Options.LabelOptions.Color;
 	}
 
 	public get position() {
-		return this.control.Control.LabelOptions.Position;
+		return this.control.Options.LabelOptions.Position;
+	}
+
+	public get description() {
+		return this.control.Options.Description;
+	}
+
+	public get values() {
+		return this.control.Options.SelectOptions.Values;
 	}
 
 	public get css() {
 		return {
-			label: this.control.Control.LabelOptions.Css,
-			control: this.control.Control.Css,
-			description: this.control.Control.DescriptionOptions.Css
+			label: this.control.Options.LabelOptions.Css,
+			control: this.control.Options.Css,
+			description: this.control.Options.DescriptionOptions.Css
 		};
 	}
 
 	public get type() {
-		return this.control.Control.Type;
+		return this.control.Options.Type;
 	}
 
 	public get required() {
@@ -69,77 +90,74 @@ export class AppFormsElementComponent {
 	}
 
 	public get readonly() {
-		return this.control.Control.ReadOnly ? true : undefined;
+		return this.control.Options.ReadOnly ? true : undefined;
 	}
 
 	public get autofocus() {
-		return this.control.Control.AutoFocus ? true : undefined;
+		return this.control.Options.AutoFocus ? true : undefined;
 	}
 
 	public get placeholder() {
-		return this.control.Control.PlaceHolder;
+		return this.control.Options.PlaceHolder;
 	}
 
 	public get min() {
-		return this.control.Control.Min;
+		return this.control.Options.Min;
 	}
 
 	public get max() {
-		return this.control.Control.Max;
+		return this.control.Options.Max;
 	}
 
 	public get minLength() {
-		return this.control.Control.MinLength;
+		return this.control.Options.MinLength;
 	}
 
 	public get maxLength() {
-		return this.control.Control.MaxLength;
+		return this.control.Options.MaxLength;
 	}
 
 	public get clearOnEdit() {
-		return this.control.Control.Type.toLowerCase() === "password" ? false : undefined;
+		return this.control.Options.Type.toLowerCase() === "password" ? false : undefined;
 	}
 
 	public get style() {
-		let style = "";
-		if (this.control.Control.Width) {
-			style += `width:${this.control.Control.Width}px;`;
-		}
-		if (this.control.Control.MinWidth) {
-			style += `min-width:${this.control.Control.MinWidth}px;`;
-		}
-		if (this.control.Control.MaxWidth) {
-			style += `max-width:${this.control.Control.MaxWidth}px;`;
-		}
-		if (this.control.Control.Height) {
-			style += `height:${this.control.Control.Height}px;`;
-		}
-		if (this.control.Control.MinHeight) {
-			style += `min-height:${this.control.Control.MinHeight}px;`;
-		}
-		if (this.control.Control.MaxHeight) {
-			style += `max-height:${this.control.Control.MaxHeight}px;`;
-		}
-		if (this.control.Type === "Captcha") {
-			style += "text-transform:uppercase";
+		if (this._style === undefined) {
+			this._style = "";
+			if (this.control.Options.Width) {
+				this._style += `width:${this.control.Options.Width}px;`;
+			}
+			if (this.control.Options.MinWidth) {
+				this._style += `min-width:${this.control.Options.MinWidth}px;`;
+			}
+			if (this.control.Options.MaxWidth) {
+				this._style += `max-width:${this.control.Options.MaxWidth}px;`;
+			}
+			if (this.control.Options.Height) {
+				this._style += `height:${this.control.Options.Height}px;`;
+			}
+			if (this.control.Options.MinHeight) {
+				this._style += `min-height:${this.control.Options.MinHeight}px;`;
+			}
+			if (this.control.Options.MaxHeight) {
+				this._style += `max-height:${this.control.Options.MaxHeight}px;`;
+			}
+			if (this.control.Type === "Captcha") {
+				this._style += "text-transform:uppercase";
+			}
 		}
 		return {
-			control: style !== "" ? style : undefined,
-			description: this.control.Control.DescriptionOptions.Style !== "" ? this.control.Control.DescriptionOptions.Style : undefined
+			control: this._style !== "" ? this._style : undefined,
+			description: this.control.Options.DescriptionOptions.Style !== "" ? this.control.Options.DescriptionOptions.Style : undefined
 		};
 	}
 
-	public get description() {
-		return this.control.Control.Description;
+	public get extras() {
+		return this.control.Extras;
 	}
 
 	public get formControlName() {
 		return this.index !== undefined ? this.index : this.control.Key;
-	}
-
-	public get invalid() {
-		const control = this.formGroup.controls[this.formControlName];
-		return control.invalid && control.dirty;
 	}
 
 	public get subControls() {
@@ -159,15 +177,15 @@ export class AppFormsElementComponent {
 	}
 
 	public getSubLabel(control: AppFormsControl) {
-		return control.Control.Label;
+		return control.Options.Label;
 	}
 
 	public getSubColor(control: AppFormsControl) {
-		return control.Control.LabelOptions.Color;
+		return control.Options.LabelOptions.Color;
 	}
 
 	public getSubCss(control: AppFormsControl) {
-		return control.Control.LabelOptions.Css;
+		return control.Options.LabelOptions.Css;
 	}
 
 	public refreshCaptcha() {
@@ -175,8 +193,8 @@ export class AppFormsElementComponent {
 		this.refreshCaptchaEvent.emit(this.control);
 	}
 
-	public controlTrackBy(index: number, item: AppFormsControl) {
-		return item.Key;
+	public trackControl(index: number, control: AppFormsControl) {
+		return control.Key;
 	}
 
 }

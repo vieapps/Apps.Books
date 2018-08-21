@@ -2,19 +2,20 @@ import { Injectable } from "@angular/core";
 import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/forms";
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
 import { PlatformUtility } from "./app.utility.platform";
+import { AppUtility } from "./app.utility";
 
 /** Configuration of a control in the dynamic forms */
 export class AppFormsControl {
 	Key = "";
-	Value = undefined;
 	Type = "TextBox";
 	Required = false;
 	Validators: Array<ValidatorFn> | Array<string> = undefined;
 	AsyncValidators: Array<AsyncValidatorFn> | Array<string> = undefined;
 	Order = 0;
+	Replacement = "";
+	Extras: any = {};
 	Excluded = false;
-	Extra: any = {};
-	Control = {
+	Options = {
 		Type: "text",
 		Label: undefined as string,
 		LabelOptions: {
@@ -41,115 +42,133 @@ export class AppFormsControl {
 		MaxHeight: undefined as number,
 		SelectOptions: {
 			Values: undefined as Array<{ Key: string, Value: string }>,
-			Multiple: false
+			Multiple: false,
+			AsBoxes: false
 		},
 		Disabled: false,
 		ReadOnly: false,
 		AutoFocus: false
 	};
 	SubControls: {
-		Controls: Array<AppFormsControl>,
 		AsArray: boolean,
-		AsComplexArray: boolean
+		Controls: Array<AppFormsControl>
 	} = undefined;
 
 	constructor (
-		options: any = {},
+		options?: any,
 		order?: number
 	) {
-		this.assign(options, this, order);
+		if (options !== undefined) {
+			this.assign(options, this, order);
+		}
 	}
 
-	private assign(options: any, ctrl?: AppFormsControl, order?: number, altKey?: string) {
-		ctrl = ctrl || new AppFormsControl();
-		ctrl.Order = options.Order || options.order || order || 0;
-		ctrl.Excluded = !!options.Excluded;
+	private assign(options: any, control?: AppFormsControl, order?: number, altKey?: string) {
+		control = control || new AppFormsControl();
+		control.Order = options.Order || options.order || order || 0;
 
-		ctrl.Key = options.Key || options.key || (altKey ? `${altKey}_${ctrl.Order}` : `c_${ctrl.Order}`) || "";
-		ctrl.Value = options.Value || options.value || "";
-		ctrl.Type = options.Type || options.type || "TextBox";
-		ctrl.Required = !!options.Required;
+		control.Key = options.Key || options.key || (altKey ? `${altKey}_${control.Order}` : `c_${control.Order}`) || "";
+		control.Type = options.Type || options.type || "TextBox";
+		control.Required = !!options.Required;
 
-		ctrl.Validators = options.Validators;
-		ctrl.AsyncValidators = options.AsyncValidators;
+		control.Validators = options.Validators;
+		control.AsyncValidators = options.AsyncValidators;
 
-		const control = options.Control || options.control;
-		if (control !== undefined && control !== null) {
-			ctrl.Control.Type = control.Type || control.type || "text";
+		control.Replacement = options.Replacement || options.replacement;
+		control.Extras = options.Extras || options.extras || {};
+		control.Excluded = !!(options.Excluded || options.excluded);
 
-			ctrl.Control.Label = control.Label || control.label;
-			const labelOptions = control.LabelOptions || control.labeloptions;
+		const controlOptions = options.Options || options.options;
+		if (controlOptions !== undefined && controlOptions !== null) {
+			control.Options.Type = controlOptions.Type || controlOptions.type || "text";
+
+			control.Options.Label = controlOptions.Label || controlOptions.label;
+			const labelOptions = controlOptions.LabelOptions || controlOptions.labeloptions;
 			if (labelOptions !== undefined && labelOptions !== null) {
-				ctrl.Control.LabelOptions.Position = labelOptions.Position || labelOptions.position || "stacked";
-				ctrl.Control.LabelOptions.Color = labelOptions.Color || labelOptions.color || "";
-				ctrl.Control.LabelOptions.Css = labelOptions.Css || labelOptions.css || "";
+				control.Options.LabelOptions.Position = labelOptions.Position || labelOptions.position || "stacked";
+				control.Options.LabelOptions.Color = labelOptions.Color || labelOptions.color || "";
+				control.Options.LabelOptions.Css = labelOptions.Css || labelOptions.css || "";
 			}
 
-			ctrl.Control.Description = control.Description || control.description;
-			const descriptionOptions = control.DescriptionOptions || control.descriptionoptions;
+			control.Options.Description = controlOptions.Description || controlOptions.description;
+			const descriptionOptions = controlOptions.DescriptionOptions || controlOptions.descriptionoptions;
 			if (descriptionOptions !== undefined && descriptionOptions !== null) {
-				ctrl.Control.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--platform-label-css", PlatformUtility.labelCss).replace("--description-label-css", "description");
-				ctrl.Control.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
+				control.Options.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--platform-label-css", PlatformUtility.labelCss).replace("--description-label-css", "description");
+				control.Options.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
 			}
 
-			ctrl.Control.PlaceHolder = control.PlaceHolder || control.placeholder;
-			ctrl.Control.Css = control.Css || control.css || "";
+			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeholder;
+			control.Options.Css = controlOptions.Css || controlOptions.css || "";
 
-			ctrl.Control.Min = control.Min || control.min;
-			ctrl.Control.Max = control.Max || control.max;
+			control.Options.Min = controlOptions.Min || controlOptions.min;
+			control.Options.Max = controlOptions.Max || controlOptions.max;
 
-			ctrl.Control.MinLength = control.MinLength || control.minlength;
-			ctrl.Control.MaxLength = control.MaxLength || control.maxlength;
+			control.Options.MinLength = controlOptions.MinLength || controlOptions.minlength;
+			control.Options.MaxLength = controlOptions.MaxLength || controlOptions.maxlength;
 
-			ctrl.Control.Width = control.Width || control.width;
-			ctrl.Control.MinWidth = control.MinWidth || control.minwidth;
-			ctrl.Control.MaxWidth = control.MaxWidth || control.maxwidth;
+			control.Options.Width = controlOptions.Width || controlOptions.width;
+			control.Options.MinWidth = controlOptions.MinWidth || controlOptions.minwidth;
+			control.Options.MaxWidth = controlOptions.MaxWidth || controlOptions.maxwidth;
 
-			ctrl.Control.Height = control.Height || control.height;
-			ctrl.Control.MinHeight = control.MinHeight || control.minheight;
-			ctrl.Control.MaxHeight = control.MaxHeight || control.maxheight;
+			control.Options.Height = controlOptions.Height || controlOptions.height;
+			control.Options.MinHeight = controlOptions.MinHeight || controlOptions.minheight;
+			control.Options.MaxHeight = controlOptions.MaxHeight || controlOptions.maxheight;
 
-			const selectOptions = control.SelectOptions || control.selectoptions;
+			const selectOptions = controlOptions.SelectOptions || controlOptions.selectoptions;
 			if (selectOptions !== undefined && selectOptions !== null) {
 				const values = selectOptions.Values || selectOptions.values;
 				if (values !== undefined && values !== null && Array.isArray(values)) {
-					ctrl.Control.SelectOptions.Values = (values as Array<any>).map(kvp => {
+					control.Options.SelectOptions.Values = (values as Array<any>).map(kvp => {
 						return {
 							Key: kvp.Key || kvp.key,
 							Value: kvp.Value || kvp.value
 						};
 					});
 				}
-				ctrl.Control.SelectOptions.Multiple = !!(selectOptions.Multiple || selectOptions.multiple);
+				control.Options.SelectOptions.Multiple = !!(selectOptions.Multiple || selectOptions.multiple);
+				control.Options.SelectOptions.AsBoxes = !!(selectOptions.AsBoxes || selectOptions.asboxes);
 			}
 
-			ctrl.Control.Disabled = control.Disabled === undefined && control.disabled === undefined
+			control.Options.Disabled = controlOptions.Disabled === undefined && controlOptions.disabled === undefined
 				? false
-				: !!(control.Disabled || control.disabled);
-			ctrl.Control.ReadOnly = control.ReadOnly === undefined && control.readonly === undefined
+				: !!(controlOptions.Disabled || controlOptions.disabled);
+			control.Options.ReadOnly = controlOptions.ReadOnly === undefined && controlOptions.readonly === undefined
 				? false
-				: !!(control.ReadOnly || control.readonly);
-			ctrl.Control.AutoFocus = control.AutoFocus === undefined && control.autofocus === undefined
+				: !!(controlOptions.ReadOnly || controlOptions.readonly);
+			control.Options.AutoFocus = controlOptions.AutoFocus === undefined && controlOptions.autofocus === undefined
 				? false
-				: !!(control.AutoFocus || control.autofocus);
+				: !!(controlOptions.AutoFocus || controlOptions.autofocus);
 		}
 
 		const subControls = options.SubControls || options.subcontrols;
 		if (subControls !== undefined && subControls !== null) {
 			const subConfig = subControls.Controls || subControls.controls;
 			if (subConfig !== undefined && subConfig !== null && Array.isArray(subConfig)) {
-				ctrl.SubControls = {
-					Controls: (subConfig as Array<any>).map((subOptions, subOrder) => this.assign(subOptions, undefined, subOrder, ctrl.Key)).filter(c => !c.Excluded).sort((a, b) => a.Order - b.Order),
+				control.SubControls = {
 					AsArray: !!(subControls.AsArray || subControls.asarray),
-					AsComplexArray: false
+					Controls: (subConfig as Array<any>).map((subOptions, subOrder) => this.assign(subOptions, undefined, subOrder, control.Key)).sort((a, b) => a.Order - b.Order)
 				};
-				ctrl.SubControls.AsComplexArray = ctrl.SubControls.AsArray && ctrl.SubControls.Controls.filter(c => c.SubControls).length > 0;
+				if (control.SubControls.Controls.length < 1) {
+					control.SubControls = undefined;
+				}
 			}
 		}
 
-		ctrl.Extra = options.Extra || options.extra || {};
+		return control;
+	}
 
-		return ctrl;
+	/** Adds sub-controls of the form array */
+	public addSubControls(length: number) {
+		if (this.SubControls !== undefined && this.SubControls.AsArray) {
+			const options = AppUtility.clone(this.SubControls.Controls[0]);
+			while (this.SubControls.Controls.length < length) {
+				const control = new AppFormsControl(options);
+				control.Order = this.SubControls.Controls.length;
+				control.Validators = this.SubControls.Controls[0].Validators;
+				control.AsyncValidators = this.SubControls.Controls[0].AsyncValidators;
+				this.SubControls.Controls.push(control);
+			}
+		}
 	}
 
 }
@@ -164,16 +183,38 @@ export class AppFormsService {
 	/** Gets the definition of all controls */
 	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
 		controls = controls || new Array<AppFormsControl>();
-		config.map((options, order) => new AppFormsControl(options, order))
-			.filter(c => !c.Excluded)
-			.sort((a, b) => a.Order - b.Order)
-			.forEach(control => controls.push(control));
+		config.map((options, order) => new AppFormsControl(options, order)).sort((a, b) => a.Order - b.Order).forEach(control => controls.push(control));
 		return controls;
 	}
 
+	/** Updates the definition of all controls */
+	public updateControls(controls: Array<AppFormsControl>, value: any = {}) {
+		controls.filter(control => control.SubControls !== undefined).forEach(control => {
+			if (control.SubControls.AsArray) {
+				const values = value[control.Key] as Array<any>;
+				control.addSubControls(values.length);
+				control.SubControls.Controls.forEach((subcontrol, subindex) => {
+					if (subcontrol.SubControls !== undefined) {
+						this.updateControls(subcontrol.SubControls.Controls, values[subindex]);
+					}
+				});
+			}
+			else {
+				this.updateControls(control.SubControls.Controls, value[control.Key]);
+			}
+		});
+	}
+
 	/** Builds the form */
-	public buildForm(formGroup: FormGroup, controls: Array<AppFormsControl> = []) {
-		this.getFormGroup(controls, formGroup);
+	public buildForm(form: FormGroup, controls: Array<AppFormsControl> = [], value?: any) {
+		if (value !== undefined && value !== null) {
+			this.updateControls(controls, value);
+			this.getFormGroup(controls, form);
+			form.patchValue(value);
+		}
+		else {
+			this.getFormGroup(controls, form);
+		}
 	}
 
 	private getFormGroup(controls: Array<AppFormsControl>, formGroup?: FormGroup) {
@@ -191,12 +232,12 @@ export class AppFormsService {
 
 	private getFormArray(control: AppFormsControl) {
 		const formArray = new FormArray([]);
-		control.SubControls.Controls.forEach(ctrl => {
-			const formControl: AbstractControl = ctrl.SubControls === undefined
-				? this.getFormControl(ctrl)
-				: ctrl.SubControls.AsArray
-					? this.getFormArray(ctrl)
-					: this.getFormGroup(ctrl.SubControls.Controls);
+		control.SubControls.Controls.forEach(subcontrol => {
+			const formControl: AbstractControl = subcontrol.SubControls === undefined
+				? this.getFormControl(subcontrol)
+				: subcontrol.SubControls.AsArray
+					? this.getFormArray(subcontrol)
+					: this.getFormGroup(subcontrol.SubControls.Controls);
 			formArray.push(formControl);
 		});
 		return formArray;
@@ -216,30 +257,37 @@ export class AppFormsService {
 			if (control.Required) {
 				validators.push(Validators.required);
 			}
-			if (control.Control.Type === "text" || control.Control.Type === "email" || control.Control.Type === "password" || control.Control.Type === "tel" || control.Control.Type === "url") {
-				if (control.Control.MinLength > 0) {
-					validators.push(Validators.minLength(control.Control.MinLength));
+			if (control.Options.Type === "text" || control.Options.Type === "email" || control.Options.Type === "password" || control.Options.Type === "tel" || control.Options.Type === "url") {
+				if (control.Options.MinLength > 0) {
+					validators.push(Validators.minLength(control.Options.MinLength));
 				}
-				if (control.Control.MaxLength > 0) {
-					validators.push(Validators.maxLength(control.Control.MaxLength));
+				if (control.Options.MaxLength > 0) {
+					validators.push(Validators.maxLength(control.Options.MaxLength));
 				}
-				if (control.Control.Type === "email") {
+				if (control.Options.Type === "email") {
 					validators.push(Validators.pattern("([a-zA-Z0-9_.-]+)@([a-zA-Z0-9_.-]+)\\.([a-zA-Z]{2,5})"));
 				}
 			}
-			if (control.Control.Type === "number") {
-				if (control.Control.Min > 0) {
-					validators.push(Validators.min(control.Control.Min));
+			if (control.Options.Type === "number") {
+				if (control.Options.Min > 0) {
+					validators.push(Validators.min(control.Options.Min));
 				}
-				if (control.Control.Max > 0) {
-					validators.push(Validators.max(control.Control.Max));
+				if (control.Options.Max > 0) {
+					validators.push(Validators.max(control.Options.Max));
 				}
 			}
 		}
 
 		const asyncValidators = new Array<AsyncValidatorFn>();
 
-		return new FormControl({ value: control.Value, disabled: control.Control.Disabled }, validators, asyncValidators);
+		return new FormControl({ value: "", disabled: control.Options.Disabled }, validators, asyncValidators);
+	}
+
+	/** Sets value of the form (also modify the FormArray controls if the length is not matched) */
+	public setValue(form: FormGroup, controls: Array<AppFormsControl>, value: any = {}) {
+		this.updateControls(controls, value);
+		Object.keys(form.controls).forEach(key => delete form.controls[key]);
+		this.buildForm(form, controls, value);
 	}
 
 	/** Highlights all invalid controls (by mark as dirty on all invalid controls) */

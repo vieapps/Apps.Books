@@ -1,14 +1,13 @@
-<ion-item *ngIf="isFormControl && !isControl('Captcha')" [formGroup]="formGroup" [class.invalid]="invalid">
+<ion-item *ngIf="visible && isFormControl && !isControl('Captcha')" [formGroup]="formGroup" [class.invalid]="invalid">
 	<ion-label *ngIf="label"
 		[color]="color"
 		[position]="position"
 		[class]="css.label">{{label}}</ion-label>
-	<ion-input *ngIf="isControl('TextBox') || isControl('Captcha')"
+	<ion-input *ngIf="isControl('TextBox')"
 		[formControlName]="formControlName"
 		[type]="type"
 		[placeholder]="placeholder"
 		[class]="css.control"
-		[class.captcha]="isControl('Captcha')"
 		[required]="required"
 		[readonly]="readonly"
 		[autofocus]="autofocus"
@@ -27,28 +26,35 @@
 		[readonly]="readonly"
 		[minlength]="minLength"
 		[maxlength]="maxLength"
+		[clearOnEdit]="clearOnEdit"
+		[attr.autofocus]="!!autofocus"
 		[attr.style]="style.control"></ion-textarea>
 </ion-item>
 
-<ion-item *ngIf="isFormControl && !isControl('Captcha') && description">
+<ion-item *ngIf="visible && description && isFormControl && !isControl('Captcha')">
 	<label
 		[class]="css.description"
 		[style]="style.description">{{description}}</label>
 </ion-item>
 	
-<div *ngIf="isFormControl && isControl('Captcha')" class="captcha">
+<div *ngIf="visible && isFormControl && isControl('Captcha')" class="captcha">
 
 	<ion-item [formGroup]="formGroup" [class.invalid]="invalid">
 		<ion-label *ngIf="label"
 			[color]="color"
 			[position]="position"
 			[class]="css.label">{{label}}</ion-label>
-		<ion-input type="text" clearOnEdit="true" style="text-transform:uppercase"
+		<ion-input type="text" style="text-transform:uppercase"
 			[formControlName]="formControlName"
 			[placeholder]="placeholder"
 			[required]="required"
+			[autofocus]="autofocus"
+			[min]="min"
+			[max]="max"
 			[minlength]="minLength"
-			[maxlength]="maxLength"></ion-input>
+			[maxlength]="maxLength"
+			[clearOnEdit]="clearOnEdit"
+			[attr.autofocus]="!!autofocus"></ion-input>
 	</ion-item>
 
 	<ion-item *ngIf="description">
@@ -61,34 +67,34 @@
 		<ion-button fill="clear" (click)="refreshCaptcha()">
 			<ion-icon icon="refresh"></ion-icon>
 		</ion-button>
-		<img *ngIf="control.Extra['Uri']" [src]="control.Extra['Uri']" slot="start" />
+		<img *ngIf="extras['Uri']" [src]="extras['Uri']" slot="start" />
 	</ion-item>
 
 </div>
 
-<ion-list-header *ngIf="(isFormGroup || isFormArray) && label"
+<ion-list-header *ngIf="visible && label && (isFormGroup || isFormArray)"
 	[color]="color"
 	[class]="css.label">{{label}}</ion-list-header>
 
-<div *ngIf="isFormGroup">
-	<app-form-element *ngFor="let ctrl of subControls; trackBy: controlTrackBy"
+<div *ngIf="visible && isFormGroup">
+	<app-form-element *ngFor="let ctrl of subControls; trackBy: trackControl"
 		[formGroup]="subFormGroup"
 		[control]="ctrl"></app-form-element>
 </div>
 
-<div *ngIf="isSimpleFormArray">
-	<app-form-element *ngFor="let ctrl of subControls; let idx = index; trackBy: controlTrackBy"
+<div *ngIf="visible && isSimpleFormArray">
+	<app-form-element *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl"
 		[formGroup]="subFormGroup"
 		[control]="ctrl"
 		[index]="idx"></app-form-element>
 </div>
 
-<div *ngIf="isComplexFormArray">
-	<div *ngFor="let ctrl of subControls; let idx = index; trackBy: controlTrackBy">
+<div *ngIf="visible && isComplexFormArray">
+	<div *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl">
 		<ion-list-header *ngIf="getSubLabel(ctrl)"
 			[color]="getSubColor(ctrl)"
 			[class]="getSubCss(ctrl)">{{getSubLabel(ctrl)}}</ion-list-header>
-		<app-form-element *ngFor="let subctrl of getSubControls(ctrl); trackBy: controlTrackBy"
+		<app-form-element *ngFor="let subctrl of getSubControls(ctrl); trackBy: trackControl"
 			[formGroup]="getSubFormGroup(idx)"
 			[control]="subctrl"></app-form-element>
 	</div>

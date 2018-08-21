@@ -12,7 +12,11 @@
 <ion-content padding>
 
 	<div *ngIf="mode === 'log-in'">
-		<app-form [form]="login.form" [config]="login.config"></app-form>
+		<app-form
+			[form]="login.form"
+			[config]="login.config"
+			[controls]="login.controls"
+			(renderedEvent)="onLoginFormRendered($event)"></app-form>
 		<ion-buttons class="buttons">
 			<ion-button [fill]="login.button.fill" [color]="login.button.color" (click)="loginAsync()">
 				<ion-icon *ngIf="login.button.icon" [icon]="login.button.icon" slot="start"></ion-icon>
@@ -26,7 +30,10 @@
 	</div>
 
 	<div *ngIf="mode === 'otp'">
-		<app-form [form]="otp.form" [config]="otp.config"></app-form>
+		<app-form
+			[form]="otp.form"
+			[config]="otp.config"
+			[controls]="otp.controls"></app-form>
 		<ion-buttons class="buttons">
 			<ion-button [fill]="otp.button.fill" [color]="otp.button.color" (click)="validateOTPAsync()">
 				<ion-icon *ngIf="otp.button.icon" [icon]="otp.button.icon" slot="start"></ion-icon>
