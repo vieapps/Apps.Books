@@ -93,7 +93,7 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.app.version;
 	}
 
-	/** Sets the app title (means of title of the browser) */
+	/** Sets the app title (means title of the browser) */
 	public set appTitle(value: string) {
 		this.browserTitle.setTitle(`${value} :: ${this.appConfig.app.name}`);
 	}

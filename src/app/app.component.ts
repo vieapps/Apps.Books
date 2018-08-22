@@ -343,7 +343,7 @@ export class AppComponent {
 		await alert.present();
 	}
 
-	private async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
+	private initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
 		return this.configSvc.initializeAsync(
 			async data => {
 				// got valid sessions, then run next step
