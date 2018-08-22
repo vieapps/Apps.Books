@@ -16,8 +16,29 @@ export class AppRTU {
 	private static _serviceScopeHandlers = {};
 	private static _objectScopeHandlers = {};
 
-	private static _serviceScopeSubject: Rx.Subject<{ service: string, message: { Type: { Service: string, Object: string, Event: string }, Data: any } }> = undefined;
-	private static _objectScopeSubject: Rx.Subject<{ service: string, object: string, message: { Type: { Service: string, Object: string, Event: string }, Data: any } }> = undefined;
+	private static _serviceScopeSubject: Rx.Subject<{
+		service: string,
+		message: {
+			Type: {
+				Service: string,
+				Object: string,
+				Event: string
+			},
+			Data: any
+		}
+	}>;
+	private static _objectScopeSubject: Rx.Subject<{
+		service: string,
+		object: string,
+		message: {
+			Type: {
+				Service: string,
+				Object: string,
+				Event: string
+			},
+			Data: any
+		}
+	}>;
 
 	private static getServiceHandlers(service: string) {
 		this._serviceScopeHandlers[service] = this._serviceScopeHandlers[service] || [];
@@ -74,10 +95,10 @@ export class AppRTU {
 	*/
 	public static unregister(identity: string, service: string, object?: string) {
 		if (AppUtility.isNotEmpty(identity) && AppUtility.isNotEmpty(service)) {
-			let handlers = this.getServiceHandlers(service);
-			AppUtility.removeAt(handlers, AppUtility.find(handlers, handler => identity === handler.identity));
-			handlers = this.getObjectHandlers(service, object);
-			AppUtility.removeAt(handlers, AppUtility.find(handlers, handler => identity === handler.identity));
+			const serviceHandlers = this.getServiceHandlers(service);
+			AppUtility.removeAt(serviceHandlers, AppUtility.find(serviceHandlers, handler => identity === handler.identity));
+			const objectHandlers = this.getObjectHandlers(service, object);
+			AppUtility.removeAt(objectHandlers, AppUtility.find(objectHandlers, handler => identity === handler.identity));
 		}
 	}
 
@@ -85,9 +106,8 @@ export class AppRTU {
 	public static parse(type: string) {
 		let info = this._types[type] as { Service: string, Object: string, Event: string };
 		if (info === undefined) {
-			let pos = AppUtility.indexOf(type, "#");
+			let pos = AppUtility.indexOf(type, "#"), object = "", event = "";
 			const service = pos > 0 ? type.substring(0, pos) : type;
-			let object = "", event = "";
 			if (pos > 0) {
 				object = type.substring(pos + 1);
 				pos = AppUtility.indexOf(object, "#");
@@ -125,7 +145,17 @@ export class AppRTU {
 
 		// initialize object for registering handlers
 		if (this._serviceScopeSubject === undefined) {
-			this._serviceScopeSubject = new Rx.Subject<{ service: string, message: { Type: { Service: string, Object: string, Event: string }, Data: any } }>();
+			this._serviceScopeSubject = new Rx.Subject<{
+				service: string,
+				message: {
+					Type: {
+						Service: string,
+						Object: string,
+						Event: string
+					},
+					Data: any
+				}
+			}>();
 			this._serviceScopeSubject.subscribe(
 				({ service, message }) => {
 					const handlers = this.getServiceHandlers(service);
@@ -143,7 +173,18 @@ export class AppRTU {
 		}
 
 		if (this._objectScopeSubject === undefined) {
-			this._objectScopeSubject = new Rx.Subject<{ service: string, object: string, message: { Type: { Service: string, Object: string, Event: string }, Data: any } }>();
+			this._objectScopeSubject = new Rx.Subject<{
+				service: string,
+				object: string,
+				message: {
+					Type: {
+						Service: string,
+						Object: string,
+						Event: string
+					},
+					Data: any
+				}
+			}>();
 			this._objectScopeSubject.subscribe(
 				({ service, object, message }) => {
 					const handlers = this.getObjectHandlers(service, object);
@@ -280,13 +321,13 @@ export class AppRTU {
 				this._websocket.close();
 				this._websocket = undefined;
 			}
-			this.start(() => PlatformUtility.showLog("[RTU]: Re-started successful..."), true);
+			this.start(() => PlatformUtility.showLog("[RTU]: Re-started..."), true);
 		}, defer || 123);
 	}
 
 	/** Stops the real-time updater */
 	public static stop(onCompleted?: () => void) {
-		this._uri = null;
+		this._uri = undefined;
 		this._status = "closed";
 		if (this._websocket !== undefined) {
 			this._websocket.close();

@@ -23,11 +23,11 @@ export class AppFormsControlComponent {
 	}
 
 	public get invalid() {
-		const control = this.formGroup !== undefined
+		const formControl = this.formGroup !== undefined
 			? this.formGroup.controls[this.control.Key]
 			: undefined;
-		return control !== undefined
-			? control.invalid && control.dirty
+		return formControl !== undefined
+			? formControl.invalid && formControl.dirty
 			: false;
 	}
 
@@ -52,7 +52,7 @@ export class AppFormsControlComponent {
 	}
 
 	public isControl(type: string) {
-		return this.control.Type.toLowerCase() === type.toLowerCase();
+		return this.control.Type === type || this.control.Type.toLowerCase() === type.toLowerCase();
 	}
 
 	public get label() {

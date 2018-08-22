@@ -65,7 +65,7 @@ export class AppComponent {
 		public authSvc: AuthenticationService,
 		public userSvc: UserService
 	) {
-		// router state
+		// capture router url
 		this.configSvc.setPreviousUrl("/home");
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
@@ -238,7 +238,7 @@ export class AppComponent {
 		AppEvents.on("GoForward", info => this.navigate("Forward", info.args.url, info.args.animated, info.args.extras));
 		AppEvents.on("GoBack", info => this.navigate("Back", info.args.url, info.args.animated, info.args.extras));
 		AppEvents.on("GoRoot", info => this.navigate("Root", info.args.url, info.args.animated, info.args.extras));
-		AppEvents.on("GoHome", info => this.navigate());
+		AppEvents.on("GoHome", info => this.navigate("Root", "/home", info.args.animated, info.args.extras));
 
 		AppEvents.on("UpdateSidebar", info => this.updateSidebar(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args["MenuIndex"] || -1, -1, info.args["ItemInfo"]));
