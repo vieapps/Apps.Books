@@ -99,7 +99,7 @@ export class AuthenticationService extends BaseService {
 				}
 				else {
 					this.log("Log in successful", this.configSvc.isDebug ? data : "");
-					await this.runPostAuthenticateProcessAsync(data, onNext);
+					await this.updateSessionAsync(data, onNext);
 				}
 			},
 			async error => {
@@ -150,7 +150,7 @@ export class AuthenticationService extends BaseService {
 		return this.updateAsync(path, body,
 			async data => {
 				this.log("Validate OTP successful");
-				await this.runPostAuthenticateProcessAsync(data, onNext);
+				await this.updateSessionAsync(data, onNext);
 			},
 			error => this.error("Error occurred while validating OTP", error, onError)
 		);
@@ -179,16 +179,17 @@ export class AuthenticationService extends BaseService {
 		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while requesting new password", error, onError), AppAPI.getCaptchaHeaders(captcha));
 	}
 
-	public runPostAuthenticateProcessAsync(data: any, onNext: (data?: any) => void) {
+	public updateSessionAsync(data: any, onNext: (data?: any) => void) {
 		AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
 		return this.configSvc.updateSessionAsync(data, () => {
-			AppRTU.start();
-			this.configSvc.patchSession(() => {
-				this.configSvc.patchAccount(() => {
-					this.configSvc.getProfile(() => {
-						if (onNext !== undefined) {
-							onNext(data);
-						}
+			AppRTU.start(() => {
+				this.configSvc.patchSession(() => {
+					this.configSvc.patchAccount(() => {
+						this.configSvc.getProfile(() => {
+							if (onNext !== undefined) {
+								onNext(data);
+							}
+						});
 					});
 				});
 			});

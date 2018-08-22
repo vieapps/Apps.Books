@@ -3,10 +3,10 @@ import { FormGroup, FormArray } from "@angular/forms";
 import { AppFormsControl } from "./forms.service";
 
 @Component({
-	selector: "app-form-element",
-	templateUrl: "./forms.element.component.html"
+	selector: "app-form-control",
+	templateUrl: "./forms.control.component.html"
 })
-export class AppFormsElementComponent {
+export class AppFormsControlComponent {
 	@Input() formGroup: FormGroup;
 	@Input() control: AppFormsControl;
 	@Input() index: number;
@@ -23,7 +23,9 @@ export class AppFormsElementComponent {
 	}
 
 	public get invalid() {
-		const control = this.formGroup.controls[this.control.Key];
+		const control = this.formGroup !== undefined
+			? this.formGroup.controls[this.control.Key]
+			: undefined;
 		return control !== undefined
 			? control.invalid && control.dirty
 			: false;
@@ -125,22 +127,22 @@ export class AppFormsElementComponent {
 		if (this._style === undefined) {
 			this._style = "";
 			if (this.control.Options.Width) {
-				this._style += `width:${this.control.Options.Width}px;`;
+				this._style += `width:${this.control.Options.Width};`;
 			}
 			if (this.control.Options.MinWidth) {
-				this._style += `min-width:${this.control.Options.MinWidth}px;`;
+				this._style += `min-width:${this.control.Options.MinWidth};`;
 			}
 			if (this.control.Options.MaxWidth) {
-				this._style += `max-width:${this.control.Options.MaxWidth}px;`;
+				this._style += `max-width:${this.control.Options.MaxWidth};`;
 			}
 			if (this.control.Options.Height) {
-				this._style += `height:${this.control.Options.Height}px;`;
+				this._style += `height:${this.control.Options.Height};`;
 			}
 			if (this.control.Options.MinHeight) {
-				this._style += `min-height:${this.control.Options.MinHeight}px;`;
+				this._style += `min-height:${this.control.Options.MinHeight};`;
 			}
 			if (this.control.Options.MaxHeight) {
-				this._style += `max-height:${this.control.Options.MaxHeight}px;`;
+				this._style += `max-height:${this.control.Options.MaxHeight};`;
 			}
 			if (this.control.Type === "Captcha") {
 				this._style += "text-transform:uppercase";

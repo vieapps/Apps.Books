@@ -4,8 +4,8 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { IonicModule } from "@ionic/angular";
 import { Ng2CompleterModule } from "ng2-completer";
 import { AppFormsService } from "./forms.service";
-import { AppFormsComponent } from "./forms.main.component";
-import { AppFormsElementComponent } from "./forms.element.component";
+import { AppFormsComponent } from "./forms.component";
+import { AppFormsControlComponent } from "./forms.control.component";
 
 @NgModule({
 	imports: [
@@ -19,11 +19,11 @@ import { AppFormsElementComponent } from "./forms.element.component";
 	],
 	declarations: [
 		AppFormsComponent,
-		AppFormsElementComponent
+		AppFormsControlComponent
 	],
 	exports: [
 		AppFormsComponent,
-		AppFormsElementComponent
+		AppFormsControlComponent
 	]
 })
 export class AppFormsModule {}

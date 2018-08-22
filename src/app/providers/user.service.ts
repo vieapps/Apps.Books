@@ -37,8 +37,7 @@ export class UserService extends BaseService {
 									await this.configSvc.initializeSessionAsync(async () => {
 										await this.configSvc.registerSessionAsync(() => {
 											this.log("Revoke session", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-											AppEvents.broadcast("GoHome");
-											this.configSvc.patchSession();
+											this.configSvc.patchSession(() => AppEvents.broadcast("GoHome"));
 										});
 									});
 								});
@@ -49,10 +48,6 @@ export class UserService extends BaseService {
 								if (profile !== undefined) {
 									profile.IsOnline = message.Data.IsOnline;
 									profile.LastAccess = new Date();
-								}
-								if (this.configSvc.appConfig.session.id === message.Data.SessionID && this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.UserID && this.configSvc.appConfig.session.account.profile !== null) {
-									this.configSvc.appConfig.session.account.profile.IsOnline = true;
-									this.configSvc.appConfig.session.account.profile.LastAccess = new Date();
 								}
 								break;
 

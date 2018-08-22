@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { Router, NavigationEnd, NavigationExtras } from "@angular/router";
+import { Router, Params, NavigationEnd, NavigationExtras } from "@angular/router";
 
 import { Platform, LoadingController, AlertController, NavController } from "@ionic/angular";
 
@@ -34,9 +34,18 @@ export class AppComponent {
 				parent: {
 					title: string,
 					url: string,
+					queryParams: Params,
 					direction: string
 				},
-				items: Array<{ title: string, url: string, icon: string, thumbnail: string, detail: boolean, direction: string }>
+				items: Array<{
+					title: string,
+					url: string,
+					queryParams: Params,
+					icon: string,
+					thumbnail: string,
+					direction: string,
+					detail: boolean
+				}>
 			}>()
 		}
 	};
@@ -57,40 +66,28 @@ export class AppComponent {
 		public userSvc: UserService
 	) {
 		// router state
-		this.configSvc.setCurrentUrl("/home");
+		this.configSvc.setPreviousUrl("/home");
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
 				this.configSvc.currentUrl = (event as NavigationEnd).url;
 			}
 		});
 
-		// sidebars
-		this.sidebar.left.title = this.configSvc.appConfig.app.name;
-		this.updateSidebar();
-
-		// event handlers
-		this.setupEventHandlers();
-
 		// initliaze app
 		this.platform.ready().then(() => {
-			// state of activate new account or new password
-			const isActivate = "activate" === PlatformUtility.parseURI().searchParams["prego"];
-
 			// show loading
-			PlatformUtility.setTimeout(async () => {
-				this.loading = await this.loadingController.create({
-					content: isActivate ? "Kích hoạt..." : "Tải dữ liệu..."
-				});
-				await this.loading.present();
-			}, 1);
+			this.showLoadingAsync();
+
+			// prepare sidebars
+			this.sidebar.left.title = this.configSvc.appConfig.app.name;
+			this.updateSidebar();
+
+			// setup event handlers
+			this.setupEventHandlers();
 
 			// prepare status bar
-			const iPhoneX = this.device.platform !== undefined && this.device.platform === "iOS"
-				&& this.device.model !== undefined && this.device.model !== null
-				&& AppUtility.indexOf(this.device.model, "iPhone1") === 0
-				&& AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2;
 			this.statusBar.styleDefault();
-			if (iPhoneX) {
+			if ("iOS" === this.device.platform && AppUtility.indexOf(this.device.model, "iPhone1") === 0 && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
 				this.statusBar.backgroundColorByHexString("f8f8f8");
 			}
 			this.statusBar.overlaysWebView(false);
@@ -100,7 +97,9 @@ export class AppComponent {
 
 			// prepare the app
 			this.configSvc.prepareAsync(async () => {
-				if (isActivate && this.configSvc.isWebApp) {
+				if (this.configSvc.isWebApp && "activate" === PlatformUtility.parseURI().searchParams["prego"]) {
+					await this.hideLoadingAsync();
+					await this.showLoadingAsync("Kích hoạt...");
 					await this.activateAsync();
 				}
 				else {
@@ -114,6 +113,7 @@ export class AppComponent {
 		return {
 			title: "Đăng nhập",
 			url: "/log-in",
+			queryParams: undefined as Params,
 			icon: "log-in",
 			thumbnail: undefined,
 			detail: false,
@@ -125,6 +125,7 @@ export class AppComponent {
 		return {
 			title: "Đăng ký tài khoản",
 			url: "/register-account",
+			queryParams: undefined as Params,
 			icon: "person-add",
 			thumbnail: undefined,
 			detail: false,
@@ -136,6 +137,7 @@ export class AppComponent {
 		return {
 			title: "Thông tin tài khoản",
 			url: "/account-profile",
+			queryParams: undefined as Params,
 			icon: "person",
 			thumbnail: undefined,
 			detail: false,
@@ -143,15 +145,20 @@ export class AppComponent {
 		};
 	}
 
+	public trackSidebarItem(index: number, item: any) {
+		return item.title;
+	}
+
 	private updateSidebarItem(menuIndex: number = -1, itemIndex: number = -1, itemInfo: any = {}) {
 		if (menuIndex > -1 && menuIndex < this.sidebar.left.menu.length) {
 			const item = {
 				title: itemInfo.title,
 				url: itemInfo.url,
+				queryParams: itemInfo.queryParams,
 				icon: itemInfo.icon,
 				thumbnail: itemInfo.thumbnail,
-				detail: !!itemInfo.detail,
-				direction: itemInfo.direction || "root"
+				direction: itemInfo.direction || "root",
+				detail: !!itemInfo.detail
 			};
 			AppUtility.insertAt(this.sidebar.left.menu[menuIndex].items, item, itemIndex);
 		}
@@ -174,10 +181,7 @@ export class AppComponent {
 			this.updateSidebarItem(index, -1, {
 				title: "Màn hình chính",
 				url: "/home",
-				icon: "home",
-				thumbnail: undefined,
-				detail: false,
-				direction: "root"
+				icon: "home"
 			});
 
 			if (this.configSvc.isAuthenticated) {
@@ -203,19 +207,16 @@ export class AppComponent {
 					return {
 						title: item.title,
 						url: item.url,
+						queryParams: item.queryParams,
+						direction: item.direction || "root",
 						icon: item.icon,
 						thumbnail: item.thumbnail,
 						detail: !!item.detail,
-						direction: item.direction || "root"
 					};
 				})
-				.filter(item => item.title && item.url)
+				.filter(item => AppUtility.isNotEmpty(item.title) && AppUtility.isNotEmpty(item.url))
 				.forEach(item => this.updateSidebarItem(index, -1, item));
 		}
-	}
-
-	public sidebarTrackBy(index: number, item: any) {
-		return item.title;
 	}
 
 	private navigate(direction: string = "Root", url: string = "/home", animated: boolean = true, extras?: NavigationExtras) {
@@ -233,6 +234,7 @@ export class AppComponent {
 	}
 
 	private setupEventHandlers() {
+		AppEvents.on("Navigate", info => this.navigate(info.args.direction || "Forward", info.args.url, info.args.animated, info.args.extras));
 		AppEvents.on("GoForward", info => this.navigate("Forward", info.args.url, info.args.animated, info.args.extras));
 		AppEvents.on("GoBack", info => this.navigate("Back", info.args.url, info.args.animated, info.args.extras));
 		AppEvents.on("GoRoot", info => this.navigate("Root", info.args.url, info.args.animated, info.args.extras));
@@ -279,6 +281,13 @@ export class AppComponent {
 				}
 			}
 		});
+	}
+
+	private async showLoadingAsync(content?: string) {
+		this.loading = await this.loadingController.create({
+			content: content || "Tải dữ liệu..."
+		});
+		await this.loading.present();
 	}
 
 	private async hideLoadingAsync() {

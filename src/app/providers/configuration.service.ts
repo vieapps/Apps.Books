@@ -1,8 +1,8 @@
 declare var FB: any;
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
-import { Title } from "@angular/platform-browser";
 import { NavigationExtras } from "@angular/router";
+import { Title } from "@angular/platform-browser";
 import { Platform } from "@ionic/angular";
 import { Storage } from "@ionic/storage";
 import { Device } from "@ionic-native/device/ngx";
@@ -28,7 +28,7 @@ export class ConfigurationService extends BaseService {
 		public device: Device,
 		public storage: Storage,
 		public appVer: AppVersion,
-		public docTitle: Title
+		public browserTitle: Title
 	) {
 		super(http, "Configuration");
 	}
@@ -93,9 +93,9 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.app.version;
 	}
 
-	/** Sets the app title (means of title of the current app page) */
+	/** Sets the app title (means of title of the browser) */
 	public set appTitle(value: string) {
-		this.docTitle.setTitle(`${value} :: ${this.appConfig.app.name}`);
+		this.browserTitle.setTitle(`${value} :: ${this.appConfig.app.name}`);
 	}
 
 	/** Gets the query with related service, language and host */
@@ -169,13 +169,7 @@ export class ConfigurationService extends BaseService {
 					if (this.isDebug) {
 						this.log("The session is initialized by APIs");
 					}
-					if (this.isAuthenticated) {
-						AppEvents.broadcast("Session", { Type: "Register", Info: this.appConfig.session });
-					}
-					else {
-						AppEvents.broadcast("Session", { Type: "Initialize", Info: this.appConfig.session });
-					}
-
+					AppEvents.broadcast("Session", { Type: this.isAuthenticated ? "Register" : "Initialize", Info: this.appConfig.session });
 					if (onNext !== undefined) {
 						onNext(data);
 					}
@@ -328,7 +322,7 @@ export class ConfigurationService extends BaseService {
 			Status: "Registered",
 			TwoFactorsAuthentication: {
 				Required: false,
-				Providers: new Array<{Label: string, Type: string, Time: Date, Info: string}>()
+				Providers: new Array<{ Label: string, Type: string, Time: Date, Info: string }>()
 			}
 		};
 

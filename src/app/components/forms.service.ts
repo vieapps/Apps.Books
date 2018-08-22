@@ -34,14 +34,14 @@ export class AppFormsControl {
 		Max: undefined as number,
 		MinLength: undefined as number,
 		MaxLength: undefined as number,
-		Width: undefined as number,
-		MinWidth: undefined as number,
-		MaxWidth: undefined as number,
-		Height: undefined as number,
-		MinHeight: undefined as number,
-		MaxHeight: undefined as number,
+		Width: undefined as string,
+		MinWidth: undefined as string,
+		MaxWidth: undefined as string,
+		Height: undefined as string,
+		MinHeight: undefined as string,
+		MaxHeight: undefined as string,
 		SelectOptions: {
-			Values: undefined as Array<{ Key: string, Value: string }>,
+			Values: undefined as Array<{ Key: string, Value: any }>,
 			Multiple: false,
 			AsBoxes: false
 		},
@@ -55,19 +55,17 @@ export class AppFormsControl {
 	} = undefined;
 
 	constructor (
-		options?: any,
+		options: any = {},
 		order?: number
 	) {
-		if (options !== undefined) {
-			this.assign(options, this, order);
-		}
+		this.assign(options, this, order);
 	}
 
 	private assign(options: any, control?: AppFormsControl, order?: number, altKey?: string) {
 		control = control || new AppFormsControl();
 		control.Order = options.Order || options.order || order || 0;
 
-		control.Key = options.Key || options.key || (altKey ? `${altKey}_${control.Order}` : `c_${control.Order}`) || "";
+		control.Key = options.Key || options.key || (altKey !== undefined ? `${altKey}_${control.Order}` : `c_${control.Order}`);
 		control.Type = options.Type || options.type || "TextBox";
 		control.Required = !!options.Required;
 
@@ -160,10 +158,9 @@ export class AppFormsControl {
 	/** Adds sub-controls of the form array */
 	public addSubControls(length: number) {
 		if (this.SubControls !== undefined && this.SubControls.AsArray) {
-			const options = AppUtility.clone(this.SubControls.Controls[0]);
+			const options = AppUtility.clone(this.SubControls.Controls[0], ["Order", "Validators", "AsyncValidators"]);
 			while (this.SubControls.Controls.length < length) {
-				const control = new AppFormsControl(options);
-				control.Order = this.SubControls.Controls.length;
+				const control = new AppFormsControl(options, this.SubControls.Controls.length);
 				control.Validators = this.SubControls.Controls[0].Validators;
 				control.AsyncValidators = this.SubControls.Controls[0].AsyncValidators;
 				this.SubControls.Controls.push(control);

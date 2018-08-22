@@ -12,7 +12,7 @@
 				</ion-toolbar>
 			</ion-header>
 			<ion-content>
-				<ion-list *ngFor="let menu of sidebar.left.menu; trackBy: sidebarTrackBy">
+				<ion-list *ngFor="let menu of sidebar.left.menu; trackBy: trackSidebarItem">
 					<ion-list-header *ngIf="menu.title">
 						<ion-icon *ngIf="menu.icon" [name]="menu.icon" slot="start"></ion-icon>
 						<ion-thumbnail *ngIf="menu.thumbnail" slot="start">
@@ -22,13 +22,13 @@
 							{{menu.title}}
 						</ion-label>	
 					</ion-list-header>
-					<ion-item *ngIf="menu.parent" [routerLink]="[menu.parent.url]" [routerDirection]="menu.parent.direction">
+					<ion-item *ngIf="menu.parent" [routerLink]="[menu.parent.url]" [queryParams]="menu.parent.queryParams" [routerDirection]="menu.parent.direction">
 						<ion-icon name="arrow-back" slot="start"></ion-icon>
 						<ion-label>
 							{{menu.parent.title}}
 						</ion-label>	
 					</ion-item>
-					<ion-item *ngFor="let item of menu.items; trackBy: sidebarTrackBy" [routerLink]="[item.url]" [detail]="item.detail" [routerDirection]="item.direction">
+					<ion-item *ngFor="let item of menu.items; trackBy: trackSidebarItem" [routerLink]="[item.url]" [queryParams]="item.queryParams" [routerDirection]="item.direction" [detail]="item.detail">
 						<ion-icon *ngIf="item.icon" [name]="item.icon" slot="start"></ion-icon>
 						<ion-thumbnail *ngIf="item.thumbnail" slot="start">
 							<img [src]="item.thumbnail"/>

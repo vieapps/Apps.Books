@@ -9,7 +9,7 @@ import { PlatformUtility } from "../components/app.utility.platform";
 /** Base of all providers/services */
 export class Base {
 
-	/** Name of the service (for working with paginations as prefix, display error, ...) */
+	/** Name of the service (for working with paginations as prefix, display logs/errors, ...) */
 	protected Name = "";
 
 	private get serviceName() {
@@ -190,7 +190,7 @@ export class Base {
 			if (onNext !== undefined) {
 				onNext();
 			}
-			return null;
+			return undefined;
 		}
 
 		// update the page number and send request to search

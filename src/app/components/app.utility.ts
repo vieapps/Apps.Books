@@ -81,6 +81,13 @@ export class AppUtility {
 			: false;
 	}
 
+	/** Checks the error to see that is OTP exception or not */
+	public static isGotOTPException(error?: any) {
+		return this.isObject(error, true) && this.isNotEmpty(error.Type) && this.isNotEmpty(error.Message)
+			? error.Type === "OTPLoginFailedException" && error.Message.indexOf("Bad OTP") > -1
+			: false;
+	}
+
 	/**
 	 * Copys data from the source (object or JSON) into the objects" properties
 	 * @param source The source (object or JSON) to copy data from
