@@ -6,8 +6,7 @@ import { AppRTU } from "../components/app.rtu";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
 import { PlatformUtility } from "../components/app.utility.platform";
-import { AppData } from "../app.data";
-import { Profile } from "../models/profile";
+import { UserProfile } from "../models/user";
 import { Privilege } from "../models/privileges";
 import { Base as BaseService } from "./base.service";
 import { ConfigurationService } from "./configuration.service";
@@ -28,7 +27,7 @@ export class UserService extends BaseService {
 		onNext = AppUtility.isNull(onNext)
 			? undefined
 			: data => {
-				(data.Objects as Array<any>).forEach(p => Profile.update(p));
+				(data.Objects as Array<any>).forEach(p => UserProfile.update(p));
 				onNext(data);
 			};
 		return super.search(path, request, onNext, onError);
@@ -80,7 +79,7 @@ export class UserService extends BaseService {
 
 	public getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		id = id || this.configSvc.getAccount().id;
-		if (AppData.profiles.containsKey(id)) {
+		if (UserProfile.instances.containsKey(id)) {
 			if (onNext !== undefined) {
 				onNext();
 			}
@@ -89,8 +88,8 @@ export class UserService extends BaseService {
 			const path = "users/profile/" + id + "?" + this.configSvc.relatedQuery;
 			return this.readAsync(path,
 				data => {
-					const profile = Profile.deserialize(data);
-					AppData.profiles.setValue(profile.ID, profile);
+					const profile = UserProfile.deserialize(data);
+					UserProfile.instances.setValue(profile.ID, profile);
 					if (onNext !== undefined) {
 						onNext(data);
 					}
@@ -104,8 +103,8 @@ export class UserService extends BaseService {
 		const path = "users/profile/" + (body.ID || this.configSvc.getAccount().id) + "?" + this.configSvc.relatedQuery;
 		return this.updateAsync(path, body,
 			data => {
-				const profile = Profile.deserialize(data);
-				AppData.profiles.setValue(profile.ID, profile);
+				const profile = UserProfile.deserialize(data);
+				UserProfile.instances.setValue(profile.ID, profile);
 				if (onNext !== undefined) {
 					onNext(data);
 				}
@@ -179,7 +178,7 @@ export class UserService extends BaseService {
 							break;
 
 						case "Status":
-							const profile = AppData.profiles.getValue(message.Data.UserID);
+							const profile = UserProfile.instances.getValue(message.Data.UserID);
 							if (profile !== undefined) {
 								profile.IsOnline = message.Data.IsOnline;
 								profile.LastAccess = new Date();
@@ -203,10 +202,10 @@ export class UserService extends BaseService {
 				break;
 
 			case "Profile":
-				Profile.update(message.Data);
+				UserProfile.update(message.Data);
 				if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID && this.configSvc.appConfig.session.token && this.configSvc.appConfig.session.token.uid === message.Data.ID) {
 					this.configSvc.appConfig.session.account.id = message.Data.ID;
-					this.configSvc.appConfig.session.account.profile = AppData.profiles.getValue(message.Data.ID);
+					this.configSvc.appConfig.session.account.profile = UserProfile.instances.getValue(message.Data.ID) as UserProfile;
 					await this.configSvc.storeProfileAsync(() => {
 						if (this.configSvc.isDebug) {
 							this.log("Account profile is updated", this.configSvc.appConfig.session.account);

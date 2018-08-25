@@ -5,8 +5,11 @@ import { AppData } from "../app.data";
 import { Base as BaseModel } from "./base";
 import { RatingPoint } from "./ratingpoint";
 
-/** Base profile */
-export class BaseProfile extends BaseModel {
+/** Base user profile */
+export class UserProfileBase extends BaseModel {
+	/** All user profile instances */
+	public static instances = new Collections.Dictionary<string, UserProfileBase>();
+
 	// standard properties
 	ID = "";
 	Name = "";
@@ -44,8 +47,8 @@ export class BaseProfile extends BaseModel {
 		this.Status = "Activated";
 	}
 
-	public static deserialize(json: any, obj?: BaseProfile) {
-		obj = obj || new BaseProfile();
+	public static deserialize(json: any, obj?: UserProfileBase) {
+		obj = obj || new UserProfileBase();
 		obj.copy(json, data => { });
 		return obj;
 	}
@@ -67,8 +70,8 @@ export class BaseProfile extends BaseModel {
 
 }
 
-/** Full profile (with related information from main service) */
-export class Profile extends BaseProfile {
+/** Full user profile (with related information from main service) */
+export class UserProfile extends UserProfileBase {
 	Level = "";
 	Reputation = "";
 	TotalPoints = 0;
@@ -84,18 +87,18 @@ export class Profile extends BaseProfile {
 		this.Reputation = "Unknown";
 	}
 
-	public static deserialize(json: any, obj?: Profile) {
-		obj = obj || new Profile();
+	public static deserialize(json: any, obj?: UserProfile) {
+		obj = obj || new UserProfile();
 		obj.copy(json, data => { });
 		return obj;
 	}
 
 	static update(data: any) {
 		if (AppUtility.isObject(data, true)) {
-			const profile = data instanceof Profile
-				? data as Profile
-				: Profile.deserialize(data, AppData.profiles.getValue(data.ID));
-			AppData.profiles.setValue(profile.ID, profile);
+			const profile = data instanceof UserProfile
+				? data as UserProfile
+				: UserProfile.deserialize(data, UserProfile.instances.getValue(data.ID) as UserProfile);
+				UserProfile.instances.setValue(profile.ID, profile);
 		}
 	}
 

@@ -11,7 +11,7 @@ import { UserService } from "./../../providers/user.service";
 import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppCustomCompleter } from "../../components/app.completer";
 import { AppPagination } from "../../components/app.pagination";
-import { Profile } from "../../models/profile";
+import { UserProfile } from "../../models/user";
 
 @Component({
 	selector: "page-register",

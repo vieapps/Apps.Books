@@ -14,7 +14,7 @@ import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
 import { PlatformUtility } from "../components/app.utility.platform";
-import { Profile } from "../models/profile";
+import { UserProfile } from "../models/user";
 import { Account } from "../models/account";
 import { Privilege } from "../models/privileges";
 import { Base as BaseService } from "./base.service";
@@ -257,7 +257,7 @@ export class ConfigurationService extends BaseService {
 			if (AppUtility.isNotEmpty(session) && session !== "{}") {
 				this.appConfig.session = JSON.parse(session as string);
 				if (this.appConfig.session.account !== null && this.appConfig.session.account.profile !== null) {
-					this.appConfig.session.account.profile = Profile.deserialize(this.appConfig.session.account.profile);
+					this.appConfig.session.account.profile = UserProfile.deserialize(this.appConfig.session.account.profile);
 				}
 				if (this.isDebug) {
 					this.log("The session is loaded from storage");

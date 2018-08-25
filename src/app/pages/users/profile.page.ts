@@ -11,7 +11,7 @@ import { TrackingUtility } from "../../components/app.utility.trackings";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { UserService } from "../../providers/user.service";
-import { Profile } from "../../models/profile";
+import { UserProfile } from "../../models/user";
 
 @Component({
 	selector: "page-account-profile",
@@ -37,7 +37,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		icon: string,
 		handler: () => void
 	}> = [];
-	profile: Profile;
+	profile: UserProfile;
 	update = {
 		form: FormGroup,
 		config: undefined as Array<any>,

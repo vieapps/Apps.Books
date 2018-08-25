@@ -1,5 +1,5 @@
 import { Privilege } from "./privileges";
-import { Profile } from "./profile";
+import { UserProfile } from "./user";
 
 /** Account of the app */
 export class Account {
@@ -11,7 +11,7 @@ export class Account {
 		required: false,
 		providers: new Array<{ Label: string, Type: string, Time: Date, Info: string }>()
 	};
-	profile: Profile = undefined;
+	profile: UserProfile = undefined;
 	facebook = {
 		id: null as string,
 		name: null as string,
