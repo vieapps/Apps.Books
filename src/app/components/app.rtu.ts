@@ -11,11 +11,15 @@ export class AppRTU {
 	private static _status = "initializing";
 	private static _uri: string = undefined;
 	private static _websocket: WebSocket = undefined;
-
-	private static _types = {};
-	private static _serviceScopeHandlers = {};
-	private static _objectScopeHandlers = {};
-
+	private static _types: {
+		[key: string]: { Service: string, Object: string, Event: string }
+	} = {};
+	private static _serviceScopeHandlers: {
+		[key: string]: Array<{ func: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity: string }>
+	} = {};
+	private static _objectScopeHandlers: {
+		[key: string]: Array<{ func: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity: string }>
+	} = {};
 	private static _serviceScopeSubject: Rx.Subject<{
 		service: string,
 		message: {
@@ -42,13 +46,13 @@ export class AppRTU {
 
 	private static getServiceHandlers(service: string) {
 		this._serviceScopeHandlers[service] = this._serviceScopeHandlers[service] || [];
-		return this._serviceScopeHandlers[service] as Array<{ func: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity: string }>;
+		return this._serviceScopeHandlers[service];
 	}
 
 	private static getObjectHandlers(service: string, object: string) {
 		const type = service + "#" + (object || "");
 		this._objectScopeHandlers[type] = this._objectScopeHandlers[type] || [];
-		return this._objectScopeHandlers[type] as Array<{ func: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity: string }>;
+		return this._objectScopeHandlers[type];
 	}
 
 	/** Gets the state that determines weather WebSocket is ready for work */
@@ -104,7 +108,7 @@ export class AppRTU {
 
 	/** Parses the message */
 	public static parse(type: string) {
-		let info = this._types[type] as { Service: string, Object: string, Event: string };
+		let info = this._types[type];
 		if (info === undefined) {
 			let pos = AppUtility.indexOf(type, "#"), object = "", event = "";
 			const service = pos > 0 ? type.substring(0, pos) : type;
