@@ -25,7 +25,7 @@ export class AppAPI {
 
 	/** Gets the authenticated headers (JSON) for making requests to APIs */
 	public static getAuthHeaders(addToken: boolean = true, addAppInfo: boolean = true, addDeviceID: boolean = true) {
-		const headers = {};
+		const headers: { [key: string]: string } = {};
 
 		if (addToken && AppUtility.isObject(AppConfig.session.token, true)
 			&& AppUtility.isObject(AppConfig.session.keys, true) && AppUtility.isNotEmpty(AppConfig.session.keys.jwt)) {
