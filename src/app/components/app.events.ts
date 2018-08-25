@@ -4,19 +4,21 @@ import { AppUtility } from "./app.utility";
 /** Servicing component for working with app events */
 export class AppEvents {
 
-	private static _handlers = {};
+	private static _handlers: {
+		[key: string]: Array<{ func: (info: { event: string, args: any }) => void, identity: string }>
+	} = {};
 	private static _subject: Rx.Subject<{ event: string, args: any }> = undefined;
 
 	private static getHandlers(event: string) {
 		this._handlers[event] = this._handlers[event] || [];
-		return this._handlers[event] as Array<{ func: (info: { event: string, args: any }) => void, identity: string }>;
+		return this._handlers[event];
 	}
 
 	private static initialize() {
 		if (this._subject === undefined) {
 			this._subject = new Rx.Subject<{ event: string, args: any }>();
 			this._subject.subscribe(({ event, args }) => {
-				this.getHandlers(event).forEach(handler => handler.func({ event: event, args: args }));
+				this.getHandlers(event).forEach(handler => handler.func({ event: event, args: args || {} }));
 			});
 		}
 	}
@@ -55,7 +57,7 @@ export class AppEvents {
 	  * @param event The string that presents the name of an event
 	  * @param args The JSON object that presents the arguments of an event
 	*/
-	public static broadcast(event: string, args: any = {}) {
+	public static broadcast(event: string, args: any) {
 		this.initialize();
 		this._subject.next({ event, args });
 	}
