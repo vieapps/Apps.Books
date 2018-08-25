@@ -1,13 +1,15 @@
 import * as Collections from "typescript-collections";
 import { List } from "linqts";
 import { AppConfig } from "../app.config";
-import { AppData } from "../app.data";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseModel } from "./base";
 import { RatingPoint } from "./ratingpoint";
 import { CounterInfo } from "./counters";
 
 export class Book extends BaseModel {
+	/** All instances of book */
+	public static instances = new Collections.Dictionary<string, Book>();
+
 	ID = "";
 	Title = "";
 	Author = "";
@@ -75,8 +77,8 @@ export class Book extends BaseModel {
 		if (AppUtility.isObject(data, true)) {
 			const book = data instanceof Book
 				? data as Book
-				: Book.deserialize(data, AppData.books.getValue(data.ID));
-			AppData.books.setValue(book.ID, book);
+				: Book.deserialize(data, Book.instances.getValue(data.ID));
+				Book.instances.setValue(book.ID, book);
 		}
 	}
 }

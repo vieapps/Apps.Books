@@ -57,7 +57,7 @@ export class AppEvents {
 	  * @param event The string that presents the name of an event
 	  * @param args The JSON object that presents the arguments of an event
 	*/
-	public static broadcast(event: string, args: any) {
+	public static broadcast(event: string, args?: any) {
 		this.initialize();
 		this._subject.next({ event, args });
 	}
