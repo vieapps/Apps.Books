@@ -49,7 +49,7 @@ export class AppComponent {
 			}>()
 		}
 	};
-	loading = undefined;
+	private _loading = undefined;
 
 	constructor(
 		public router: Router,
@@ -70,6 +70,7 @@ export class AppComponent {
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
 				this.configSvc.currentUrl = (event as NavigationEnd).url;
+				this.configSvc.queryParams = this.router.routerState.snapshot.root.queryParams;
 			}
 		});
 
@@ -97,9 +98,7 @@ export class AppComponent {
 
 			// prepare the app
 			this.configSvc.prepareAsync(async () => {
-				if (this.configSvc.isWebApp && "activate" === PlatformUtility.parseURI().searchParams["prego"]) {
-					await this.hideLoadingAsync();
-					await this.showLoadingAsync("Kích hoạt...");
+				if (this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"]) {
 					await this.activateAsync();
 				}
 				else {
@@ -284,16 +283,16 @@ export class AppComponent {
 	}
 
 	private async showLoadingAsync(content?: string) {
-		this.loading = await this.loadingController.create({
-			content: content || "Tải dữ liệu..."
+		this._loading = await this.loadingController.create({
+			content: "activate" === this.configSvc.queryParams["prego"] ? "Kích hoạt..." : "Tải dữ liệu..."
 		});
-		await this.loading.present();
+		await this._loading.present();
 	}
 
 	private async hideLoadingAsync() {
-		if (this.loading !== undefined) {
-			await this.loading.dismiss();
-			this.loading = undefined;
+		if (this._loading !== undefined) {
+			await this._loading.dismiss();
+			this._loading = undefined;
 		}
 	}
 
@@ -303,11 +302,13 @@ export class AppComponent {
 		const code = uri.searchParams["code"];
 
 		if (AppUtility.isNotEmpty(mode) && AppUtility.isNotEmpty(code)) {
-			TrackingUtility.trackAsync("Kích hoạt", `activate/${mode}`);
-			this.userSvc.activateAsync(mode, code,
+			await this.userSvc.activateAsync(mode, code,
 				async data => {
 					await this.initializeAsync(async () => {
-						await this.showActivationResultAsync({ Status: "OK", Mode: mode });
+						await Promise.all([
+							TrackingUtility.trackAsync("Kích hoạt", `activate-${mode}`),
+							this.showActivationResultAsync({ Status: "OK", Mode: mode })
+						]);
 					}, true);
 				},
 				async error => {

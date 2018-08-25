@@ -11,7 +11,6 @@ export class AppUtility {
 		"SessionNotFoundException", "SessionExpiredException", "SessionInformationRequiredException", "InvalidSessionException",
 		"TokenNotFoundException", "TokenExpiredException", "TokenRevokedException", "InvalidTokenException", "InvalidTokenSignatureException"
 	];
-	private static _counties: any = {};
 
 	/** Checks to see the object is boolean and equals to true */
 	public static isTrue(obj?: any): boolean {
@@ -258,55 +257,6 @@ export class AppUtility {
 		return list.ToArray();
 	}
 
-	/** Gets the listing of counties of a specified country */
-	public static getCounties(country?: string) {
-		country = this.isNotEmpty(country)
-			? country
-			: AppConfig.meta.country;
-		if (!this._counties[country]) {
-			const theCounties: Array<any> = [];
-			(AppConfig.meta.provinces[country] ? AppConfig.meta.provinces[country].provinces as Array<any> : []).forEach(p => {
-				(p.counties as Array<any>).forEach(c => {
-					theCounties.push({
-						county: c.title,
-						province: p.title,
-						country: country,
-						title: c.title + ", " + p.title + ", " + country,
-						titleANSI: this.toANSI(c.title + ", " + p.title + ", " + country)
-					});
-				});
-			});
-			this._counties[country] = theCounties;
-		}
-		return this._counties[country] as Array<any>;
-	}
-
-	/** Initializes an address for working with type-a-head */
-	public static initializeAddress(address?: any): { current: any, addresses: Array<any> } {
-		const info = {
-			addresses: this.getCounties(),
-			current: undefined
-		};
-
-		address = this.isObject(address, true)
-			? {
-					county: this.isNotEmpty(address.county) ? address.county : this.isNotEmpty(address.County) ? address.County : "",
-					province: this.isNotEmpty(address.province) ? address.province : this.isNotEmpty(address.Province) ? address.Province : "",
-					country: this.isNotEmpty(address.country) ? address.country : this.isNotEmpty(address.Country) ? address.Country : ""
-				}
-			: {
-					county: "",
-					province: "",
-					country: ""
-				};
-
-		info.current = address.county === "" && address.province === "" && address.country === ""
-			? undefined
-			: new List(info.addresses).FirstOrDefault(a => a.county === address.county && a.province === address.province && a.country === address.country);
-
-		return info;
-	}
-
 	/** Removes tags from the HTML content */
 	public static removeTags(html?: string) {
 		return this.isNotEmpty(html)
@@ -388,6 +338,22 @@ export class AppUtility {
 		else {
 			return [obj];
 		}
+	}
+
+	/** Converts this string array/object keys to set */
+	public static toSet(obj: any) {
+		const sets: {
+			[key: string]: boolean
+		} = {};
+		if (this.isNotNull(obj)) {
+			if (this.isArray(obj) && typeof obj[0] === "string") {
+				(obj as Array<string>).forEach(value => sets[value] = true);
+			}
+			else {
+				Object.keys(obj).forEach(value => sets[value] = true);
+			}
+		}
+		return sets;
 	}
 
 	/** Converts object to integer */

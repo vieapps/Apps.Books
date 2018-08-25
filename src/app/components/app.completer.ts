@@ -2,35 +2,36 @@ import * as Rx from "rxjs";
 import { map } from "rxjs/operators";
 import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppAPI } from "./app.api";
+import { PlatformUtility } from "./app.utility.platform";
 
 /** Custom searching service of ng-completer */
-export class CompleterCustomSearch extends Rx.Subject<CompleterItem[]> implements CompleterData {
-	private _subscription: Rx.Subscription = undefined;
+export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements CompleterData {
+	private _rxSubscription: Rx.Subscription = undefined;
 
 	constructor(
-		public buildRequest: (term: string) => string,
-		public doConvert: (data: any) => CompleterItem[],
-		public doCancel?: () => void
+		public onBuildRequest: (term: string) => string,
+		public onConvert: (data: any) => Array<CompleterItem>,
+		public onCancel?: () => void
 	) {
 		super();
 	}
 
 	public search(term: string) {
-		this._subscription = AppAPI.get(this.buildRequest(term))
-			.pipe(map(response => this.next(this.doConvert(response.json()))))
-			.subscribe();
+		this._rxSubscription = AppAPI.get(this.onBuildRequest(term))
+			.pipe(map(response => response.json()))
+			.subscribe(data => this.onConvert(data), error => PlatformUtility.showError("[Custom Completer]: Error occurred while fetching remote data", error));
 	}
 
 	public cancel() {
-		if (this.doCancel !== undefined) {
-			this.doCancel();
+		if (this.onCancel !== undefined) {
+			this.onCancel();
 		}
 		this.destroy();
 	}
 
 	public destroy() {
-		if (this._subscription) {
-			this._subscription.unsubscribe();
+		if (this._rxSubscription !== undefined) {
+			this._rxSubscription.unsubscribe();
 		}
 	}
 }

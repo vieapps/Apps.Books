@@ -10,8 +10,6 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
-/*@import "~app/pages/users/login.page.scss";*/
-
 /* label of invalid controls */
 .invalid > ion-label {
 	color: var(--ion-color-danger);
@@ -26,4 +24,65 @@ ion-app ion-menu ion-header ion-toolbar ion-thumbnail img {
 .label.description, label.description {
 	font-size: 12px;
 	color: var(--ion-color-medium);
+}
+
+/* completer */
+.completer-container > ng2-completer,
+.completer-holder, .completer-dropdown-holder {
+	width: 100% !important;
+}
+ion-item.completer-container {
+	padding-top: 8px;
+	padding-bottom: 8px;
+	border-bottom: solid 1.5px #f1f1f1;
+}
+ion-item.completer-container > ion-label {
+	padding-bottom: 8px;
+}
+.completer-holder > input.completer-input {
+	padding-top: 8px;
+	padding-bottom: 8px;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	letter-spacing: inherit;
+	text-decoration: inherit;
+	text-overflow: inherit;
+	text-transform: inherit;
+	text-align: inherit;
+	white-space: inherit;
+	color: inherit;
+	display: inline-block;
+	-webkit-box-flex: 1;
+	-ms-flex: 1;
+	flex: 1;
+	width: 100%;
+	border: 0;
+	outline: 0;
+	background: 0 0;
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	appearance: none;	
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
+}
+.completer-dropdown {
+	position: static !important;
+	max-height: 160px !important;
+	width: 100% !important;
+	overflow-y: scroll !important;
+	overflow-x: hidden;
+}
+.completer-title {
+	clear: both;
+	display: block;
+	width: 100%;
+}
+.completer-image {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
 }

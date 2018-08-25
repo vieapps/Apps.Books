@@ -44,7 +44,6 @@ export class Book extends BaseModel {
 
 	ANSITitle = "";
 
-	/** Initializes a new instance of book */
 	constructor() {
 		super();
 		this.Language = "vi";

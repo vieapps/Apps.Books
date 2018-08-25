@@ -1,8 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { ActivatedRoute, Params } from "@angular/router";
 import { FormGroup } from "@angular/forms";
 import * as Rx from "rxjs";
-import { first, map } from "rxjs/operators";
 import { LoadingController, AlertController } from "@ionic/angular";
 import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { AppUtility } from "../../components/app.utility";
@@ -13,12 +11,11 @@ import { TrackingUtility } from "../../components/app.utility.trackings";
 @Component({
 	selector: "page-login",
 	templateUrl: "./login.page.html",
-	styleUrls: ["./login.page.scss"],
+	styleUrls: ["./login.page.scss"]
 })
 export class LogInPage implements OnInit, OnDestroy {
 
 	constructor (
-		public activatedRoute: ActivatedRoute,
 		public loadingController: LoadingController,
 		public alertController: AlertController,
 		public appFormsSvc: AppFormsService,
@@ -45,6 +42,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		value: undefined as any,
 		button: {
 			label: "Xác thực",
 			icon: undefined,
@@ -58,6 +56,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		value: undefined as any,
 		button: {
 			label: "Quên mật khẩu",
 			icon: "key",
@@ -65,34 +64,35 @@ export class LogInPage implements OnInit, OnDestroy {
 			fill: "clear"
 		}
 	};
-	loading = undefined;
-	queryParams: Params = {};
-	rxSubscriptions = new Array<Rx.Subscription>();
+	private _loading = undefined;
+	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public ngOnInit() {
-		this.rxSubscriptions.push(this.activatedRoute.queryParams.subscribe(params => this.queryParams = params));
+		this._rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
+		this._rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => this.otp.value = value));
+		this._rxSubscriptions.push(this.reset.form.valueChanges.subscribe(value => this.reset.value = value));
 		this.openLogin();
 	}
 
 	public ngOnDestroy() {
-		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
+		this._rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
 	private async showLoadingAsync(message?: string) {
-		this.loading = await this.loadingController.create({
+		this._loading = await this.loadingController.create({
 			content: message || this.title
 		});
-		await this.loading.present();
+		await this._loading.present();
 	}
 
 	private async hideLoadingAsync() {
-		if (this.loading !== undefined) {
-			await this.loading.dismiss();
-			this.loading = undefined;
+		if (this._loading !== undefined) {
+			await this._loading.dismiss();
+			this._loading = undefined;
 		}
 	}
 
-	private async showAlertAsync(message: any, header?: string, subHeader?: string, postProcess?: () => void) {
+	private async showAlertAsync(message: string, header?: string, subHeader?: string, postProcess?: () => void) {
 		const alert = await this.alertController.create({
 			header: header || "Chú ý",
 			subHeader: subHeader,
@@ -146,7 +146,6 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		this.rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
 		this.mode = "log-in";
 		this.title = "Đăng nhập";
 		this.configSvc.appTitle = this.title;
@@ -180,7 +179,6 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.otp.config = [
 			{
 				Key: "OTP",
-				Value: "",
 				Required: true,
 				Options: {
 					Type: "text",
@@ -209,7 +207,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		}
 
 		await this.showLoadingAsync();
-		await this.authSvc.validateOTPAsync(this.otp.id, this.otp.form.value.OTP, this.otp.providers[0].Info,
+		await this.authSvc.validateOTPAsync(this.otp.id, this.otp.value.OTP, this.otp.providers[0].Info,
 			async data => {
 				await TrackingUtility.trackAsync("OTP Validation", "/session/otp");
 				await this.hideLoadingAsync();
@@ -225,7 +223,6 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.reset.config = [
 			{
 				Key: "Email",
-				Value: this.login.form.value.Email || "",
 				Required: true,
 				Type: "TextBox",
 				Options: {
@@ -238,13 +235,11 @@ export class LogInPage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Captcha",
-				Value: "",
 				Required: true,
 				Type: "Captcha",
 				Options: {
 					Type: "text",
 					Label: "Mã xác thực",
-					// PlaceHolder: "Nhập mã xác thực trong ảnh ở dưới",
 					Description: "Nhập mã xác thực trong ảnh ở dưới",
 					DescriptionOptions: {
 						Css: "--description-label-css"
@@ -266,16 +261,18 @@ export class LogInPage implements OnInit, OnDestroy {
 	}
 
 	public onResetFormRendered($event) {
-		this.renewCaptchaAsync();
+		this.reset.form.patchValue({ Email: this.login.form.value.Email });
+		this.refreshCaptchaAsync();
 	}
 
 	public onRefreshCaptcha($event) {
-		this.renewCaptchaAsync($event as AppFormsControl);
+		this.refreshCaptchaAsync($event as AppFormsControl);
 	}
 
-	public async renewCaptchaAsync(control?: AppFormsControl) {
+	public async refreshCaptchaAsync(control?: AppFormsControl) {
 		control = control || this.reset.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
 		await this.authSvc.registerCaptchaAsync(() => {
+			this.reset.form.controls[control.Key].setValue("");
 			control.Extras["Uri"] = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
@@ -287,16 +284,15 @@ export class LogInPage implements OnInit, OnDestroy {
 		}
 
 		await this.showLoadingAsync();
-		await this.authSvc.resetPasswordAsync(this.reset.form.value.Email, this.reset.form.value.Captcha,
+		await this.authSvc.resetPasswordAsync(this.reset.value.Email, this.reset.value.Captcha,
 			async data => {
 				await TrackingUtility.trackAsync("Reset Password", "/session/reset");
 				await this.hideLoadingAsync();
-				await this.showAlertAsync("Vui lòng kiểm tra email và làm theo hướng dẫn để lấy mật khẩu mới!", "Mật khẩu mới");
-				this.configSvc.goBack();
+				await this.showAlertAsync(`Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, "Mật khẩu mới", undefined, () => this.configSvc.goBack());
 			},
 			async error => {
 				await Promise.all([
-					this.renewCaptchaAsync(),
+					this.refreshCaptchaAsync(),
 					this.showErrorAsync(error)
 				]);
 			}

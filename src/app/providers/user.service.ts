@@ -20,74 +20,7 @@ export class UserService extends BaseService {
 		public configSvc: ConfigurationService
 	) {
 		super(http, "Users");
-		AppRTU.registerAsServiceScopeProcessor(this.Name, async message => {
-			switch (message.Type.Object) {
-				case "Session":
-					if (this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.UserID) {
-						switch (message.Type.Event) {
-							case "Update":
-								await this.configSvc.updateSessionAsync(message.Data, () => {
-									this.warn("Update session with the new token", this.configSvc.appConfig.session);
-									this.configSvc.patchSession(() => this.configSvc.patchAccount());
-								});
-								break;
-
-							case "Revoke":
-								await this.configSvc.deleteSessionAsync(async () => {
-									await this.configSvc.initializeSessionAsync(async () => {
-										await this.configSvc.registerSessionAsync(() => {
-											this.log("Revoke session", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-											this.configSvc.patchSession(() => AppEvents.broadcast("GoHome"));
-										});
-									});
-								});
-								break;
-
-							case "Status":
-								const profile = AppData.profiles.getValue(message.Data.UserID);
-								if (profile !== undefined) {
-									profile.IsOnline = message.Data.IsOnline;
-									profile.LastAccess = new Date();
-								}
-								break;
-
-							default:
-								this.warn("Got an update of session", message);
-								break;
-						}
-					}
-					else {
-						this.warn("Got an update of session", message);
-					}
-					break;
-
-				case "Account":
-					if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID) {
-						this.configSvc.updateAccount(message.Data);
-					}
-					break;
-
-				case "Profile":
-					Profile.update(message.Data);
-					if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID && this.configSvc.appConfig.session.token && this.configSvc.appConfig.session.token.uid === message.Data.ID) {
-						this.configSvc.appConfig.session.account.id = message.Data.ID;
-						this.configSvc.appConfig.session.account.profile = AppData.profiles.getValue(message.Data.ID);
-						await this.configSvc.storeProfileAsync(() => {
-							if (this.configSvc.isDebug) {
-								this.log("Account profile is updated", this.configSvc.appConfig.session.account);
-							}
-							if (this.configSvc.appConfig.facebook.token && this.configSvc.appConfig.facebook.id) {
-								this.configSvc.getFacebookProfile();
-							}
-						});
-					}
-					break;
-
-				default:
-					this.warn("Got an update", message);
-					break;
-			}
-		});
+		AppRTU.registerAsServiceScopeProcessor(this.Name, message => this.processRTUMessageAsync(message));
 	}
 
 	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
@@ -101,13 +34,12 @@ export class UserService extends BaseService {
 		return super.search(path, request, onNext, onError);
 	}
 
-	public registerAsync(info: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public registerAsync(body: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
-		const body = AppUtility.clone(info, ["ConfirmEmail", "ConfirmPassword", "Captcha"]);
-		body.Email = AppCrypto.rsaEncrypt(body.Email);
-		body.Password = AppCrypto.rsaEncrypt(body.Password);
-		body.ReferID = this.configSvc.appConfig.refer.id;
-		body.ReferSection = this.configSvc.appConfig.refer.section;
+		body["Email"] = AppCrypto.rsaEncrypt(body["Email"]);
+		body["Password"] = AppCrypto.rsaEncrypt(body["Password"]);
+		body["ReferID"] = this.configSvc.appConfig.refer.id;
+		body["ReferSection"] = this.configSvc.appConfig.refer.section;
 		return this.createAsync(path, body, onNext, onError, AppAPI.getCaptchaHeaders(captcha));
 	}
 
@@ -174,7 +106,6 @@ export class UserService extends BaseService {
 			data => {
 				const profile = Profile.deserialize(data);
 				AppData.profiles.setValue(profile.ID, profile);
-				AppEvents.broadcast("Session", { Type: "Update", Info: profile });
 				if (onNext !== undefined) {
 					onNext(data);
 				}
@@ -222,6 +153,75 @@ export class UserService extends BaseService {
 			Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
 		};
 		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while updating privileges", error, onError));
+	}
+
+	private async processRTUMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
+		switch (message.Type.Object) {
+			case "Session":
+				if (this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.UserID) {
+					switch (message.Type.Event) {
+						case "Update":
+							await this.configSvc.updateSessionAsync(message.Data, () => {
+								this.warn("Update session with the new token", this.configSvc.appConfig.session);
+								this.configSvc.patchSession(() => this.configSvc.patchAccount());
+							});
+							break;
+
+						case "Revoke":
+							await this.configSvc.deleteSessionAsync(async () => {
+								await this.configSvc.initializeSessionAsync(async () => {
+									await this.configSvc.registerSessionAsync(() => {
+										this.log("Revoke session", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+										this.configSvc.patchSession(() => AppEvents.broadcast("GoHome"));
+									});
+								});
+							});
+							break;
+
+						case "Status":
+							const profile = AppData.profiles.getValue(message.Data.UserID);
+							if (profile !== undefined) {
+								profile.IsOnline = message.Data.IsOnline;
+								profile.LastAccess = new Date();
+							}
+							break;
+
+						default:
+							this.warn("Got an update of session", message);
+							break;
+					}
+				}
+				else {
+					this.warn("Got an update of session", message);
+				}
+				break;
+
+			case "Account":
+				if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID) {
+					this.configSvc.updateAccount(message.Data);
+				}
+				break;
+
+			case "Profile":
+				Profile.update(message.Data);
+				if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID && this.configSvc.appConfig.session.token && this.configSvc.appConfig.session.token.uid === message.Data.ID) {
+					this.configSvc.appConfig.session.account.id = message.Data.ID;
+					this.configSvc.appConfig.session.account.profile = AppData.profiles.getValue(message.Data.ID);
+					await this.configSvc.storeProfileAsync(() => {
+						if (this.configSvc.isDebug) {
+							this.log("Account profile is updated", this.configSvc.appConfig.session.account);
+						}
+						if (this.configSvc.appConfig.facebook.token && this.configSvc.appConfig.facebook.id) {
+							this.configSvc.getFacebookProfile();
+						}
+					});
+				}
+				break;
+
+			default:
+				this.warn("Got an update", message);
+				break;
+		}
 	}
 
 }

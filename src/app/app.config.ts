@@ -49,6 +49,7 @@ export class AppConfig {
 	/** Settings for working with user accounts */
 	public static accountRegistrations = {
 		registrable: true,
+		excluded: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
 		sendInvitationRole: "All",
 		setPrivilegsRole: "ServiceAdministrator"
 	};
@@ -56,8 +57,25 @@ export class AppConfig {
 	/** Common meta data */
 	public static meta = {
 		country: "VN",
-		countries: [],
-		provinces: {}
+		countries: new Array<{ name: string, code: string, code3: string }>(),
+		provinces: {} as {
+			[key: string]: {
+				code: string,
+				name: string,
+				title: string,
+				provinces: Array<{
+					code: string,
+					name: string,
+					title: string,
+					counties: Array<{
+						code: string,
+						name: string,
+						type: string,
+						title: string
+					}>
+				}>
+			}
+		}
 	};
 
 	/** Tracking information */
@@ -82,12 +100,12 @@ export class AppConfig {
 
 	/** Gets the state that determines is native app */
 	public static get isNativeApp() {
-		return this.app.mode === "NTA";
+		return "NTA" === this.app.mode;
 	}
 
 	/** Gets the state that determines is web progressive app */
 	public static get isWebApp() {
-		return this.app.mode === "PWA";
+		return "PWA" === this.app.mode;
 	}
 
 	/** Gets the state that determines the app is running in debug mode */

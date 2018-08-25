@@ -15,10 +15,14 @@ const appRoutes: Routes = [
 		path: "log-in",
 		loadChildren: "./pages/users/login.module#LogInPageModule"
 	},
-	// {
-	// 	path: "register-account",
-	// 	loadChildren: "./pages/users/register.module#RegisterAccountPageModule"
-	// },
+	{
+		path: "register-account",
+		loadChildren: "./pages/users/register.module#RegisterAccountPageModule"
+	},
+	{
+		path: "account-profile",
+		loadChildren: "./pages/users/profile.module#AccountProfilePageModule"
+	},
 ];
 
 @NgModule({

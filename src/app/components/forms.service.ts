@@ -1,8 +1,9 @@
 import { Injectable } from "@angular/core";
 import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/forms";
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
-import { PlatformUtility } from "./app.utility.platform";
+import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppUtility } from "./app.utility";
+import { PlatformUtility } from "./app.utility.platform";
 
 /** Configuration of a control in the dynamic forms */
 export class AppFormsControl {
@@ -12,9 +13,8 @@ export class AppFormsControl {
 	Validators: Array<ValidatorFn> | Array<string> = undefined;
 	AsyncValidators: Array<AsyncValidatorFn> | Array<string> = undefined;
 	Order = 0;
-	Replacement = "";
-	Extras: any = {};
 	Excluded = false;
+	Extras: { [key: string]: any } = {};
 	Options = {
 		Type: "text",
 		Label: undefined as string,
@@ -30,8 +30,8 @@ export class AppFormsControl {
 		},
 		PlaceHolder: undefined as string,
 		Css: "",
-		Min: undefined as number,
-		Max: undefined as number,
+		Min: undefined as any,
+		Max: undefined as any,
 		MinLength: undefined as number,
 		MaxLength: undefined as number,
 		Width: undefined as string,
@@ -41,9 +41,36 @@ export class AppFormsControl {
 		MinHeight: undefined as string,
 		MaxHeight: undefined as string,
 		SelectOptions: {
-			Values: undefined as Array<{ Key: string, Value: any }>,
+			Values: undefined as Array<{ Value: string, Label: any }>,
 			Multiple: false,
-			AsBoxes: false
+			AsBoxes: false,
+			Interface: "alert",
+			InterfaceOptions: undefined as any,
+			CancelText: undefined as string,
+			OKText: undefined as string,
+		},
+		DateOptions: {
+			AllowTimes: false,
+			DisplayFormat: undefined as string,
+			PickerFormat: undefined as string,
+			DayNames: undefined as string,
+			DayShortNames: undefined as string,
+			MonthNames: undefined as string,
+			MonthShortNames: undefined as string,
+			CancelText: undefined as string,
+			DoneText: undefined as string,
+		},
+		CompleterOptions: {
+			SearchingText: "Searching...",
+			NoResultsText: "Not found",
+			PauseMiliseconds: 123,
+			ClearSelected: false,
+			DataSource: undefined as CompleterData,
+			Handlers: {
+				Initialize: undefined as (control: AppFormsControl, formGroup: FormGroup) => void,
+				GetInitialValue: undefined as (control: AppFormsControl, formGroup: FormGroup) => any,
+				OnItemSelected: undefined as (control: AppFormsControl, formGroup: FormGroup, item: CompleterItem) => void
+			}
 		},
 		Disabled: false,
 		ReadOnly: false,
@@ -61,20 +88,54 @@ export class AppFormsControl {
 		this.assign(options, this, order);
 	}
 
-	private assign(options: any, control?: AppFormsControl, order?: number, altKey?: string) {
+	/** Checks values of two controls are matched or not */
+	public static confirmIsMatched(original: string, confirm: string): ValidatorFn {
+		return (formGroup: FormGroup): { [key: string]: any } | null => {
+			const originalControl = formGroup.controls[original];
+			const confirmControl = formGroup.controls[confirm];
+			if (originalControl && confirmControl && originalControl.value !== confirmControl.value) {
+				confirmControl.setErrors({ notEquivalent: true });
+				return { notEquivalent: true };
+			}
+			else {
+				return null;
+			}
+		};
+	}
+
+	/** Checks value of the control is matched or not with other control */
+	public static isMatched(other: string): ValidatorFn {
+		return (formControl: AbstractControl): { [key: string]: any } | null => {
+			const parentControl = formControl.parent;
+			if (parentControl instanceof FormGroup) {
+				const otherControl = (parentControl as FormGroup).controls[other];
+				if (otherControl && otherControl.value !== formControl.value) {
+					formControl.setErrors({ notEquivalent: true });
+					return { notEquivalent: true };
+				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		};
+	}
+
+	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
 		control = control || new AppFormsControl();
 		control.Order = options.Order || options.order || order || 0;
 
-		control.Key = options.Key || options.key || (altKey !== undefined ? `${altKey}_${control.Order}` : `c_${control.Order}`);
+		control.Key = options.Key || options.key || (alternativeKey !== undefined ? `${alternativeKey}_${control.Order}` : `c_${control.Order}`);
 		control.Type = options.Type || options.type || "TextBox";
-		control.Required = !!options.Required;
+		control.Required = !control.Excluded && !!options.Required;
 
 		control.Validators = options.Validators;
 		control.AsyncValidators = options.AsyncValidators;
 
-		control.Replacement = options.Replacement || options.replacement;
-		control.Extras = options.Extras || options.extras || {};
 		control.Excluded = !!(options.Excluded || options.excluded);
+		control.Extras = options.Extras || options.extras || {};
 
 		const controlOptions = options.Options || options.options;
 		if (controlOptions !== undefined && controlOptions !== null) {
@@ -114,28 +175,57 @@ export class AppFormsControl {
 
 			const selectOptions = controlOptions.SelectOptions || controlOptions.selectoptions;
 			if (selectOptions !== undefined && selectOptions !== null) {
-				const values = selectOptions.Values || selectOptions.values;
-				if (values !== undefined && values !== null && Array.isArray(values)) {
-					control.Options.SelectOptions.Values = (values as Array<any>).map(kvp => {
+				control.Options.SelectOptions = {
+					Values: ((selectOptions.Values || selectOptions.values) as Array<any> || []).map(kvp => {
 						return {
-							Key: kvp.Key || kvp.key,
-							Value: kvp.Value || kvp.value
+							Value: kvp.Value || kvp.value,
+							Label: kvp.Label || kvp.label
 						};
-					});
-				}
-				control.Options.SelectOptions.Multiple = !!(selectOptions.Multiple || selectOptions.multiple);
-				control.Options.SelectOptions.AsBoxes = !!(selectOptions.AsBoxes || selectOptions.asboxes);
+					}),
+					Multiple: !!(selectOptions.Multiple || selectOptions.multiple),
+					AsBoxes: !!(selectOptions.AsBoxes || selectOptions.asboxes),
+					Interface: selectOptions.Interface || selectOptions.interface || "alert",
+					InterfaceOptions: selectOptions.InterfaceOptions || selectOptions.interfaceoptions,
+					CancelText: selectOptions.CancelText || selectOptions.canceltext,
+					OKText: selectOptions.OKText || selectOptions.oktext
+				};
 			}
 
-			control.Options.Disabled = controlOptions.Disabled === undefined && controlOptions.disabled === undefined
-				? false
-				: !!(controlOptions.Disabled || controlOptions.disabled);
-			control.Options.ReadOnly = controlOptions.ReadOnly === undefined && controlOptions.readonly === undefined
-				? false
-				: !!(controlOptions.ReadOnly || controlOptions.readonly);
-			control.Options.AutoFocus = controlOptions.AutoFocus === undefined && controlOptions.autofocus === undefined
-				? false
-				: !!(controlOptions.AutoFocus || controlOptions.autofocus);
+			const dateOptions = controlOptions.DateOptions || controlOptions.dateoptions;
+			if (dateOptions !== undefined && dateOptions !== null) {
+				control.Options.DateOptions = {
+					AllowTimes: !!(dateOptions.AllowTimes || dateOptions.allowtimes),
+					DisplayFormat: dateOptions.DisplayFormat || dateOptions.displayformat,
+					PickerFormat: dateOptions.PickerFormat || dateOptions.pickerformat,
+					DayNames: dateOptions.DayNames || dateOptions.daynames,
+					DayShortNames: dateOptions.DayShortNames || dateOptions.dayshortnames,
+					MonthNames: dateOptions.MonthNames || dateOptions.monthnames,
+					MonthShortNames: dateOptions.MonthShortNames || dateOptions.monthshortnames,
+					CancelText: dateOptions.CancelText || dateOptions.canceltext,
+					DoneText: dateOptions.DoneText || dateOptions.donetext
+				};
+			}
+
+			const completerOptions = controlOptions.CompleterOptions || controlOptions.completeroptions;
+			if (completerOptions !== undefined && completerOptions !== null) {
+				const handlers = completerOptions.Handlers || completerOptions.handlers || {};
+				control.Options.CompleterOptions = {
+					SearchingText: completerOptions.SearchingText || completerOptions.searchingtext || "Searching...",
+					NoResultsText: completerOptions.NoResultsText || completerOptions.noresultstext || "Not found",
+					PauseMiliseconds: completerOptions.PauseMiliseconds || completerOptions.pausemiliseconds || 123,
+					ClearSelected: !!(completerOptions.ClearSelected || completerOptions.clearselected),
+					DataSource: completerOptions.DataSource || completerOptions.datasource,
+					Handlers: {
+						Initialize: handlers.Initialize || handlers.initialize,
+						GetInitialValue: handlers.GetInitialValue || handlers.getinitialvalue,
+						OnItemSelected: handlers.OnItemSelected || handlers.onitemselected
+					}
+				};
+			}
+
+			control.Options.Disabled = !!(controlOptions.Disabled || controlOptions.disabled);
+			control.Options.ReadOnly = !!(controlOptions.ReadOnly || controlOptions.readonly);
+			control.Options.AutoFocus = !!(controlOptions.AutoFocus || controlOptions.autofocus);
 		}
 
 		const subControls = options.SubControls || options.subcontrols;
@@ -144,7 +234,7 @@ export class AppFormsControl {
 			if (subConfig !== undefined && subConfig !== null && Array.isArray(subConfig)) {
 				control.SubControls = {
 					AsArray: !!(subControls.AsArray || subControls.asarray),
-					Controls: (subConfig as Array<any>).map((subOptions, subOrder) => this.assign(subOptions, undefined, subOrder, control.Key)).sort((a, b) => a.Order - b.Order)
+					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Key)).sort((a, b) => a.Order - b.Order)
 				};
 				if (control.SubControls.Controls.length < 1) {
 					control.SubControls = undefined;
@@ -158,14 +248,34 @@ export class AppFormsControl {
 	/** Adds sub-controls of the form array */
 	public addSubControls(length: number) {
 		if (this.SubControls !== undefined && this.SubControls.AsArray) {
-			const options = AppUtility.clone(this.SubControls.Controls[0], ["Order", "Validators", "AsyncValidators"]);
 			while (this.SubControls.Controls.length < length) {
-				const control = new AppFormsControl(options, this.SubControls.Controls.length);
-				control.Validators = this.SubControls.Controls[0].Validators;
-				control.AsyncValidators = this.SubControls.Controls[0].AsyncValidators;
-				this.SubControls.Controls.push(control);
+				this.SubControls.Controls.push(this.SubControls.Controls[0].clone(this.SubControls.Controls.length));
 			}
 		}
+	}
+
+	/** Copies the options of this control */
+	public copy(onPreCompleted?: (options: Array<any>) => void) {
+		const options = AppUtility.clone(this, ["Order", "Validators", "AsyncValidators"]);
+		options.Validators = this.Validators;
+		options.AsyncValidators = this.AsyncValidators;
+		options.Options.CompleterOptions.DataSource = this.Options.CompleterOptions.DataSource;
+		options.Options.CompleterOptions.Handlers = this.Options.CompleterOptions.Handlers;
+		if (onPreCompleted !== undefined) {
+			onPreCompleted(options);
+		}
+		return options;
+	}
+
+	/** Clones this control */
+	public clone(order?: number, onPreCompleted?: (control: AppFormsControl) => void) {
+		const control = new AppFormsControl(this.copy(), order);
+		control.Validators = this.Validators;
+		control.AsyncValidators = this.AsyncValidators;
+		if (onPreCompleted !== undefined) {
+			onPreCompleted(control);
+		}
+		return control;
 	}
 
 }
@@ -203,81 +313,104 @@ export class AppFormsService {
 	}
 
 	/** Builds the form */
-	public buildForm(form: FormGroup, controls: Array<AppFormsControl> = [], value?: any) {
+	public buildForm(form: FormGroup, controls: Array<AppFormsControl> = [], value?: any, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
 		if (value !== undefined && value !== null) {
 			this.updateControls(controls, value);
-			this.getFormGroup(controls, form);
+			this.getFormGroup(controls, form, validators, asyncValidators);
 			form.patchValue(value);
 		}
 		else {
-			this.getFormGroup(controls, form);
+			this.getFormGroup(controls, form, validators, asyncValidators);
 		}
 	}
 
-	private getFormGroup(controls: Array<AppFormsControl>, formGroup?: FormGroup) {
-		formGroup = formGroup || new FormGroup({});
+	private getFormGroup(controls: Array<AppFormsControl>, formGroup?: FormGroup, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
+		formGroup = formGroup || new FormGroup({}, validators, asyncValidators);
 		controls.forEach(control => {
-			const formControl: AbstractControl = control.SubControls === undefined
-				? this.getFormControl(control)
-				: control.SubControls.AsArray
-					? this.getFormArray(control)
-					: this.getFormGroup(control.SubControls.Controls);
-			formGroup.addControl(control.Key, formControl);
+			if (control.SubControls === undefined && control.Type === "Completer" && control.Options.Type === "Address") {
+				const options = control.copy();
+				["County", "Province", "Country"].forEach(key => formGroup.addControl(key, this.getFormControl(new AppFormsControl(options))));
+			}
+			else {
+				const formControl = control.SubControls === undefined
+					? this.getFormControl(control)
+					: control.SubControls.AsArray
+						? this.getFormArray(control, this.getValidators(control), this.getAsyncValidators(control))
+						: this.getFormGroup(control.SubControls.Controls, undefined, this.getValidators(control), this.getAsyncValidators(control));
+				formGroup.addControl(control.Key, formControl);
+			}
 		});
 		return formGroup;
 	}
 
-	private getFormArray(control: AppFormsControl) {
-		const formArray = new FormArray([]);
+	private getFormArray(control: AppFormsControl, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
+		const formArray = new FormArray([], validators, asyncValidators);
 		control.SubControls.Controls.forEach(subcontrol => {
-			const formControl: AbstractControl = subcontrol.SubControls === undefined
-				? this.getFormControl(subcontrol)
-				: subcontrol.SubControls.AsArray
-					? this.getFormArray(subcontrol)
-					: this.getFormGroup(subcontrol.SubControls.Controls);
-			formArray.push(formControl);
+			if (control.SubControls === undefined && control.Type === "Completer" && control.Options.Type === "Address") {
+				const options = subcontrol.copy();
+				const formGroup = new FormGroup({}, this.getValidators(subcontrol), this.getAsyncValidators(subcontrol));
+				["County", "Province", "Country"].forEach(key => formGroup.addControl(key, this.getFormControl(new AppFormsControl(options))));
+				formArray.push(formGroup);
+			}
+			else {
+				const formControl: AbstractControl = subcontrol.SubControls === undefined
+					? this.getFormControl(subcontrol)
+					: subcontrol.SubControls.AsArray
+						? this.getFormArray(subcontrol, this.getValidators(subcontrol), this.getAsyncValidators(subcontrol))
+						: this.getFormGroup(subcontrol.SubControls.Controls, undefined, this.getValidators(subcontrol), this.getAsyncValidators(subcontrol));
+				formArray.push(formControl);
+			}
 		});
 		return formArray;
 	}
 
 	private getFormControl(control: AppFormsControl) {
+		return new FormControl({ value: "", disabled: control.Options.Disabled }, this.getValidators(control), this.getAsyncValidators(control));
+	}
+
+	private getValidators(control: AppFormsControl) {
 		let validators = new Array<ValidatorFn>();
+
 		if (control.Validators !== undefined && control.Validators !== null && control.Validators.length > 0) {
 			if (typeof control.Validators[0] === "string") {
 
 			}
 			else {
-				validators = control.Validators as ValidatorFn[];
-			}
-		}
-		else {
-			if (control.Required) {
-				validators.push(Validators.required);
-			}
-			if (control.Options.Type === "text" || control.Options.Type === "email" || control.Options.Type === "password" || control.Options.Type === "tel" || control.Options.Type === "url") {
-				if (control.Options.MinLength > 0) {
-					validators.push(Validators.minLength(control.Options.MinLength));
-				}
-				if (control.Options.MaxLength > 0) {
-					validators.push(Validators.maxLength(control.Options.MaxLength));
-				}
-				if (control.Options.Type === "email") {
-					validators.push(Validators.pattern("([a-zA-Z0-9_.-]+)@([a-zA-Z0-9_.-]+)\\.([a-zA-Z]{2,5})"));
-				}
-			}
-			if (control.Options.Type === "number") {
-				if (control.Options.Min > 0) {
-					validators.push(Validators.min(control.Options.Min));
-				}
-				if (control.Options.Max > 0) {
-					validators.push(Validators.max(control.Options.Max));
-				}
+				validators = control.Validators as Array<ValidatorFn>;
 			}
 		}
 
+		if (control.Required) {
+			validators.push(Validators.required);
+		}
+
+		if (control.Options.Type === "text" || control.Options.Type === "email" || control.Options.Type === "password" || control.Options.Type === "tel" || control.Options.Type === "url") {
+			if (control.Options.MinLength > 0) {
+				validators.push(Validators.minLength(control.Options.MinLength));
+			}
+			if (control.Options.MaxLength > 0) {
+				validators.push(Validators.maxLength(control.Options.MaxLength));
+			}
+			if (control.Options.Type === "email") {
+				validators.push(Validators.pattern("([a-zA-Z0-9_.-]+)@([a-zA-Z0-9_.-]+)\\.([a-zA-Z]{2,5})"));
+			}
+		}
+
+		if (control.Options.Type === "number" || control.Options.Type === "date") {
+			if (control.Options.Min > 0) {
+				validators.push(Validators.min(control.Options.Min));
+			}
+			if (control.Options.Max > 0) {
+				validators.push(Validators.max(control.Options.Max));
+			}
+		}
+
+		return validators;
+	}
+
+	private getAsyncValidators(control: AppFormsControl) {
 		const asyncValidators = new Array<AsyncValidatorFn>();
-
-		return new FormControl({ value: "", disabled: control.Options.Disabled }, validators, asyncValidators);
+		return asyncValidators;
 	}
 
 	/** Sets value of the form (also modify the FormArray controls if the length is not matched) */

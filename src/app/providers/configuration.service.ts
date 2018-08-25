@@ -1,7 +1,7 @@
 declare var FB: any;
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
-import { NavigationExtras } from "@angular/router";
+import { Params, NavigationExtras } from "@angular/router";
 import { Title } from "@angular/platform-browser";
 import { Platform } from "@ionic/angular";
 import { Storage } from "@ionic/storage";
@@ -22,6 +22,8 @@ import { Base as BaseService } from "./base.service";
 @Injectable()
 export class ConfigurationService extends BaseService {
 
+	private _queryParams: Params = {};
+
 	constructor (
 		public http: Http,
 		public platform: Platform,
@@ -31,6 +33,11 @@ export class ConfigurationService extends BaseService {
 		public browserTitle: Title
 	) {
 		super(http, "Configuration");
+		AppEvents.on("Session", async info => {
+			if (info.event === "Session" && "Register" === info.args.Type) {
+				await this.loadGeoMetaAsync();
+			}
+		});
 	}
 
 	/** Gets the configuration of the app */
@@ -101,6 +108,16 @@ export class ConfigurationService extends BaseService {
 	/** Gets the query with related service, language and host */
 	public get relatedQuery() {
 		return "related-service=" + this.appConfig.app.service + "&language=" + AppUtility.language + "&host=" + PlatformUtility.host;
+	}
+
+	/** Gets the query params of the current page/view */
+	public get queryParams() {
+		return this._queryParams;
+	}
+
+	/** Sets the query params of the current page/view */
+	public set queryParams(value: Params) {
+		this._queryParams = value || {};
 	}
 
 	/** Prepare the working environments of the app */
@@ -499,6 +516,56 @@ export class ConfigurationService extends BaseService {
 			animated: AppUtility.isTrue(animated),
 			extras: extras
 		});
+	}
+
+	private async loadGeoMetaAsync() {
+		const data = await this.storage.get("VIEApps-GeoMeta");
+		if (AppUtility.isNotEmpty(data) && data !== "{}") {
+			this.appConfig.meta = JSON.parse(data as string);
+		}
+
+		if (!AppUtility.isNotEmpty(this.appConfig.meta.country)) {
+			this.appConfig.meta.country = "VN";
+		}
+
+		if (this.appConfig.meta.provinces[this.appConfig.meta.country] !== undefined) {
+			AppEvents.broadcast("GeoMetaIsLoaded", this.appConfig.meta);
+		}
+
+		await this.loadGeoProvincesAsync(this.appConfig.meta.country, async () => {
+			if (this.appConfig.meta.countries.length < 1) {
+				await this.loadGeoCountriesAsync();
+			}
+		});
+	}
+
+	private loadGeoCountriesAsync(onCompleted?: (data?: any) => void) {
+		return this.readAsync("statics/geo/countries.json",
+			async data => await this.saveGeoMetaAsync(data, onCompleted),
+			error => this.error("Error occurred while fetching the meta countries", error)
+		);
+	}
+
+	private loadGeoProvincesAsync(country?: string, onCompleted?: () => void) {
+		return this.readAsync("statics/geo/provinces/" + (country || this.appConfig.meta.country) + ".json",
+			async data => await this.saveGeoMetaAsync(data, onCompleted),
+			error => this.error("Error occurred while fetching the meta provinces", error)
+		);
+	}
+
+	private async saveGeoMetaAsync(data: any, onCompleted?: (data?: any) => void) {
+		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces)) {
+			this.appConfig.meta.provinces[data.code] = data;
+		}
+		else if (AppUtility.isObject(data, true) && AppUtility.isArray(data.countries)) {
+			this.appConfig.meta.countries = data.countries;
+		}
+
+		await this.storage.set("VIEApps-GeoMeta", JSON.stringify(this.appConfig.meta));
+		AppEvents.broadcast("GeoMetaIsLoaded", this.appConfig.meta);
+		if (onCompleted !== undefined) {
+			onCompleted(data);
+		}
 	}
 
 }

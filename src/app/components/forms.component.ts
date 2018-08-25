@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from "@angular/core";
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppFormsControl, AppFormsService } from "./forms.service";
 import { PlatformUtility } from "./app.utility.platform";
@@ -7,7 +7,7 @@ import { PlatformUtility } from "./app.utility.platform";
 	selector: "app-form",
 	templateUrl: "./forms.component.html"
 })
-export class AppFormsComponent implements OnInit {
+export class AppFormsComponent implements OnInit, OnDestroy {
 	@Input() form: FormGroup;
 	@Input() controls: Array<AppFormsControl>;
 	@Input() config: Array<any>;
@@ -41,6 +41,12 @@ export class AppFormsComponent implements OnInit {
 
 		this.form["_controls"] = this.controls;
 		this.renderedEvent.emit(this);
+	}
+
+	public ngOnDestroy() {
+		this.renderedEvent.unsubscribe();
+		this.refreshCaptchaEvent.unsubscribe();
+		this.submitEvent.unsubscribe();
 	}
 
 	public trackControl(index: number, control: AppFormsControl) {

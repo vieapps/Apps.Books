@@ -1,0 +1,44 @@
+<ion-header>
+	<ion-toolbar>
+		<ion-buttons slot="start">
+			<ion-back-button [defaultHref]="configSvc.previousUrl"></ion-back-button>
+		</ion-buttons>
+		<ion-title>
+			{{title}}
+		</ion-title>
+	</ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+
+	<div *ngIf="mode == 'profile' && profile" class="profile">
+		<figure>
+			<img [src]="profile.Avatar" />
+		</figure>
+		<h1>
+			{{profile.Name}}
+		</h1>
+		<ion-list>
+			<ion-list-header>
+				Thông tin
+			</ion-list-header>
+			<ion-item>
+				<ion-icon icon="mail" slot="start"></ion-icon>
+				{{profile.Email}}
+			</ion-item>
+			<ion-item *ngIf="profile.Mobile != ''">
+				<ion-icon icon="phone-portrait" slot="start"></ion-icon>
+				{{profile.Mobile}}
+			</ion-item>
+			<ion-item *ngIf="profile.FullAddress != ''">
+				<ion-icon icon="pin" slot="start"></ion-icon>
+				{{profile.FullAddress}}
+			</ion-item>
+			<ion-item>
+				<ion-icon icon="time" slot="start"></ion-icon>
+				Truy cập: {{profile.LastAccess | date: 'h:mm a @ d/M/y'}}
+			</ion-item>
+		</ion-list>
+	</div>
+
+</ion-content>

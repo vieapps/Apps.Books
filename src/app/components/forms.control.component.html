@@ -1,8 +1,13 @@
-<ion-item *ngIf="visible && isFormControl && !isControl('Captcha')" [formGroup]="formGroup" [class.invalid]="invalid">
+<ion-item *ngIf="visible && isFormControl && !isControl('Captcha') && !selectAsRadioBoxes"
+	[formGroup]="formGroup"
+	[class.invalid]="invalid"
+	[class.completer-container]="isControl('Completer')">
+
 	<ion-label *ngIf="label"
 		[color]="color"
 		[position]="position"
 		[class]="css.label">{{label}}</ion-label>
+
 	<ion-input *ngIf="isControl('TextBox')"
 		[formControlName]="formControlName"
 		[type]="type"
@@ -18,6 +23,7 @@
 		[clearOnEdit]="clearOnEdit"
 		[attr.autofocus]="!!autofocus"
 		[attr.style]="style.control"></ion-input>
+
 	<ion-textarea *ngIf="isControl('TextArea')" rows="4"
 		[formControlName]="formControlName"
 		[placeholder]="placeholder"
@@ -29,7 +35,63 @@
 		[clearOnEdit]="clearOnEdit"
 		[attr.autofocus]="!!autofocus"
 		[attr.style]="style.control"></ion-textarea>
+
+	<ion-select *ngIf="isControl('Select')"
+		[multiple]="selectMultiple"
+		[interface]="selectInterface"
+		[interfaceOptions]="selectInterfaceOptions"
+		[cancelText]="selectCancelText"
+		[okText]="selectOKText"
+		[value]="value"
+		[disabled]="disabled"
+		[placeholder]="placeholder"
+		(ionChange)="selectValuesChange($event)">
+		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value">{{select.Label}}</ion-select-option>
+	</ion-select>
+
+	<ion-datetime *ngIf="isControl('Date') || isControl('DateTime')"
+		[displayFormat]="datetimeDisplayFormat"
+		[pickerFormat]="datetimePickerFormat"
+		[dayNames]="datetimeDayNames"
+		[dayShortNames]="datetimeDayShortNames"
+		[monthNames]="datetimeMonthNames"
+		[monthShortNames]="datetimeMonthShortNames"
+		[cancelText]="datetimeCancelText"
+		[doneText]="datetimeDoneText"
+		[min]="min"
+		[max]="max"
+		[value]="datetimeValue"
+		[disabled]="disabled"
+		[placeholder]="placeholder"
+		(ionChange)="datetimeValueChange($event)"></ion-datetime>
+
+	<ng2-completer *ngIf="isControl('Completer')"
+		[placeholder]="completerPlaceHolder"
+		[minSearchLength]="completerMinSearchLength"
+		[pause]="completerPauseMiliseconds"
+		[clearSelected]="completerClearSelected"
+		[textSearching]="completerSearchingText"
+		[textNoResults]="completerNoResultsText"
+		[datasource]="completerDataSource"
+		[initialValue]="completerInitialValue"
+		(selected)="completerItemChange($event)"></ng2-completer>
+
 </ion-item>
+
+<ion-radio-group *ngIf="visible && selectAsRadioBoxes"
+	[formGroup]="formGroup"
+	[class.invalid]="invalid"
+	[disabled]="disabled"
+	[value]="value"
+	(ionChange)="selectValuesChange($event)">
+	<ion-list-header *ngIf="label"
+		[color]="color"
+		[class]="css.label">{{label}}</ion-list-header>
+	<ion-item *ngFor="let select of selectValues">
+		<ion-label>{{select.Label}}</ion-label>
+		<ion-radio [value]="select.Value"></ion-radio>
+	</ion-item>
+</ion-radio-group>
 
 <ion-item *ngIf="visible && description && isFormControl && !isControl('Captcha')">
 	<label
@@ -91,11 +153,14 @@
 
 <div *ngIf="visible && isComplexFormArray">
 	<div *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl">
+
 		<ion-list-header *ngIf="getSubLabel(ctrl)"
 			[color]="getSubColor(ctrl)"
 			[class]="getSubCss(ctrl)">{{getSubLabel(ctrl)}}</ion-list-header>
+
 		<app-form-control *ngFor="let subctrl of getSubControls(ctrl); trackBy: trackControl"
 			[formGroup]="getSubFormGroup(idx)"
 			[control]="subctrl"></app-form-control>
+
 	</div>
 </div>
