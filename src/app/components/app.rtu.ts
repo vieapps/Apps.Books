@@ -166,9 +166,7 @@ export class AppRTU {
 						PlatformUtility.showWarning(`[RTU]: No suitable service scope handler is found (${service})`);
 					}
 				},
-				error => {
-					PlatformUtility.showWarning("[RTU]: Got an error", error);
-				}
+				error => PlatformUtility.showWarning("[RTU]: Got an error", error)
 			);
 		}
 
@@ -195,9 +193,7 @@ export class AppRTU {
 						PlatformUtility.showWarning(`[RTU]: No suitable object scope handler is found (${service}#${object})`);
 					}
 				},
-				error => {
-					PlatformUtility.showError("[RTU]: Got an error", error);
-				}
+				error => PlatformUtility.showError("[RTU]: Got an error", error)
 			);
 		}
 
