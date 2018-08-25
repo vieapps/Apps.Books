@@ -1,7 +1,6 @@
 import * as Collections from "typescript-collections";
 import { List } from "linqts";
 import { AppUtility } from "../components/app.utility";
-import { AppData } from "../app.data";
 import { Base as BaseModel } from "./base";
 import { RatingPoint } from "./ratingpoint";
 

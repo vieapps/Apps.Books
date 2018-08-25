@@ -2,9 +2,7 @@ import { Component, OnInit, OnDestroy, ViewEncapsulation } from "@angular/core";
 import { ActivatedRoute, Params } from "@angular/router";
 import { FormGroup } from "@angular/forms";
 import * as Rx from "rxjs";
-import { first, map } from "rxjs/operators";
 import { LoadingController, AlertController } from "@ionic/angular";
-import { AppData } from "../../app.data";
 import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -111,7 +109,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	openProfile() {
 		const id = (this.queryParams["info"] ? AppUtility.getJsonOfQuery(this.queryParams["info"]) : {})["ID"] || this.configSvc.getAccount().id;
 		this.userSvc.getProfileAsync(id,
-			data => this.profile = AppData.profiles.getValue(id),
+			data => this.profile = UserProfile.instances.getValue(id) as UserProfile,
 			error => this.showErrorAsync(error)
 		);
 	}
