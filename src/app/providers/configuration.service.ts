@@ -22,8 +22,6 @@ import { Base as BaseService } from "./base.service";
 @Injectable()
 export class ConfigurationService extends BaseService {
 
-	private _queryParams: Params = {};
-
 	constructor (
 		public http: Http,
 		public platform: Platform,
@@ -39,6 +37,8 @@ export class ConfigurationService extends BaseService {
 			}
 		});
 	}
+
+	private _queryParams: Params = {};
 
 	/** Gets the configuration of the app */
 	public get appConfig() {

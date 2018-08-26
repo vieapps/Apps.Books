@@ -1,5 +1,4 @@
 import * as Collections from "typescript-collections";
-import { List } from "linqts";
 import { AppConfig } from "../app.config";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseModel } from "./base";
@@ -7,6 +6,12 @@ import { RatingPoint } from "./ratingpoint";
 import { CounterInfo } from "./counters";
 
 export class Book extends BaseModel {
+
+	constructor() {
+		super();
+		this.Language = "vi";
+	}
+
 	/** All instances of book */
 	public static instances = new Collections.Dictionary<string, Book>();
 
@@ -46,26 +51,21 @@ export class Book extends BaseModel {
 
 	ANSITitle = "";
 
-	constructor() {
-		super();
-		this.Language = "vi";
-	}
-
 	public static deserialize(json: any, book?: Book) {
 		book = book || new Book();
 		book.copy(json, data => {
 			book.Counters = new Collections.Dictionary<string, CounterInfo>();
-			new List<any>(data.Counters).ForEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
+			(data.Counters as Array<any>).forEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
 
 			book.RatingPoints = new Collections.Dictionary<string, RatingPoint>();
-			new List<any>(data.RatingPoints).ForEach(r => book.RatingPoints.setValue(r.Type, RatingPoint.deserialize(r)));
+			(data.RatingPoints as Array<any>).forEach(r => book.RatingPoints.setValue(r.Type, RatingPoint.deserialize(r)));
 
 			if (book.SourceUrl !== "" && AppConfig.isNativeApp) {
 				book.SourceUrl = "";
 			}
 
 			book.Chapters = book.TotalChapters > 1 && book.Chapters.length < 1
-				? new List(book.TOCs).Select(t => "").ToArray()
+				? book.TOCs.map(t => "")
 				: book.Chapters;
 
 			book.ANSITitle = AppUtility.toANSI(book.Title + " " + book.Author).toLowerCase();
@@ -78,7 +78,7 @@ export class Book extends BaseModel {
 			const book = data instanceof Book
 				? data as Book
 				: Book.deserialize(data, Book.instances.getValue(data.ID));
-				Book.instances.setValue(book.ID, book);
+			Book.instances.setValue(book.ID, book);
 		}
 	}
 }

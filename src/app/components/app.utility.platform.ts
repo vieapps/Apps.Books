@@ -188,26 +188,6 @@ export class PlatformUtility {
 		return url + "home?prego=activate&mode={mode}&code={code}";
 	}
 
-	/** Gets the CSS classes for working with label in Ionic */
-	public static get labelCss() {
-		return "label " + (this.isAppleOS ? "label-ios" : "label-md");
-	}
-
-	/** Gets the CSS classes for working with input control in Ionic */
-	public static get inputCss() {
-		return "text-input " + (this.isAppleOS ? "text-input-ios" : "text-input-md");
-	}
-
-	/** Get the button for working with action sheet */
-	public static getActionButton(text: string, icon?: string, handler?: () => boolean | void, role?: string) {
-		return {
-			text: text,
-			icon: this.isAppleOS ? undefined : icon,
-			handler: handler,
-			role: role
-		};
-	}
-
 	/** Opens Google Maps by address or location via query */
 	public static openGoogleMaps(info: string) {
 		this.openURI("https://www.google.com/maps?q=" + encodeURIComponent(info));

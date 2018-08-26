@@ -5,6 +5,7 @@ import { AppCrypto } from "./app.crypto";
 
 /** Servicing component for working with remote APIs */
 export class AppAPI {
+
 	private static _http: Http = undefined;
 
 	/** Initializes the instance of the Angular Http service */
@@ -25,7 +26,9 @@ export class AppAPI {
 
 	/** Gets the authenticated headers (JSON) for making requests to APIs */
 	public static getAuthHeaders(addToken: boolean = true, addAppInfo: boolean = true, addDeviceID: boolean = true) {
-		const headers: { [key: string]: string } = {};
+		const headers: {
+			[key: string]: string
+		} = {};
 
 		if (addToken && AppUtility.isObject(AppConfig.session.token, true)
 			&& AppUtility.isObject(AppConfig.session.keys, true) && AppUtility.isNotEmpty(AppConfig.session.keys.jwt)) {
@@ -52,7 +55,7 @@ export class AppAPI {
 		Object.keys(authHeaders).forEach(name => headers.append(name, authHeaders[name]));
 
 		if (additional !== undefined && additional !== null) {
-			if (AppUtility.isArray(additional)) {
+			if (AppUtility.isArray(additional, true)) {
 				(additional as Array<any>).forEach(header => {
 					if (AppUtility.isObject(header, true) && AppUtility.isNotEmpty(header.name) && AppUtility.isNotEmpty(header.value)) {
 						headers.append(header.name as string, header.value as string);
@@ -64,7 +67,7 @@ export class AppAPI {
 			}
 		}
 
-		if (addContentType) {
+		if (AppUtility.isTrue(addContentType)) {
 			headers.append("content-type", "application/json");
 		}
 
@@ -169,4 +172,5 @@ export class AppAPI {
 	public static deleteAsync(path: string, headers?: any) {
 		return this.delete(path, headers).toPromise();
 	}
+
 }

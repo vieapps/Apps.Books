@@ -8,11 +8,11 @@ export class TrackingUtility {
 
 	private static _ga: GoogleAnalytics = undefined;
 
-	/** Sets the object of Google Analytics */
-	public static initialize(ga?: GoogleAnalytics) {
+	/** Initializes the tracking objects (Google Analytics, Facebook, ...) */
+	public static initializeAsync(ga?: GoogleAnalytics) {
 		if (this._ga === undefined && ga !== undefined && AppUtility.isNotEmpty(AppConfig.tracking.google)) {
 			this._ga = ga;
-			this._ga.startTrackerWithId(AppConfig.tracking.google)
+			return this._ga.startTrackerWithId(AppConfig.tracking.google)
 				.then(() => {
 					this._ga.setAppVersion(AppConfig.app.version);
 					PlatformUtility.showLog("[Tracking]: Google Analytics is ready now...", AppConfig.isDebug ? this._ga : "");
@@ -22,10 +22,13 @@ export class TrackingUtility {
 					this._ga = undefined;
 				});
 		}
+		else {
+			return undefined;
+		}
 	}
 
 	/** Tracks a view of an app page/screen */
-	public static async trackAsync(title?: string, path?: string, params?: any) {
+	public static async trackAsync(title?: string, path?: string) {
 		// Google Analytics
 		if (this._ga !== undefined) {
 			await this._ga.trackView(title || AppConfig.app.name, path || "/");

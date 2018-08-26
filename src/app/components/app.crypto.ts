@@ -3,11 +3,13 @@ declare var RSA: any;
 
 /** Servicing component for woring with cryptography */
 export class AppCrypto {
+
 	private static _rsa = new RSA();
 	private static _aes = {
 		key: undefined,
 		iv: undefined
 	};
+	private static _jwt = undefined as string;
 
 	/** Gets the base64url-encoded string from the base64 string */
 	public static getBase64Url(text: string): string {
@@ -58,16 +60,16 @@ export class AppCrypto {
 	}
 
 	/** Encodes the JSON Web Token */
-	public static jwtEncode(jwt: any, key: string): string {
+	public static jwtEncode(jwt: any, key?: string): string {
 		jwt.iat = Math.round(+new Date() / 1000);
 		const encoded = this.urlEncode(JSON.stringify({ typ: "JWT", alg: "HS256" })) + "." + this.urlEncode(JSON.stringify(jwt));
-		return encoded + "." + this.urlSign(encoded, key);
+		return encoded + "." + this.urlSign(encoded, key || this._jwt);
 	}
 
 	/** Decodes the JSON Web Token */
-	public static jwtDecode(jwt: string, key: string): string {
+	public static jwtDecode(jwt: string, key?: string): string {
 		const elements = jwt.split(".");
-		return this.urlSign(elements[0] + "." + elements[1], key) === elements[2]
+		return this.urlSign(elements[0] + "." + elements[1], key || this._jwt) === elements[2]
 			? JSON.parse(this.urlDecode(elements[1]))
 			: null;
 	}
@@ -95,6 +97,9 @@ export class AppCrypto {
 		if (keys.rsa !== undefined && keys.rsa != null) {
 			this.initRSA(keys.rsa.exponent, keys.rsa.modulus);
 		}
+		if (keys.jwt !== undefined && keys.jwt != null) {
+			this._jwt = keys.jwt;
+		}
 	}
 
 	public static initAES(key: string, iv: string) {
@@ -105,4 +110,5 @@ export class AppCrypto {
 	public static initRSA(exponent: string, modulus: string) {
 		this._rsa.init(exponent, modulus);
 	}
+
 }

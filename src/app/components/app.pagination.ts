@@ -4,6 +4,7 @@ import { AppUtility } from "./app.utility";
 
 /** Servicing component for working with paginations */
 export class AppPagination {
+
 	/** All pagination instances */
 	public static instances = new Collections.Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
 

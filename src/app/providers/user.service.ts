@@ -24,12 +24,14 @@ export class UserService extends BaseService {
 
 	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/profile/search?x-request=" + AppUtility.toBase64Url(request) + "&" + this.configSvc.relatedQuery;
-		onNext = AppUtility.isNull(onNext)
-			? undefined
-			: data => {
-				(data.Objects as Array<any>).forEach(p => UserProfile.update(p));
+		onNext = AppUtility.isNotNull(onNext)
+			? data => {
+				if (AppUtility.isArray(data.Objects, true)) {
+					(data.Objects as Array<any>).forEach(p => UserProfile.update(p));
+				}
 				onNext(data);
-			};
+			}
+			: undefined;
 		return super.search(path, request, onNext, onError);
 	}
 

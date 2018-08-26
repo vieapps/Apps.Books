@@ -1,11 +1,17 @@
 import * as Collections from "typescript-collections";
-import { List } from "linqts";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseModel } from "./base";
 import { RatingPoint } from "./ratingpoint";
 
 /** Base user profile */
 export class UserProfileBase extends BaseModel {
+
+	constructor() {
+		super();
+		this.Gender = "NotProvided";
+		this.Status = "Activated";
+	}
+
 	/** All user profile instances */
 	public static instances = new Collections.Dictionary<string, UserProfileBase>();
 
@@ -40,15 +46,9 @@ export class UserProfileBase extends BaseModel {
 	FullAddress = "";
 	IsOnline = false;
 
-	constructor() {
-		super();
-		this.Gender = "NotProvided";
-		this.Status = "Activated";
-	}
-
 	public static deserialize(json: any, obj?: UserProfileBase) {
 		obj = obj || new UserProfileBase();
-		obj.copy(json, data => { });
+		obj.copy(json);
 		return obj;
 	}
 
@@ -71,6 +71,13 @@ export class UserProfileBase extends BaseModel {
 
 /** Full user profile (with related information from main service) */
 export class UserProfile extends UserProfileBase {
+
+	constructor() {
+		super();
+		this.Level = "Normal";
+		this.Reputation = "Unknown";
+	}
+
 	Level = "";
 	Reputation = "";
 	TotalPoints = 0;
@@ -80,15 +87,9 @@ export class UserProfile extends UserProfileBase {
 	LastSync = new Date();
 	RatingPoints = new Collections.Dictionary<string, RatingPoint>();
 
-	constructor() {
-		super();
-		this.Level = "Normal";
-		this.Reputation = "Unknown";
-	}
-
 	public static deserialize(json: any, obj?: UserProfile) {
 		obj = obj || new UserProfile();
-		obj.copy(json, data => { });
+		obj.copy(json);
 		return obj;
 	}
 
@@ -97,7 +98,7 @@ export class UserProfile extends UserProfileBase {
 			const profile = data instanceof UserProfile
 				? data as UserProfile
 				: UserProfile.deserialize(data, UserProfile.instances.getValue(data.ID) as UserProfile);
-				UserProfile.instances.setValue(profile.ID, profile);
+			UserProfile.instances.setValue(profile.ID, profile);
 		}
 	}
 
@@ -105,7 +106,7 @@ export class UserProfile extends UserProfileBase {
 		super.copy(source, data => {
 			this.RatingPoints = new Collections.Dictionary<string, RatingPoint>();
 			if (AppUtility.isArray(data.RatingPoints)) {
-				new List<any>(data.RatingPoints).ForEach(r => this.RatingPoints.setValue(r.Type, RatingPoint.deserialize(r)));
+				(data.RatingPoints as Array<any>).forEach(r => this.RatingPoints.setValue(r.Type, RatingPoint.deserialize(r)));
 			}
 			if (onCompleted !== undefined) {
 				onCompleted(data);

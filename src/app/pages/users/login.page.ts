@@ -273,7 +273,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		control = control || this.reset.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
 		await this.authSvc.registerCaptchaAsync(() => {
 			this.reset.form.controls[control.Key].setValue("");
-			control.Extras["Uri"] = this.configSvc.appConfig.session.captcha.uri;
+			control.captchaUri = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
 

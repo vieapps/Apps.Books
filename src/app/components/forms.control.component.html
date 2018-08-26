@@ -129,7 +129,7 @@
 		<ion-button fill="clear" (click)="refreshCaptcha()">
 			<ion-icon icon="refresh"></ion-icon>
 		</ion-button>
-		<img *ngIf="extras['Uri']" [src]="extras['Uri']" slot="start" />
+		<img *ngIf="captchaUri" [src]="captchaUri" slot="start" />
 	</ion-item>
 
 </div>

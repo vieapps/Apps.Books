@@ -9,19 +9,19 @@ import { PlatformUtility } from "../components/app.utility.platform";
 /** Base of all providers/services */
 export class Base {
 
-	/** Name of the service (for working with paginations as prefix, display logs/errors, ...) */
-	protected Name = "";
-
-	private get serviceName() {
-		return AppUtility.isNotEmpty(this.Name) ? this.Name : this.constructor.name;
-	}
-
 	constructor (
 		http: Http,
 		name?: string
 	) {
 		AppAPI.initialize(http);
 		this.Name = name || "";
+	}
+
+	/** Name of the service (for working with paginations as prefix, display logs/errors, ...) */
+	protected Name = "";
+
+	private get serviceName() {
+		return AppUtility.isNotEmpty(this.Name) ? this.Name : this.constructor.name;
 	}
 
 	/**
@@ -197,28 +197,24 @@ export class Base {
 		request.Pagination.PageNumber++;
 		const searcher = AppAPI.get(path);
 
-		// return the observable if onNext is unavailable
-		if (AppUtility.isNull(onNext)) {
-			return searcher;
-		}
-
-		// wait for the results and perform next action
-		return searcher.pipe(map(response => response.json())).subscribe(
-			data => {
-				if (processPagination) {
-					AppPagination.set(data, this.Name);
-				}
-				onNext(data);
-			},
-			error => {
-				if (onError !== undefined) {
-					onError(AppUtility.parseError(error));
-				}
-				else {
-					this.error("Error occurred while searching", error);
-				}
-			}
-		);
+		// return the observable/subscription
+		return AppUtility.isNotNull(onNext)
+			? searcher.pipe(map(response => response.json())).subscribe(
+				data => {
+					if (processPagination) {
+						AppPagination.set(data, this.Name);
+					}
+					onNext(data);
+				},
+				error => {
+					if (onError !== undefined) {
+						onError(AppUtility.parseError(error));
+					}
+					else {
+						this.error("Error occurred while searching", error);
+					}
+				})
+			: searcher;
 	}
 
 	/** Prints the log message to console/log file */

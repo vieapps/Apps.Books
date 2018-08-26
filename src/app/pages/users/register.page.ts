@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { FormGroup } from "@angular/forms";
+import { AbstractControl, FormGroup } from "@angular/forms";
 import * as Rx from "rxjs";
 import { LoadingController, AlertController } from "@ionic/angular";
 import { AppFormsService, AppFormsControl } from "../../components/forms.service";
@@ -32,12 +32,12 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 	title = "Đăng ký tài khoản";
 	register = {
-		form: new FormGroup({}, [AppFormsControl.confirmIsMatched("Email", "ConfirmEmail"), AppFormsControl.confirmIsMatched("Password", "ConfirmPassword")]),
+		form: new FormGroup({}, [this.appFormsSvc.confirmIsMatched("Email", "ConfirmEmail"), this.appFormsSvc.confirmIsMatched("Password", "ConfirmPassword")]),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any,
 		button: {
-			label: "Đăng ký tài khoản",
+			label: "Đăng ký",
 			icon: undefined,
 			color: "primary",
 			fill: "solid"
@@ -48,7 +48,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 	public ngOnInit() {
 		this._rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
-		this.initialize();
+		this.initializeForm();
 	}
 
 	public ngOnDestroy() {
@@ -97,7 +97,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		await this.showAlertAsync(message, "Lỗi", subHeader, postProcess);
 	}
 
-	public initialize() {
+	public initializeForm() {
 		this.register.config = [
 			{
 				Key: "Email",
@@ -114,7 +114,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Key: "ConfirmEmail",
 				Type: "TextBox",
 				Required: true,
-				Validators: [AppFormsControl.isMatched("Email")],
+				Validators: [this.appFormsSvc.isMatched("Email")],
 				Options: {
 					Type: "email",
 					Label: "Nhập lại email",
@@ -137,7 +137,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Key: "ConfirmPassword",
 				Type: "TextBox",
 				Required: true,
-				Validators: [AppFormsControl.isMatched("Password")],
+				Validators: [this.appFormsSvc.isMatched("Password")],
 				Options: {
 					Type: "password",
 					Label: "Nhập lại mật khẩu",
@@ -151,7 +151,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "text",
-					Label: "Họ Tên",
+					Label: "Tên",
 					Description: "Sử dụng để hiển thị trong hệ thống",
 					DescriptionOptions: {
 						Css: "--description-label-css"
@@ -231,7 +231,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 					MaxLength: 15,
 				}
 			},
-			/*
+			/**
 			{
 				Key: "Refer",
 				Type: "Completer",
@@ -247,23 +247,22 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 									title: a.Name,
 									description: a.Email,
 									image: a.Avatar,
-									originalObject: Profile.deserialize(a)
+									originalObject: UserProfile.deserialize(a)
 								} as CompleterItem;
 							})
 						),
 						Handlers: {
 							Initialize: undefined,
 							GetInitialValue: undefined,
-							OnItemSelected: (control: AppFormsControl, formGroup: FormGroup, item: CompleterItem) => {
-								console.log("Control", control);
-								console.log("Form", formGroup);
+							OnItemSelected: (formControl: AbstractControl, item: CompleterItem) => {
+								console.log("Control", formControl);
 								console.log("Item", item);
 							}
 						}
 					}
 				}
 			},
-			*/
+			/**/
 			{
 				Key: "Captcha",
 				Type: "Captcha",
@@ -291,6 +290,23 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		this.configSvc.appTitle = this.title;
 	}
 
+	public onFormRendered($event) {
+		this.refreshCaptchaAsync();
+		this.register.form.patchValue({ Gender: "NotProvided" });
+	}
+
+	public onRefreshCaptcha($event) {
+		this.refreshCaptchaAsync($event as AppFormsControl);
+	}
+
+	public async refreshCaptchaAsync(control?: AppFormsControl) {
+		control = control || this.register.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
+		await this.authSvc.registerCaptchaAsync(() => {
+			this.register.form.controls[control.Key].setValue("");
+			control.captchaUri = this.configSvc.appConfig.session.captcha.uri;
+		});
+	}
+
 	public async registerAsync() {
 		if (this.register.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.register.form);
@@ -311,23 +327,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				]);
 			}
 		);
-	}
-
-	public onFormRendered($event) {
-		this.refreshCaptchaAsync();
-		this.register.form.patchValue({ Gender: "NotProvided" });
-	}
-
-	public onRefreshCaptcha($event) {
-		this.refreshCaptchaAsync($event as AppFormsControl);
-	}
-
-	public async refreshCaptchaAsync(control?: AppFormsControl) {
-		control = control || this.register.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
-		await this.authSvc.registerCaptchaAsync(() => {
-			this.register.form.controls[control.Key].setValue("");
-			control.Extras["Uri"] = this.configSvc.appConfig.session.captcha.uri;
-		});
 	}
 
 }

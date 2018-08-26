@@ -87,15 +87,15 @@ export class AppConfig {
 
 	/** Facebook integration */
 	public static facebook = {
-		id: null,
-		token: null,
-		url: null,
+		id: undefined as string,
+		token: undefined as string,
+		url: undefined as string,
 		version: "v3.1",
 	};
 
 	public static refer = {
-		id: null as string,
-		section: null as string
+		id: undefined as string,
+		section: undefined as string
 	};
 
 	/** Gets the state that determines is native app */
@@ -117,6 +117,11 @@ export class AppConfig {
 	public static get isOffline() {
 		return this.app.offline;
 	}
+
+	/** Gets the extra configuration */
+	public static extras: {
+		[key: string]: any
+	} = {};
 
 	/** Gets the reading options fo the book app */
 	public static readingOptions = {

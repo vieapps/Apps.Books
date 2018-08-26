@@ -3,6 +3,7 @@ import { AppUtility } from "../components/app.utility";
 
 /** Base of all model/entity classes */
 export abstract class Base {
+
 	abstract ID = "";
 	Privileges: Privileges = undefined;
 

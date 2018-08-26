@@ -1,29 +1,31 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
-import { List } from "linqts";
 import { CompleterService, CompleterItem } from "ng2-completer";
+import { AppConfig } from "../app.config";
 import { AppFormsControl } from "./forms.service";
 import { AppUtility } from "./app.utility";
-import { AppConfig } from "../app.config";
 
 @Component({
 	selector: "app-form-control",
 	templateUrl: "./forms.control.component.html"
 })
 export class AppFormsControlComponent implements OnInit, OnDestroy {
-	private static _counties: {
-		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
-	} = {};
-	@Input() formGroup: FormGroup;
-	@Input() control: AppFormsControl;
-	@Input() index: number;
-	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
-	private _style: string = undefined;
 
 	constructor (
 		public completerSvc: CompleterService
 	) {
 	}
+
+	private static _counties: {
+		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
+	} = {};
+
+	@Input() formGroup: FormGroup;
+	@Input() control: AppFormsControl;
+	@Input() index: number;
+	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
+
+	private _style: string = undefined;
 
 	/** Gets the listing of counties of a specified country */
 	public static getCounties(country?: string) {
@@ -212,9 +214,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 	}
 
 	public get datetimeValue() {
-		return this.value !== undefined && this.value instanceof Date
-			? (this.value as Date).toISOString()
-			: this.value;
+		const value = this.value;
+		return value !== undefined
+			? new Date(value).toJSON()
+			: undefined;
 	}
 
 	public datetimeValueChange($event) {
@@ -316,7 +319,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 			this.control.Options.CompleterOptions.DataSource = this.completerSvc.local(AppFormsControlComponent.getCounties(), "Title,TitleANSI", "Title");
 		}
 		else if (this.control.Options.CompleterOptions.Handlers.Initialize !== undefined) {
-			this.control.Options.CompleterOptions.Handlers.Initialize(this.control, this.formGroup);
+			this.control.Options.CompleterOptions.Handlers.Initialize(this.formControl);
 		}
 	}
 
@@ -359,7 +362,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 		}
 		else {
 			return this.control.Options.CompleterOptions.Handlers.GetInitialValue !== undefined
-				? this.control.Options.CompleterOptions.Handlers.GetInitialValue(this.control, this.formGroup)
+				? this.control.Options.CompleterOptions.Handlers.GetInitialValue(this.formControl)
 				: undefined;
 		}
 	}
@@ -375,8 +378,12 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 			});
 		}
 		else if (this.control.Options.CompleterOptions.Handlers.OnItemSelected !== undefined) {
-			this.control.Options.CompleterOptions.Handlers.OnItemSelected(this.control, this.formGroup, item);
+			this.control.Options.CompleterOptions.Handlers.OnItemSelected(this.formControl, item);
 		}
+	}
+
+	public get captchaUri() {
+		return this.control.captchaUri;
 	}
 
 	public refreshCaptcha() {

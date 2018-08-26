@@ -23,6 +23,24 @@ import { UserService } from "./providers/user.service";
 	templateUrl: "app.component.html"
 })
 export class AppComponent {
+
+	constructor(
+		public router: Router,
+		public platform: Platform,
+		public splashScreen: SplashScreen,
+		public statusBar: StatusBar,
+		public device: Device,
+		public ga: GoogleAnalytics,
+		public navController: NavController,
+		public loadingController: LoadingController,
+		public alertController: AlertController,
+		public configSvc: ConfigurationService,
+		public authSvc: AuthenticationService,
+		public userSvc: UserService
+	) {
+		this.initializeApp();
+	}
+
 	sidebar = {
 		left: {
 			title: undefined as string,
@@ -49,22 +67,10 @@ export class AppComponent {
 			}>()
 		}
 	};
+
 	private _loading = undefined;
 
-	constructor(
-		public router: Router,
-		public platform: Platform,
-		public splashScreen: SplashScreen,
-		public statusBar: StatusBar,
-		public device: Device,
-		public ga: GoogleAnalytics,
-		public navController: NavController,
-		public loadingController: LoadingController,
-		public alertController: AlertController,
-		public configSvc: ConfigurationService,
-		public authSvc: AuthenticationService,
-		public userSvc: UserService
-	) {
+	private initializeApp() {
 		// capture router url
 		this.configSvc.setPreviousUrl("/home");
 		this.router.events.subscribe(event => {
@@ -207,7 +213,7 @@ export class AppComponent {
 						title: item.title,
 						url: item.url,
 						queryParams: item.queryParams,
-						direction: item.direction || "root",
+						direction: item.direction,
 						icon: item.icon,
 						thumbnail: item.thumbnail,
 						detail: !!item.detail,
@@ -403,7 +409,7 @@ export class AppComponent {
 		}
 
 		// setup tracking
-		TrackingUtility.initialize(this.ga);
+		await TrackingUtility.initializeAsync(this.ga);
 
 		// start the real-time updater
 		AppRTU.start(async () => {

@@ -6,7 +6,6 @@ import { PlatformUtility } from "./app.utility.platform";
 
 /** Custom searching service of ng-completer */
 export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements CompleterData {
-	private _rxSubscription: Rx.Subscription = undefined;
 
 	constructor(
 		public onBuildRequest: (term: string) => string,
@@ -15,6 +14,8 @@ export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements C
 	) {
 		super();
 	}
+
+	private _rxSubscription: Rx.Subscription = undefined;
 
 	public search(term: string) {
 		this._rxSubscription = AppAPI.get(this.onBuildRequest(term))

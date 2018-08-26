@@ -2,8 +2,6 @@ import { AppUtility } from "../components/app.utility";
 
 /** Based-Counter information */
 export class CounterBase {
-	Type = "";
-	Total = 0;
 
 	constructor(type?: string, total?: number) {
 		if (AppUtility.isNotEmpty(type) && total !== undefined) {
@@ -12,8 +10,11 @@ export class CounterBase {
 		}
 	}
 
-	public static deserialize(json: any) {
-		const obj = new CounterBase();
+	Type = "";
+	Total = 0;
+
+	public static deserialize(json: any, obj?: CounterBase) {
+		obj = obj || new CounterBase();
 		AppUtility.copy(json, obj);
 		return obj;
 	}

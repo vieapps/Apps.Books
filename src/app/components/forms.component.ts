@@ -8,6 +8,12 @@ import { PlatformUtility } from "./app.utility.platform";
 	templateUrl: "./forms.component.html"
 })
 export class AppFormsComponent implements OnInit, OnDestroy {
+
+	constructor (
+		public appFormsSvc: AppFormsService
+	) {
+	}
+
 	@Input() form: FormGroup;
 	@Input() controls: Array<AppFormsControl>;
 	@Input() config: Array<any>;
@@ -15,11 +21,6 @@ export class AppFormsComponent implements OnInit, OnDestroy {
 	@Output() renderedEvent: EventEmitter<any> = new EventEmitter();
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
-
-	constructor (
-		public appFormsSvc: AppFormsService
-	) {
-	}
 
 	public ngOnInit() {
 		if (this.controls === undefined || this.controls === null || this.controls.length < 1) {
@@ -49,16 +50,16 @@ export class AppFormsComponent implements OnInit, OnDestroy {
 		this.submitEvent.unsubscribe();
 	}
 
-	public trackControl(index: number, control: AppFormsControl) {
-		return control.Key;
-	}
-
 	public onRefreshCaptcha($event) {
 		this.refreshCaptchaEvent.emit($event);
 	}
 
 	public onSubmit() {
 		this.submitEvent.next(this.form.value);
+	}
+
+	public trackControl(index: number, control: AppFormsControl) {
+		return control.Key;
 	}
 
 }

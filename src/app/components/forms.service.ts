@@ -7,6 +7,14 @@ import { PlatformUtility } from "./app.utility.platform";
 
 /** Configuration of a control in the dynamic forms */
 export class AppFormsControl {
+
+	constructor (
+		options: any = {},
+		order?: number
+	) {
+		this.assign(options, this, order);
+	}
+
 	Key = "";
 	Type = "TextBox";
 	Required = false;
@@ -30,6 +38,7 @@ export class AppFormsControl {
 		},
 		PlaceHolder: undefined as string,
 		Css: "",
+		Icon: "",
 		Min: undefined as any,
 		Max: undefined as any,
 		MinLength: undefined as number,
@@ -67,9 +76,9 @@ export class AppFormsControl {
 			ClearSelected: false,
 			DataSource: undefined as CompleterData,
 			Handlers: {
-				Initialize: undefined as (control: AppFormsControl, formGroup: FormGroup) => void,
-				GetInitialValue: undefined as (control: AppFormsControl, formGroup: FormGroup) => any,
-				OnItemSelected: undefined as (control: AppFormsControl, formGroup: FormGroup, item: CompleterItem) => void
+				Initialize: undefined as (formControl: AbstractControl) => void,
+				GetInitialValue: undefined as (formControl: AbstractControl) => any,
+				OnItemSelected: undefined as (formControl: AbstractControl, item: CompleterItem) => void
 			}
 		},
 		Disabled: false,
@@ -80,48 +89,6 @@ export class AppFormsControl {
 		AsArray: boolean,
 		Controls: Array<AppFormsControl>
 	} = undefined;
-
-	constructor (
-		options: any = {},
-		order?: number
-	) {
-		this.assign(options, this, order);
-	}
-
-	/** Checks values of two controls are matched or not */
-	public static confirmIsMatched(original: string, confirm: string): ValidatorFn {
-		return (formGroup: FormGroup): { [key: string]: any } | null => {
-			const originalControl = formGroup.controls[original];
-			const confirmControl = formGroup.controls[confirm];
-			if (originalControl && confirmControl && originalControl.value !== confirmControl.value) {
-				confirmControl.setErrors({ notEquivalent: true });
-				return { notEquivalent: true };
-			}
-			else {
-				return null;
-			}
-		};
-	}
-
-	/** Checks value of the control is matched or not with other control */
-	public static isMatched(other: string): ValidatorFn {
-		return (formControl: AbstractControl): { [key: string]: any } | null => {
-			const parentControl = formControl.parent;
-			if (parentControl instanceof FormGroup) {
-				const otherControl = (parentControl as FormGroup).controls[other];
-				if (otherControl && otherControl.value !== formControl.value) {
-					formControl.setErrors({ notEquivalent: true });
-					return { notEquivalent: true };
-				}
-				else {
-					return null;
-				}
-			}
-			else {
-				return null;
-			}
-		};
-	}
 
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
 		control = control || new AppFormsControl();
@@ -152,12 +119,13 @@ export class AppFormsControl {
 			control.Options.Description = controlOptions.Description || controlOptions.description;
 			const descriptionOptions = controlOptions.DescriptionOptions || controlOptions.descriptionoptions;
 			if (descriptionOptions !== undefined && descriptionOptions !== null) {
-				control.Options.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--platform-label-css", PlatformUtility.labelCss).replace("--description-label-css", "description");
+				control.Options.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--platform-label-css", "label " + (PlatformUtility.isAppleOS ? "label-ios" : "label-md")).replace("--description-label-css", "description");
 				control.Options.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
 			}
 
 			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeholder;
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
+			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
 
 			control.Options.Min = controlOptions.Min || controlOptions.min;
 			control.Options.Max = controlOptions.Max || controlOptions.max;
@@ -270,12 +238,22 @@ export class AppFormsControl {
 	/** Clones this control */
 	public clone(order?: number, onPreCompleted?: (control: AppFormsControl) => void) {
 		const control = new AppFormsControl(this.copy(), order);
-		control.Validators = this.Validators;
-		control.AsyncValidators = this.AsyncValidators;
 		if (onPreCompleted !== undefined) {
 			onPreCompleted(control);
 		}
 		return control;
+	}
+
+	/** Gets uri of the captcha image */
+	public get captchaUri() {
+		return this.Type === "Captcha" ? this.Extras["Uri"] : undefined;
+	}
+
+	/** Sets uri of the captcha image */
+	public set captchaUri(value: string) {
+		if (this.Type === "Captcha") {
+			this.Extras["Uri"] = value;
+		}
 	}
 
 }
@@ -346,7 +324,7 @@ export class AppFormsService {
 	private getFormArray(control: AppFormsControl, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
 		const formArray = new FormArray([], validators, asyncValidators);
 		control.SubControls.Controls.forEach(subcontrol => {
-			if (control.SubControls === undefined && control.Type === "Completer" && control.Options.Type === "Address") {
+			if (subcontrol.SubControls === undefined && subcontrol.Type === "Completer" && subcontrol.Options.Type === "Address") {
 				const options = subcontrol.copy();
 				const formGroup = new FormGroup({}, this.getValidators(subcontrol), this.getAsyncValidators(subcontrol));
 				["County", "Province", "Country"].forEach(key => formGroup.addControl(key, this.getFormControl(new AppFormsControl(options))));
@@ -454,6 +432,51 @@ export class AppFormsService {
 				control.markAsDirty();
 			}
 		});
+	}
+
+	/** Checks values of two controls are matched or not */
+	public confirmIsMatched(original: string, confirm: string): ValidatorFn {
+		return (formGroup: FormGroup): { [key: string]: any } | null => {
+			const originalControl = formGroup.controls[original];
+			const confirmControl = formGroup.controls[confirm];
+			if (originalControl !== undefined && confirmControl !== undefined && originalControl.value !== confirmControl.value) {
+				confirmControl.setErrors({ notEquivalent: true });
+				return { notEquivalent: true };
+			}
+			else {
+				return null;
+			}
+		};
+	}
+
+	/** Checks value of the control is matched or not with other control */
+	public isMatched(other: string): ValidatorFn {
+		return (formControl: AbstractControl): { [key: string]: any } | null => {
+			const parentControl = formControl.parent;
+			if (parentControl instanceof FormGroup) {
+				const otherControl = (parentControl as FormGroup).controls[other];
+				if (otherControl !== undefined && otherControl.value !== formControl.value) {
+					formControl.setErrors({ notEquivalent: true });
+					return { notEquivalent: true };
+				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		};
+	}
+
+	/** Get the button for working with action sheet */
+	public getActionButton(text: string, icon?: string, handler?: () => boolean | void, role?: string) {
+		return {
+			text: text,
+			icon: PlatformUtility.isAppleOS ? undefined : icon,
+			handler: handler,
+			role: role
+		};
 	}
 
 }
