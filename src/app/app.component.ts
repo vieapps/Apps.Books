@@ -303,10 +303,8 @@ export class AppComponent {
 	}
 
 	private async activateAsync() {
-		const uri = PlatformUtility.parseURI();
-		const mode = uri.searchParams["mode"];
-		const code = uri.searchParams["code"];
-
+		const mode = this.configSvc.queryParams["mode"];
+		const code = this.configSvc.queryParams["code"];
 		if (AppUtility.isNotEmpty(mode) && AppUtility.isNotEmpty(code)) {
 			await this.userSvc.activateAsync(mode, code,
 				async data => {
