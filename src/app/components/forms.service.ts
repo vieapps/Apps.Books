@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/forms";
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
 import { CompleterData, CompleterItem } from "ng2-completer";
+import { LoadingController, AlertController, ActionSheetController } from "@ionic/angular";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 
@@ -9,10 +10,12 @@ import { PlatformUtility } from "./app.utility.platform";
 export class AppFormsControl {
 
 	constructor (
-		options: any = {},
+		options?: any,
 		order?: number
 	) {
-		this.assign(options, this, order);
+		if (options !== undefined) {
+			this.assign(options, this, order);
+		}
 	}
 
 	Key = "";
@@ -36,9 +39,13 @@ export class AppFormsControl {
 			Css: "",
 			Style: ""
 		},
-		PlaceHolder: undefined as string,
-		Css: "",
 		Icon: "",
+		Name: "",
+		Css: "",
+		PlaceHolder: undefined as string,
+		Disabled: false,
+		ReadOnly: false,
+		AutoFocus: false,
 		Min: undefined as any,
 		Max: undefined as any,
 		MinLength: undefined as number,
@@ -80,10 +87,7 @@ export class AppFormsControl {
 				GetInitialValue: undefined as (formControl: AbstractControl) => any,
 				OnItemSelected: undefined as (formControl: AbstractControl, item: CompleterItem) => void
 			}
-		},
-		Disabled: false,
-		ReadOnly: false,
-		AutoFocus: false
+		}
 	};
 	SubControls: {
 		AsArray: boolean,
@@ -126,6 +130,11 @@ export class AppFormsControl {
 			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeholder;
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
 			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
+			control.Options.Name = alternativeKey !== undefined ? `${alternativeKey}-${control.Key}` : `${control.Key}`;
+
+			control.Options.Disabled = !!(controlOptions.Disabled || controlOptions.disabled);
+			control.Options.ReadOnly = !!(controlOptions.ReadOnly || controlOptions.readonly);
+			control.Options.AutoFocus = !!(controlOptions.AutoFocus || controlOptions.autofocus);
 
 			control.Options.Min = controlOptions.Min || controlOptions.min;
 			control.Options.Max = controlOptions.Max || controlOptions.max;
@@ -190,10 +199,6 @@ export class AppFormsControl {
 					}
 				};
 			}
-
-			control.Options.Disabled = !!(controlOptions.Disabled || controlOptions.disabled);
-			control.Options.ReadOnly = !!(controlOptions.ReadOnly || controlOptions.readonly);
-			control.Options.AutoFocus = !!(controlOptions.AutoFocus || controlOptions.autofocus);
 		}
 
 		const subControls = options.SubControls || options.subcontrols;
@@ -227,6 +232,7 @@ export class AppFormsControl {
 		const options = AppUtility.clone(this, ["Order", "Validators", "AsyncValidators"]);
 		options.Validators = this.Validators;
 		options.AsyncValidators = this.AsyncValidators;
+		options.Options.SelectOptions.InterfaceOptions = this.Options.SelectOptions.InterfaceOptions;
 		options.Options.CompleterOptions.DataSource = this.Options.CompleterOptions.DataSource;
 		options.Options.CompleterOptions.Handlers = this.Options.CompleterOptions.Handlers;
 		if (onPreCompleted !== undefined) {
@@ -262,8 +268,14 @@ export class AppFormsControl {
 export class AppFormsService {
 
 	constructor (
+		public loadingController: LoadingController,
+		public alertController: AlertController,
+		public actionsheetController: ActionSheetController
 	) {
 	}
+
+	private _loading = undefined;
+	private _actionsheet = undefined;
 
 	/** Gets the definition of all controls */
 	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
@@ -469,14 +481,76 @@ export class AppFormsService {
 		};
 	}
 
+	/** Shows the loading */
+	public async showLoadingAsync(message?: string) {
+		if (this._loading === undefined) {
+			this._loading = await this.loadingController.create({
+				content: message || "Loading..."
+			});
+			await this._loading.present();
+		}
+	}
+
+	/** Hides the loading */
+	public async hideLoadingAsync() {
+		if (this._loading !== undefined) {
+			await this._loading.dismiss();
+			this._loading = undefined;
+		}
+	}
+
 	/** Get the button for working with action sheet */
-	public getActionButton(text: string, icon?: string, handler?: () => boolean | void, role?: string) {
+	public getActionSheetButton(text: string, icon?: string, handler?: () => void, role?: string) {
 		return {
 			text: text,
+			role: role,
 			icon: PlatformUtility.isAppleOS ? undefined : icon,
-			handler: handler,
-			role: role
+			handler: handler
 		};
+	}
+
+	/** Shows the action sheet */
+	public async showActionSheetAsync(buttons: Array<{ text: string, role: string, icon: string, handler: () => void }>, backdropDismiss?: boolean) {
+		this._actionsheet = await this.actionsheetController.create({
+			buttons: buttons,
+			backdropDismiss: backdropDismiss
+		});
+		await Promise.all([
+			this.hideLoadingAsync(),
+			this._actionsheet.present()
+		]);
+	}
+
+	/** Hides the action sheet */
+	public async hideActionSheetAsync() {
+		if (this._actionsheet !== undefined) {
+			await this._actionsheet.dismiss();
+			this._actionsheet = undefined;
+		}
+	}
+
+	/** Shows the alert confirmation box  */
+	public async showAlertAsync(header: string = null, subHeader: string = null, message: string, postProcess: () => void = () => {}, okButtonText: string = null, cancelButtonText: string = null) {
+		const buttons = AppUtility.isNotEmpty(cancelButtonText)
+			? [{ text: cancelButtonText, role: "cancel", handler: undefined as () => void }]
+			: [];
+		buttons.push({ text: okButtonText || "Đóng", role: undefined as string, handler: () => postProcess() });
+		const alert = await this.alertController.create({
+			header: header || "Chú ý",
+			subHeader: subHeader,
+			backdropDismiss: false,
+			message: message,
+			buttons: buttons
+		});
+		await Promise.all([
+			this.hideLoadingAsync(),
+			alert.present()
+		]);
+	}
+
+	/** Shows the error message (by the alert confirmation box) */
+	public async showErrorAsync(error: any, subHeader?: string, postProcess?: () => void) {
+		await this.showAlertAsync("Lỗi", subHeader, AppUtility.isNotEmpty(error.Message) ? error.Message : "Đã xảy ra lỗi!", postProcess);
 	}
 
 }

@@ -32,7 +32,7 @@ export class ConfigurationService extends BaseService {
 	) {
 		super(http, "Configuration");
 		AppEvents.on("Session", async info => {
-			if (info.event === "Session" && "Register" === info.args.Type) {
+			if ("Register" === info.args.Type) {
 				await this.loadGeoMetaAsync();
 			}
 		});
@@ -118,6 +118,11 @@ export class ConfigurationService extends BaseService {
 	/** Sets the query params of the current page/view */
 	public set queryParams(value: Params) {
 		this._queryParams = value || {};
+	}
+
+	/** Gets the request params of the current page/view (means decoded JSON of 'request' query parameter) */
+	public get requestParams() {
+		return AppUtility.getJsonOfQuery(this.queryParams["request"]);
 	}
 
 	/** Prepare the working environments of the app */

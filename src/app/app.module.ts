@@ -13,6 +13,7 @@ import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 
 import { Ng2CompleterModule } from "ng2-completer";
+import { ImageCropperModule } from "ng2-img-cropper";
 import { VinumberPipe } from "./components/app.vinumber.pipe";
 
 import { AppComponent } from "./app.component";
@@ -34,6 +35,7 @@ import { UserService } from "./providers/user.service";
 		IonicModule.forRoot(),
 		IonicStorageModule.forRoot({ name: "vieappsDB" }),
 		Ng2CompleterModule,
+		ImageCropperModule,
 		AppFormsModule,
 		AppRoutingModule
 	],

@@ -167,14 +167,14 @@ export class AppUtility {
 	}
 
 	/** Gets the position of the sub-string in the string */
-	public static indexOf(str: string, substr: string, start?: number) {
+	public static pos(str: string, substr: string, start?: number) {
 		return this.isNotEmpty(str) && this.isNotEmpty(substr)
 			? str.indexOf(substr, start)
 			: -1;
 	}
 
 	/** Finds the index of an item in the sequence base on a predicate */
-	public static find<T>(items: Array<T>, predicate: (item: T) => boolean): number {
+	public static indexOf<T>(items: Array<T>, predicate: (item: T) => boolean) {
 		for (let index = 0; index < items.length; index++) {
 			if (predicate(items[index])) {
 				return index;
@@ -217,7 +217,7 @@ export class AppUtility {
 	}
 
 	/** Gets the JSON of a query param (means decode by Base64Url and parse to JSON) */
-	public static getJsonOfQuery(value: string): any {
+	public static getJsonOfQuery(value: string): { [key: string]: any } {
 		try {
 			return this.isNotEmpty(value)
 				? JSON.parse(AppCrypto.urlDecode(value))
@@ -317,7 +317,7 @@ export class AppUtility {
 			return obj as Array<any>;
 		}
 		else if (this.isNotEmpty(obj)) {
-			const array = this.indexOf(obj as string, this.isNotEmpty(separator) ? separator : ",") > 0
+			const array = this.pos(obj as string, this.isNotEmpty(separator) ? separator : ",") > 0
 				? (obj as string).split(separator || ",")
 				: [obj as string];
 			return array.map(element => this.isNotEmpty(element) ? element.trim() : "");

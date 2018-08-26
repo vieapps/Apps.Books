@@ -27,10 +27,6 @@ export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements C
 		if (this.onCancel !== undefined) {
 			this.onCancel();
 		}
-		this.destroy();
-	}
-
-	public destroy() {
 		if (this._rxSubscription !== undefined) {
 			this._rxSubscription.unsubscribe();
 		}

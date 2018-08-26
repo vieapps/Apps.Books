@@ -50,6 +50,7 @@ export class AppConfig {
 	public static accountRegistrations = {
 		registrable: true,
 		excluded: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
+		required: ["Gender", "BirthDay", "Mobile"],
 		sendInvitationRole: "All",
 		setPrivilegsRole: "ServiceAdministrator"
 	};

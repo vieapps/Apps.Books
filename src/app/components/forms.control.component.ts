@@ -4,6 +4,7 @@ import { CompleterService, CompleterItem } from "ng2-completer";
 import { AppConfig } from "../app.config";
 import { AppFormsControl } from "./forms.service";
 import { AppUtility } from "./app.utility";
+import { List } from "linqts";
 
 @Component({
 	selector: "app-form-control",
@@ -59,6 +60,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 
 	public ngOnDestroy() {
 		this.refreshCaptchaEvent.unsubscribe();
+		if (this.control.Options.CompleterOptions.DataSource !== undefined) {
+			this.control.Options.CompleterOptions.DataSource.cancel();
+		}
 	}
 
 	public get visible() {
@@ -66,10 +70,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 	}
 
 	public get invalid() {
-		const formControl = this.formControl;
-		return formControl !== undefined
-			? formControl.invalid && formControl.dirty
-			: false;
+		return this.formControl.invalid && this.formControl.dirty;
 	}
 
 	public get isFormControl() {
@@ -207,6 +208,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 		return this.index !== undefined ? this.index : this.control.Key;
 	}
 
+	public get name() {
+		return this.control.Options.Name;
+	}
+
 	public get value() {
 		return this.formControl.value;
 	}
@@ -245,7 +250,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 	}
 
 	public get datetimeDisplayFormat() {
-		return this.control.Options.DateOptions.DisplayFormat
+		return this.control.Options.DateOptions.DisplayFormat !== undefined
 			? this.control.Options.DateOptions.DisplayFormat
 			: this.control.Options.DateOptions.AllowTimes
 				? "DD/MM/YYYY HH:mm"
@@ -351,12 +356,16 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 
 	public get completerInitialValue() {
 		if (this.control.Options.Type === "Address") {
-			const value = {};
+			const value = {
+				County: "",
+				Province: "",
+				Country: ""
+			};
 			["County", "Province", "Country"].forEach(key => {
 				const formControl = this.formGroup.controls[key];
 				value[key] = formControl !== undefined ? formControl.value : "";
 			});
-			return value;
+			return new List(AppFormsControlComponent.getCounties()).FirstOrDefault(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
 		}
 		else {
 			return this.control.Options.CompleterOptions.Handlers.GetInitialValue !== undefined
@@ -371,7 +380,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 			["County", "Province", "Country"].forEach(key => {
 				const formControl = this.formGroup.controls[key];
 				if (formControl !== undefined) {
-					formControl.setValue(address === undefined ? "" : address[key]);
+					formControl.setValue(address !== undefined ? address[key] : "");
 				}
 			});
 		}

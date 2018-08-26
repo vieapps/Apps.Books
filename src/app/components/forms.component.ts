@@ -34,7 +34,7 @@ export class AppFormsComponent implements OnInit, OnDestroy {
 		}
 
 		if (this.controls.length < 1) {
-			PlatformUtility.showWarning("[DynamicForms]: No control");
+			PlatformUtility.showWarning("[Dynamic Forms]: No control");
 		}
 		else {
 			this.appFormsSvc.buildForm(this.form, this.controls, this.value);

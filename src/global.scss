@@ -10,14 +10,17 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
+/* side menu */
+.split-pane.split-pane-visible ion-menu.split-pane-side {
+	max-width: 320px;
+}
+ion-app ion-menu ion-header ion-toolbar ion-thumbnail img {
+	border-radius: 50%;
+}
+
 /* label of invalid controls */
 .invalid > ion-label {
 	color: var(--ion-color-danger);
-}
-
-/* avatar of side menu */
-ion-app ion-menu ion-header ion-toolbar ion-thumbnail img {
-	border-radius: 50%;
 }
 
 /* description label of an input control */

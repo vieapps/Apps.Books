@@ -16,7 +16,7 @@
 		[controls]="register.controls"
 		(renderedEvent)="onFormRendered($event)"
 		(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
-	<ion-buttons class="buttons">
+	<ion-buttons>
 		<ion-button [fill]="register.button.fill" [color]="register.button.color" (click)="registerAsync()">
 			<ion-icon *ngIf="register.button.icon" [icon]="register.button.icon" slot="start"></ion-icon>
 			{{register.button.label}}

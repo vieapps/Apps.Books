@@ -43,7 +43,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			fill: "solid"
 		}
 	};
-	private _loading = undefined;
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public ngOnInit() {
@@ -53,48 +52,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 	public ngOnDestroy() {
 		this._rxSubscriptions.forEach(subscription => subscription.unsubscribe());
-	}
-
-	private async showLoadingAsync(message?: string) {
-		this._loading = await this.loadingController.create({
-			content: message || this.title
-		});
-		await this._loading.present();
-	}
-
-	private async hideLoadingAsync() {
-		if (this._loading !== undefined) {
-			await this._loading.dismiss();
-			this._loading = undefined;
-		}
-	}
-
-	private async showAlertAsync(message: string, header?: string, subHeader?: string, postProcess?: () => void) {
-		const alert = await this.alertController.create({
-			header: header || "Chú ý",
-			subHeader: subHeader,
-			backdropDismiss: false,
-			message: message,
-			buttons: [{
-				text: "Đóng",
-				handler: () => {
-					if (postProcess !== undefined) {
-						postProcess();
-					}
-				}
-			}]
-		});
-		await alert.present();
-	}
-
-	private async showErrorAsync(error: any, subHeader?: string, postProcess?: () => void) {
-		await this.hideLoadingAsync();
-		const message = AppUtility.isGotCaptchaException(error)
-			? "Mã xác thực không đúng"
-			: "InformationExistedException" === error.Type
-				? `Địa chỉ email (${this.register.value.Email}) đã được sử dụng cho một tài khoản khác, có thể sử dụng chức năng quên mật khẩu để lấy mật khẩu mới cho địa chỉ email này.`
-				: AppUtility.isNotEmpty(error.Message) ? error.Message : "Đã xảy ra lỗi!";
-		await this.showAlertAsync(message, "Lỗi", subHeader, postProcess);
 	}
 
 	public initializeForm() {
@@ -281,9 +238,13 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		];
 
 		const excluded = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.excluded);
+		const required = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.required);
 		this.register.config.forEach(options => {
 			if (excluded[options.Key]) {
 				options.Excluded = true;
+			}
+			if (required[options.Key] && !options.Excluded) {
+				options.Required = true;
 			}
 		});
 
@@ -313,19 +274,16 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			return;
 		}
 
-		await this.showLoadingAsync();
+		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.userSvc.registerAsync(AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Addresses", "Captcha"]), this.register.value.Captcha,
 			async data => {
-				await TrackingUtility.trackAsync("Register", "/register-account");
-				await this.hideLoadingAsync();
-				await this.showAlertAsync(`Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, "Đăng ký thành công", undefined, () => this.configSvc.goBack());
+				await TrackingUtility.trackAsync(this.title, "/user/register");
+				await this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.goBack());
 			},
-			async error => {
-				await Promise.all([
-					this.refreshCaptchaAsync(),
-					this.showErrorAsync(error)
-				]);
-			}
+			async error => await Promise.all([
+				this.refreshCaptchaAsync(),
+				this.appFormsSvc.showErrorAsync(error)
+			])
 		);
 	}
 

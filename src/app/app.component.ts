@@ -1,7 +1,7 @@
 import { Component } from "@angular/core";
 import { Router, Params, NavigationEnd, NavigationExtras } from "@angular/router";
 
-import { Platform, LoadingController, AlertController, NavController } from "@ionic/angular";
+import { Platform, NavController } from "@ionic/angular";
 
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
@@ -14,6 +14,7 @@ import { AppUtility } from "./components/app.utility";
 import { PlatformUtility } from "./components/app.utility.platform";
 import { TrackingUtility } from "./components/app.utility.trackings";
 
+import { AppFormsService } from "./components/forms.service";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
 import { UserService } from "./providers/user.service";
@@ -32,8 +33,7 @@ export class AppComponent {
 		public device: Device,
 		public ga: GoogleAnalytics,
 		public navController: NavController,
-		public loadingController: LoadingController,
-		public alertController: AlertController,
+		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
 		public userSvc: UserService
@@ -68,8 +68,6 @@ export class AppComponent {
 		}
 	};
 
-	private _loading = undefined;
-
 	private initializeApp() {
 		// capture router url
 		this.configSvc.setPreviousUrl("/home");
@@ -83,7 +81,7 @@ export class AppComponent {
 		// initliaze app
 		this.platform.ready().then(() => {
 			// show loading
-			this.showLoadingAsync();
+			this.appFormsSvc.showLoadingAsync("activate" === this.configSvc.queryParams["prego"] ? "Kích hoạt..." : "Tải dữ liệu...");
 
 			// prepare sidebars
 			this.sidebar.left.title = this.configSvc.appConfig.app.name;
@@ -94,7 +92,7 @@ export class AppComponent {
 
 			// prepare status bar
 			this.statusBar.styleDefault();
-			if ("iOS" === this.device.platform && AppUtility.indexOf(this.device.model, "iPhone1") === 0 && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
+			if ("iOS" === this.device.platform && AppUtility.pos(this.device.model, "iPhone1") === 0 && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
 				this.statusBar.backgroundColorByHexString("f8f8f8");
 			}
 			this.statusBar.overlaysWebView(false);
@@ -259,19 +257,19 @@ export class AppComponent {
 				const items = this.sidebar.left.menu[0].items;
 				if (this.configSvc.isAuthenticated) {
 					if (this.authSvc.canRegisterNewAccounts) {
-						AppUtility.removeAt(items, AppUtility.find(items, item => AppUtility.indexOf(item.url, "/register-account") === 0));
+						AppUtility.removeAt(items, AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/register-account") === 0));
 					}
-					const index = AppUtility.find(items, item => AppUtility.indexOf(item.url, "/log-in") === 0);
+					const index = AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/log-in") === 0);
 					if (index > -1) {
 						items[index] = this.viewAccountProfileItem;
 					}
-					else if (AppUtility.find(items, item => AppUtility.indexOf(item.url, "/account-profile") === 0) < 0) {
+					else if (AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/account-profile") === 0) < 0) {
 						AppUtility.insertAt(items, this.viewAccountProfileItem);
 					}
 				}
 				else {
-					if (AppUtility.find(items, item => AppUtility.indexOf(item.url, "/log-in") === 0) < 0) {
-						const index = AppUtility.find(items, item => AppUtility.indexOf(item.url, "/account-profile") === 0);
+					if (AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/log-in") === 0) < 0) {
+						const index = AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/account-profile") === 0);
 						if (index > -1) {
 							items[index] = this.loginItem;
 						}
@@ -279,27 +277,13 @@ export class AppComponent {
 							AppUtility.insertAt(items, this.loginItem);
 						}
 					}
-					if (this.authSvc.canRegisterNewAccounts && AppUtility.find(items, item => AppUtility.indexOf(item.url, "/register-account") === 0) < 0) {
-						const index = AppUtility.find(items, item => AppUtility.indexOf(item.url, "/log-in") === 0);
+					if (this.authSvc.canRegisterNewAccounts && AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/register-account") === 0) < 0) {
+						const index = AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/log-in") === 0);
 						AppUtility.insertAt(items, this.registerAccountItem, index > -1 ? index + 1 : -1);
 					}
 				}
 			}
 		});
-	}
-
-	private async showLoadingAsync(content?: string) {
-		this._loading = await this.loadingController.create({
-			content: "activate" === this.configSvc.queryParams["prego"] ? "Kích hoạt..." : "Tải dữ liệu..."
-		});
-		await this._loading.present();
-	}
-
-	private async hideLoadingAsync() {
-		if (this._loading !== undefined) {
-			await this._loading.dismiss();
-			this._loading = undefined;
-		}
 	}
 
 	private async activateAsync() {
@@ -310,7 +294,7 @@ export class AppComponent {
 				async data => {
 					await this.initializeAsync(async () => {
 						await Promise.all([
-							TrackingUtility.trackAsync("Kích hoạt", `activate-${mode}`),
+							TrackingUtility.trackAsync("Kích hoạt", `activate/${mode}`),
 							this.showActivationResultAsync({ Status: "OK", Mode: mode })
 						]);
 					}, true);
@@ -336,16 +320,7 @@ export class AppComponent {
 				? "Tài khoản đã được kích hoạt thành công"
 				: "Mật khẩu đã được kích hoạt thành công"
 			: "Đã xảy ra lỗi, không thể kích hoạt" + (data.Error ? ` (${data.Error.Message})` : "");
-		const alert = await this.alertController.create({
-			header: header,
-			subHeader: subHeader,
-			message: message,
-			backdropDismiss: false,
-			buttons: [{
-				text: "Đóng"
-			}]
-		});
-		await alert.present();
+		await this.appFormsSvc.showAlertAsync(header, subHeader, message);
 	}
 
 	private initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
@@ -375,7 +350,7 @@ export class AppComponent {
 								});
 							}
 							else {
-								await this.hideLoadingAsync();
+								await this.appFormsSvc.hideLoadingAsync();
 								PlatformUtility.showError("<AppComponent>: Cannot initialize the app", error);
 							}
 						}
@@ -392,7 +367,7 @@ export class AppComponent {
 					});
 				}
 				else {
-					await this.hideLoadingAsync();
+					await this.appFormsSvc.hideLoadingAsync();
 					PlatformUtility.showError("<AppComponent>: Cannot initialize the app", error);
 				}
 			},
@@ -421,7 +396,7 @@ export class AppComponent {
 			// done
 			PlatformUtility.showLog("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 			AppEvents.broadcast("AppIsInitialized", this.configSvc.appConfig.app);
-			await this.hideLoadingAsync();
+			await this.appFormsSvc.hideLoadingAsync();
 			if (onCompleted !== undefined) {
 				onCompleted();
 			}

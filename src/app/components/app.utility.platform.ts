@@ -116,7 +116,7 @@ export class PlatformUtility {
 
 	/** Gets the current host name */
 	public static get host() {
-		if (AppUtility.indexOf(window.location.hostname, ".") < 0) {
+		if (AppUtility.pos(window.location.hostname, ".") < 0) {
 			return window.location.hostname;
 		}
 		const info = AppUtility.toArray(window.location.hostname, ".");
@@ -132,7 +132,7 @@ export class PlatformUtility {
 
 	/** Opens an uri by OS/In-App browser */
 	public static openURI(uri?: string) {
-		if (AppUtility.isNotEmpty(uri) && AppUtility.indexOf(uri, "http") === 0) {
+		if (AppUtility.isNotEmpty(uri) && AppUtility.pos(uri, "http") === 0) {
 			window.open(uri);
 		}
 	}
@@ -181,7 +181,7 @@ export class PlatformUtility {
 	/** Gets the URI for activating */
 	public static get activateURI() {
 		let url = AppConfig.URIs.activations;
-		if (AppConfig.isWebApp && AppUtility.indexOf(window.location.href, "file://") < 0) {
+		if (AppConfig.isWebApp && AppUtility.pos(window.location.href, "file://") < 0) {
 			const uri = this.parseURI();
 			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + "/";
 		}

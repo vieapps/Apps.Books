@@ -10,6 +10,7 @@
 
 	<ion-input *ngIf="isControl('TextBox')"
 		[formControlName]="formControlName"
+		[name]="name"
 		[type]="type"
 		[placeholder]="placeholder"
 		[class]="css.control"
@@ -21,11 +22,11 @@
 		[minlength]="minLength"
 		[maxlength]="maxLength"
 		[clearOnEdit]="clearOnEdit"
-		[attr.autofocus]="!!autofocus"
 		[attr.style]="style.control"></ion-input>
 
 	<ion-textarea *ngIf="isControl('TextArea')" rows="4"
 		[formControlName]="formControlName"
+		[name]="name"
 		[placeholder]="placeholder"
 		[class]="css.control"
 		[required]="required"
@@ -33,10 +34,10 @@
 		[minlength]="minLength"
 		[maxlength]="maxLength"
 		[clearOnEdit]="clearOnEdit"
-		[attr.autofocus]="!!autofocus"
 		[attr.style]="style.control"></ion-textarea>
 
 	<ion-select *ngIf="isControl('Select')"
+		[name]="name"
 		[multiple]="selectMultiple"
 		[interface]="selectInterface"
 		[interfaceOptions]="selectInterfaceOptions"
@@ -66,6 +67,7 @@
 		(ionChange)="datetimeValueChange($event)"></ion-datetime>
 
 	<ng2-completer *ngIf="isControl('Completer')"
+		[inputName]="name"
 		[placeholder]="completerPlaceHolder"
 		[minSearchLength]="completerMinSearchLength"
 		[pause]="completerPauseMiliseconds"
@@ -80,6 +82,7 @@
 
 <ion-radio-group *ngIf="visible && selectAsRadioBoxes"
 	[formGroup]="formGroup"
+	[name]="name"
 	[class.invalid]="invalid"
 	[disabled]="disabled"
 	[value]="value"
@@ -108,15 +111,14 @@
 			[class]="css.label">{{label}}</ion-label>
 		<ion-input type="text" style="text-transform:uppercase"
 			[formControlName]="formControlName"
+			[name]="name"
 			[placeholder]="placeholder"
 			[required]="required"
 			[autofocus]="autofocus"
 			[min]="min"
 			[max]="max"
 			[minlength]="minLength"
-			[maxlength]="maxLength"
-			[clearOnEdit]="clearOnEdit"
-			[attr.autofocus]="!!autofocus"></ion-input>
+			[maxlength]="maxLength"></ion-input>
 	</ion-item>
 
 	<ion-item *ngIf="description">
@@ -126,10 +128,10 @@
 	</ion-item>
 
 	<ion-item>
-		<ion-button fill="clear" (click)="refreshCaptcha()">
-			<ion-icon icon="refresh"></ion-icon>
-		</ion-button>
 		<img *ngIf="captchaUri" [src]="captchaUri" slot="start" />
+		<ion-button fill="clear" (click)="refreshCaptcha()">
+			<ion-icon icon="refresh" slot="start"></ion-icon>
+		</ion-button>
 	</ion-item>
 
 </div>

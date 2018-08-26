@@ -48,7 +48,7 @@ export class AppEvents {
 		this.initialize();
 		if (AppUtility.isNotEmpty(event) && AppUtility.isNotEmpty(identity)) {
 			const handlers = this.getHandlers(event);
-			AppUtility.removeAt(handlers, AppUtility.find(handlers, handler => identity === handler.identity));
+			AppUtility.removeAt(handlers, AppUtility.indexOf(handlers, handler => identity === handler.identity));
 		}
 	}
 

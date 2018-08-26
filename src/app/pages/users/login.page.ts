@@ -1,12 +1,10 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import * as Rx from "rxjs";
-import { LoadingController, AlertController } from "@ionic/angular";
 import { AppFormsService, AppFormsControl } from "../../components/forms.service";
-import { AppUtility } from "../../components/app.utility";
+import { TrackingUtility } from "../../components/app.utility.trackings";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
-import { TrackingUtility } from "../../components/app.utility.trackings";
 
 @Component({
 	selector: "page-login",
@@ -16,8 +14,6 @@ import { TrackingUtility } from "../../components/app.utility.trackings";
 export class LogInPage implements OnInit, OnDestroy {
 
 	constructor (
-		public loadingController: LoadingController,
-		public alertController: AlertController,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService
@@ -64,7 +60,6 @@ export class LogInPage implements OnInit, OnDestroy {
 			fill: "clear"
 		}
 	};
-	private _loading = undefined;
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public ngOnInit() {
@@ -76,48 +71,6 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	public ngOnDestroy() {
 		this._rxSubscriptions.forEach(subscription => subscription.unsubscribe());
-	}
-
-	private async showLoadingAsync(message?: string) {
-		this._loading = await this.loadingController.create({
-			content: message || this.title
-		});
-		await this._loading.present();
-	}
-
-	private async hideLoadingAsync() {
-		if (this._loading !== undefined) {
-			await this._loading.dismiss();
-			this._loading = undefined;
-		}
-	}
-
-	private async showAlertAsync(message: string, header?: string, subHeader?: string, postProcess?: () => void) {
-		const alert = await this.alertController.create({
-			header: header || "Chú ý",
-			subHeader: subHeader,
-			backdropDismiss: false,
-			message: message,
-			buttons: [{
-				text: "Đóng",
-				handler: () => {
-					if (postProcess !== undefined) {
-						postProcess();
-					}
-				}
-			}]
-		});
-		await alert.present();
-	}
-
-	private async showErrorAsync(error: any, subHeader?: string, postProcess?: () => void) {
-		await this.hideLoadingAsync();
-		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
-			? "Email hoặc mật khẩu không đúng!"
-			: AppUtility.isGotCaptchaException(error) || AppUtility.isGotOTPException(error)
-				? "Mã xác thực không đúng"
-				: AppUtility.isNotEmpty(error.Message) ? error.Message : "Đã xảy ra lỗi!";
-		await this.showAlertAsync(message, "Lỗi", subHeader, postProcess);
 	}
 
 	public openLogin() {
@@ -157,11 +110,11 @@ export class LogInPage implements OnInit, OnDestroy {
 			return;
 		}
 
-		await this.showLoadingAsync();
+		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.authSvc.logInAsync(this.login.value.Email, this.login.value.Password,
 			async data => {
-				await TrackingUtility.trackAsync("Log In", "/session/login");
-				await this.hideLoadingAsync();
+				await TrackingUtility.trackAsync(this.title, "/session/login");
+				await this.appFormsSvc.hideLoadingAsync();
 				if (data.Require2FA) {
 					this.openValidateOTP(data);
 				}
@@ -169,9 +122,7 @@ export class LogInPage implements OnInit, OnDestroy {
 					this.configSvc.goBack();
 				}
 			},
-			async error => {
-				await this.showErrorAsync(error, "Không thể đăng nhập");
-			}
+			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể đăng nhập")
 		);
 	}
 
@@ -206,16 +157,14 @@ export class LogInPage implements OnInit, OnDestroy {
 			return;
 		}
 
-		await this.showLoadingAsync();
+		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.authSvc.validateOTPAsync(this.otp.id, this.otp.value.OTP, this.otp.providers[0].Info,
 			async data => {
-				await TrackingUtility.trackAsync("OTP Validation", "/session/otp");
-				await this.hideLoadingAsync();
+				await TrackingUtility.trackAsync(this.title, "/session/otp");
+				await this.appFormsSvc.hideLoadingAsync();
 				this.configSvc.goBack();
 			},
-			async error => {
-				await this.showErrorAsync(error, "Không thể xác thực lần hai");
-			}
+			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể xác thực lần hai")
 		);
 	}
 
@@ -283,19 +232,16 @@ export class LogInPage implements OnInit, OnDestroy {
 			return;
 		}
 
-		await this.showLoadingAsync();
+		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.authSvc.resetPasswordAsync(this.reset.value.Email, this.reset.value.Captcha,
 			async data => {
-				await TrackingUtility.trackAsync("Reset Password", "/session/reset");
-				await this.hideLoadingAsync();
-				await this.showAlertAsync(`Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, "Mật khẩu mới", undefined, () => this.configSvc.goBack());
+				await TrackingUtility.trackAsync(this.title, "/session/reset");
+				await this.appFormsSvc.showAlertAsync("Mật khẩu mới", undefined, `Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, () => this.configSvc.goBack());
 			},
-			async error => {
-				await Promise.all([
-					this.refreshCaptchaAsync(),
-					this.showErrorAsync(error)
-				]);
-			}
+			async error => await Promise.all([
+				this.refreshCaptchaAsync(),
+				this.appFormsSvc.showErrorAsync(error)
+			])
 		);
 	}
 
