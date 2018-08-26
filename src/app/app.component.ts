@@ -69,7 +69,7 @@ export class AppComponent {
 	};
 
 	private initializeApp() {
-		// capture router url
+		// capture router info
 		this.configSvc.setPreviousUrl("/home");
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
@@ -117,10 +117,10 @@ export class AppComponent {
 			title: "Đăng nhập",
 			url: "/log-in",
 			queryParams: undefined as Params,
+			direction: "forward",
 			icon: "log-in",
 			thumbnail: undefined,
-			detail: false,
-			direction: "forward"
+			detail: false
 		};
 	}
 
@@ -129,10 +129,10 @@ export class AppComponent {
 			title: "Đăng ký tài khoản",
 			url: "/register-account",
 			queryParams: undefined as Params,
+			direction: "forward",
 			icon: "person-add",
 			thumbnail: undefined,
-			detail: false,
-			direction: "forward"
+			detail: false
 		};
 	}
 
@@ -141,10 +141,10 @@ export class AppComponent {
 			title: "Thông tin tài khoản",
 			url: "/account-profile",
 			queryParams: undefined as Params,
+			direction: "forward",
 			icon: "person",
 			thumbnail: undefined,
-			detail: false,
-			direction: "forward"
+			detail: false
 		};
 	}
 
@@ -158,9 +158,9 @@ export class AppComponent {
 				title: itemInfo.title,
 				url: itemInfo.url,
 				queryParams: itemInfo.queryParams,
+				direction: itemInfo.direction || "root",
 				icon: itemInfo.icon,
 				thumbnail: itemInfo.thumbnail,
-				direction: itemInfo.direction || "root",
 				detail: !!itemInfo.detail
 			};
 			AppUtility.insertAt(this.sidebar.left.menu[menuIndex].items, item, itemIndex);
@@ -306,6 +306,17 @@ export class AppComponent {
 				}
 			);
 		}
+		else {
+			await this.initializeAsync(async () => {
+				await this.showActivationResultAsync({
+					Status: "Error",
+					Mode: mode,
+					Error: {
+						Message: `Thông tin kích hoạt không hợp lệ [${mode} - ${code}]`
+					}
+				});
+			});
+		}
 	}
 
 	async showActivationResultAsync(data: any) {
@@ -328,16 +339,16 @@ export class AppComponent {
 			async data => {
 				// got valid sessions, then run next step
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
-					PlatformUtility.showLog("<AppComponent>: The session is initialized & registered (user)");
+					PlatformUtility.showLog("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.prepareAsync(onCompleted);
 				}
 
 				// register new session (anonymous)
 				else {
-					PlatformUtility.showLog("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.appConfig.session);
+					PlatformUtility.showLog("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.configSvc.registerSessionAsync(
 						async () => {
-							PlatformUtility.showLog("<AppComponent>: The session is registered (anonymous)");
+							PlatformUtility.showLog("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 							await this.prepareAsync(onCompleted);
 						},
 						async error => {

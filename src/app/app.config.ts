@@ -18,7 +18,7 @@ export class AppConfig {
 	public static app = {
 		id: "online-books",
 		name: "VIEApps Online Books",
-		version: "1.0.0.0-beta",
+		version: "1.0.0-beta",
 		mode: "",
 		platform: "",
 		os: "",
