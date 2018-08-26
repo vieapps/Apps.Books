@@ -66,9 +66,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 	}
 
 	public get invalid() {
-		const formControl = this.formGroup !== undefined
-			? this.formGroup.controls[this.control.Key]
-			: undefined;
+		const formControl = this.formControl;
 		return formControl !== undefined
 			? formControl.invalid && formControl.dirty
 			: false;
@@ -355,8 +353,8 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 		if (this.control.Options.Type === "Address") {
 			const value = {};
 			["County", "Province", "Country"].forEach(key => {
-				const control = this.formGroup.controls[key];
-				value[key] = control !== undefined ? control.value : "";
+				const formControl = this.formGroup.controls[key];
+				value[key] = formControl !== undefined ? formControl.value : "";
 			});
 			return value;
 		}
@@ -371,9 +369,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 		if (this.control.Options.Type === "Address") {
 			const address = AppUtility.isObject(item, true) ? item.originalObject : undefined;
 			["County", "Province", "Country"].forEach(key => {
-				const control = this.formGroup.controls[key];
-				if (control !== undefined) {
-					control.setValue(address === undefined ? "" : address[key]);
+				const formControl = this.formGroup.controls[key];
+				if (formControl !== undefined) {
+					formControl.setValue(address === undefined ? "" : address[key]);
 				}
 			});
 		}
@@ -387,7 +385,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 	}
 
 	public refreshCaptcha() {
-		this.formGroup.controls[this.control.Key].setValue("");
+		this.formControl.setValue("");
 		this.refreshCaptchaEvent.emit(this.control);
 	}
 
