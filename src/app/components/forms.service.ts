@@ -278,6 +278,7 @@ export class AppFormsService {
 
 	private _loading = undefined;
 	private _actionsheet = undefined;
+	private _modal = undefined;
 
 	/** Gets the definition of all controls */
 	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
@@ -487,7 +488,7 @@ export class AppFormsService {
 	public async showLoadingAsync(message?: string) {
 		if (this._loading === undefined) {
 			this._loading = await this.loadingController.create({
-				content: message || "Loading..."
+				message: message || "Loading..."
 			});
 			await this._loading.present();
 		}
@@ -581,19 +582,18 @@ export class AppFormsService {
 	/** Shows the modal box */
 	public async showModalAsync(component: any) {
 		await this.hideModalAsync();
-		const modal = await this.modalController.create({
+		this._modal = await this.modalController.create({
 			component: component,
 			backdropDismiss: false
 		});
-		await modal.present();
+		await this._modal.present();
 	}
 
 	/** Hides the modal box */
 	public async hideModalAsync(onDismiss?: () => void) {
-		try {
-			await this.modalController.dismiss();
-		}
-		catch (error) {
+		if (this._modal !== undefined) {
+			await this._modal.dismiss();
+			this._modal = undefined;
 		}
 		if (onDismiss !== undefined) {
 			onDismiss();
@@ -601,20 +601,22 @@ export class AppFormsService {
 	}
 
 	/** Shows the toast alert message */
-	public async showToastAsync(message: string, duration: number = 1000, position: string = "top", showCloseButton: boolean = false, closeButtonText: string = "close") {
+	public async showToastAsync(message: string, duration: number = 1000, showCloseButton: boolean = false, closeButtonText: string = "close", atBottom: boolean = false) {
 		const toast = !showCloseButton && duration < 1
 			? await this.toastController.create({
 					message: message,
 					duration: 1000,
-					position: position
+					position: atBottom ? "bottom" : "top",
+					animated: true
 				}
 			)
 			: await this.toastController.create({
 					message: message,
 					duration: duration,
-					position: position,
 					showCloseButton: showCloseButton,
-					closeButtonText: closeButtonText
+					closeButtonText: closeButtonText,
+					position: atBottom ? "bottom" : "top",
+					animated: true
 				}
 			);
 		await toast.present();

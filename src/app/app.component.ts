@@ -223,13 +223,13 @@ export class AppComponent implements OnInit {
 	private navigate(direction: string = "Root", url: string = "/home", animated: boolean = true, extras?: NavigationExtras) {
 		switch (direction) {
 			case "Forward":
-				this.navController.goForward(url, animated, extras);
+				this.navController.navigateForward(url, animated, extras);
 				break;
 			case "Back":
-				this.navController.goBack(url, animated, extras);
+				this.navController.navigateBack(url, animated, extras);
 				break;
 			default:
-				this.navController.goRoot(url, animated, extras);
+				this.navController.navigateRoot(url, animated, extras);
 				break;
 		}
 	}

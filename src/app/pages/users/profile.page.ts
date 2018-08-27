@@ -263,7 +263,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 						Css: "--description-label-css"
 					},
 					MinLength: 1,
-					MaxLength: 250
+					MaxLength: 250,
+					AutoFocus: true
 				}
 			},
 			{
@@ -367,10 +368,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			/**/
 			{
 				Key: "ID",
-				Excluded: true
-			},
-			{
-				Key: "Avatar",
 				Excluded: true
 			}
 		];
