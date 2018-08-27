@@ -1,6 +1,7 @@
 import { NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { HttpModule } from "@angular/http";
+import { ReactiveFormsModule, FormsModule } from "@angular/forms";
 import { RouteReuseStrategy } from "@angular/router";
 
 import { IonicModule, IonicRouteStrategy } from "@ionic/angular";
@@ -23,6 +24,7 @@ import { AppFormsModule } from "./components/forms.module";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
 import { UserService } from "./providers/user.service";
+import { FileService } from "./providers/file.service";
 
 @NgModule({
 	declarations: [
@@ -32,6 +34,8 @@ import { UserService } from "./providers/user.service";
 	imports: [
 		BrowserModule,
 		HttpModule,
+		ReactiveFormsModule,
+		FormsModule,
 		IonicModule.forRoot(),
 		IonicStorageModule.forRoot({ name: "vieappsDB" }),
 		Ng2CompleterModule,
@@ -48,10 +52,9 @@ import { UserService } from "./providers/user.service";
 		ConfigurationService,
 		AuthenticationService,
 		UserService,
+		FileService,
 		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
 	],
-	entryComponents: [],
-	schemas: [],
 	bootstrap: [AppComponent]
 })
 export class AppModule {}

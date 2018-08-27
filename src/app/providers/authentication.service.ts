@@ -136,11 +136,6 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public prepareOTPAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/otp?" + this.configSvc.relatedQuery;
-		return this.readAsync(path, onNext, error => this.error("Error occurred while preparing OTP", error, onError));
-	}
-
 	public validateOTPAsync(id: string, otp: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/session?" + this.configSvc.relatedQuery;
 		const body = {
@@ -157,6 +152,14 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
+	public resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		const path = "users/account/reset?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
+		const body = {
+			Email: AppCrypto.rsaEncrypt(email)
+		};
+		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while requesting new password", error, onError), AppAPI.getCaptchaHeaders(captcha));
+	}
+
 	public registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.readAsync("users/captcha?register=" + this.configSvc.appConfig.session.id,
 			data => {
@@ -170,14 +173,6 @@ export class AuthenticationService extends BaseService {
 			},
 			error => this.error("Error occurred while registering session captcha", error, onError)
 		);
-	}
-
-	public resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/reset?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
-		const body = {
-			Email: AppCrypto.rsaEncrypt(email)
-		};
-		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while requesting new password", error, onError), AppAPI.getCaptchaHeaders(captcha));
 	}
 
 	public updateSessionAsync(data: any, onNext: (data?: any) => void) {

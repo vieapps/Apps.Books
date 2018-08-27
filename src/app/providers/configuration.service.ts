@@ -368,12 +368,12 @@ export class ConfigurationService extends BaseService {
 		if (AppUtility.isObject(data.TwoFactorsAuthentication, true)) {
 			account.TwoFactorsAuthentication.Required = AppUtility.isTrue(data.TwoFactorsAuthentication.Required);
 			if (AppUtility.isArray(data.TwoFactorsAuthentication.Providers, true)) {
-				account.TwoFactorsAuthentication.Providers = (data.TwoFactorsAuthentication.Providers as Array<any>).map(p => {
+				account.TwoFactorsAuthentication.Providers = (data.TwoFactorsAuthentication.Providers as Array<any>).map(provider => {
 					return {
-						Label: p.Label,
-						Type: p.Type,
-						Time: new Date(p.Time),
-						Info: p.Info
+						Label: provider.Label,
+						Type: provider.Type,
+						Time: new Date(provider.Time),
+						Info: provider.Info
 					};
 				});
 			}
@@ -383,17 +383,20 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Updates information of the account */
-	public updateAccount(data: any, onCompleted?: () => void) {
-		const info = this.prepareAccount(data);
-		this.appConfig.session.account.roles = info.Roles;
-		this.appConfig.session.account.privileges = info.Privileges;
-		this.appConfig.session.account.status = info.Status;
-		this.appConfig.session.account.twoFactors = {
-			required: info.TwoFactorsAuthentication.Required,
-			providers: info.TwoFactorsAuthentication.Providers
-		};
+	public updateAccount(data: any, onCompleted?: (data?: any) => void) {
+		if (this.appConfig.session.account.id === data.ID) {
+			const account = this.prepareAccount(data);
+			this.appConfig.session.account.roles = account.Roles;
+			this.appConfig.session.account.privileges = account.Privileges;
+			this.appConfig.session.account.status = account.Status;
+			this.appConfig.session.account.twoFactors = {
+				required: account.TwoFactorsAuthentication.Required,
+				providers: account.TwoFactorsAuthentication.Providers
+			};
+			AppEvents.broadcast("Account", { Type: "Updated", Info: this.appConfig.session.account });
+		}
 		if (onCompleted !== undefined) {
-			onCompleted();
+			onCompleted(data);
 		}
 	}
 

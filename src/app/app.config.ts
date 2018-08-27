@@ -116,7 +116,7 @@ export class AppConfig {
 
 	/** Gets the state that determines the app is running on iOS (native or web browser) */
 	public static get isRunningOnIOS() {
-		return this.app.platform.startsWith("iOS", 0);
+		return this.app.platform.startsWith("iOS");
 	}
 
 	/** Gets the state that determines the app is running in debug mode */

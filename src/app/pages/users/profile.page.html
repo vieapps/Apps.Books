@@ -38,9 +38,9 @@
 
 <ion-content padding>
 
-	<div *ngIf="mode === 'profile' && profile" class="profile">
+	<div *ngIf="mode === 'profile' && profile" [class]="mode">
 		<figure>
-			<img [src]="profile.Avatar" />
+			<img [src]="profile.avatarUri" />
 		</figure>
 		<h1>
 			{{profile.Name}}
@@ -68,31 +68,89 @@
 		</ion-list>
 	</div>
 
-	<div *ngIf="mode === 'update'" class="update">
-		<app-form
+	<div *ngIf="mode !== 'profile' && mode !== 'otp'" [class]="mode">
+		<app-form *ngIf="mode === 'update'"
 			[form]="update.form"
 			[config]="update.config"
 			[controls]="update.controls"
-			(renderedEvent)="onUpdateFormRendered($event)"></app-form>
-		<ion-list class="avatar">
-			<ion-list-header>Ảnh đại diện</ion-list-header>
-			<ion-select interface="popover" [value]="update.avatar.mode" (ionChange)="update.avatar.mode = $event.detail.value">
-				<ion-select-option value="Avatar">Ảnh tải lên</ion-select-option>
-				<ion-select-option value="Gravatar">Ảnh của Gravatar</ion-select-option>
-			</ion-select>
-			<ion-item [hidden]="update.avatar.mode !== 'Avatar'">
-				<input type="file" accept="image/*" (change)="prepareAvatarImage($event)" />
-			</ion-item>
-			<ion-item>
-				<div [hidden]="update.avatar.mode !== 'Avatar'">
-					<img-cropper #cropper [image]="update.cropper.data" [settings]="update.cropper.settings"></img-cropper>
+			(renderedEvent)="onFormRendered($event)"></app-form>
+	
+		<app-form *ngIf="mode === 'password'"
+			[form]="password.form"
+			[config]="password.config"
+			[controls]="password.controls"
+			(renderedEvent)="onFormRendered($event)"></app-form>
+	
+		<app-form *ngIf="mode === 'email'"
+			[form]="email.form"
+			[config]="email.config"
+			[controls]="email.controls"
+			(renderedEvent)="onFormRendered($event)"></app-form>
+	
+		<app-form *ngIf="mode === 'privileges'"
+			[form]="privileges.form"
+			[config]="privileges.config"
+			[controls]="privileges.controls"
+			(renderedEvent)="onFormRendered($event)"></app-form>
+	
+		<app-form *ngIf="mode === 'invitation'"
+			[form]="invitation.form"
+			[config]="invitation.config"
+			[controls]="invitation.controls"
+			(renderedEvent)="onFormRendered($event)"></app-form>
+	</div>
+
+	<div *ngIf="mode === 'otp'" [class]="mode">
+		<ion-item>
+			<ion-label>
+				Trạng thái xác thực lần hai:
+				<span>
+					{{otp.required ? 'Bật' : otp.uri === '' ? 'Tắt' : 'Đang thiết đặt'}}
+				</span>
+			</ion-label>
+			<ion-button *ngIf="!otp.required && otp.uri === ''" fill="solid" color="primary" (click)="prepareOTPAsync()" item-right>
+				<ion-icon name="power" slot="start"></ion-icon>
+				Bật
+			</ion-button>
+		</ion-item>
+		<ion-list-header *ngIf="otp.required && otp.providers.length > 0">
+			Các phương thức xác thực hiện tại
+		</ion-list-header>
+		<ion-item *ngFor="let provider of otp.providers">
+			<ion-label>
+				{{provider.Label}} @ {{provider.Time | date:'dd/MM/yyyy hh:mm a'}}
+			</ion-label>
+			<ion-button fill="clear" (click)="deleteOTPAsync(provider)" item-right>
+				<ion-icon name="trash" slot="start"></ion-icon>
+				Xoá bỏ
+			</ion-button>
+		</ion-item>
+		<ion-item *ngIf="otp.uri !== ''">
+			<div text-wrap>
+				<div>
+					Mã QR cho ứng dụng Authenticator
 				</div>
 				<div>
-					<img [src]="update.cropper.data.image" [width]="update.cropper.settings.croppedWidth" [height]="update.cropper.settings.croppedHeight" [hidden]="update.avatar.mode !== 'Avatar'" />
-					<img [src]="profile.Gravatar" [width]="update.cropper.settings.croppedWidth" [height]="update.cropper.settings.croppedHeight" [hidden]="update.avatar.mode === 'Avatar'" />
+					<img [src]="otp.uri" />
 				</div>
-			</ion-item>
-		</ion-list>
+				<div>
+					Mở ứng dụng Authenticator trên điện thoại, thêm một tài khoản bằng cách quét mã QR ở trên và nhập mã được sinh trong ứng dụng để xác thực đã hoàn thành quá trình cài đặt.
+				</div>
+				<div>
+					Có thể sử dụng ứng dụng Google Authenticator hoặc Microsoft Authenticator có sẵn trên App Store (iOS) hoặc Play Store (Android).
+				</div>
+			</div>
+		</ion-item>
+		<ion-item *ngIf="otp.uri !== ''" [class.invalid]="!otp.value || otp.value.length !== 6">
+			<ion-label position="stacked">Mã OTP của ứng dụng Authenticator</ion-label>
+			<ion-input maxlength="6" [(ngModel)]="otp.value"></ion-input>
+		</ion-item>
+		<ion-item *ngIf="otp.uri !== ''">
+			<ion-button fill="solid" color="primary" [disabled]="!otp.value || otp.value.length !== 6" (click)="addOTPAsync()">
+				<ion-icon name="done-all" slot="start"></ion-icon>
+				Xác thực
+			</ion-button>
+		</ion-item>
 	</div>
 
 </ion-content>

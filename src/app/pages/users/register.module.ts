@@ -6,6 +6,7 @@ import { AppFormsModule } from "../../components/forms.module";
 import { RegisterAccountPage } from "./register.page";
 
 @NgModule({
+	declarations: [RegisterAccountPage],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -16,8 +17,6 @@ import { RegisterAccountPage } from "./register.page";
 				component: RegisterAccountPage
 			}
 		])
-	],
-	declarations: [RegisterAccountPage],
-	schemas: []
+	]
 })
 export class RegisterAccountPageModule {}

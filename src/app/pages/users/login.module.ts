@@ -6,6 +6,7 @@ import { AppFormsModule } from "../../components/forms.module";
 import { LogInPage } from "./login.page";
 
 @NgModule({
+	declarations: [LogInPage],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -16,8 +17,6 @@ import { LogInPage } from "./login.page";
 				component: LogInPage
 			}
 		])
-	],
-	declarations: [LogInPage],
-	schemas: []
+	]
 })
 export class LogInPageModule {}

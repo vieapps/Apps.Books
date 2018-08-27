@@ -122,11 +122,6 @@ export class Base {
 		}
 	}
 
-	/** Sends a request/info to remote API via WebSocket connection (of the real-time update component) */
-	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: any, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
-		AppRTU.send(request, whenNotReady);
-	}
-
 	/**
 	 * Searchs for instances (sends a request to remote API for searching with GET verb and "x-request" of query parameter)
 	 * @param path The URI path of the remote API to send the request to
@@ -215,6 +210,11 @@ export class Base {
 					}
 				})
 			: searcher;
+	}
+
+	/** Sends a request/info to remote API via WebSocket connection (of the real-time update component) */
+	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: any, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
+		AppRTU.send(request, whenNotReady);
 	}
 
 	/** Prints the log message to console/log file */

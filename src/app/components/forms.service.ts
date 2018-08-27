@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/forms";
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
 import { CompleterData, CompleterItem } from "ng2-completer";
-import { LoadingController, AlertController, ActionSheetController } from "@ionic/angular";
+import { LoadingController, AlertController, ActionSheetController, ModalController, ToastController } from "@ionic/angular";
 import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
 
@@ -270,7 +270,9 @@ export class AppFormsService {
 	constructor (
 		public loadingController: LoadingController,
 		public alertController: AlertController,
-		public actionsheetController: ActionSheetController
+		public actionsheetController: ActionSheetController,
+		public modalController: ModalController,
+		public toastController: ToastController
 	) {
 	}
 
@@ -492,10 +494,13 @@ export class AppFormsService {
 	}
 
 	/** Hides the loading */
-	public async hideLoadingAsync() {
+	public async hideLoadingAsync(onDismiss?: () => void) {
 		if (this._loading !== undefined) {
 			await this._loading.dismiss();
 			this._loading = undefined;
+		}
+		if (onDismiss !== undefined) {
+			onDismiss();
 		}
 	}
 
@@ -525,26 +530,38 @@ export class AppFormsService {
 	}
 
 	/** Hides the action sheet */
-	public async hideActionSheetAsync() {
+	public async hideActionSheetAsync(onDismiss?: () => void) {
 		if (this._actionsheet !== undefined) {
 			await this._actionsheet.dismiss();
 			this._actionsheet = undefined;
 		}
+		if (onDismiss !== undefined) {
+			onDismiss();
+		}
 	}
 
 	/** Shows the alert confirmation box  */
-	public async showAlertAsync(header: string = null, subHeader: string = null, message: string, postProcess: () => void = () => {}, okButtonText: string = null, cancelButtonText: string = null) {
+	public async showAlertAsync(header: string = null, subHeader: string = null, message: string, postProcess: (data?: any) => void = () => {}, okButtonText: string = null, cancelButtonText: string = null, inputs: Array<any> = null) {
 		const buttons = AppUtility.isNotEmpty(cancelButtonText)
-			? [{ text: cancelButtonText, role: "cancel", handler: undefined as () => void }]
+			? [{ text: cancelButtonText, role: "cancel", handler: undefined as (data?: any) => void }]
 			: [];
-		buttons.push({ text: okButtonText || "Đóng", role: undefined as string, handler: () => postProcess() });
-		const alert = await this.alertController.create({
-			header: header || "Chú ý",
-			subHeader: subHeader,
-			backdropDismiss: false,
-			message: message,
-			buttons: buttons
-		});
+		buttons.push({ text: okButtonText || "Đóng", role: undefined as string, handler: (data?: any) => postProcess(data) });
+		const alert = AppUtility.isArray(inputs, true)
+			? await this.alertController.create({
+					header: header || "Chú ý",
+					subHeader: subHeader,
+					backdropDismiss: false,
+					message: message,
+					inputs: inputs,
+					buttons: buttons
+				})
+			: await this.alertController.create({
+					header: header || "Chú ý",
+					subHeader: subHeader,
+					backdropDismiss: false,
+					message: message,
+					buttons: buttons
+				});
 		await Promise.all([
 			this.hideLoadingAsync(),
 			alert.present()
@@ -553,7 +570,54 @@ export class AppFormsService {
 
 	/** Shows the error message (by the alert confirmation box) */
 	public async showErrorAsync(error: any, subHeader?: string, postProcess?: () => void) {
-		await this.showAlertAsync("Lỗi", subHeader, AppUtility.isNotEmpty(error.Message) ? error.Message : "Đã xảy ra lỗi!", postProcess);
+		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
+			? "Email hoặc mật khẩu không đúng!"
+			: AppUtility.isGotCaptchaException(error) || AppUtility.isGotOTPException(error)
+				? "Mã xác thực không đúng"
+				: AppUtility.isNotEmpty(error.Message) ? error.Message : "Đã xảy ra lỗi!";
+		await this.showAlertAsync("Lỗi", subHeader, message, postProcess);
+	}
+
+	/** Shows the modal box */
+	public async showModalAsync(component: any) {
+		await this.hideModalAsync();
+		const modal = await this.modalController.create({
+			component: component,
+			backdropDismiss: false
+		});
+		await modal.present();
+	}
+
+	/** Hides the modal box */
+	public async hideModalAsync(onDismiss?: () => void) {
+		try {
+			await this.modalController.dismiss();
+		}
+		catch (error) {
+		}
+		if (onDismiss !== undefined) {
+			onDismiss();
+		}
+	}
+
+	/** Shows the toast alert message */
+	public async showToastAsync(message: string, duration: number = 1000, position: string = "top", showCloseButton: boolean = false, closeButtonText: string = "close") {
+		const toast = !showCloseButton && duration < 1
+			? await this.toastController.create({
+					message: message,
+					duration: 1000,
+					position: position
+				}
+			)
+			: await this.toastController.create({
+					message: message,
+					duration: duration,
+					position: position,
+					showCloseButton: showCloseButton,
+					closeButtonText: closeButtonText
+				}
+			);
+		await toast.present();
 	}
 
 }

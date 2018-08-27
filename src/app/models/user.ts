@@ -50,6 +50,10 @@ export class UserProfileBase extends BaseModel {
 		return obj;
 	}
 
+	public static get(id: string) {
+		return UserProfile.instances.getValue(id);
+	}
+
 	public copy(source: any, onCompleted?: (data: any) => void) {
 		super.copy(source, data => {
 			if (AppUtility.isNotEmpty(this.BirthDay)) {
@@ -63,6 +67,10 @@ export class UserProfileBase extends BaseModel {
 				onCompleted(data);
 			}
 		});
+	}
+
+	public get avatarUri() {
+		return AppUtility.isNotEmpty(this.Avatar) ? this.Avatar : this.Gravatar;
 	}
 
 }
@@ -84,7 +92,7 @@ export class UserProfile extends UserProfileBase {
 	RatingPoints = new Collections.Dictionary<string, RatingPoint>();
 
 	public static get(id: string) {
-		return UserProfile.instances.getValue(id) as UserProfile;
+		return super.get(id) as UserProfile;
 	}
 
 	public static deserialize(json: any, obj?: UserProfile) {

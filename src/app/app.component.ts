@@ -252,24 +252,22 @@ export class AppComponent {
 			if (type === "Loaded" || type === "Updated") {
 				const profile = this.configSvc.getAccount().profile;
 				this.sidebar.left.title = profile ? profile.Name : this.configSvc.appConfig.app.name;
-				this.sidebar.left.avatar = profile ? profile.Avatar : undefined;
+				this.sidebar.left.avatar = profile ? profile.avatarUri : undefined;
 
 				const items = this.sidebar.left.menu[0].items;
 				if (this.configSvc.isAuthenticated) {
-					if (this.authSvc.canRegisterNewAccounts) {
-						AppUtility.removeAt(items, AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/register-account") === 0));
-					}
-					const index = AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/log-in") === 0);
+					AppUtility.removeAt(items, AppUtility.indexOf(items, item => item.url.startsWith("/register-account")));
+					const index = AppUtility.indexOf(items, item => item.url.startsWith("/log-in"));
 					if (index > -1) {
 						items[index] = this.viewAccountProfileItem;
 					}
-					else if (AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/account-profile") === 0) < 0) {
+					else if (AppUtility.indexOf(items, item => item.url.startsWith("/account-profile")) < 0) {
 						AppUtility.insertAt(items, this.viewAccountProfileItem);
 					}
 				}
 				else {
-					if (AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/log-in") === 0) < 0) {
-						const index = AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/account-profile") === 0);
+					if (AppUtility.indexOf(items, item => item.url.startsWith("/log-in")) < 0) {
+						const index = AppUtility.indexOf(items, item => item.url.startsWith("/account-profile"));
 						if (index > -1) {
 							items[index] = this.loginItem;
 						}
@@ -277,8 +275,8 @@ export class AppComponent {
 							AppUtility.insertAt(items, this.loginItem);
 						}
 					}
-					if (this.authSvc.canRegisterNewAccounts && AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/register-account") === 0) < 0) {
-						const index = AppUtility.indexOf(items, item => AppUtility.pos(item.url, "/log-in") === 0);
+					if (this.authSvc.canRegisterNewAccounts && AppUtility.indexOf(items, item => item.url.startsWith("/register-account")) < 0) {
+						const index = AppUtility.indexOf(items, item => item.url.startsWith("/log-in"));
 						AppUtility.insertAt(items, this.registerAccountItem, index > -1 ? index + 1 : -1);
 					}
 				}
@@ -291,17 +289,24 @@ export class AppComponent {
 		const code = this.configSvc.queryParams["code"];
 		if (AppUtility.isNotEmpty(mode) && AppUtility.isNotEmpty(code)) {
 			await this.userSvc.activateAsync(mode, code,
-				async data => {
+				async () => {
 					await this.initializeAsync(async () => {
 						await Promise.all([
 							TrackingUtility.trackAsync("Kích hoạt", `activate/${mode}`),
-							this.showActivationResultAsync({ Status: "OK", Mode: mode })
+							this.showActivationResultAsync({
+								Status: "OK",
+								Mode: mode
+							})
 						]);
 					}, true);
 				},
 				async error => {
 					await this.initializeAsync(async () => {
-						await this.showActivationResultAsync({ Status: "Error", Mode: mode, Error: error });
+						await this.showActivationResultAsync({
+							Status: "Error",
+							Mode: mode,
+							Error: error
+						});
 					});
 				}
 			);
@@ -336,7 +341,7 @@ export class AppComponent {
 
 	private initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
 		return this.configSvc.initializeAsync(
-			async data => {
+			async () => {
 				// got valid sessions, then run next step
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					PlatformUtility.showLog("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
@@ -396,7 +401,7 @@ export class AppComponent {
 		await TrackingUtility.initializeAsync(this.ga);
 
 		// start the real-time updater
-		AppRTU.start(async () => {
+		AppRTU.start(() => {
 			// patch account & get profile when already authenticated
 			if (this.configSvc.isAuthenticated) {
 				this.configSvc.patchAccount(() => {
@@ -407,10 +412,7 @@ export class AppComponent {
 			// done
 			PlatformUtility.showLog("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 			AppEvents.broadcast("AppIsInitialized", this.configSvc.appConfig.app);
-			await this.appFormsSvc.hideLoadingAsync();
-			if (onCompleted !== undefined) {
-				onCompleted();
-			}
+			this.appFormsSvc.hideLoadingAsync(onCompleted);
 		});
 	}
 

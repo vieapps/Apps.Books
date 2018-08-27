@@ -100,12 +100,13 @@ export class UserService extends BaseService {
 	public get completerDataSource() {
 		return new AppCustomCompleter(
 			term => this.getSearchURI(AppPagination.buildRequest({ Query: term })),
-			data => (data.Objects as Array<any>).map(profile => {
+			data => (data.Objects as Array<any>).map(o => {
+				const profile = UserProfile.deserialize(o);
 				return {
 					title: profile.Name,
 					description: profile.Email,
-					image: AppUtility.isNotEmpty(profile.Avatar) ? profile.Avatar : profile.Gravatar,
-					originalObject: UserProfile.deserialize(profile)
+					image: profile.avatarUri,
+					originalObject: profile
 				};
 			})
 		);
@@ -218,14 +219,19 @@ export class UserService extends BaseService {
 		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while updating email", error, onError));
 	}
 
+	public prepare2FAMethodAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		const path = "users/otp?" + this.configSvc.relatedQuery;
+		return this.readAsync(path, onNext, error => this.error("Error occurred while preparing an 2FA method", error, onError));
+	}
+
 	public add2FAMethodAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp?" + this.configSvc.relatedQuery;
-		return this.updateAsync(path, body, onNext, error => this.error("Error occurred while adding new an 2FA method", error, onError));
+		return this.updateAsync(path, body, data => this.configSvc.updateAccount(data, onNext), error => this.error("Error occurred while adding an 2FA method", error, onError));
 	}
 
 	public delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp?info=" + info + "&" + this.configSvc.relatedQuery;
-		return this.deleteAsync(path, onNext, error => this.error("Error occurred while deleting an 2FA method", error, onError));
+		return this.deleteAsync(path, data => this.configSvc.updateAccount(data, onNext), error => this.error("Error occurred while deleting an 2FA method", error, onError));
 	}
 
 	public getPrivilegesAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {

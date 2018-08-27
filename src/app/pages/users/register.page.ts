@@ -39,8 +39,14 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public ngOnInit() {
-		this._rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
-		this.initializeForm();
+		if (!this.authSvc.canRegisterNewAccounts) {
+			this.appFormsSvc.showToastAsync("Hmmmmm...");
+			this.configSvc.goBack();
+		}
+		else {
+			this._rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
+			this.initializeForm();
+		}
 	}
 
 	public ngOnDestroy() {
