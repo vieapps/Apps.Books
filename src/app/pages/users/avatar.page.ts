@@ -68,7 +68,7 @@ export class AccountAvatarPage implements OnInit {
 				this.configSvc.getAccount().profile = UserProfile.get(this.profile.ID);
 				await this.configSvc.storeProfileAsync(async () => {
 					await TrackingUtility.trackAsync(this.title, "account/avatar");
-					await this.cancelAsync(async () => this.appFormsSvc.showToastAsync("Ảnh đại diện đã được cập nhật..."));
+					await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync("Ảnh đại diện đã được cập nhật..."));
 				});
 			},
 			async error => {

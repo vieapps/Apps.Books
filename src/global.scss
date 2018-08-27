@@ -11,8 +11,10 @@
 @import "~@ionic/angular/css/flex-utils.css";
 
 /* side menu */
-.split-pane.split-pane-visible ion-menu.split-pane-side {
-	max-width: 320px;
+@media only screen and (min-width: 1280px) {
+	.split-pane.split-pane-visible ion-menu.split-pane-side {
+		max-width: 320px;
+	}
 }
 ion-app ion-menu ion-header ion-toolbar ion-thumbnail img {
 	border-radius: 50%;
@@ -30,8 +32,7 @@ ion-app ion-menu ion-header ion-toolbar ion-thumbnail img {
 }
 
 /* completer */
-.completer-container > ng2-completer,
-.completer-holder, .completer-dropdown-holder {
+.completer-container > ng2-completer, .completer-holder, .completer-dropdown-holder, .completer-dropdown {
 	width: 100% !important;
 }
 ion-item.completer-container {
@@ -74,7 +75,6 @@ ion-item.completer-container > ion-label {
 }
 .completer-dropdown {
 	position: static !important;
-	width: 100% !important;
 }
 .completer-title {
 	clear: both;
@@ -82,8 +82,8 @@ ion-item.completer-container > ion-label {
 	width: 100%;
 }
 .completer-image {
-	width: 40px;
-	height: 40px;
+	width: 36px;
+	height: 36px;
 	border-radius: 50%;
 }
 .completer-image-default {

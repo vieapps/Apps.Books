@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { Router, Params, NavigationEnd, NavigationExtras } from "@angular/router";
 
 import { Platform, NavController } from "@ionic/angular";
@@ -13,7 +13,6 @@ import { AppRTU } from "./components/app.rtu";
 import { AppUtility } from "./components/app.utility";
 import { PlatformUtility } from "./components/app.utility.platform";
 import { TrackingUtility } from "./components/app.utility.trackings";
-
 import { AppFormsService } from "./components/forms.service";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
@@ -23,7 +22,7 @@ import { UserService } from "./providers/user.service";
 	selector: "app-root",
 	templateUrl: "app.component.html"
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
 
 	constructor(
 		public router: Router,
@@ -38,7 +37,6 @@ export class AppComponent {
 		public authSvc: AuthenticationService,
 		public userSvc: UserService
 	) {
-		this.initializeApp();
 	}
 
 	sidebar = {
@@ -68,7 +66,7 @@ export class AppComponent {
 		}
 	};
 
-	private initializeApp() {
+	public ngOnInit() {
 		// capture router info
 		this.configSvc.setPreviousUrl("/home");
 		this.router.events.subscribe(event => {
@@ -342,13 +340,10 @@ export class AppComponent {
 	private initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
 		return this.configSvc.initializeAsync(
 			async () => {
-				// got valid sessions, then run next step
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					PlatformUtility.showLog("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.prepareAsync(onCompleted);
 				}
-
-				// register new session (anonymous)
 				else {
 					PlatformUtility.showLog("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.configSvc.registerSessionAsync(
@@ -392,24 +387,16 @@ export class AppComponent {
 	}
 
 	private async prepareAsync(onCompleted?: () => void) {
-		// setup the environment of PWA
 		if (this.configSvc.isWebApp) {
 			PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());
 		}
 
-		// setup tracking
 		await TrackingUtility.initializeAsync(this.ga);
 
-		// start the real-time updater
 		AppRTU.start(() => {
-			// patch account & get profile when already authenticated
 			if (this.configSvc.isAuthenticated) {
-				this.configSvc.patchAccount(() => {
-					this.configSvc.getProfile();
-				}, 345);
+				this.configSvc.patchAccount(() => this.configSvc.getProfile());
 			}
-
-			// done
 			PlatformUtility.showLog("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 			AppEvents.broadcast("AppIsInitialized", this.configSvc.appConfig.app);
 			this.appFormsSvc.hideLoadingAsync(onCompleted);
