@@ -1,17 +1,12 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { AbstractControl, FormGroup } from "@angular/forms";
+import { FormGroup } from "@angular/forms";
 import * as Rx from "rxjs";
-import { LoadingController, AlertController } from "@ionic/angular";
 import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { UserService } from "./../../providers/user.service";
-import { CompleterData, CompleterItem } from "ng2-completer";
-import { AppCustomCompleter } from "../../components/app.completer";
-import { AppPagination } from "../../components/app.pagination";
-import { UserProfile } from "../../models/user";
 
 @Component({
 	selector: "page-register",
@@ -21,8 +16,6 @@ import { UserProfile } from "../../models/user";
 export class RegisterAccountPage implements OnInit, OnDestroy {
 
 	constructor (
-		public loadingController: LoadingController,
-		public alertController: AlertController,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -188,38 +181,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 					MaxLength: 15,
 				}
 			},
-			/**
-			{
-				Key: "Refer",
-				Type: "Completer",
-				Options: {
-					Type: "Account",
-					Label: "Refer",
-					MinLength: 3,
-					CompleterOptions: {
-						DataSource: new AppCustomCompleter(
-							term => "users/profile/search?x-request=" + AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })) + "&" + this.configSvc.relatedQuery,
-							data => (data.Objects as Array<any>).map(a => {
-								return {
-									title: a.Name,
-									description: a.Email,
-									image: a.Avatar,
-									originalObject: UserProfile.deserialize(a)
-								} as CompleterItem;
-							})
-						),
-						Handlers: {
-							Initialize: undefined,
-							GetInitialValue: undefined,
-							OnItemSelected: (formControl: AbstractControl, item: CompleterItem) => {
-								console.log("Control", formControl);
-								console.log("Item", item);
-							}
-						}
-					}
-				}
-			},
-			/**/
 			{
 				Key: "Captcha",
 				Type: "Captcha",

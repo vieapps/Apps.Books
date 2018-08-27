@@ -99,6 +99,11 @@ export class AppConfig {
 		section: undefined as string
 	};
 
+	/** Gets the extra configuration */
+	public static extras: {
+		[key: string]: any
+	} = {};
+
 	/** Gets the state that determines is native app */
 	public static get isNativeApp() {
 		return "NTA" === this.app.mode;
@@ -107,6 +112,11 @@ export class AppConfig {
 	/** Gets the state that determines is web progressive app */
 	public static get isWebApp() {
 		return "PWA" === this.app.mode;
+	}
+
+	/** Gets the state that determines the app is running on iOS (native or web browser) */
+	public static get isRunningOnIOS() {
+		return this.app.platform.startsWith("iOS", 0);
 	}
 
 	/** Gets the state that determines the app is running in debug mode */
@@ -118,11 +128,6 @@ export class AppConfig {
 	public static get isOffline() {
 		return this.app.offline;
 	}
-
-	/** Gets the extra configuration */
-	public static extras: {
-		[key: string]: any
-	} = {};
 
 	/** Gets the reading options fo the book app */
 	public static readingOptions = {

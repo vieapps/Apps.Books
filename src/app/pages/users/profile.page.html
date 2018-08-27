@@ -73,28 +73,26 @@
 			[form]="update.form"
 			[config]="update.config"
 			[controls]="update.controls"
-			(renderedEvent)="onUpdateFormRendered($event)"></app-form>	
-		<div class="avatar">
-			<ion-radio-group [value]="update.avatar.mode" (ionChange)="update.avatar.mode = $event.detail.value">
-				<ion-list-header>Ảnh đại diện</ion-list-header>
-				<ion-item>
-					<ion-label>Tự tải lên</ion-label>
-					<ion-radio value="Avatar"></ion-radio>
-				</ion-item>
-				<ion-item>
-					<ion-label>Sử dụng dịch vụ của Gravatar</ion-label>
-					<ion-radio value="Gravatar"></ion-radio>
-				</ion-item>
-			</ion-radio-group>
-			<div [hidden]="update.avatar.mode !== 'Avatar'">
+			(renderedEvent)="onUpdateFormRendered($event)"></app-form>
+		<ion-list class="avatar">
+			<ion-list-header>Ảnh đại diện</ion-list-header>
+			<ion-select interface="popover" [value]="update.avatar.mode" (ionChange)="update.avatar.mode = $event.detail.value">
+				<ion-select-option value="Avatar">Ảnh tải lên</ion-select-option>
+				<ion-select-option value="Gravatar">Ảnh của Gravatar</ion-select-option>
+			</ion-select>
+			<ion-item [hidden]="update.avatar.mode !== 'Avatar'">
 				<input type="file" accept="image/*" (change)="prepareAvatarImage($event)" />
-				<img-cropper #avatarcropper [image]="update.cropper.data" [settings]="update.cropper.settings"></img-cropper>
-			</div>
-			<div>
-				<img [src]="update.cropper.data.image" [width]="update.cropper.settings.croppedWidth" [height]="update.cropper.settings.croppedHeight" [hidden]="update.avatar.mode !== 'Avatar'" />
-				<img [src]="profile.Gravatar" [width]="update.cropper.settings.croppedWidth" [height]="update.cropper.settings.croppedHeight" [hidden]="update.avatar.mode === 'Avatar'" />
-			</div>
-		</div>
+			</ion-item>
+			<ion-item>
+				<div [hidden]="update.avatar.mode !== 'Avatar'">
+					<img-cropper #cropper [image]="update.cropper.data" [settings]="update.cropper.settings"></img-cropper>
+				</div>
+				<div>
+					<img [src]="update.cropper.data.image" [width]="update.cropper.settings.croppedWidth" [height]="update.cropper.settings.croppedHeight" [hidden]="update.avatar.mode !== 'Avatar'" />
+					<img [src]="profile.Gravatar" [width]="update.cropper.settings.croppedWidth" [height]="update.cropper.settings.croppedHeight" [hidden]="update.avatar.mode === 'Avatar'" />
+				</div>
+			</ion-item>
+		</ion-list>
 	</div>
 
 </ion-content>

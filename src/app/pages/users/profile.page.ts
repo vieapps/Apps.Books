@@ -102,7 +102,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any
 	};
-	@ViewChild("avatarcropper") cropperCtrl: ImageCropperComponent;
+	@ViewChild("cropper") cropper: ImageCropperComponent;
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 	private _rxSubject = new Rx.Subject<{ mode: string, title: string }>();
 
@@ -124,7 +124,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			if (this.mode === "profile" && "Updated" === info.args.Type) {
 				const id = this.configSvc.getAccount().id;
 				if (this.profile.ID === id) {
-					this.profile = UserProfile.instances.getValue(id) as UserProfile;
+					this.profile = UserProfile.get(id);
 				}
 			}
 		}, "UserProfilePage");
@@ -190,7 +190,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 
 		this.buttons.invite = this.mode === "profile" && this.authSvc.canSendInvitations
-			? { text: "Mời bạn bè", icon: "people", handler: () => this.openInvitation() }
+			? { text: "Mời bạn bè", icon: "people", handler: () => this.sendInvitation() }
 			: undefined;
 	}
 
@@ -241,7 +241,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				if (this.profile === undefined) {
 					await TrackingUtility.trackAsync(this.title, "/user/profile");
 				}
-				this.profile = UserProfile.instances.getValue(this.id || this.configSvc.getAccount().id) as UserProfile;
+				this.profile = UserProfile.get(this.id || this.configSvc.getAccount().id);
 				this.setMode("profile", "Thông tin tài khoản");
 				await this.appFormsSvc.hideLoadingAsync();
 			},
@@ -346,6 +346,26 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 					ReadOnly: true
 				}
 			},
+			/**
+			{
+				Key: "Refer",
+				Type: "Completer",
+				Options: {
+					Type: "Account",
+					Label: "Refer",
+					MinLength: 3,
+					CompleterOptions: {
+						DataSource: this.userSvc.completerDataSource,
+						Handlers: {
+							OnItemSelected: (formControl, selectedItem) => {
+								console.log("Control", formControl);
+								console.log("Item", selectedItem);
+							}
+						}
+					}
+				}
+			},
+			/**/
 			{
 				Key: "ID",
 				Excluded: true
@@ -373,16 +393,17 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	}
 
 	public prepareAvatarImage($event) {
+		console.log("Avatar event", $event);
 		const image = new Image();
 		const fileReader = new FileReader();
 		fileReader.onloadend = (loadEvent: any) => {
 			image.src = loadEvent.target.result;
-			this.cropperCtrl.setImage(image);
+			this.cropper.setImage(image);
 		};
 		fileReader.readAsDataURL($event.target.files[0]);
 	}
 
-	private uploadAvatarImage(onCompleted?: () => void) {
+	private uploadAvatarImage(onNext: () => void) {
 		if (this.update.avatar.mode === "Avatar" && this.update.cropper.data.image !== "" && this.update.cropper.data.image !== this.update.avatar.current) {
 			this._rxSubscriptions.push(AppAPI.send("POST", this.configSvc.appConfig.URIs.files + "avatars", { "x-as-base64": "yes" }, JSON.stringify({ Data: this.update.cropper.data.image }))
 				.pipe(map(response => response.json()))
@@ -393,24 +414,18 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 							image: data.Uri,
 							original: undefined
 						};
-						if (onCompleted !== undefined) {
-							onCompleted();
-						}
+						onNext();
 					},
 					error => {
 						PlatformUtility.showError("Error occurred while uploading avatar image", error);
-						if (onCompleted !== undefined) {
-							onCompleted();
-						}
+						onNext();
 					}
 				)
 			);
 		}
 		else {
 			this.update.avatar.uploaded = "";
-			if (onCompleted !== undefined) {
-				onCompleted();
-			}
+			onNext();
 		}
 	}
 
@@ -429,12 +444,13 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				: "";
 			await this.userSvc.updateProfileAsync(this.update.value,
 				async data => {
-					this.configSvc.appConfig.session.account.profile = UserProfile.instances.getValue(this.profile.ID) as UserProfile;
-					await this.configSvc.storeSessionAsync(async () => {
-						await TrackingUtility.trackAsync(this.title, "account/update");
-						await this.appFormsSvc.hideLoadingAsync();
-						await this.openProfileAsync();
-					});
+					if (this.profile.ID === data.ID) {
+						this.configSvc.appConfig.session.account.profile = UserProfile.get(this.profile.ID);
+						await this.configSvc.storeSessionAsync();
+					}
+					await TrackingUtility.trackAsync(this.title, "account/update");
+					await this.appFormsSvc.hideLoadingAsync();
+					await this.openProfileAsync();
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
@@ -469,7 +485,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	private async updatePrivilegesAsync() {
 	}
 
-	private openInvitation() {
+	private sendInvitation() {
 		this.setMode("invitation", "Mời bạn bè");
 	}
 

@@ -70,7 +70,8 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 	}
 
 	public get invalid() {
-		return this.formControl.invalid && this.formControl.dirty;
+		const formControl = this.formControl;
+		return formControl !== undefined && formControl.invalid && formControl.dirty;
 	}
 
 	public get isFormControl() {

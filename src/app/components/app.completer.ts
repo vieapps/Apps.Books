@@ -8,27 +8,29 @@ import { PlatformUtility } from "./app.utility.platform";
 export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements CompleterData {
 
 	constructor(
-		public onBuildRequest: (term: string) => string,
+		public onRequest: (term: string) => string,
 		public onConvert: (data: any) => Array<CompleterItem>,
 		public onCancel?: () => void
 	) {
 		super();
 	}
 
-	private _rxSubscription: Rx.Subscription = undefined;
+	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public search(term: string) {
-		this._rxSubscription = AppAPI.get(this.onBuildRequest(term))
+		this._rxSubscriptions.push(AppAPI.get(this.onRequest(term))
 			.pipe(map(response => response.json()))
-			.subscribe(data => this.onConvert(data), error => PlatformUtility.showError("[Custom Completer]: Error occurred while fetching remote data", error));
+			.subscribe(
+				data => this.next(this.onConvert(data)),
+				error => PlatformUtility.showError("[Custom Completer]: Error occurred while fetching remote data", error)
+			)
+		);
 	}
 
 	public cancel() {
 		if (this.onCancel !== undefined) {
 			this.onCancel();
 		}
-		if (this._rxSubscription !== undefined) {
-			this._rxSubscription.unsubscribe();
-		}
+		this._rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 }

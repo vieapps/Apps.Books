@@ -31,10 +31,8 @@ export class ConfigurationService extends BaseService {
 		public browserTitle: Title
 	) {
 		super(http, "Configuration");
-		AppEvents.on("Session", async info => {
-			if ("Register" === info.args.Type) {
-				await this.loadGeoMetaAsync();
-			}
+		AppEvents.on("AppIsInitialized", async info => {
+			await this.loadGeoMetaAsync();
 		});
 	}
 
@@ -217,7 +215,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Updates the session and stores into storage */
-	public updateSessionAsync(session: any, onCompleted?: (data?: any) => void) {
+	public updateSessionAsync(session: any, onCompleted?: (data?: any) => void, dontStore?: boolean) {
 		if (AppUtility.isNotEmpty(session.ID)) {
 			this.appConfig.session.id = session.ID;
 		}
@@ -252,7 +250,14 @@ export class ConfigurationService extends BaseService {
 			}
 		}
 
-		return this.storeSessionAsync(onCompleted);
+		if (AppUtility.isTrue(dontStore)) {
+			if (onCompleted !== undefined) {
+				onCompleted(this.appConfig.session);
+			}
+		}
+		else {
+			return this.storeSessionAsync(onCompleted);
+		}
 	}
 
 	/** Loads the session from storage */

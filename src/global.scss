@@ -74,10 +74,7 @@ ion-item.completer-container > ion-label {
 }
 .completer-dropdown {
 	position: static !important;
-	max-height: 160px !important;
 	width: 100% !important;
-	overflow-y: scroll !important;
-	overflow-x: hidden;
 }
 .completer-title {
 	clear: both;
@@ -88,4 +85,7 @@ ion-item.completer-container > ion-label {
 	width: 40px;
 	height: 40px;
 	border-radius: 50%;
+}
+.completer-image-default {
+	background-image: none !important;
 }

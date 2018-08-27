@@ -3,8 +3,8 @@ import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/for
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
 import { CompleterData, CompleterItem } from "ng2-completer";
 import { LoadingController, AlertController, ActionSheetController } from "@ionic/angular";
+import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
-import { PlatformUtility } from "./app.utility.platform";
 
 /** Configuration of a control in the dynamic forms */
 export class AppFormsControl {
@@ -97,16 +97,16 @@ export class AppFormsControl {
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
 		control = control || new AppFormsControl();
 		control.Order = options.Order || options.order || order || 0;
+		control.Extras = options.Extras || options.extras || {};
 
 		control.Key = options.Key || options.key || (alternativeKey !== undefined ? `${alternativeKey}_${control.Order}` : `c_${control.Order}`);
 		control.Type = options.Type || options.type || "TextBox";
+
+		control.Excluded = !!(options.Excluded || options.excluded);
 		control.Required = !control.Excluded && !!options.Required;
 
 		control.Validators = options.Validators;
 		control.AsyncValidators = options.AsyncValidators;
-
-		control.Excluded = !!(options.Excluded || options.excluded);
-		control.Extras = options.Extras || options.extras || {};
 
 		const controlOptions = options.Options || options.options;
 		if (controlOptions !== undefined && controlOptions !== null) {
@@ -123,7 +123,7 @@ export class AppFormsControl {
 			control.Options.Description = controlOptions.Description || controlOptions.description;
 			const descriptionOptions = controlOptions.DescriptionOptions || controlOptions.descriptionoptions;
 			if (descriptionOptions !== undefined && descriptionOptions !== null) {
-				control.Options.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--platform-label-css", "label " + (PlatformUtility.isAppleOS ? "label-ios" : "label-md")).replace("--description-label-css", "description");
+				control.Options.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--description-label-css", "description");
 				control.Options.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
 			}
 
@@ -504,13 +504,16 @@ export class AppFormsService {
 		return {
 			text: text,
 			role: role,
-			icon: PlatformUtility.isAppleOS ? undefined : icon,
+			icon: icon,
 			handler: handler
 		};
 	}
 
 	/** Shows the action sheet */
 	public async showActionSheetAsync(buttons: Array<{ text: string, role: string, icon: string, handler: () => void }>, backdropDismiss?: boolean) {
+		if (AppConfig.isRunningOnIOS) {
+			buttons.forEach(button => button.icon = undefined);
+		}
 		this._actionsheet = await this.actionsheetController.create({
 			buttons: buttons,
 			backdropDismiss: backdropDismiss

@@ -8,8 +8,6 @@ export class UserProfileBase extends BaseModel {
 
 	constructor() {
 		super();
-		this.Gender = "NotProvided";
-		this.Status = "Activated";
 	}
 
 	/** All user profile instances */
@@ -21,7 +19,7 @@ export class UserProfileBase extends BaseModel {
 	FirstName = "";
 	LastName = "";
 	BirthDay = "";
-	Gender = "";
+	Gender = "NotProvided";
 	Address = "";
 	County = "";
 	Province = "";
@@ -38,7 +36,7 @@ export class UserProfileBase extends BaseModel {
 	LastUpdated = new Date();
 
 	// additional properties
-	Status = "";
+	Status = "Activated";
 	Joined = new Date();
 	LastAccess = new Date();
 
@@ -74,18 +72,20 @@ export class UserProfile extends UserProfileBase {
 
 	constructor() {
 		super();
-		this.Level = "Normal";
-		this.Reputation = "Unknown";
 	}
 
-	Level = "";
-	Reputation = "";
+	Level = "Normal";
+	Reputation = "Unknown";
 	TotalPoints = 0;
 	RestPoints = 0;
 	TotalRewards = 0;
 	TotalContributions = 0;
 	LastSync = new Date();
 	RatingPoints = new Collections.Dictionary<string, RatingPoint>();
+
+	public static get(id: string) {
+		return UserProfile.instances.getValue(id) as UserProfile;
+	}
 
 	public static deserialize(json: any, obj?: UserProfile) {
 		obj = obj || new UserProfile();
@@ -97,7 +97,7 @@ export class UserProfile extends UserProfileBase {
 		if (AppUtility.isObject(data, true)) {
 			const profile = data instanceof UserProfile
 				? data as UserProfile
-				: UserProfile.deserialize(data, UserProfile.instances.getValue(data.ID) as UserProfile);
+				: UserProfile.deserialize(data, UserProfile.get(data.ID));
 			UserProfile.instances.setValue(profile.ID, profile);
 		}
 	}

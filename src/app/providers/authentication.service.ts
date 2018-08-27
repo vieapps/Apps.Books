@@ -121,15 +121,16 @@ export class AuthenticationService extends BaseService {
 		return this.deleteAsync("users/session",
 			async data => {
 				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
-				await this.configSvc.updateSessionAsync(data);
-				await this.configSvc.registerSessionAsync(() => {
-					this.configSvc.patchSession(() => {
-						this.log("Log out successful", this.configSvc.isDebug ? data : "");
-						if (onNext !== undefined) {
-							onNext(data);
-						}
-					});
-				}, onError);
+				await this.configSvc.updateSessionAsync(data, async () => {
+					await this.configSvc.registerSessionAsync(session => {
+						this.configSvc.patchSession(() => {
+							this.log("Log out successful", this.configSvc.isDebug ? data : "");
+							if (onNext !== undefined) {
+								onNext(session);
+							}
+						});
+					}, onError);
+				}, true);
 			},
 			error => this.error("Error occurred while logging out", error, onError)
 		);
