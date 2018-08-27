@@ -245,9 +245,7 @@ export class ConfigurationService extends BaseService {
 
 		if (this.isAuthenticated) {
 			this.initializeAccount();
-			if (!this.appConfig.session.account.id) {
-				this.appConfig.session.account.id = this.appConfig.session.token.uid;
-			}
+			this.appConfig.session.account.id = this.appConfig.session.token.uid;
 		}
 
 		if (AppUtility.isTrue(dontStore)) {

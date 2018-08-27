@@ -153,15 +153,12 @@ export class UserService extends BaseService {
 		const path = "users/activate?mode=" + mode + "&code=" + code + "&" + this.configSvc.relatedQuery;
 		return this.readAsync(path,
 			async data => {
-				await this.configSvc.updateSessionAsync(data, async () => {
-					this.configSvc.appConfig.session.account.id = this.configSvc.appConfig.session.token.uid;
-					await this.configSvc.storeSessionAsync(() => {
-						this.log("Activated...", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-						if (onNext !== undefined) {
-							onNext(data);
-						}
-					});
-				}, true);
+				await this.configSvc.updateSessionAsync(data, () => {
+					this.log("Activated...", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+					if (onNext !== undefined) {
+						onNext(data);
+					}
+				});
 			},
 			error => this.error(`Error occurred while activating (${mode})`, error, onError)
 		);
