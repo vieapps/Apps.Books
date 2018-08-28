@@ -88,15 +88,17 @@ export class AppComponent implements OnInit {
 			// setup event handlers
 			this.setupEventHandlers();
 
-			// prepare status bar
-			this.statusBar.styleDefault();
-			if ("iOS" === this.device.platform && this.device.model.startsWith("iPhone1") && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
-				this.statusBar.backgroundColorByHexString("f8f8f8");
-			}
-			this.statusBar.overlaysWebView(false);
+			if (this.platform.is("cordova")) {
+				// prepare status bar
+				this.statusBar.styleDefault();
+				if ("iOS" === this.device.platform && this.device.model.startsWith("iPhone1") && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
+					this.statusBar.backgroundColorByHexString("f8f8f8");
+				}
+				this.statusBar.overlaysWebView(false);
 
-			// hide the splash screen
-			this.splashScreen.hide();
+				// hide the splash screen
+				this.splashScreen.hide();
+			}
 
 			// prepare the app
 			this.configSvc.prepareAsync(async () => {
@@ -254,18 +256,18 @@ export class AppComponent implements OnInit {
 
 				const items = this.sidebar.left.menu[0].items;
 				if (this.configSvc.isAuthenticated) {
-					AppUtility.removeAt(items, AppUtility.indexOf(items, item => item.url.startsWith("/register-account")));
-					const index = AppUtility.indexOf(items, item => item.url.startsWith("/log-in"));
+					AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith("/register-account")));
+					const index = items.findIndex(item => item.url.startsWith("/log-in"));
 					if (index > -1) {
 						items[index] = this.viewAccountProfileItem;
 					}
-					else if (AppUtility.indexOf(items, item => item.url.startsWith("/account-profile")) < 0) {
+					else if (items.findIndex(item => item.url.startsWith("/account-profile")) < 0) {
 						AppUtility.insertAt(items, this.viewAccountProfileItem);
 					}
 				}
 				else {
-					if (AppUtility.indexOf(items, item => item.url.startsWith("/log-in")) < 0) {
-						const index = AppUtility.indexOf(items, item => item.url.startsWith("/account-profile"));
+					if (items.findIndex(item => item.url.startsWith("/log-in")) < 0) {
+						const index = items.findIndex(item => item.url.startsWith("/account-profile"));
 						if (index > -1) {
 							items[index] = this.loginItem;
 						}
@@ -273,8 +275,8 @@ export class AppComponent implements OnInit {
 							AppUtility.insertAt(items, this.loginItem);
 						}
 					}
-					if (this.authSvc.canRegisterNewAccounts && AppUtility.indexOf(items, item => item.url.startsWith("/register-account")) < 0) {
-						const index = AppUtility.indexOf(items, item => item.url.startsWith("/log-in"));
+					if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith("/register-account")) < 0) {
+						const index = items.findIndex(item => item.url.startsWith("/log-in"));
 						AppUtility.insertAt(items, this.registerAccountItem, index > -1 ? index + 1 : -1);
 					}
 				}

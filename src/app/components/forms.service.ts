@@ -5,6 +5,7 @@ import { CompleterData, CompleterItem } from "ng2-completer";
 import { LoadingController, AlertController, ActionSheetController, ModalController, ToastController } from "@ionic/angular";
 import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
+import { PlatformUtility } from "./app.utility.platform";
 
 /** Configuration of a control in the dynamic forms */
 export class AppFormsControl {
@@ -93,6 +94,36 @@ export class AppFormsControl {
 		AsArray: boolean,
 		Controls: Array<AppFormsControl>
 	} = undefined;
+
+	/** Gets the reference to the element of this control */
+	public get elementRef() {
+		return this.Extras["_ctrl:ElementRef"];
+	}
+
+	/** Sets the reference to the element of this control */
+	public set elementRef(value: any) {
+		this.Extras["_ctrl:ElementRef"] = value;
+	}
+
+	/** Gets uri of the captcha image */
+	public get captchaUri() {
+		return this.Extras["_ctrl:CaptchaUri"];
+	}
+
+	/** Sets uri of the captcha image */
+	public set captchaUri(value: string) {
+		this.Extras["_ctrl:CaptchaUri"] = value;
+	}
+
+	/** Gets the reference to the next control */
+	public get next() {
+		return this.Extras["_ctrl:Next"];
+	}
+
+	/** Sets the reference to the next control */
+	public set next(value: AppFormsControl) {
+		this.Extras["_ctrl:Next"] = value;
+	}
 
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
 		control = control || new AppFormsControl();
@@ -250,16 +281,9 @@ export class AppFormsControl {
 		return control;
 	}
 
-	/** Gets uri of the captcha image */
-	public get captchaUri() {
-		return this.Type === "Captcha" ? this.Extras["Uri"] : undefined;
-	}
-
-	/** Sets uri of the captcha image */
-	public set captchaUri(value: string) {
-		if (this.Type === "Captcha") {
-			this.Extras["Uri"] = value;
-		}
+	/** Sets focus into this control */
+	public focus(defer?: number) {
+		PlatformUtility.focus(this.elementRef);
 	}
 
 }
@@ -280,10 +304,20 @@ export class AppFormsService {
 	private _actionsheet = undefined;
 	private _modal = undefined;
 
+	private prepareNexts(controls: Array<AppFormsControl>) {
+		for (let index = 0; index < controls.length - 1; index ++) {
+			controls[index].next = controls[index + 1];
+			if (controls[index].SubControls !== undefined) {
+				this.prepareNexts(controls[index].SubControls.Controls);
+			}
+		}
+	}
+
 	/** Gets the definition of all controls */
 	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
 		controls = controls || new Array<AppFormsControl>();
 		config.map((options, order) => new AppFormsControl(options, order)).sort((a, b) => a.Order - b.Order).forEach(control => controls.push(control));
+		this.prepareNexts(controls);
 		return controls;
 	}
 
@@ -303,6 +337,7 @@ export class AppFormsService {
 				this.updateControls(control.SubControls.Controls, value[control.Key]);
 			}
 		});
+		this.prepareNexts(controls);
 	}
 
 	/** Builds the form */
@@ -413,40 +448,61 @@ export class AppFormsService {
 		this.buildForm(form, controls, value);
 	}
 
-	/** Highlights all invalid controls (by mark as dirty on all invalid controls) */
+	/** Highlights all invalid controls (by mark as dirty on all invalid controls) and set focus into first invalid control */
 	public highlightInvalids(form: FormGroup) {
-		this.highlightInvalidsFormGroup(form);
+		PlatformUtility.focus(this.highlightInvalidsFormGroup(form, form["_controls"] as Array<AppFormsControl>), 123);
 	}
 
-	private highlightInvalidsFormGroup(formGroup: FormGroup) {
+	private highlightInvalidsFormGroup(formGroup: FormGroup, controls: Array<AppFormsControl>) {
+		let first: AppFormsControl;
 		Object.keys(formGroup.controls).forEach(key => {
-			const control = formGroup.controls[key];
+			const formControl = formGroup.controls[key];
+			if (formControl.invalid) {
+				const control = controls.find(ctrl => ctrl.Key === key);
+				const subcontrols = control !== undefined && control.SubControls !== undefined ? control.SubControls.Controls : undefined;
+				if (formControl instanceof FormGroup) {
+					first = first || this.highlightInvalidsFormGroup(formControl as FormGroup, subcontrols);
+				}
+				else if (formControl instanceof FormArray) {
+					first = first || this.highlightInvalidsFormArray(formControl as FormArray, subcontrols);
+				}
+				else {
+					formControl.markAsDirty();
+					first = first || control;
+				}
+			}
+		});
+		return first;
+	}
+
+	private highlightInvalidsFormArray(formArray: FormArray, controls: Array<AppFormsControl>) {
+		let first: AppFormsControl;
+		formArray.controls.forEach((control, index) => {
 			if (control.invalid) {
 				if (control instanceof FormGroup) {
-					this.highlightInvalidsFormGroup(control as FormGroup);
+					first = first || this.highlightInvalidsFormGroup(control as FormGroup, controls[index] !== undefined && controls[index].SubControls !== undefined ? controls[index].SubControls.Controls : undefined);
 				}
 				else if (control instanceof FormArray) {
-					this.highlightInvalidsFormArray(control as FormArray);
+					first = first || this.highlightInvalidsFormArray(control as FormArray, controls[index] !== undefined && controls[index].SubControls !== undefined ? controls[index].SubControls.Controls : undefined);
 				}
 				else {
 					control.markAsDirty();
+					first = first || controls[index];
 				}
 			}
 		});
+		return first;
 	}
 
-	private highlightInvalidsFormArray(formArray: FormArray) {
-		formArray.controls.filter(control => control.invalid).forEach(control => {
-			if (control instanceof FormGroup) {
-				this.highlightInvalidsFormGroup(control as FormGroup);
-			}
-			else if (control instanceof FormArray) {
-				this.highlightInvalidsFormArray(control as FormArray);
-			}
-			else {
-				control.markAsDirty();
-			}
-		});
+	/** Sets focus into next control of the form */
+	public focusNext(control: AppFormsControl) {
+		let nextControl = control.next;
+		while (nextControl !== undefined && nextControl.Excluded) {
+			nextControl = nextControl.next;
+		}
+		if (nextControl !== undefined) {
+			nextControl.focus(AppConfig.isRunningOnIOS ? 345 : 13);
+		}
 	}
 
 	/** Checks values of two controls are matched or not */
@@ -467,16 +523,12 @@ export class AppFormsService {
 	/** Checks value of the control is matched or not with other control */
 	public isMatched(other: string): ValidatorFn {
 		return (formControl: AbstractControl): { [key: string]: any } | null => {
-			const parentControl = formControl.parent;
-			if (parentControl instanceof FormGroup) {
-				const otherControl = (parentControl as FormGroup).controls[other];
-				if (otherControl !== undefined && otherControl.value !== formControl.value) {
-					formControl.setErrors({ notEquivalent: true });
-					return { notEquivalent: true };
-				}
-				else {
-					return null;
-				}
+			const otherControl = formControl.parent instanceof FormGroup
+				? (formControl.parent as FormGroup).controls[other]
+				: undefined;
+			if (otherControl !== undefined && otherControl.value !== formControl.value) {
+				formControl.setErrors({ notEquivalent: true });
+				return { notEquivalent: true };
 			}
 			else {
 				return null;

@@ -221,7 +221,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		await this.appFormsSvc.showActionSheetAsync(this.actions, true);
 	}
 
-	public onFormRendered($event) {
+	public onFormInitialized($event) {
 		if (this.update.config === $event.config) {
 			this.update.form.patchValue(this.profile);
 		}
@@ -288,10 +288,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 								Value: "Female",
 								Label: "Nữ"
 							}
-						],
-						AsBoxes: false,
-						Multiple: false,
-						Interface: "alert"
+						]
 					},
 				}
 			},
@@ -621,7 +618,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			async () => await this.authSvc.logOutAsync(
 				async () => {
 					await TrackingUtility.trackAsync("Đăng xuất", "session/log-out");
-					if (AppUtility.pos(this.configSvc.previousUrl, "/log-in") > -1 || AppUtility.pos(this.configSvc.previousUrl, "/account-profile") > -1) {
+					if (this.configSvc.previousUrl.startsWith("/log-in") || this.configSvc.previousUrl.startsWith("/account-profile")) {
 						this.configSvc.goHome();
 					}
 					else {

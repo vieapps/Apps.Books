@@ -9,21 +9,22 @@ export class TrackingUtility {
 
 	/** Initializes the tracking objects (Google Analytics, Facebook, ...) */
 	public static initializeAsync(ga?: GoogleAnalytics) {
+		const promises = new Array<Promise<void>>();
+		// Google Analytics
 		if (this._ga === undefined && ga !== undefined && AppUtility.isNotEmpty(AppConfig.tracking.google)) {
 			this._ga = ga;
-			return this._ga.startTrackerWithId(AppConfig.tracking.google)
+			promises.push(this._ga.startTrackerWithId(AppConfig.tracking.google)
 				.then(() => {
 					this._ga.setAppVersion(AppConfig.app.version);
 					console.log("[Tracking]: Google Analytics is ready now...", AppConfig.isDebug ? this._ga : "");
 				})
 				.catch(error => {
-					console.error("[Tracking]: Error occurred while initializing Google Analytics" + AppUtility.getErrorMessage(error));
+					console.error("[Tracking]: Error occurred while initializing Google Analytics => " + AppUtility.getErrorMessage(error));
 					this._ga = undefined;
-				});
+				})
+			);
 		}
-		else {
-			return undefined;
-		}
+		return Promise.all(promises);
 	}
 
 	/** Tracks a view of an app page/screen */

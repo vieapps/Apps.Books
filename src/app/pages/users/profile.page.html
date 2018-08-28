@@ -73,31 +73,31 @@
 			[form]="update.form"
 			[config]="update.config"
 			[controls]="update.controls"
-			(renderedEvent)="onFormRendered($event)"></app-form>
+			(initEvent)="onFormInitialized($event)"></app-form>
 	
 		<app-form *ngIf="mode === 'password'"
 			[form]="password.form"
 			[config]="password.config"
 			[controls]="password.controls"
-			(renderedEvent)="onFormRendered($event)"></app-form>
+			(initEvent)="onFormInitialized($event)"></app-form>
 	
 		<app-form *ngIf="mode === 'email'"
 			[form]="email.form"
 			[config]="email.config"
 			[controls]="email.controls"
-			(renderedEvent)="onFormRendered($event)"></app-form>
+			(initEvent)="onFormInitialized($event)"></app-form>
 	
-		<app-form *ngIf="mode === 'privileges'"
-			[form]="privileges.form"
-			[config]="privileges.config"
-			[controls]="privileges.controls"
-			(renderedEvent)="onFormRendered($event)"></app-form>
-	
-		<app-form *ngIf="mode === 'invitation'"
+		<app-form *ngIf="mode === 'invitation' || mode === 'invitationWithPrivileges'"
 			[form]="invitation.form"
 			[config]="invitation.config"
 			[controls]="invitation.controls"
-			(renderedEvent)="onFormRendered($event)"></app-form>
+			(initEvent)="onFormInitialized($event)"></app-form>
+	
+		<app-form *ngIf="mode === 'privileges' || mode === 'invitationWithPrivileges'"
+			[form]="privileges.form"
+			[config]="privileges.config"
+			[controls]="privileges.controls"
+			(initEvent)="onFormInitialized($event)"></app-form>
 	</div>
 
 	<div *ngIf="mode === 'otp'" [class]="mode">
@@ -141,12 +141,12 @@
 				</div>
 			</div>
 		</ion-item>
-		<ion-item *ngIf="otp.uri !== ''" [class.invalid]="!otp.value || otp.value.length !== 6">
+		<ion-item *ngIf="otp.uri !== ''" [class.invalid]="!otp.value || otp.value.length < 5 || otp.value.length > 10">
 			<ion-label position="stacked">Mã OTP của ứng dụng Authenticator</ion-label>
-			<ion-input maxlength="6" [(ngModel)]="otp.value"></ion-input>
+			<ion-input minlength="5" maxlength="10" [(ngModel)]="otp.value"></ion-input>
 		</ion-item>
 		<ion-item *ngIf="otp.uri !== ''">
-			<ion-button fill="solid" color="primary" [disabled]="!otp.value || otp.value.length !== 6" (click)="addOTPAsync()">
+			<ion-button fill="solid" color="primary" [disabled]="!otp.value || otp.value.length < 5 || otp.value.length > 10" (click)="addOTPAsync()">
 				<ion-icon name="done-all" slot="start"></ion-icon>
 				Xác thực
 			</ion-button>

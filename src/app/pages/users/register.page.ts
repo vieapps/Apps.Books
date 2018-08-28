@@ -39,7 +39,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public ngOnInit() {
-		if (!this.authSvc.canRegisterNewAccounts) {
+		if (!this.configSvc.isReady || !this.authSvc.canRegisterNewAccounts) {
 			this.appFormsSvc.showToastAsync("Hmmmmm...");
 			this.configSvc.goBack();
 		}
@@ -63,7 +63,8 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 					Type: "email",
 					Label: "Email",
 					MinLength: 1,
-					MaxLength: 250
+					MaxLength: 250,
+					AutoFocus: true
 				}
 			},
 			{
@@ -218,7 +219,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		this.configSvc.appTitle = this.title;
 	}
 
-	public onFormRendered($event) {
+	public onFormInitialized($event) {
 		this.refreshCaptchaAsync();
 		this.register.form.patchValue({ Gender: "NotProvided" });
 	}

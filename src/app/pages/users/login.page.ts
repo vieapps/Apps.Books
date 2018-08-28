@@ -63,10 +63,16 @@ export class LogInPage implements OnInit, OnDestroy {
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public ngOnInit() {
-		this._rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
-		this._rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => this.otp.value = value));
-		this._rxSubscriptions.push(this.reset.form.valueChanges.subscribe(value => this.reset.value = value));
-		this.openLogin();
+		if (!this.configSvc.isReady) {
+			this.appFormsSvc.showToastAsync("Hmmmmm...");
+			this.configSvc.goBack();
+		}
+		else {
+			this._rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
+			this._rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => this.otp.value = value));
+			this._rxSubscriptions.push(this.reset.form.valueChanges.subscribe(value => this.reset.value = value));
+			this.openLogin();
+		}
 	}
 
 	public ngOnDestroy() {
@@ -78,7 +84,6 @@ export class LogInPage implements OnInit, OnDestroy {
 			{
 				Key: "Email",
 				Required: true,
-				Type: "TextBox",
 				Options: {
 					Type: "email",
 					Label: "Email",
@@ -90,7 +95,6 @@ export class LogInPage implements OnInit, OnDestroy {
 			{
 				Key: "Password",
 				Required: true,
-				Type: "TextBox",
 				Options: {
 					Type: "password",
 					Label: "Mật khẩu",
@@ -122,7 +126,7 @@ export class LogInPage implements OnInit, OnDestroy {
 					this.configSvc.goBack();
 				}
 			},
-			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể đăng nhập")
+			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể đăng nhập", () => this.login.controls[0].focus())
 		);
 	}
 
@@ -132,14 +136,13 @@ export class LogInPage implements OnInit, OnDestroy {
 				Key: "OTP",
 				Required: true,
 				Options: {
-					Type: "text",
 					Label: `Mã xác thực lần hai`,
 					Description: "SMS" === data.Providers[0].Type ? "Nhập mã OTP trong SMS được gửi tới số trên điện thoại đã đăng ký" : `Nhập mã OTP được sinh bởi ứng dụng ${data.Providers[0].Label} trên điện thoại`,
 					DescriptionOptions: {
 						Css: "--description-label-css"
 					},
-					MinLength: 6,
-					MaxLength: 6,
+					MinLength: 5,
+					MaxLength: 10,
 					AutoFocus: true
 				}
 			}
@@ -164,7 +167,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				await this.appFormsSvc.hideLoadingAsync();
 				this.configSvc.goBack();
 			},
-			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể xác thực lần hai")
+			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.otp.controls[0].focus())
 		);
 	}
 
@@ -173,7 +176,6 @@ export class LogInPage implements OnInit, OnDestroy {
 			{
 				Key: "Email",
 				Required: true,
-				Type: "TextBox",
 				Options: {
 					Type: "email",
 					Label: "Email",
@@ -187,7 +189,6 @@ export class LogInPage implements OnInit, OnDestroy {
 				Required: true,
 				Type: "Captcha",
 				Options: {
-					Type: "text",
 					Label: "Mã xác thực",
 					Description: "Nhập mã xác thực trong ảnh ở dưới",
 					DescriptionOptions: {
@@ -209,23 +210,6 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.configSvc.appTitle = this.title;
 	}
 
-	public onResetFormRendered($event) {
-		this.reset.form.patchValue({ Email: this.login.form.value.Email });
-		this.refreshCaptchaAsync();
-	}
-
-	public onRefreshCaptcha($event) {
-		this.refreshCaptchaAsync($event as AppFormsControl);
-	}
-
-	public async refreshCaptchaAsync(control?: AppFormsControl) {
-		control = control || this.reset.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
-		await this.authSvc.registerCaptchaAsync(() => {
-			this.reset.form.controls[control.Key].setValue("");
-			control.captchaUri = this.configSvc.appConfig.session.captcha.uri;
-		});
-	}
-
 	public async resetPasswordAsync() {
 		if (this.reset.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.reset.form);
@@ -240,9 +224,26 @@ export class LogInPage implements OnInit, OnDestroy {
 			},
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),
-				this.appFormsSvc.showErrorAsync(error)
+				this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls[0].focus())
 			])
 		);
+	}
+
+	public onResetPasswordFormInitialized($event) {
+		this.reset.form.patchValue({ Email: this.login.form.value.Email });
+		this.refreshCaptchaAsync();
+	}
+
+	public onRefreshCaptcha($event) {
+		this.refreshCaptchaAsync($event as AppFormsControl);
+	}
+
+	public async refreshCaptchaAsync(control?: AppFormsControl) {
+		control = control || this.reset.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
+		await this.authSvc.registerCaptchaAsync(() => {
+			this.reset.form.controls[control.Key].setValue("");
+			control.captchaUri = this.configSvc.appConfig.session.captcha.uri;
+		});
 	}
 
 }

@@ -100,9 +100,9 @@ export class AppRTU {
 	public static unregister(identity: string, service: string, object?: string) {
 		if (AppUtility.isNotEmpty(identity) && AppUtility.isNotEmpty(service)) {
 			const serviceHandlers = this.getServiceHandlers(service);
-			AppUtility.removeAt(serviceHandlers, AppUtility.indexOf(serviceHandlers, handler => identity === handler.identity));
+			AppUtility.removeAt(serviceHandlers, serviceHandlers.findIndex(handler => identity === handler.identity));
 			const objectHandlers = this.getObjectHandlers(service, object);
-			AppUtility.removeAt(objectHandlers, AppUtility.indexOf(objectHandlers, handler => identity === handler.identity));
+			AppUtility.removeAt(objectHandlers, objectHandlers.findIndex(handler => identity === handler.identity));
 		}
 	}
 
@@ -110,11 +110,11 @@ export class AppRTU {
 	public static parse(type: string) {
 		let info = this._types[type];
 		if (info === undefined) {
-			let pos = AppUtility.pos(type, "#"), object = "", event = "";
+			let pos = AppUtility.indexOf(type, "#"), object = "", event = "";
 			const service = pos > 0 ? type.substring(0, pos) : type;
 			if (pos > 0) {
 				object = type.substring(pos + 1);
-				pos = AppUtility.pos(object, "#");
+				pos = AppUtility.indexOf(object, "#");
 				if (pos > 0) {
 					event = object.substring(pos + 1);
 					object = object.substring(0, pos);

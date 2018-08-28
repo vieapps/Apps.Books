@@ -1,18 +1,18 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angular/core";
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, AfterViewInit, ViewChild } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
 import { CompleterService, CompleterItem } from "ng2-completer";
 import { AppConfig } from "../app.config";
-import { AppFormsControl } from "./forms.service";
+import { AppFormsControl, AppFormsService } from "./forms.service";
 import { AppUtility } from "./app.utility";
-import { List } from "linqts";
 
 @Component({
 	selector: "app-form-control",
 	templateUrl: "./forms.control.component.html"
 })
-export class AppFormsControlComponent implements OnInit, OnDestroy {
+export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor (
+		public appFormsSvc: AppFormsService,
 		public completerSvc: CompleterService
 	) {
 	}
@@ -25,6 +25,8 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 	@Input() control: AppFormsControl;
 	@Input() index: number;
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
+
+	@ViewChild("elementRef") elementRef;
 
 	private _style: string = undefined;
 
@@ -56,6 +58,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 		if (this.isControl("Completer")) {
 			this.completerInit();
 		}
+	}
+
+	public ngAfterViewInit() {
+		this.control.elementRef = this.elementRef;
 	}
 
 	public ngOnDestroy() {
@@ -248,6 +254,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 			this.formControl.setValue(new Date(value));
 		}
 		catch {}
+		this.appFormsSvc.focusNext(this.control);
 	}
 
 	public get datetimeDisplayFormat() {
@@ -292,6 +299,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 
 	public selectValuesChange($event) {
 		this.formControl.setValue($event.detail.value);
+		this.appFormsSvc.focusNext(this.control);
 	}
 
 	public get selectAsRadioBoxes() {
@@ -366,7 +374,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 				const formControl = this.formGroup.controls[key];
 				value[key] = formControl !== undefined ? formControl.value : "";
 			});
-			return new List(AppFormsControlComponent.getCounties()).FirstOrDefault(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
+			return AppFormsControlComponent.getCounties().find(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
 		}
 		else {
 			return this.control.Options.CompleterOptions.Handlers.GetInitialValue !== undefined
@@ -388,6 +396,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 		else if (this.control.Options.CompleterOptions.Handlers.OnItemSelected !== undefined) {
 			this.control.Options.CompleterOptions.Handlers.OnItemSelected(this.formControl, item);
 		}
+		if (item !== undefined) {
+			this.appFormsSvc.focusNext(this.control);
+		}
 	}
 
 	public get captchaUri() {
@@ -396,6 +407,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 
 	public refreshCaptcha() {
 		this.formControl.setValue("");
+		this.control.focus();
 		this.refreshCaptchaEvent.emit(this.control);
 	}
 
@@ -429,6 +441,12 @@ export class AppFormsControlComponent implements OnInit, OnDestroy {
 
 	public trackControl(index: number, control: AppFormsControl) {
 		return control.Key;
+	}
+
+	public onKeyUp($event: KeyboardEvent) {
+		if ($event.code === "Enter") {
+			this.appFormsSvc.focusNext(this.control);
+		}
 	}
 
 }

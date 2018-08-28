@@ -46,7 +46,7 @@
 			[form]="reset.form"
 			[config]="reset.config"
 			[controls]="reset.controls"
-			(renderedEvent)="onResetFormRendered($event)"
+			(initEvent)="onResetPasswordFormInitialized($event)"
 			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
 		<ion-buttons>
 			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="resetPasswordAsync()">

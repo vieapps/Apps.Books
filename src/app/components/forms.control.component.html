@@ -8,7 +8,7 @@
 		[position]="position"
 		[class]="css.label">{{label}}</ion-label>
 
-	<ion-input *ngIf="isControl('TextBox')"
+	<ion-input *ngIf="isControl('TextBox')" #elementRef
 		[formControlName]="formControlName"
 		[name]="name"
 		[type]="type"
@@ -22,9 +22,10 @@
 		[minlength]="minLength"
 		[maxlength]="maxLength"
 		[clearOnEdit]="clearOnEdit"
-		[attr.style]="style.control"></ion-input>
+		[attr.style]="style.control"
+		(keyup)="onKeyUp($event)"></ion-input>
 
-	<ion-textarea *ngIf="isControl('TextArea')" rows="4"
+	<ion-textarea *ngIf="isControl('TextArea')" #elementRef rows="4"
 		[formControlName]="formControlName"
 		[name]="name"
 		[placeholder]="placeholder"
@@ -36,7 +37,7 @@
 		[clearOnEdit]="clearOnEdit"
 		[attr.style]="style.control"></ion-textarea>
 
-	<ion-select *ngIf="isControl('Select')"
+	<ion-select *ngIf="isControl('Select')" #elementRef
 		[name]="name"
 		[multiple]="selectMultiple"
 		[interface]="selectInterface"
@@ -50,7 +51,7 @@
 		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value">{{select.Label}}</ion-select-option>
 	</ion-select>
 
-	<ion-datetime *ngIf="isControl('Date') || isControl('DateTime')"
+	<ion-datetime *ngIf="isControl('Date') || isControl('DateTime')" #elementRef
 		[displayFormat]="datetimeDisplayFormat"
 		[pickerFormat]="datetimePickerFormat"
 		[dayNames]="datetimeDayNames"
@@ -66,7 +67,7 @@
 		[placeholder]="placeholder"
 		(ionChange)="datetimeValueChange($event)"></ion-datetime>
 
-	<ng2-completer *ngIf="isControl('Completer')"
+	<ng2-completer *ngIf="isControl('Completer')" #elementRef
 		[inputName]="name"
 		[placeholder]="completerPlaceHolder"
 		[minSearchLength]="completerMinSearchLength"
@@ -80,7 +81,7 @@
 
 </ion-item>
 
-<ion-radio-group *ngIf="visible && selectAsRadioBoxes"
+<ion-radio-group *ngIf="visible && selectAsRadioBoxes" #elementRef
 	[formGroup]="formGroup"
 	[name]="name"
 	[class.invalid]="invalid"
@@ -109,7 +110,7 @@
 			[color]="color"
 			[position]="position"
 			[class]="css.label">{{label}}</ion-label>
-		<ion-input type="text" style="text-transform:uppercase"
+		<ion-input #elementRef type="text" style="text-transform:uppercase"
 			[formControlName]="formControlName"
 			[name]="name"
 			[placeholder]="placeholder"
@@ -118,7 +119,8 @@
 			[min]="min"
 			[max]="max"
 			[minlength]="minLength"
-			[maxlength]="maxLength"></ion-input>
+			[maxlength]="maxLength"
+			(keyup)="onKeyUp($event)"></ion-input>
 	</ion-item>
 
 	<ion-item *ngIf="description">

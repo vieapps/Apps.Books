@@ -4,9 +4,10 @@ import { Http } from "@angular/http";
 import { Params, NavigationExtras } from "@angular/router";
 import { Title } from "@angular/platform-browser";
 import { Platform } from "@ionic/angular";
-import { Storage } from "@ionic/storage";
 import { Device } from "@ionic-native/device/ngx";
+import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
+import { Storage } from "@ionic/storage";
 import { List } from "linqts";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "../components/app.api";
@@ -26,8 +27,9 @@ export class ConfigurationService extends BaseService {
 		public http: Http,
 		public platform: Platform,
 		public device: Device,
-		public storage: Storage,
+		public keyboard: Keyboard,
 		public appVer: AppVersion,
+		public storage: Storage,
 		public browserTitle: Title
 	) {
 		super(http, "Configuration");
@@ -145,9 +147,12 @@ export class ConfigurationService extends BaseService {
 			}
 		}
 
-		this.appVer.getVersionCode()
-			.then(version => this.appConfig.app.version = version as string)
-			.catch(error => this.showError("Cannot get app version", error));
+		if (this.platform.is("cordova")) {
+			PlatformUtility.keyboard = this.keyboard;
+			this.appVer.getVersionCode()
+				.then(version => this.appConfig.app.version = version as string)
+				.catch(error => this.showError("Cannot get app version", error));
+		}
 
 		await this.storage.ready();
 		if (onCompleted !== undefined) {

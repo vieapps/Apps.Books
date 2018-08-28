@@ -10,6 +10,7 @@ import { IonicStorageModule } from "@ionic/storage";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
 import { Device } from "@ionic-native/device/ngx";
+import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 
@@ -47,6 +48,7 @@ import { FileService } from "./providers/file.service";
 		StatusBar,
 		SplashScreen,
 		Device,
+		Keyboard,
 		AppVersion,
 		GoogleAnalytics,
 		ConfigurationService,

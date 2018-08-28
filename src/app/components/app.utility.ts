@@ -167,20 +167,10 @@ export class AppUtility {
 	}
 
 	/** Gets the position of the sub-string in the string */
-	public static pos(str: string, substr: string, start?: number) {
+	public static indexOf(str: string, substr: string, start?: number) {
 		return this.isNotEmpty(str) && this.isNotEmpty(substr)
 			? str.indexOf(substr, start)
 			: -1;
-	}
-
-	/** Finds the index of an item in the sequence base on a predicate */
-	public static indexOf<T>(items: Array<T>, predicate: (item: T) => boolean) {
-		for (let index = 0; index < items.length; index++) {
-			if (predicate(items[index])) {
-				return index;
-			}
-		}
-		return -1;
 	}
 
 	/** Removes an item from the sequence base on index */
@@ -327,7 +317,7 @@ export class AppUtility {
 			return obj as Array<any>;
 		}
 		else if (this.isNotEmpty(obj)) {
-			const array = this.pos(obj as string, this.isNotEmpty(separator) ? separator : ",") > 0
+			const array = this.indexOf(obj as string, this.isNotEmpty(separator) ? separator : ",") > 0
 				? (obj as string).split(separator || ",")
 				: [obj as string];
 			return array.map(element => this.isNotEmpty(element) ? element.trim() : "");

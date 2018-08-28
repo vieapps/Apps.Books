@@ -1,3 +1,5 @@
+import { ElementRef } from "@angular/core";
+import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "./app.crypto";
 import { AppUtility } from "./app.utility";
@@ -7,6 +9,13 @@ declare var FB: any;
 /** Servicing component for working with app on a specific platform */
 export class PlatformUtility {
 
+	private static _keyboard: Keyboard;
+
+	/** Sets the instance of device keyboard */
+	public static set keyboard(value: Keyboard) {
+		this._keyboard = value;
+	}
+
 	/**
 	 * Sets time-out to run a function
 	 * @param action The action to run
@@ -14,15 +23,25 @@ export class PlatformUtility {
 	 */
 	public static setTimeout(action: () => void, defer?: number) {
 		if (AppUtility.isNotNull(action)) {
-			window.setTimeout(() => {
-				action();
-			}, defer || 0);
+			window.setTimeout(() => action(), defer || 0);
 		}
 	}
 
-	/** Gets the state that determines the app is running on Apple iOS */
-	public static get isAppleOS() {
-		return AppConfig.app.platform.indexOf("iOS") === 0;
+	/** Sets focus into the control */
+	public static focus(control: any, defer?: number) {
+		if (AppUtility.isNotNull(control)) {
+			const ctrl = control !== undefined && control instanceof ElementRef
+				? (control as ElementRef).nativeElement
+				: control;
+			if (ctrl !== undefined && typeof ctrl.focus === "function") {
+				this.setTimeout(() => {
+					ctrl.focus();
+					if (this._keyboard !== undefined) {
+						this._keyboard.show();
+					}
+				}, defer || (AppConfig.isRunningOnIOS ? 456 : 234));
+			}
+		}
 	}
 
 	/** Gets the running platform of the app */
@@ -79,7 +98,7 @@ export class PlatformUtility {
 
 	/** Gets the current host name */
 	public static get host() {
-		if (AppUtility.pos(window.location.hostname, ".") < 0) {
+		if (AppUtility.indexOf(window.location.hostname, ".") < 0) {
 			return window.location.hostname;
 		}
 		const info = AppUtility.toArray(window.location.hostname, ".");
@@ -95,7 +114,7 @@ export class PlatformUtility {
 
 	/** Opens an uri by OS/In-App browser */
 	public static openURI(uri?: string) {
-		if (AppUtility.isNotEmpty(uri) && AppUtility.pos(uri, "http") === 0) {
+		if (AppUtility.isNotEmpty(uri) && (uri.startsWith("http://") || uri.startsWith("https://"))) {
 			window.open(uri);
 		}
 	}
@@ -144,7 +163,7 @@ export class PlatformUtility {
 	/** Gets the URI for activating */
 	public static get activateURI() {
 		let url = AppConfig.URIs.activations;
-		if (AppConfig.isWebApp && AppUtility.pos(window.location.href, "file://") < 0) {
+		if (AppConfig.isWebApp && AppUtility.indexOf(window.location.href, "file://") < 0) {
 			const uri = this.parseURI();
 			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + "/";
 		}
