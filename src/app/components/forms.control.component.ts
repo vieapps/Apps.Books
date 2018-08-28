@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, AfterViewInit, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter, ViewChild } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
 import { CompleterService, CompleterItem } from "ng2-completer";
 import { AppUtility } from "./app.utility";
@@ -36,6 +36,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	public ngAfterViewInit() {
 		this.control.elementRef = this.elementRef;
+		this.control.formRef = this.formControl;
 	}
 
 	public ngOnDestroy() {

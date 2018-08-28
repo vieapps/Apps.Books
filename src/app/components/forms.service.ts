@@ -96,34 +96,54 @@ export class AppFormsControl {
 		Controls: Array<AppFormsControl>
 	} = undefined;
 
-	/** Gets the reference to the element of this control */
-	public get elementRef() {
-		return this.Extras["_ctrl:ElementRef"];
-	}
-
-	/** Sets the reference to the element of this control */
-	public set elementRef(value: any) {
-		this.Extras["_ctrl:ElementRef"] = value;
-	}
-
 	/** Gets uri of the captcha image */
 	public get captchaUri() {
-		return this.Extras["_ctrl:CaptchaUri"];
+		return this.Extras["_data:CaptchaUri"];
 	}
 
 	/** Sets uri of the captcha image */
 	public set captchaUri(value: string) {
-		this.Extras["_ctrl:CaptchaUri"] = value;
+		this.Extras["_data:CaptchaUri"] = value;
+	}
+
+	/** Gets the reference to the UI element of this control */
+	public get elementRef() {
+		return this.Extras["_ctrl:ElementRef"];
+	}
+
+	/** Sets the reference to the UI element of this control */
+	public set elementRef(value: any) {
+		this.Extras["_ctrl:ElementRef"] = value;
+	}
+
+	/** Gets the reference to the form element of this control */
+	public get formRef() {
+		return this.Extras["_ctrl:FormRef"];
+	}
+
+	/** Sets the reference to the form element of this control */
+	public set formRef(value: AbstractControl) {
+		this.Extras["_ctrl:FormRef"] = value;
 	}
 
 	/** Gets the reference to the next sibling */
 	public get next() {
-		return this.Extras["_ctrl:NextSibling"];
+		return this.Extras["_cfg:Next"];
 	}
 
 	/** Sets the reference to the next sibling */
 	public set next(value: AppFormsControl) {
-		this.Extras["_ctrl:NextSibling"] = value;
+		this.Extras["_cfg:Next"] = value;
+	}
+
+	/** Gets the reference to the parent sibling */
+	public get parent() {
+		return this.Extras["_cfg:Parent"];
+	}
+
+	/** Sets the reference to the parent sibling */
+	public set parent(value: AppFormsControl) {
+		this.Extras["_cfg:Parent"] = value;
 	}
 
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
@@ -302,11 +322,12 @@ export class AppFormsService {
 		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
 	} = {};
 
-	private prepareNexts(controls: Array<AppFormsControl>) {
+	private prepareControl(controls: Array<AppFormsControl>) {
 		for (let index = 0; index < controls.length - 1; index ++) {
 			controls[index].next = controls[index + 1];
 			if (controls[index].SubControls !== undefined) {
-				this.prepareNexts(controls[index].SubControls.Controls);
+				this.prepareControl(controls[index].SubControls.Controls);
+				controls[index].SubControls.Controls.forEach(control => control.parent = controls[index]);
 			}
 		}
 	}
@@ -315,7 +336,7 @@ export class AppFormsService {
 	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
 		controls = controls || new Array<AppFormsControl>();
 		config.map((options, order) => new AppFormsControl(options, order)).sort((a, b) => a.Order - b.Order).forEach(control => controls.push(control));
-		this.prepareNexts(controls);
+		this.prepareControl(controls);
 		return controls;
 	}
 
@@ -338,7 +359,7 @@ export class AppFormsService {
 				this.updateControls(control.SubControls.Controls, value[control.Key]);
 			}
 		});
-		this.prepareNexts(controls);
+		this.prepareControl(controls);
 	}
 
 	/** Builds the form */
