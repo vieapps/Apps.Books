@@ -147,7 +147,7 @@ export class ConfigurationService extends BaseService {
 
 		this.appVer.getVersionCode()
 			.then(version => this.appConfig.app.version = version as string)
-			.catch(error => this.error("Cannot get app version", error));
+			.catch(error => this.showError("Cannot get app version", error));
 
 		await this.storage.ready();
 		if (onCompleted !== undefined) {
@@ -187,7 +187,7 @@ export class ConfigurationService extends BaseService {
 					}
 
 					if (this.isDebug) {
-						this.log("The session is initialized by APIs");
+						console.log(this.getLogMessage("The session is initialized by APIs"));
 					}
 					AppEvents.broadcast("Session", { Type: this.isAuthenticated ? "Register" : "Initialize", Info: this.appConfig.session });
 					if (onNext !== undefined) {
@@ -195,7 +195,7 @@ export class ConfigurationService extends BaseService {
 					}
 				});
 			},
-			error => this.error("Error occurred while initializing the session", error, onError)
+			error => this.showError("Error occurred while initializing the session", error, onError)
 		);
 	}
 
@@ -205,12 +205,12 @@ export class ConfigurationService extends BaseService {
 			async data => {
 				this.appConfig.session.account = this.getAccount(true);
 				if (this.isDebug) {
-					this.log("The session is registered by APIs");
+					console.log(this.getLogMessage("The session is registered by APIs"));
 				}
 				AppEvents.broadcast("Session", { Type: "Register", Info: this.appConfig.session });
 				await this.storeSessionAsync(onNext);
 			},
-			error => this.error("Error occurred while registering the session", error, onError)
+			error => this.showError("Error occurred while registering the session", error, onError)
 		);
 	}
 
@@ -268,13 +268,13 @@ export class ConfigurationService extends BaseService {
 					this.appConfig.session.account.profile = UserProfile.deserialize(this.appConfig.session.account.profile);
 				}
 				if (this.isDebug) {
-					this.log("The session is loaded from storage");
+					console.log(this.getLogMessage("The session is loaded from storage"));
 				}
 				AppEvents.broadcast("Session", { Type: "Loaded", Info: this.appConfig.session });
 			}
 		}
 		catch (error) {
-			this.error("Error occurred while loading the saved/offline session", error);
+			this.showError("Error occurred while loading the saved/offline session", error);
 		}
 		if (onCompleted !== undefined) {
 			onCompleted(this.appConfig.session);
@@ -286,12 +286,12 @@ export class ConfigurationService extends BaseService {
 		try {
 			await this.storage.set("VIEApps-Session", JSON.stringify(AppUtility.clone(this.appConfig.session, ["jwt", "captcha"])));
 			if (this.isDebug) {
-				this.log("The session is stored into storage");
+				console.log(this.getLogMessage("The session is stored into storage"));
 			}
 			AppEvents.broadcast("Session", { Type: "Updated", Info: this.appConfig.session });
 		}
 		catch (error) {
-			this.error("Error occurred while saving/storing the session", error);
+			this.showError("Error occurred while saving/storing the session", error);
 		}
 		if (onCompleted !== undefined) {
 			onCompleted(this.appConfig.session);
@@ -449,7 +449,7 @@ export class ConfigurationService extends BaseService {
 				if (response.status === "connected") {
 					this.appConfig.facebook.token = response.authResponse.accessToken;
 					this.appConfig.facebook.id = response.authResponse.userID;
-					this.log("Facebook is connected", this.appConfig.isDebug ? this.appConfig.facebook : "");
+					console.log(this.getLogMessage("Facebook is connected"), this.appConfig.isDebug ? this.appConfig.facebook : "");
 					if (this.appConfig.session.account.facebook !== null) {
 						this.getFacebookProfile();
 					}
@@ -472,7 +472,7 @@ export class ConfigurationService extends BaseService {
 					pictureUrl: undefined
 				};
 				this.storeProfileAsync(() => {
-					this.log("Account profile is updated with information of Facebook profile", this.appConfig.isDebug ? this.appConfig.session.account : "");
+					console.log(this.getLogMessage("Account profile is updated with information of Facebook profile"), this.appConfig.isDebug ? this.appConfig.session.account : "");
 				});
 				this.getFacebookAvatar();
 			}
@@ -487,7 +487,7 @@ export class ConfigurationService extends BaseService {
 				response => {
 					this.appConfig.session.account.facebook.pictureUrl = response.data.url;
 					this.storeProfileAsync(() => {
-						this.log("Account is updated with information of Facebook profile (large profile picture)", this.appConfig.isDebug ? response : "");
+						console.log(this.getLogMessage("Account is updated with information of Facebook profile (large profile picture)"), this.appConfig.isDebug ? response : "");
 					});
 				}
 			);
@@ -553,14 +553,14 @@ export class ConfigurationService extends BaseService {
 	private loadGeoCountriesAsync(onCompleted?: (data?: any) => void) {
 		return this.readAsync("statics/geo/countries.json",
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
-			error => this.error("Error occurred while fetching the meta countries", error)
+			error => this.showError("Error occurred while fetching the meta countries", error)
 		);
 	}
 
 	private loadGeoProvincesAsync(country?: string, onCompleted?: () => void) {
 		return this.readAsync("statics/geo/provinces/" + (country || this.appConfig.meta.country) + ".json",
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
-			error => this.error("Error occurred while fetching the meta provinces", error)
+			error => this.showError("Error occurred while fetching the meta provinces", error)
 		);
 	}
 

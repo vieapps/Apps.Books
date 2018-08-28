@@ -1,7 +1,6 @@
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
-import { PlatformUtility } from "./app.utility.platform";
 
 /** Servicing component for tracking use of app */
 export class TrackingUtility {
@@ -15,10 +14,10 @@ export class TrackingUtility {
 			return this._ga.startTrackerWithId(AppConfig.tracking.google)
 				.then(() => {
 					this._ga.setAppVersion(AppConfig.app.version);
-					PlatformUtility.showLog("[Tracking]: Google Analytics is ready now...", AppConfig.isDebug ? this._ga : "");
+					console.log("[Tracking]: Google Analytics is ready now...", AppConfig.isDebug ? this._ga : "");
 				})
 				.catch(error => {
-					PlatformUtility.showError("[Tracking]: Error occurred while initializing Google Analytics", error);
+					console.error("[Tracking]: Error occurred while initializing Google Analytics" + AppUtility.getErrorMessage(error));
 					this._ga = undefined;
 				});
 		}

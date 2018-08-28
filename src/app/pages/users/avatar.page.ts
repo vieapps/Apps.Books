@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { ImageCropperComponent, CropperSettings } from "ng2-img-cropper";
+import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
-import { PlatformUtility } from "../../components/app.utility.platform";
 import { AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { UserService } from "../../providers/user.service";
@@ -73,7 +73,7 @@ export class AccountAvatarPage implements OnInit {
 			},
 			async error => {
 				this.processing = false;
-				PlatformUtility.showError("Error occurred while updating profile with new avatar image", error);
+				console.error("Error occurred while updating profile with new avatar image => " + AppUtility.getErrorMessage(error), error);
 			}
 		);
 	}
@@ -91,7 +91,7 @@ export class AccountAvatarPage implements OnInit {
 					await this.updateProfileAsync();
 				},
 				error => {
-					PlatformUtility.showError("Error occurred while uploading avatar image", error);
+					console.error("Error occurred while uploading avatar image => " + AppUtility.getErrorMessage(error), error);
 					this.processing = false;
 				}
 			);

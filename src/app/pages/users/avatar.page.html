@@ -37,7 +37,7 @@
 				<img-cropper #imgcropper [image]="cropper.data" [settings]="cropper.settings"></img-cropper>
 			</div>
 			<div>
-				<img [src]="cropper.data.image" [width]="cropper.settings.croppedWidth" [height]="cropper.settings.croppedHeight" [hidden]="mode !== 'Avatar'" />
+				<img [src]="cropper.data.image" [width]="cropper.settings.croppedWidth" [height]="cropper.settings.croppedHeight" [hidden]="mode !== 'Avatar' || cropper.data.image === ''" />
 				<img [src]="profile.Gravatar" [width]="cropper.settings.croppedWidth" [height]="cropper.settings.croppedHeight" [hidden]="mode === 'Avatar'" />
 			</div>
 		</ion-item>

@@ -572,7 +572,7 @@ export class AppFormsService {
 	/** Shows the error message (by the alert confirmation box) */
 	public async showErrorAsync(error: any, subHeader?: string, postProcess?: () => void) {
 		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
-			? "Email hoặc mật khẩu không đúng!"
+			? "Tài khoản hoặc mật khẩu không đúng!"
 			: AppUtility.isGotCaptchaException(error) || AppUtility.isGotOTPException(error)
 				? "Mã xác thực không đúng"
 				: AppUtility.isNotEmpty(error.Message) ? error.Message : "Đã xảy ra lỗi!";

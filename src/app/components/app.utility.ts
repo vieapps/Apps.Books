@@ -288,6 +288,16 @@ export class AppUtility {
 		}
 	}
 
+	/** Gets the error message */
+	public static getErrorMessage(error: any) {
+		error = this.parseError(error);
+		return this.isObject(error, true) && error.Type !== undefined && error.Message !== undefined
+			? `Error: ${error.Message}\nType: ${error.Type}\nCorrelation ID: ${error.CorrelationID}`
+			: error instanceof Error
+				? error.message
+				: `Unexpected error: ${error}`;
+	}
+
 	/** Gets all the available characters (0 and A-Z) */
 	public static getChars() {
 		const chars = new Array<string>("0");

@@ -7,43 +7,6 @@ declare var FB: any;
 /** Servicing component for working with app on a specific platform */
 export class PlatformUtility {
 
-	/** Prints the log message to console/log file */
-	public static showLog(message: string, ...optionalParams: any[]) {
-		if (optionalParams.length < 1 || (AppUtility.isArray(optionalParams[0]) && optionalParams[0].length < 1)) {
-			console.log(message);
-		}
-		else {
-			console.log(message, optionalParams);
-		}
-	}
-
-	/** Prints the warning message to console/log file */
-	public static showWarning(message: string, ...optionalParams: any[]) {
-		if (optionalParams.length < 1 || (AppUtility.isArray(optionalParams[0]) && optionalParams[0].length < 1)) {
-			console.warn(message);
-		}
-		else {
-			console.warn(message, optionalParams);
-		}
-	}
-
-	/** Prints the error to console/log file (and run next action) */
-	public static showError(message: string, error: any, next?: (error?: any) => void) {
-		error = AppUtility.parseError(error);
-		if (AppUtility.isObject(error, true) && error.Type && error.Message) {
-			console.error(message + " => [" + error.Type + "]: " + error.Message + "\n" + "Correlation ID: " + error.CorrelationID);
-			if (next !== undefined) {
-				next(error);
-			}
-		}
-		else {
-			console.error(message, error);
-			if (next !== undefined) {
-				next(error);
-			}
-		}
-	}
-
 	/**
 	 * Sets time-out to run a function
 	 * @param action The action to run

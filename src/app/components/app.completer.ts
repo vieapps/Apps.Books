@@ -2,7 +2,7 @@ import * as Rx from "rxjs";
 import { map } from "rxjs/operators";
 import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppAPI } from "./app.api";
-import { PlatformUtility } from "./app.utility.platform";
+import { AppUtility } from "./app.utility";
 
 /** Custom searching service of ng-completer */
 export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements CompleterData {
@@ -22,7 +22,7 @@ export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements C
 			.pipe(map(response => response.json()))
 			.subscribe(
 				data => this.next(this.onConvert(data)),
-				error => PlatformUtility.showError("[Custom Completer]: Error occurred while fetching remote data", error)
+				error => console.error("[Custom Completer]: Error occurred while fetching remote data => " + AppUtility.getErrorMessage(error), error)
 			)
 		);
 	}

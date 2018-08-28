@@ -134,7 +134,7 @@ export class AppRTU {
 	public static start(onCompleted?: () => void, isRestart?: boolean) {
 		// check
 		if (typeof WebSocket === "undefined") {
-			PlatformUtility.showWarning("[RTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
+			console.warn("[RTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
 			if (onCompleted !== undefined) {
 				PlatformUtility.setTimeout(onCompleted, this.isReady ? 13 : 567);
 			}
@@ -167,10 +167,10 @@ export class AppRTU {
 						handlers.forEach(handler => handler.func(message));
 					}
 					else if (AppConfig.isDebug) {
-						PlatformUtility.showWarning(`[RTU]: No suitable service scope handler is found (${service})`);
+						console.warn(`[RTU]: No suitable service scope handler is found (${service})`);
 					}
 				},
-				error => PlatformUtility.showWarning("[RTU]: Got an error", error)
+				error => console.warn("[RTU]: Got an error", error)
 			);
 		}
 
@@ -194,10 +194,10 @@ export class AppRTU {
 						handlers.forEach(handler => handler.func(message));
 					}
 					else if (AppConfig.isDebug) {
-						PlatformUtility.showWarning(`[RTU]: No suitable object scope handler is found (${service}#${object})`);
+						console.warn(`[RTU]: No suitable object scope handler is found (${service}#${object})`);
 					}
 				},
-				error => PlatformUtility.showError("[RTU]: Got an error", error)
+				error => console.error("[RTU]: Got an error => " + AppUtility.getErrorMessage(error), error)
 			);
 		}
 
@@ -209,12 +209,12 @@ export class AppRTU {
 		// assign event handlers
 		this._websocket.onopen = event => {
 			this._status = "ready";
-			PlatformUtility.showLog("[RTU]: Opened...");
+			console.log("[RTU]: Opened...");
 		};
 
 		this._websocket.onclose = event => {
 			this._status = "close";
-			PlatformUtility.showLog(`[RTU]: Closed [${event.type} => ${event.reason}]`);
+			console.log(`[RTU]: Closed [${event.type} => ${event.reason}]`);
 			if (AppUtility.isNotEmpty(this._uri) && 1007 !== event.code) {
 				this.restart();
 			}
@@ -222,7 +222,7 @@ export class AppRTU {
 
 		this._websocket.onerror = event => {
 			this._status = "error";
-			PlatformUtility.showWarning("[RTU]: Got an error...", AppConfig.isDebug ? event : "");
+			console.warn("[RTU]: Got an error...", AppConfig.isDebug ? event : "");
 		};
 
 		this._websocket.onmessage = event => {
@@ -230,15 +230,15 @@ export class AppRTU {
 
 			if ("Error" === json.Type) {
 				if (AppUtility.isGotSecurityException(json.Data)) {
-					PlatformUtility.showWarning(`[RTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
+					console.warn(`[RTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 					stop();
 				}
 				else if (AppUtility.isObject(json.Data, true) && "InvalidRequestException" === json.Data.Type) {
-					PlatformUtility.showWarning(`[RTU]: Got an invalid requesting data: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
+					console.warn(`[RTU]: Got an invalid requesting data: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 					stop();
 				}
 				else {
-					PlatformUtility.showWarning(`[RTU]: Got an error: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
+					console.warn(`[RTU]: Got an error: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 				}
 			}
 
@@ -249,12 +249,12 @@ export class AppRTU {
 				};
 
 				if (AppConfig.isDebug) {
-					PlatformUtility.showLog("[RTU]: Got a message", message);
+					console.log("[RTU]: Got a message", message);
 				}
 
 				if (message.Type.Service === "Pong") {
 					if (AppConfig.isDebug) {
-						PlatformUtility.showLog("[RTU]: Got a heartbeat");
+						console.log("[RTU]: Got a heartbeat");
 					}
 					this.send({
 						ServiceName: "rtu",
@@ -269,13 +269,13 @@ export class AppRTU {
 
 				else if (message.Type.Service === "Knock") {
 					if (AppConfig.isDebug) {
-						PlatformUtility.showLog(`[RTU]: Knock, Knock, Knock ... => Yes, I'm right here (${new Date().toJSON()})`);
+						console.log(`[RTU]: Knock, Knock, Knock ... => Yes, I'm right here (${new Date().toJSON()})`);
 					}
 				}
 
 				else if (message.Type.Service === "OnlineStatus") {
 					if (AppConfig.isDebug) {
-						PlatformUtility.showLog("[RTU]: Got a flag to update status & run scheduler");
+						console.log("[RTU]: Got a flag to update status & run scheduler");
 					}
 					this.send({
 						ServiceName: "users",
@@ -293,7 +293,7 @@ export class AppRTU {
 
 				else if (AppConfig.session.device === json.ExcludedDeviceID) {
 					if (AppConfig.isDebug) {
-						PlatformUtility.showWarning("[RTU]: The device is excluded", AppConfig.session.device);
+						console.warn("[RTU]: The device is excluded", AppConfig.session.device);
 					}
 				}
 
@@ -313,15 +313,15 @@ export class AppRTU {
 	/** Restarts the real-time updater */
 	public static restart(reason?: string, defer?: number) {
 		this._status = "restarting";
-		PlatformUtility.showWarning(`[RTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
+		console.warn(`[RTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
 
 		PlatformUtility.setTimeout(() => {
-			PlatformUtility.showLog("[RTU]: Re-starting...");
+			console.log("[RTU]: Re-starting...");
 			if (this._websocket !== undefined) {
 				this._websocket.close();
 				this._websocket = undefined;
 			}
-			this.start(() => PlatformUtility.showLog("[RTU]: Re-started..."), true);
+			this.start(() => console.log("[RTU]: Re-started..."), true);
 		}, defer || 123);
 	}
 
@@ -365,7 +365,7 @@ export class AppRTU {
 							whenNotReady(data);
 						}
 					},
-					error => PlatformUtility.showError("[RTU]: Error occurred while sending request", error)
+					error => console.error("[RTU]: Error occurred while sending request => " + AppUtility.getErrorMessage(error), error)
 				);
 		}
 	}

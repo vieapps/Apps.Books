@@ -68,7 +68,7 @@ export class AppComponent implements OnInit {
 
 	public ngOnInit() {
 		// capture router info
-		this.configSvc.setPreviousUrl("/home");
+		this.configSvc.setPreviousUrl("/");
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
 				this.configSvc.currentUrl = (event as NavigationEnd).url;
@@ -90,7 +90,7 @@ export class AppComponent implements OnInit {
 
 			// prepare status bar
 			this.statusBar.styleDefault();
-			if ("iOS" === this.device.platform && AppUtility.pos(this.device.model, "iPhone1") === 0 && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
+			if ("iOS" === this.device.platform && this.device.model.startsWith("iPhone1") && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
 				this.statusBar.backgroundColorByHexString("f8f8f8");
 			}
 			this.statusBar.overlaysWebView(false);
@@ -341,19 +341,19 @@ export class AppComponent implements OnInit {
 		return this.configSvc.initializeAsync(
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
-					PlatformUtility.showLog("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.prepareAsync(onCompleted);
 				}
 				else {
-					PlatformUtility.showLog("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+					console.log("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.configSvc.registerSessionAsync(
 						async () => {
-							PlatformUtility.showLog("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+							console.log("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 							await this.prepareAsync(onCompleted);
 						},
 						async error => {
 							if (AppUtility.isGotSecurityException(error)) {
-								PlatformUtility.showWarning("<AppComponent>: Cannot register, the session is need to be re-initialized (anonymous)");
+								console.warn("<AppComponent>: Cannot register, the session is need to be re-initialized (anonymous)");
 								await this.configSvc.deleteSessionAsync(() => {
 									PlatformUtility.setTimeout(async () => {
 										await this.initializeAsync(onCompleted, noInitializeSession);
@@ -362,7 +362,7 @@ export class AppComponent implements OnInit {
 							}
 							else {
 								await this.appFormsSvc.hideLoadingAsync();
-								PlatformUtility.showError("<AppComponent>: Cannot initialize the app", error);
+								console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error);
 							}
 						}
 					);
@@ -370,7 +370,7 @@ export class AppComponent implements OnInit {
 			},
 			async error => {
 				if (AppUtility.isGotSecurityException(error)) {
-					PlatformUtility.showWarning("<AppComponent>: Cannot initialize, the session is need to be re-initialized (anonymous)");
+					console.warn("<AppComponent>: Cannot initialize, the session is need to be re-initialized (anonymous)");
 					await this.configSvc.deleteSessionAsync(() => {
 						PlatformUtility.setTimeout(async () => {
 							await this.initializeAsync(onCompleted, noInitializeSession);
@@ -379,7 +379,7 @@ export class AppComponent implements OnInit {
 				}
 				else {
 					await this.appFormsSvc.hideLoadingAsync();
-					PlatformUtility.showError("<AppComponent>: Cannot initialize the app", error);
+					console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error);
 				}
 			},
 			noInitializeSession
@@ -397,7 +397,7 @@ export class AppComponent implements OnInit {
 			if (this.configSvc.isAuthenticated) {
 				this.configSvc.patchAccount(() => this.configSvc.getProfile());
 			}
-			PlatformUtility.showLog("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
+			console.log("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 			AppEvents.broadcast("AppIsInitialized", this.configSvc.appConfig.app);
 			this.appFormsSvc.hideLoadingAsync(onCompleted);
 		});

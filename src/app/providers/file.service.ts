@@ -30,7 +30,7 @@ export class FileService extends BaseService {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.error("Error occurred while uploading avatar image", error);
+				this.showError("Error occurred while uploading avatar image", error);
 			}
 		}
 	}

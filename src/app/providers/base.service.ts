@@ -4,7 +4,6 @@ import { AppAPI } from "../components/app.api";
 import { AppRTU } from "../components/app.rtu";
 import { AppPagination } from "../components/app.pagination";
 import { AppUtility } from "../components/app.utility";
-import { PlatformUtility } from "../components/app.utility.platform";
 
 /** Base of all providers/services */
 export class Base {
@@ -44,7 +43,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.error("Error occurred while creating", error);
+				this.showError("Error occurred while creating", error);
 			}
 		}
 	}
@@ -68,7 +67,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.error("Error occurred while reading", error);
+				this.showError("Error occurred while reading", error);
 			}
 		}
 	}
@@ -93,7 +92,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.error("Error occurred while updating", error);
+				this.showError("Error occurred while updating", error);
 			}
 		}
 	}
@@ -117,7 +116,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.error("Error occurred while deleting", error);
+				this.showError("Error occurred while deleting", error);
 			}
 		}
 	}
@@ -162,7 +161,7 @@ export class Base {
 				onError(AppUtility.parseError(error));
 			}
 			else {
-				this.error("Error occurred while searching", error);
+				this.showError("Error occurred while searching", error);
 			}
 		}
 	}
@@ -206,7 +205,7 @@ export class Base {
 						onError(AppUtility.parseError(error));
 					}
 					else {
-						this.error("Error occurred while searching", error);
+						this.showError("Error occurred while searching", error);
 					}
 				})
 			: searcher;
@@ -217,19 +216,22 @@ export class Base {
 		AppRTU.send(request, whenNotReady);
 	}
 
-	/** Prints the log message to console/log file */
-	protected log(message: string, ...optionalParams: any[]) {
-		PlatformUtility.showLog(`[${this.serviceName}]: ${message}`, optionalParams);
-	}
-
-	/** Prints the warning message to console/log file */
-	protected warn(message: string, ...optionalParams: any[]) {
-		PlatformUtility.showWarning(`[${this.serviceName}]: ${message}`, optionalParams);
+	/** Gets the message for working with console/log file */
+	protected getLogMessage(message: string) {
+		return `[${this.serviceName}]: ${message}`;
 	}
 
 	/** Prints the error message to console/log file and run the next action */
-	protected error(message: string, error?: any, onError?: (error?: any) => void) {
-		PlatformUtility.showError(`[${this.serviceName}]: ${message}`, error, onError);
+	protected getErrorMessage(message: string, error?: any) {
+		return this.getLogMessage(message + "\n" + AppUtility.getErrorMessage(error));
+	}
+
+	/** Prints the error message to console/log file and run the next action */
+	protected showError(message: string, error?: any, onNext?: (error?: any) => void) {
+		console.error(this.getErrorMessage(message, error));
+		if (onNext !== undefined) {
+			onNext(error);
+		}
 	}
 
 }
