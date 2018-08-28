@@ -139,7 +139,7 @@ export class Base {
 			if (onNext !== undefined) {
 				onNext();
 			}
-			return null;
+			return;
 		}
 
 		// update the page number and send request to search

@@ -79,7 +79,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		uri: "",
 		value: "",
 		provisioning: "",
-		providers: new Array<{ Type: string, Label: string, Time: Date, Info: string }>(),
+		providers: new Array<{ Type: string, Label: string, Time: Date, Info: string }>()
 	};
 	privileges = {
 		form: new FormGroup({}),
@@ -100,7 +100,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	public ngOnInit() {
 		if (!this.configSvc.isAuthenticated) {
 			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.goBack();
+			this.configSvc.goHome();
 			return;
 		}
 

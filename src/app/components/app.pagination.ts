@@ -40,16 +40,13 @@ export class AppPagination {
 
 	/** Gets the default pagination */
 	public static getDefault(info?: any): { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } {
-		const pagination = info !== undefined
-			? info.Pagination
-			: undefined;
-
+		const pagination = info !== undefined ? info.Pagination : undefined;
 		return AppUtility.isObject(pagination, true)
 			? {
-					TotalRecords: pagination.TotalRecords ? pagination.TotalRecords : -1,
-					TotalPages: pagination.TotalPages ? pagination.TotalPages : 0,
-					PageSize: pagination.PageSize ? pagination.PageSize : 20,
-					PageNumber: pagination.PageNumber ? pagination.PageNumber : 0
+					TotalRecords: pagination.TotalRecords !== undefined ? pagination.TotalRecords : -1,
+					TotalPages: pagination.TotalPages !== undefined ? pagination.TotalPages : 0,
+					PageSize: pagination.PageSize !== undefined ? pagination.PageSize : 20,
+					PageNumber: pagination.PageNumber !== undefined ? pagination.PageNumber : 0
 				}
 			: {
 					TotalRecords: -1,
@@ -93,7 +90,7 @@ export class AppPagination {
 	}
 
 	/** Builds the well-formed request (contains filter, sort and pagination) for working with remote APIs */
-	public static buildRequest(filterBy?: any, sortBy?: any, pagination?: any, onPreCompleted?: (request: { FilterBy: any, SortBy: any, Pagination: any }) => void): { FilterBy: any, SortBy: any, Pagination: any } {
+	public static buildRequest(filterBy?: any, sortBy?: any, pagination?: any, onPreCompleted?: (request: { FilterBy: any, SortBy: any, Pagination: any }) => void) {
 		const request = {
 			FilterBy: AppUtility.isObject(filterBy, true) ? AppUtility.clone(filterBy) : {},
 			SortBy: AppUtility.isObject(sortBy, true) ? AppUtility.clone(sortBy) : {},

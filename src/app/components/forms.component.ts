@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, AfterViewInit } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppFormsControl, AppFormsService } from "./forms.service";
 import { PlatformUtility } from "./app.utility.platform";
@@ -36,7 +36,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		}
 
 		if (this.controls.length < 1) {
-			console.warn("[Dynamic Forms]: No control");
+			console.warn("[Forms]: No control");
 		}
 		else {
 			this.appFormsSvc.buildForm(this.form, this.controls, this.value);
@@ -47,10 +47,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	public ngAfterViewInit() {
-		const control = this.controls.find(ctrl => ctrl.Options.AutoFocus);
-		if (control !== undefined) {
-			control.focus(345);
-		}
+		this.appFormsSvc.focus(this.controls.find(control => control.Options.AutoFocus));
 	}
 
 	public ngOnDestroy() {

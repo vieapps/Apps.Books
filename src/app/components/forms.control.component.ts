@@ -80,6 +80,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.control.Type === type || this.control.Type.toLowerCase() === type.toLowerCase();
 	}
 
+	public get isPasswordControl() {
+		return this.isControl("TextBox") && this.control.Options.Type === "password";
+	}
+
 	public get label() {
 		return this.control.Options.Label;
 	}
@@ -181,10 +185,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		};
 	}
 
-	public get extras() {
-		return this.control.Extras;
-	}
-
 	public get formControl() {
 		return this.formGroup.controls[this.control.Key];
 	}
@@ -202,10 +202,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	public get datetimeValue() {
-		const value = this.value;
-		return value !== undefined
-			? new Date(value).toJSON()
-			: undefined;
+		return this.value !== undefined ? new Date(this.value).toJSON() : undefined;
 	}
 
 	public datetimeValueChange($event) {
@@ -309,7 +306,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			this.control.Options.CompleterOptions.DataSource = this.completerSvc.local(this.appFormsSvc.getCounties(), "Title,TitleANSI", "Title");
 		}
 		else if (this.control.Options.CompleterOptions.Handlers.Initialize !== undefined) {
-			this.control.Options.CompleterOptions.Handlers.Initialize(this.formControl);
+			this.control.Options.CompleterOptions.Handlers.Initialize(this.control);
 		}
 	}
 
@@ -317,8 +314,12 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.placeholder || "";
 	}
 
-	public get completerMinSearchLength() {
+	public get completerMinLength() {
 		return this.minLength || 3;
+	}
+
+	public get completerMaxLength() {
+		return this.maxLength || 150;
 	}
 
 	public get completerSearchingText() {
@@ -356,7 +357,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 		else {
 			return this.control.Options.CompleterOptions.Handlers.GetInitialValue !== undefined
-				? this.control.Options.CompleterOptions.Handlers.GetInitialValue(this.formControl)
+				? this.control.Options.CompleterOptions.Handlers.GetInitialValue(this.control)
 				: undefined;
 		}
 	}
@@ -372,7 +373,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			});
 		}
 		else if (this.control.Options.CompleterOptions.Handlers.OnItemSelected !== undefined) {
-			this.control.Options.CompleterOptions.Handlers.OnItemSelected(this.formControl, item);
+			this.control.Options.CompleterOptions.Handlers.OnItemSelected(item, this.control);
 		}
 	}
 

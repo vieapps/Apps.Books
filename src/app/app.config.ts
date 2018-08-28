@@ -50,7 +50,7 @@ export class AppConfig {
 	/** Settings for working with user accounts */
 	public static accountRegistrations = {
 		registrable: true,
-		excluded: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
+		excluded: [/*"Gender", "BirthDay", "Mobile", "Address", "Addresses"*/],
 		required: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
 		sendInvitationRole: "All",
 		setPrivilegsRole: "ServiceAdministrator"
@@ -128,6 +128,13 @@ export class AppConfig {
 	/** Gets the state that determines the app is running in offline mode */
 	public static get isOffline() {
 		return this.app.offline;
+	}
+
+	/** Gets the culture language for working with UI */
+	public static get language() {
+		return AppConfig.session.account !== undefined && AppConfig.session.account !== null && AppConfig.session.account.profile !== undefined
+			? AppConfig.session.account.profile.Language
+			: AppConfig.app.language;
 	}
 
 	/** Gets the reading options fo the book app */

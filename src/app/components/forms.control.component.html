@@ -25,12 +25,12 @@
 		[attr.style]="style.control"
 		(keyup)="onKeyUp($event)"></ion-input>
 
-	<ion-button *ngIf="isControl('TextBox') && control.Options.Type === 'password'" fill="clear" color="medium" slot="end" tabindex="-1" (click)="show = !show">
+	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="show = !show">
 		<ion-icon name="eye" slot="icon-only" [hidden]="type !== 'password'"></ion-icon>
 		<ion-icon name="eye-off" slot="icon-only" [hidden]="type === 'password'"></ion-icon>
 	</ion-button>
 
-	<ion-textarea *ngIf="isControl('TextArea')" #elementRef rows="4"
+	<ion-textarea *ngIf="isControl('TextArea')" rows="4" #elementRef
 		[formControlName]="formControlName"
 		[name]="name"
 		[placeholder]="placeholder"
@@ -39,7 +39,6 @@
 		[readonly]="readonly"
 		[minlength]="minLength"
 		[maxlength]="maxLength"
-		[clearOnEdit]="clearOnEdit"
 		[attr.style]="style.control"></ion-textarea>
 
 	<ion-select *ngIf="isControl('Select')" #elementRef
@@ -74,15 +73,18 @@
 
 	<ng2-completer *ngIf="isControl('Completer')" #elementRef
 		[inputName]="name"
+		[disableInput]="!!disabled"
 		[placeholder]="completerPlaceHolder"
-		[minSearchLength]="completerMinSearchLength"
+		[minSearchLength]="completerMinLength"
+		[maxChars]="completerMaxLength"
 		[pause]="completerPauseMiliseconds"
 		[clearSelected]="completerClearSelected"
 		[textSearching]="completerSearchingText"
 		[textNoResults]="completerNoResultsText"
 		[datasource]="completerDataSource"
 		[initialValue]="completerInitialValue"
-		(selected)="completerItemChange($event)"></ng2-completer>
+		(selected)="completerItemChange($event)"
+		(keyup)="onKeyUp($event)"></ng2-completer>
 
 </ion-item>
 
@@ -108,18 +110,19 @@
 		[style]="style.description">{{description}}</label>
 </ion-item>
 	
-<div *ngIf="visible && isFormControl && isControl('Captcha')" class="captcha">
+<div *ngIf="visible && isFormControl && isControl('Captcha')">
 
 	<ion-item [formGroup]="formGroup" [class.invalid]="invalid">
 		<ion-label *ngIf="label"
 			[color]="color"
 			[position]="position"
 			[class]="css.label">{{label}}</ion-label>
-		<ion-input #elementRef type="text" style="text-transform:uppercase"
+		<ion-input type="text" style="text-transform:uppercase" #elementRef
 			[formControlName]="formControlName"
 			[name]="name"
 			[placeholder]="placeholder"
 			[required]="required"
+			[readonly]="readonly"
 			[autofocus]="autofocus"
 			[min]="min"
 			[max]="max"
@@ -156,20 +159,17 @@
 <div *ngIf="visible && isSimpleFormArray">
 	<app-form-control *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl"
 		[formGroup]="subFormGroup"
-		[control]="ctrl"
-		[formArrayIndex]="idx"></app-form-control>
+		[formArrayIndex]="idx"
+		[control]="ctrl"></app-form-control>
 </div>
 
 <div *ngIf="visible && isComplexFormArray">
 	<div *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl">
-
 		<ion-list-header *ngIf="getSubLabel(ctrl)"
 			[color]="getSubColor(ctrl)"
 			[class]="getSubCss(ctrl)">{{getSubLabel(ctrl)}}</ion-list-header>
-
 		<app-form-control *ngFor="let subctrl of getSubControls(ctrl); trackBy: trackControl"
 			[formGroup]="getSubFormGroup(idx)"
 			[control]="subctrl"></app-form-control>
-
 	</div>
 </div>

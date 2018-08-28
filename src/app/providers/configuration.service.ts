@@ -115,7 +115,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets the query with related service, language and host */
 	public get relatedQuery() {
-		return "related-service=" + this.appConfig.app.service + "&language=" + AppUtility.language + "&host=" + PlatformUtility.host;
+		return "related-service=" + this.appConfig.app.service + "&language=" + this.appConfig.language + "&host=" + PlatformUtility.host;
 	}
 
 	/** Gets the query params of the current page/view */
@@ -436,7 +436,7 @@ export class ConfigurationService extends BaseService {
 			Query: {
 				"object-identity": this.getAccount().id,
 				"related-service": this.appConfig.app.service,
-				"language": AppUtility.language,
+				"language": this.appConfig.language,
 				"host": PlatformUtility.host
 			},
 			Header: null,

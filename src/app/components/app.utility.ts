@@ -297,13 +297,6 @@ export class AppUtility {
 		return chars;
 	}
 
-	/** Gets the culture language for working with UI */
-	public static get language() {
-		return this.isNotNull(AppConfig.session.account) && this.isNotNull(AppConfig.session.account.profile)
-			? AppConfig.session.account.profile.Language
-			: AppConfig.app.language;
-	}
-
 	/** Stringifys the JSON and encode as base64-url */
 	public static toBase64Url(json: any) {
 		return this.isObject(json, true)

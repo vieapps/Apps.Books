@@ -1,5 +1,5 @@
-import CryptoJS from "crypto-js";
 declare var RSA: any;
+import CryptoJS from "crypto-js";
 
 /** Servicing component for woring with cryptography */
 export class AppCrypto {

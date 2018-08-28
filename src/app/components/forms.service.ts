@@ -1,8 +1,8 @@
 import { Injectable } from "@angular/core";
 import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/forms";
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
-import { CompleterData, CompleterItem } from "ng2-completer";
 import { LoadingController, AlertController, ActionSheetController, ModalController, ToastController } from "@ionic/angular";
+import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
@@ -21,11 +21,11 @@ export class AppFormsControl {
 
 	Key = "";
 	Type = "TextBox";
+	Order = 0;
+	Excluded = false;
 	Required = false;
 	Validators: Array<ValidatorFn> | Array<string> = undefined;
 	AsyncValidators: Array<AsyncValidatorFn> | Array<string> = undefined;
-	Order = 0;
-	Excluded = false;
 	Extras: { [key: string]: any } = {};
 	Options = {
 		Type: "text",
@@ -85,9 +85,9 @@ export class AppFormsControl {
 			ClearSelected: false,
 			DataSource: undefined as CompleterData,
 			Handlers: {
-				Initialize: undefined as (formControl: AbstractControl) => void,
-				GetInitialValue: undefined as (formControl: AbstractControl) => any,
-				OnItemSelected: undefined as (formControl: AbstractControl, item: CompleterItem) => void
+				Initialize: undefined as (control: AppFormsControl) => void,
+				GetInitialValue: undefined as (control: AppFormsControl) => any,
+				OnItemSelected: undefined as (item: CompleterItem, control: AppFormsControl) => void
 			}
 		}
 	};
@@ -322,21 +322,23 @@ export class AppFormsService {
 		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
 	} = {};
 
-	private prepareControl(controls: Array<AppFormsControl>) {
-		for (let index = 0; index < controls.length - 1; index ++) {
-			controls[index].next = controls[index + 1];
-			if (controls[index].SubControls !== undefined) {
-				this.prepareControl(controls[index].SubControls.Controls);
-				controls[index].SubControls.Controls.forEach(control => control.parent = controls[index]);
+	private prepareControls(controls: Array<AppFormsControl>) {
+		controls.forEach((control, index) => {
+			if (index < controls.length - 1) {
+				control.next = controls[index + 1];
+				if (control.SubControls !== undefined) {
+					this.prepareControls(control.SubControls.Controls);
+					control.SubControls.Controls.forEach(subcontrol => subcontrol.parent = control);
+				}
 			}
-		}
+		});
 	}
 
 	/** Gets the definition of all controls */
 	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
 		controls = controls || new Array<AppFormsControl>();
 		config.map((options, order) => new AppFormsControl(options, order)).sort((a, b) => a.Order - b.Order).forEach(control => controls.push(control));
-		this.prepareControl(controls);
+		this.prepareControls(controls);
 		return controls;
 	}
 
@@ -359,7 +361,7 @@ export class AppFormsService {
 				this.updateControls(control.SubControls.Controls, value[control.Key]);
 			}
 		});
-		this.prepareControl(controls);
+		this.prepareControls(controls);
 	}
 
 	/** Builds the form */
@@ -523,21 +525,30 @@ export class AppFormsService {
 		return first;
 	}
 
-	/** Sets focus into next control of the form */
-	public focusNext(control: AppFormsControl, whenNoControlFound?: () => void) {
-		let nextControl = control.next;
-		while (nextControl !== undefined && nextControl.Excluded) {
-			nextControl = nextControl.next;
-		}
-		if (nextControl !== undefined) {
-			nextControl.focus(AppConfig.isRunningOnIOS ? 345 : 13);
+	/** Sets focus into control */
+	public focus(control: AppFormsControl, whenNoControlFound?: () => void) {
+		if (control !== undefined) {
+			control.focus();
 		}
 		else if (whenNoControlFound !== undefined) {
 			whenNoControlFound();
 		}
 	}
 
-	/** Checks values of two controls are matched or not */
+	private getNext(control: AppFormsControl) {
+		let next = control !== undefined ? control.next : undefined;
+		while (next !== undefined && next.Excluded) {
+			next = next.next;
+		}
+		return next;
+	}
+
+	/** Sets focus into next control */
+	public focusNext(control: AppFormsControl, whenNoControlFound?: () => void) {
+		this.focus(this.getNext(control), whenNoControlFound);
+	}
+
+	/** Checks confirm values of two controls are matched or not */
 	public confirmIsMatched(original: string, confirm: string): ValidatorFn {
 		return (formGroup: FormGroup): { [key: string]: any } | null => {
 			const originalControl = formGroup.controls[original];

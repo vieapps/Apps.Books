@@ -39,9 +39,9 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public ngOnInit() {
-		if (!this.configSvc.isReady || !this.authSvc.canRegisterNewAccounts) {
+		if (!this.configSvc.isReady || !this.authSvc.canRegisterNewAccounts || this.configSvc.isAuthenticated) {
 			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.goBack();
+			this.configSvc.goHome();
 		}
 		else {
 			this._rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
@@ -57,7 +57,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		this.register.config = [
 			{
 				Key: "Email",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "email",
@@ -69,7 +68,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "ConfirmEmail",
-				Type: "TextBox",
 				Required: true,
 				Validators: [this.appFormsSvc.isMatched("Email")],
 				Options: {
@@ -81,7 +79,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Password",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "password",
@@ -92,7 +89,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "ConfirmPassword",
-				Type: "TextBox",
 				Required: true,
 				Validators: [this.appFormsSvc.isMatched("Password")],
 				Options: {
@@ -104,7 +100,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Name",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "text",
@@ -122,7 +117,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Type: "Select",
 				Required: true,
 				Options: {
-					Type: "text",
 					Label: "Giới tính",
 					SelectOptions: {
 						Values: [
@@ -158,13 +152,12 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Address",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "text",
 					Label: "Địa chỉ",
 					MinLength: 1,
-					MaxLength: 250,
+					MaxLength: 250
 				}
 			},
 			{
@@ -174,18 +167,18 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Options: {
 					Type: "Address",
 					PlaceHolder: "Quận/Huyện, Thành phố/Tỉnh",
-					MinLength: 2
+					MinLength: 2,
+					MaxLength: 250
 				}
 			},
 			{
 				Key: "Mobile",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "tel",
 					Label: "Mobile",
 					MinLength: 10,
-					MaxLength: 15,
+					MaxLength: 15
 				}
 			},
 			{
@@ -193,7 +186,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Type: "Captcha",
 				Required: true,
 				Options: {
-					Type: "text",
 					Label: "Mã xác thực",
 					Description: "Nhập mã xác thực trong ảnh ở dưới",
 					DescriptionOptions: {

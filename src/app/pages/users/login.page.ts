@@ -63,9 +63,9 @@ export class LogInPage implements OnInit, OnDestroy {
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public ngOnInit() {
-		if (!this.configSvc.isReady) {
+		if (!this.configSvc.isReady || this.configSvc.isAuthenticated) {
 			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.goBack();
+			this.configSvc.goHome();
 		}
 		else {
 			this._rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));

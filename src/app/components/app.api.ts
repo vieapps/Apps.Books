@@ -1,7 +1,7 @@
 import { Http, Headers } from "@angular/http";
 import { AppConfig } from "../app.config";
-import { AppUtility } from "./app.utility";
 import { AppCrypto } from "./app.crypto";
+import { AppUtility } from "./app.utility";
 
 /** Servicing component for working with remote APIs */
 export class AppAPI {

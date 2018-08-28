@@ -349,7 +349,7 @@ export class AppRTU {
 			let query = request.ServiceName !== AppConfig.app.service
 				? `related-service=${AppConfig.app.service}&`
 				: "";
-			query += `language=${AppUtility.language}&host=${PlatformUtility.host}`;
+			query += `language=${AppConfig.language}&host=${PlatformUtility.host}`;
 			if (AppUtility.isObject(request.Query, true)) {
 				if (request.Query["object-identity"]) {
 					path += "/" + request.Query["object-identity"];

@@ -34,11 +34,11 @@ export class PlatformUtility {
 				: control;
 			if (ctrl !== undefined && typeof ctrl.focus === "function") {
 				this.setTimeout(() => {
-					ctrl.focus();
 					if (this._keyboard !== undefined) {
 						this._keyboard.show();
 					}
-				}, defer || (AppConfig.isRunningOnIOS ? 456 : 123));
+					ctrl.focus();
+				}, defer || (AppConfig.isRunningOnIOS ? 456 : 234));
 			}
 		}
 	}
