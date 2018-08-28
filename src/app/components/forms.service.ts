@@ -326,10 +326,10 @@ export class AppFormsService {
 		controls.forEach((control, index) => {
 			if (index < controls.length - 1) {
 				control.next = controls[index + 1];
-				if (control.SubControls !== undefined) {
-					this.prepareControls(control.SubControls.Controls);
-					control.SubControls.Controls.forEach(subcontrol => subcontrol.parent = control);
-				}
+			}
+			if (control.SubControls !== undefined) {
+				control.SubControls.Controls.forEach(subcontrol => subcontrol.parent = control);
+				this.prepareControls(control.SubControls.Controls);
 			}
 		});
 	}
@@ -337,13 +337,15 @@ export class AppFormsService {
 	/** Gets the definition of all controls */
 	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
 		controls = controls || new Array<AppFormsControl>();
-		config.map((options, order) => new AppFormsControl(options, order)).sort((a, b) => a.Order - b.Order).forEach(control => controls.push(control));
+		config.map((options, order) => new AppFormsControl(options, order))
+			.sort((a, b) => a.Order - b.Order)
+			.forEach(control => controls.push(control));
 		this.prepareControls(controls);
 		return controls;
 	}
 
 	/** Updates the definition of all controls */
-	public updateControls(controls: Array<AppFormsControl>, value: any = {}) {
+	public updateControls(controls: Array<AppFormsControl> = [], value: any = {}) {
 		controls.filter(control => control.SubControls !== undefined).forEach(control => {
 			if (control.SubControls.AsArray) {
 				const values = value[control.Key] as Array<any>;
