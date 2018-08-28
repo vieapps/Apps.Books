@@ -25,6 +25,11 @@
 		[attr.style]="style.control"
 		(keyup)="onKeyUp($event)"></ion-input>
 
+	<ion-button *ngIf="isControl('TextBox') && control.Options.Type === 'password'" fill="clear" color="medium" slot="end" tabindex="-1" (click)="show = !show">
+		<ion-icon name="eye" slot="icon-only" [hidden]="type !== 'password'"></ion-icon>
+		<ion-icon name="eye-off" slot="icon-only" [hidden]="type === 'password'"></ion-icon>
+	</ion-button>
+
 	<ion-textarea *ngIf="isControl('TextArea')" #elementRef rows="4"
 		[formControlName]="formControlName"
 		[name]="name"
@@ -152,7 +157,7 @@
 	<app-form-control *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl"
 		[formGroup]="subFormGroup"
 		[control]="ctrl"
-		[index]="idx"></app-form-control>
+		[formArrayIndex]="idx"></app-form-control>
 </div>
 
 <div *ngIf="visible && isComplexFormArray">

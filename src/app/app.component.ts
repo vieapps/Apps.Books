@@ -6,7 +6,6 @@ import { Platform, NavController } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
 import { Device } from "@ionic-native/device/ngx";
-import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 
 import { AppEvents } from "./components/app.events";
 import { AppRTU } from "./components/app.rtu";
@@ -30,7 +29,6 @@ export class AppComponent implements OnInit {
 		public splashScreen: SplashScreen,
 		public statusBar: StatusBar,
 		public device: Device,
-		public ga: GoogleAnalytics,
 		public navController: NavController,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
@@ -67,6 +65,8 @@ export class AppComponent implements OnInit {
 	};
 
 	public ngOnInit() {
+		console.log("<AppComponent>: Initializing the app", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
+
 		// capture router info
 		this.configSvc.setPreviousUrl("/");
 		this.router.events.subscribe(event => {
@@ -78,16 +78,6 @@ export class AppComponent implements OnInit {
 
 		// initliaze app
 		this.platform.ready().then(() => {
-			// show loading
-			this.appFormsSvc.showLoadingAsync("activate" === this.configSvc.queryParams["prego"] ? "Kích hoạt..." : "Tải dữ liệu...");
-
-			// prepare sidebars
-			this.sidebar.left.title = this.configSvc.appConfig.app.name;
-			this.updateSidebar();
-
-			// setup event handlers
-			this.setupEventHandlers();
-
 			if (this.platform.is("cordova")) {
 				// prepare status bar
 				this.statusBar.styleDefault();
@@ -100,9 +90,20 @@ export class AppComponent implements OnInit {
 				this.splashScreen.hide();
 			}
 
+			// show loading
+			const isActivate = "activate" === this.configSvc.queryParams["prego"];
+			this.appFormsSvc.showLoadingAsync(isActivate ? "Kích hoạt..." : "Tải dữ liệu...");
+
+			// prepare sidebars
+			this.sidebar.left.title = this.configSvc.appConfig.app.name;
+			this.updateSidebar();
+
+			// setup event handlers
+			this.setupEventHandlers();
+
 			// prepare the app
 			this.configSvc.prepareAsync(async () => {
-				if (this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"]) {
+				if (this.configSvc.isWebApp && isActivate) {
 					await this.activateAsync();
 				}
 				else {
@@ -112,39 +113,41 @@ export class AppComponent implements OnInit {
 		});
 	}
 
-	private get loginItem() {
+	private get sidebarItems() {
 		return {
-			title: "Đăng nhập",
-			url: "/log-in",
-			queryParams: undefined as Params,
-			direction: "forward",
-			icon: "log-in",
-			thumbnail: undefined,
-			detail: false
-		};
-	}
-
-	private get registerAccountItem() {
-		return {
-			title: "Đăng ký tài khoản",
-			url: "/register-account",
-			queryParams: undefined as Params,
-			direction: "forward",
-			icon: "person-add",
-			thumbnail: undefined,
-			detail: false
-		};
-	}
-
-	private get viewAccountProfileItem() {
-		return {
-			title: "Thông tin tài khoản",
-			url: "/account-profile",
-			queryParams: undefined as Params,
-			direction: "forward",
-			icon: "person",
-			thumbnail: undefined,
-			detail: false
+			home: {
+				title: "Màn hình chính",
+				url: "/home",
+				direction: "root",
+				icon: "home"
+			},
+			login: {
+				title: "Đăng nhập",
+				url: "/log-in",
+				queryParams: undefined as Params,
+				direction: "forward",
+				icon: "log-in",
+				thumbnail: undefined,
+				detail: false
+			},
+			registerAccount: {
+				title: "Đăng ký tài khoản",
+				url: "/register-account",
+				queryParams: undefined as Params,
+				direction: "forward",
+				icon: "person-add",
+				thumbnail: undefined,
+				detail: false
+			},
+			viewAccountProfile: {
+				title: "Thông tin tài khoản",
+				url: "/account-profile",
+				queryParams: undefined as Params,
+				direction: "forward",
+				icon: "person",
+				thumbnail: undefined,
+				detail: false
+			}
 		};
 	}
 
@@ -181,21 +184,17 @@ export class AppComponent implements OnInit {
 
 		if (index === 0) {
 			this.sidebar.left.menu[index].items = [];
-			this.updateSidebarItem(index, -1, {
-				title: "Màn hình chính",
-				url: "/home",
-				icon: "home"
-			});
+			this.updateSidebarItem(index, -1, this.sidebarItems.home);
 
 			if (this.configSvc.isAuthenticated) {
-				this.updateSidebarItem(index, -1, this.viewAccountProfileItem);
+				this.updateSidebarItem(index, -1, this.sidebarItems.viewAccountProfile);
 			}
 			else {
-				this.updateSidebarItem(index, -1, this.loginItem);
+				this.updateSidebarItem(index, -1, this.sidebarItems.login);
 			}
 
 			if (this.authSvc.canRegisterNewAccounts) {
-				this.updateSidebarItem(index, -1, this.registerAccountItem);
+				this.updateSidebarItem(index, -1, this.sidebarItems.registerAccount);
 			}
 		}
 		else {
@@ -246,6 +245,11 @@ export class AppComponent implements OnInit {
 		AppEvents.on("UpdateSidebar", info => this.updateSidebar(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args["MenuIndex"] || -1, -1, info.args["ItemInfo"]));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args["MenuIndex"] || -1, info.args["ItemIndex"] || -1, info.args["ItemInfo"]));
+		AppEvents.on("UpdateSidebarTitle", info => {
+			if (AppUtility.isNotEmpty(info.args.title)) {
+				this.sidebar.left.title = info.args.title;
+			}
+		});
 
 		AppEvents.on("Session", info => {
 			const type = info.args["Type"] || "Unknown";
@@ -256,28 +260,28 @@ export class AppComponent implements OnInit {
 
 				const items = this.sidebar.left.menu[0].items;
 				if (this.configSvc.isAuthenticated) {
-					AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith("/register-account")));
-					const index = items.findIndex(item => item.url.startsWith("/log-in"));
+					AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith(this.sidebarItems.registerAccount.url)));
+					const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url));
 					if (index > -1) {
-						items[index] = this.viewAccountProfileItem;
+						items[index] = this.sidebarItems.viewAccountProfile;
 					}
-					else if (items.findIndex(item => item.url.startsWith("/account-profile")) < 0) {
-						AppUtility.insertAt(items, this.viewAccountProfileItem);
+					else if (items.findIndex(item => item.url.startsWith(this.sidebarItems.viewAccountProfile.url)) < 0) {
+						AppUtility.insertAt(items, this.sidebarItems.viewAccountProfile);
 					}
 				}
 				else {
-					if (items.findIndex(item => item.url.startsWith("/log-in")) < 0) {
-						const index = items.findIndex(item => item.url.startsWith("/account-profile"));
+					if (items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url)) < 0) {
+						const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.viewAccountProfile.url));
 						if (index > -1) {
-							items[index] = this.loginItem;
+							items[index] = this.sidebarItems.login;
 						}
 						else {
-							AppUtility.insertAt(items, this.loginItem);
+							AppUtility.insertAt(items, this.sidebarItems.login);
 						}
 					}
-					if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith("/register-account")) < 0) {
-						const index = items.findIndex(item => item.url.startsWith("/log-in"));
-						AppUtility.insertAt(items, this.registerAccountItem, index > -1 ? index + 1 : -1);
+					if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith(this.sidebarItems.registerAccount.url)) < 0) {
+						const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url));
+						AppUtility.insertAt(items, this.sidebarItems.registerAccount, index > -1 ? index + 1 : -1);
 					}
 				}
 			}
@@ -324,7 +328,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	async showActivationResultAsync(data: any) {
+	private async showActivationResultAsync(data: any) {
 		const header = "password" === data.Mode
 			? "Mật khẩu mới"
 			: "Tài khoản mới";
@@ -392,8 +396,6 @@ export class AppComponent implements OnInit {
 		if (this.configSvc.isWebApp) {
 			PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());
 		}
-
-		await TrackingUtility.initializeAsync(this.ga);
 
 		AppRTU.start(() => {
 			if (this.configSvc.isAuthenticated) {

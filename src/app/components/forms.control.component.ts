@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, AfterViewInit, ViewChild } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
 import { CompleterService, CompleterItem } from "ng2-completer";
-import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
 import { AppFormsControl, AppFormsService } from "./forms.service";
 
@@ -17,44 +16,17 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	) {
 	}
 
-	private static _counties: {
-		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
-	} = {};
-
-	@Input() formGroup: FormGroup;
 	@Input() control: AppFormsControl;
-	@Input() index: number;
+	@Input() formGroup: FormGroup;
+	@Input() formArrayIndex: number;
 
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 	@Output() lastFocusEvent: EventEmitter<any> = new EventEmitter();
 
 	@ViewChild("elementRef") elementRef;
 
+	show = false;
 	private _style: string = undefined;
-
-	/** Gets the listing of counties of a specified country */
-	public static getCounties(country?: string) {
-		country = country || AppConfig.meta.country;
-		if (this._counties[country] === undefined && AppConfig.meta.provinces[country] !== undefined) {
-			const counties = new Array<{
-				County: string,
-				Province: string,
-				Country: string,
-				Title: string,
-				TitleANSI: string
-			}>();
-			const provinces = AppConfig.meta.provinces[country].provinces || [];
-			provinces.forEach(province => province.counties.forEach(county => counties.push({
-				County: county.title,
-				Province: province.title,
-				Country: country,
-				Title: county.title + ", " + province.title + ", " + country,
-				TitleANSI: AppUtility.toANSI(county.title + ", " + province.title + ", " + country)
-			})));
-			this._counties[country] = counties;
-		}
-		return this._counties[country] || [];
-	}
 
 	public ngOnInit() {
 		if (this.isControl("Completer")) {
@@ -96,11 +68,11 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	public get isSimpleFormArray() {
-		return this.isFormArray && this.control.SubControls.Controls.filter(subcontrol => subcontrol.SubControls !== undefined).length < 1;
+		return this.isFormArray && this.control.SubControls.Controls.find(subcontrol => subcontrol.SubControls !== undefined) === undefined;
 	}
 
 	public get isComplexFormArray() {
-		return this.isFormArray && this.control.SubControls.Controls.filter(subcontrol => subcontrol.SubControls !== undefined).length > 0;
+		return this.isFormArray && this.control.SubControls.Controls.find(subcontrol => subcontrol.SubControls !== undefined) !== undefined;
 	}
 
 	public isControl(type: string) {
@@ -132,7 +104,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	public get type() {
-		return this.control.Options.Type;
+		return this.control.Options.Type === "password" && this.show
+			? "text"
+			: this.control.Options.Type;
 	}
 
 	public get required() {
@@ -215,7 +189,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	public get formControlName() {
-		return this.index !== undefined ? this.index : this.control.Key;
+		return this.formArrayIndex !== undefined ? this.formArrayIndex : this.control.Key;
 	}
 
 	public get name() {
@@ -331,7 +305,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	completerInit() {
 		if (this.control.Options.Type === "Address") {
-			this.control.Options.CompleterOptions.DataSource = this.completerSvc.local(AppFormsControlComponent.getCounties(), "Title,TitleANSI", "Title");
+			this.control.Options.CompleterOptions.DataSource = this.completerSvc.local(this.appFormsSvc.getCounties(), "Title,TitleANSI", "Title");
 		}
 		else if (this.control.Options.CompleterOptions.Handlers.Initialize !== undefined) {
 			this.control.Options.CompleterOptions.Handlers.Initialize(this.formControl);
@@ -377,7 +351,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				const formControl = this.formGroup.controls[key];
 				value[key] = formControl !== undefined ? formControl.value : "";
 			});
-			return AppFormsControlComponent.getCounties().find(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
+			return this.appFormsSvc.getCounties().find(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
 		}
 		else {
 			return this.control.Options.CompleterOptions.Handlers.GetInitialValue !== undefined

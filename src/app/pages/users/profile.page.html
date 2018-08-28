@@ -7,7 +7,7 @@
 				{{buttons.cancel.text}}
 			</ion-button>
 		</ion-buttons>
-		<ion-buttons *ngIf="buttons.ok" slot="primary">
+		<ion-buttons *ngIf="buttons.ok" slot="end">
 			<ion-button color="primary" (click)="buttons.ok.handler()">
 				<ion-icon *ngIf="buttons.ok.icon" [name]="buttons.ok.icon" slot="start"></ion-icon>
 				{{buttons.ok.text}}
@@ -27,12 +27,12 @@
 				{{buttons.invite.text}}
 			</ion-button>
 		</ion-buttons>
-		<ion-buttons *ngIf="actions" slot="primary">
+		<ion-buttons *ngIf="actions" slot="end">
 			<ion-button color="primary" (click)="showActionsAsync()">
 				<ion-icon name="more" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
-		<ion-title></ion-title>
+		<ion-buttons></ion-buttons>
 	</ion-toolbar>
 </ion-footer>
 
@@ -43,7 +43,7 @@
 			<img [src]="profile.avatarUri" />
 		</figure>
 		<h1>
-			{{profile.Name}}
+			{{ profile.Name }}
 		</h1>
 		<ion-list>
 			<ion-list-header>
@@ -51,19 +51,19 @@
 			</ion-list-header>
 			<ion-item>
 				<ion-icon icon="mail" slot="start"></ion-icon>
-				{{profile.Email}}
+				{{ profile.Email }}
 			</ion-item>
 			<ion-item *ngIf="profile.Mobile !== ''">
 				<ion-icon icon="phone-portrait" slot="start"></ion-icon>
-				{{profile.Mobile}}
+				{{ profile.Mobile }}
 			</ion-item>
 			<ion-item *ngIf="profile.FullAddress !== ''">
 				<ion-icon icon="pin" slot="start"></ion-icon>
-				{{profile.FullAddress}}
+				{{ profile.FullAddress }}
 			</ion-item>
 			<ion-item>
 				<ion-icon icon="time" slot="start"></ion-icon>
-				Truy cập: {{profile.LastAccess | date: 'h:mm a @ d/M/y'}}
+				Truy cập: {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
 			</ion-item>
 		</ion-list>
 	</div>
@@ -105,7 +105,7 @@
 			<ion-label>
 				Trạng thái xác thực lần hai:
 				<span>
-					{{otp.required ? 'Bật' : otp.uri === '' ? 'Tắt' : 'Đang thiết đặt'}}
+					{{ otp.required ? 'Bật' : otp.uri === '' ? 'Tắt' : 'Đang thiết đặt' }}
 				</span>
 			</ion-label>
 			<ion-button *ngIf="!otp.required && otp.uri === ''" fill="solid" color="primary" (click)="prepareOTPAsync()" item-right>
@@ -118,7 +118,7 @@
 		</ion-list-header>
 		<ion-item *ngFor="let provider of otp.providers">
 			<ion-label>
-				{{provider.Label}} @ {{provider.Time | date:'dd/MM/yyyy hh:mm a'}}
+				{{ provider.Label }} @ {{ provider.Time | date:'dd/MM/yyyy hh:mm a' }}
 			</ion-label>
 			<ion-button fill="clear" (click)="deleteOTPAsync(provider)" item-right>
 				<ion-icon name="trash" slot="start"></ion-icon>

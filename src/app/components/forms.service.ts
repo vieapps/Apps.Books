@@ -44,6 +44,7 @@ export class AppFormsControl {
 		Name: "",
 		Css: "",
 		PlaceHolder: undefined as string,
+		ValidatePattern: undefined as string,
 		Disabled: false,
 		ReadOnly: false,
 		AutoFocus: false,
@@ -115,14 +116,14 @@ export class AppFormsControl {
 		this.Extras["_ctrl:CaptchaUri"] = value;
 	}
 
-	/** Gets the reference to the next control */
+	/** Gets the reference to the next sibling */
 	public get next() {
-		return this.Extras["_ctrl:Next"];
+		return this.Extras["_ctrl:NextSibling"];
 	}
 
-	/** Sets the reference to the next control */
+	/** Sets the reference to the next sibling */
 	public set next(value: AppFormsControl) {
-		this.Extras["_ctrl:Next"] = value;
+		this.Extras["_ctrl:NextSibling"] = value;
 	}
 
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
@@ -162,6 +163,7 @@ export class AppFormsControl {
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
 			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
 			control.Options.Name = alternativeKey !== undefined ? `${alternativeKey}-${control.Key}` : `${control.Key}`;
+			control.Options.ValidatePattern = controlOptions.ValidatePattern || controlOptions.validatepattern;
 
 			control.Options.Disabled = !!(controlOptions.Disabled || controlOptions.disabled);
 			control.Options.ReadOnly = !!(controlOptions.ReadOnly || controlOptions.readonly);
@@ -249,15 +251,6 @@ export class AppFormsControl {
 		return control;
 	}
 
-	/** Adds sub-controls of the form array */
-	public addSubControls(length: number) {
-		if (this.SubControls !== undefined && this.SubControls.AsArray) {
-			while (this.SubControls.Controls.length < length) {
-				this.SubControls.Controls.push(this.SubControls.Controls[0].clone(this.SubControls.Controls.length));
-			}
-		}
-	}
-
 	/** Copies the options of this control */
 	public copy(onPreCompleted?: (options: Array<any>) => void) {
 		const options = AppUtility.clone(this, ["Order", "Validators", "AsyncValidators"]);
@@ -300,10 +293,14 @@ export class AppFormsService {
 	) {
 	}
 
-	private _loading = undefined;
-	private _actionsheet = undefined;
-	private _modal = undefined;
-	private _alert = undefined;
+	private _loading: any;
+	private _actionsheet: any;
+	private _modal: any;
+	private _alert: any;
+	private _textControls = ["text", "password", "email", "search", "tel", "url"];
+	private _counties: {
+		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
+	} = {};
 
 	private prepareNexts(controls: Array<AppFormsControl>) {
 		for (let index = 0; index < controls.length - 1; index ++) {
@@ -327,7 +324,10 @@ export class AppFormsService {
 		controls.filter(control => control.SubControls !== undefined).forEach(control => {
 			if (control.SubControls.AsArray) {
 				const values = value[control.Key] as Array<any>;
-				control.addSubControls(values.length);
+				const options = control.SubControls.Controls[0].copy();
+				while (control.SubControls.Controls.length < values.length) {
+					control.SubControls.Controls.push(new AppFormsControl(options, control.SubControls.Controls.length));
+				}
 				control.SubControls.Controls.forEach((subcontrol, subindex) => {
 					if (subcontrol.SubControls !== undefined) {
 						this.updateControls(subcontrol.SubControls.Controls, values[subindex]);
@@ -413,7 +413,7 @@ export class AppFormsService {
 			validators.push(Validators.required);
 		}
 
-		if (control.Options.Type === "text" || control.Options.Type === "email" || control.Options.Type === "password" || control.Options.Type === "tel" || control.Options.Type === "url") {
+		if (this._textControls.findIndex(ctrl => ctrl === control.Options.Type) > -1) {
 			if (control.Options.MinLength > 0) {
 				validators.push(Validators.minLength(control.Options.MinLength));
 			}
@@ -432,6 +432,10 @@ export class AppFormsService {
 			if (control.Options.Max > 0) {
 				validators.push(Validators.max(control.Options.Max));
 			}
+		}
+
+		if (AppUtility.isNotEmpty(control.Options.ValidatePattern)) {
+			validators.push(Validators.pattern(control.Options.ValidatePattern));
 		}
 
 		return validators;
@@ -541,6 +545,30 @@ export class AppFormsService {
 				return null;
 			}
 		};
+	}
+
+	/** Gets the listing of counties of a specified country */
+	public getCounties(country?: string) {
+		country = country || AppConfig.meta.country;
+		if (this._counties[country] === undefined && AppConfig.meta.provinces[country] !== undefined) {
+			const counties = new Array<{
+				County: string,
+				Province: string,
+				Country: string,
+				Title: string,
+				TitleANSI: string
+			}>();
+			const provinces = AppConfig.meta.provinces[country].provinces || [];
+			provinces.forEach(province => province.counties.forEach(county => counties.push({
+				County: county.title,
+				Province: province.title,
+				Country: country,
+				Title: county.title + ", " + province.title + ", " + country,
+				TitleANSI: AppUtility.toANSI(county.title + ", " + province.title + ", " + country)
+			})));
+			this._counties[country] = counties;
+		}
+		return this._counties[country] || [];
 	}
 
 	/** Shows the loading */

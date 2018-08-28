@@ -1,6 +1,6 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
 	<ion-list>
-		<app-form-control *ngFor="let ctrl of controls; trackBy: trackControl"
+		<app-form-control *ngFor="let ctrl of controls; let idx=index trackBy: trackControl"
 			[formGroup]="form"
 			[control]="ctrl"
 			(lastFocusEvent)="onLastFocus($event)"

@@ -179,7 +179,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 
 		this.buttons.invite = this.mode === "profile" && this.authSvc.canSendInvitations
-			? { text: "Mời bạn bè", icon: "people", handler: () => this.sendInvitation() }
+			? { text: "Mời tham gia", icon: "people", handler: () => this.sendInvitation() }
 			: undefined;
 	}
 
@@ -253,10 +253,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.update.config = [
 			{
 				Key: "Name",
-				Type: "TextBox",
 				Required: true,
 				Options: {
-					Type: "text",
 					Label: "Tên",
 					Description: "Sử dụng để hiển thị trong hệ thống",
 					DescriptionOptions: {
@@ -272,7 +270,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Type: "Select",
 				Required: true,
 				Options: {
-					Type: "text",
 					Label: "Giới tính",
 					SelectOptions: {
 						Values: [
@@ -305,9 +302,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Address",
-				Type: "TextBox",
 				Options: {
-					Type: "text",
 					Label: "Địa chỉ",
 					MinLength: 1,
 					MaxLength: 250,
@@ -324,7 +319,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Mobile",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "tel",
@@ -335,7 +329,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Email",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "email",
@@ -374,7 +367,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				options.Required = true;
 			}
 		});
-		this.setMode("update", "Cập nhật thông tin tài khoản");
+		this.setMode("update", "Cập nhật hồ sơ");
 	}
 
 	private async updateProfileAsync() {
@@ -432,7 +425,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 		];
-		this.setMode("password", "Đổi mật khẩu");
+		this.setMode("password", "Đổi mật khẩu đăng nhập");
 	}
 
 	private async updatePasswordAsync() {
@@ -568,7 +561,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Key: "Name",
 				Required: true,
 				Options: {
-					Type: "text",
 					Label: "Tên",
 					MinLength: 1,
 					MaxLength: 150,
@@ -586,7 +578,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		this.setMode("invitation", "Mời bạn bè");
+		this.setMode("invitation", "Gửi lời mời tham gia hệ thống");
 	}
 
 	private async sendInvitationAsync() {

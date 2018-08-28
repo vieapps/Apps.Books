@@ -7,6 +7,7 @@ import { Platform } from "@ionic/angular";
 import { Device } from "@ionic-native/device/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
+import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { Storage } from "@ionic/storage";
 import { List } from "linqts";
 import { AppConfig } from "../app.config";
@@ -15,6 +16,7 @@ import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
 import { PlatformUtility } from "../components/app.utility.platform";
+import { TrackingUtility } from "../components/app.utility.trackings";
 import { UserProfile } from "../models/user";
 import { Account } from "../models/account";
 import { Privilege } from "../models/privileges";
@@ -29,6 +31,7 @@ export class ConfigurationService extends BaseService {
 		public device: Device,
 		public keyboard: Keyboard,
 		public appVer: AppVersion,
+		public googleAnalytics: GoogleAnalytics,
 		public storage: Storage,
 		public browserTitle: Title
 	) {
@@ -142,17 +145,15 @@ export class ConfigurationService extends BaseService {
 
 		else {
 			this.appConfig.app.host = PlatformUtility.host;
-			this.appConfig.app.platform = this.device.platform;
+			this.appConfig.app.platform = this.platform.is("cordova") ? this.device.platform : undefined;
 			if (!AppUtility.isNotEmpty(this.appConfig.app.platform) || this.appConfig.app.platform === "browser") {
 				this.appConfig.app.platform = PlatformUtility.getAppPlatform();
 			}
-
-			if (this.appConfig.app.mode === "PWA") {
-				this.appConfig.app.platform += " " + this.appConfig.app.mode;
-			}
+			this.appConfig.app.platform += " " + this.appConfig.app.mode;
 		}
 
 		if (this.platform.is("cordova")) {
+			await TrackingUtility.initializeAsync(this.googleAnalytics);
 			PlatformUtility.keyboard = this.keyboard;
 			this.appVer.getVersionCode()
 				.then(version => this.appConfig.app.version = version as string)
@@ -212,7 +213,7 @@ export class ConfigurationService extends BaseService {
 	/** Registers the initialized session (anonymous) with REST API */
 	public registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.readAsync("users/session?register=" + this.appConfig.session.id,
-			async data => {
+			async () => {
 				this.appConfig.session.account = this.getAccount(true);
 				if (this.isDebug) {
 					console.log(this.getLogMessage("The session is registered by APIs"));
