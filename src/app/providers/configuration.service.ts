@@ -226,7 +226,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Updates the session and stores into storage */
-	public updateSessionAsync(session: any, onCompleted?: (data?: any) => void, dontStore?: boolean) {
+	public async updateSessionAsync(session: any, onCompleted?: (data?: any) => void, dontStore?: boolean) {
 		if (AppUtility.isNotEmpty(session.ID)) {
 			this.appConfig.session.id = session.ID;
 		}
@@ -265,7 +265,7 @@ export class ConfigurationService extends BaseService {
 			}
 		}
 		else {
-			return this.storeSessionAsync(onCompleted);
+			await this.storeSessionAsync(onCompleted);
 		}
 	}
 
@@ -310,12 +310,12 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Deletes the session from storage */
-	public deleteSessionAsync(onCompleted?: (data?: any) => void) {
+	public async deleteSessionAsync(onCompleted?: (data?: any) => void) {
 		this.appConfig.session.id = null;
 		this.appConfig.session.token = null;
 		this.appConfig.session.keys = null;
 		this.appConfig.session.account = this.getAccount(true);
-		return this.storeSessionAsync(onCompleted);
+		await this.storeSessionAsync(onCompleted);
 	}
 
 	/** Send request to patch the session */
