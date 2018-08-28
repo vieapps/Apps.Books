@@ -1,10 +1,14 @@
 <ion-app>
-	<ion-split-pane>
+	<ion-split-pane when="lg">
 		<ion-menu>
 			<ion-header>
 				<ion-toolbar>
 					<ion-thumbnail *ngIf="sidebar.left.avatar" slot="start">
-						<img [src]="sidebar.left.avatar"/>
+						<ion-menu-toggle auto-hide="false">
+							<a routerLink="/account-profile" routerDirection="forward">
+								<img [src]="sidebar.left.avatar" />
+							</a>
+						</ion-menu-toggle>
 					</ion-thumbnail>
 					<ion-title>
 						{{sidebar.left.title}}

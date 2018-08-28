@@ -401,18 +401,17 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.password.config = [
 			{
 				Key: "OldPassword",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "password",
 					Label: "Mật khẩu hiện tại",
 					MinLength: 1,
-					MaxLength: 150
+					MaxLength: 150,
+					AutoFocus: true
 				}
 			},
 			{
 				Key: "Password",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "password",
@@ -423,7 +422,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "ConfirmPassword",
-				Type: "TextBox",
 				Required: true,
 				Validators: [this.appFormsSvc.isMatched("Password")],
 				Options: {
@@ -457,18 +455,17 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.email.config = [
 			{
 				Key: "OldPassword",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "password",
 					Label: "Mật khẩu hiện tại",
 					MinLength: 1,
-					MaxLength: 150
+					MaxLength: 150,
+					AutoFocus: true
 				}
 			},
 			{
 				Key: "Email",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "email",
@@ -479,7 +476,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "ConfirmEmail",
-				Type: "TextBox",
 				Required: true,
 				Validators: [this.appFormsSvc.isMatched("Email")],
 				Options: {
@@ -570,18 +566,17 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.invitation.config = [
 			{
 				Key: "Name",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "text",
 					Label: "Tên",
 					MinLength: 1,
-					MaxLength: 150
+					MaxLength: 150,
+					AutoFocus: true
 				}
 			},
 			{
 				Key: "Email",
-				Type: "TextBox",
 				Required: true,
 				Options: {
 					Type: "email",

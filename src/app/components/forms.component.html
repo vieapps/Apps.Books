@@ -3,6 +3,7 @@
 		<app-form-control *ngFor="let ctrl of controls; trackBy: trackControl"
 			[formGroup]="form"
 			[control]="ctrl"
+			(lastFocusEvent)="onLastFocus($event)"
 			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form-control>
 	</ion-list>
 </form>

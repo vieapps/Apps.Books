@@ -65,6 +65,11 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.isWebApp;
 	}
 
+	/** Gets the state that determines the app is running on iOS (native or web browser) */
+	public get isRunningOnIOS() {
+		return this.appConfig.isRunningOnIOS;
+	}
+
 	/** Sets the previous url */
 	public setPreviousUrl(value: string) {
 		this.appConfig.app.url.previous = value;

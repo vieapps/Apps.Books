@@ -283,7 +283,7 @@ export class AppFormsControl {
 
 	/** Sets focus into this control */
 	public focus(defer?: number) {
-		PlatformUtility.focus(this.elementRef);
+		PlatformUtility.focus(this.elementRef, defer);
 	}
 
 }
@@ -303,6 +303,7 @@ export class AppFormsService {
 	private _loading = undefined;
 	private _actionsheet = undefined;
 	private _modal = undefined;
+	private _alert = undefined;
 
 	private prepareNexts(controls: Array<AppFormsControl>) {
 		for (let index = 0; index < controls.length - 1; index ++) {
@@ -450,7 +451,10 @@ export class AppFormsService {
 
 	/** Highlights all invalid controls (by mark as dirty on all invalid controls) and set focus into first invalid control */
 	public highlightInvalids(form: FormGroup) {
-		PlatformUtility.focus(this.highlightInvalidsFormGroup(form, form["_controls"] as Array<AppFormsControl>), 123);
+		const control = this.highlightInvalidsFormGroup(form, form["_controls"] as Array<AppFormsControl>);
+		if (control !== undefined) {
+			control.focus();
+		}
 	}
 
 	private highlightInvalidsFormGroup(formGroup: FormGroup, controls: Array<AppFormsControl>) {
@@ -495,13 +499,16 @@ export class AppFormsService {
 	}
 
 	/** Sets focus into next control of the form */
-	public focusNext(control: AppFormsControl) {
+	public focusNext(control: AppFormsControl, whenNoControlFound?: () => void) {
 		let nextControl = control.next;
 		while (nextControl !== undefined && nextControl.Excluded) {
 			nextControl = nextControl.next;
 		}
 		if (nextControl !== undefined) {
 			nextControl.focus(AppConfig.isRunningOnIOS ? 345 : 13);
+		}
+		else if (whenNoControlFound !== undefined) {
+			whenNoControlFound();
 		}
 	}
 
@@ -595,11 +602,26 @@ export class AppFormsService {
 
 	/** Shows the alert confirmation box  */
 	public async showAlertAsync(header: string = null, subHeader: string = null, message: string, postProcess: (data?: any) => void = () => {}, okButtonText: string = null, cancelButtonText: string = null, inputs: Array<any> = null) {
+		await this.hideLoadingAsync();
+		if (this._alert !== undefined) {
+			await this._alert.dismiss();
+			this._alert = undefined;
+		}
+
 		const buttons = AppUtility.isNotEmpty(cancelButtonText)
-			? [{ text: cancelButtonText, role: "cancel", handler: undefined as (data?: any) => void }]
+			? [{ text: cancelButtonText || "Huỷ", role: "cancel", handler: undefined as (data?: any) => void }]
 			: [];
-		buttons.push({ text: okButtonText || "Đóng", role: undefined as string, handler: (data?: any) => postProcess(data) });
-		const alert = AppUtility.isArray(inputs, true)
+		buttons.push({
+			text: okButtonText || "Đóng",
+			role: undefined as string,
+			handler: async (data?: any) => {
+				postProcess(data);
+				await this._alert.dismiss();
+				this._alert = undefined;
+			}
+		});
+
+		this._alert = AppUtility.isArray(inputs, true)
 			? await this.alertController.create({
 					header: header || "Chú ý",
 					subHeader: subHeader,
@@ -615,14 +637,11 @@ export class AppFormsService {
 					message: message,
 					buttons: buttons
 				});
-		await Promise.all([
-			this.hideLoadingAsync(),
-			alert.present()
-		]);
+		await this._alert.present();
 	}
 
 	/** Shows the error message (by the alert confirmation box) */
-	public async showErrorAsync(error: any, subHeader?: string, postProcess?: () => void) {
+	public async showErrorAsync(error: any, subHeader?: string, postProcess?: (data?: any) => void) {
 		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
 			? "Tài khoản hoặc mật khẩu không đúng!"
 			: AppUtility.isGotCaptchaException(error) || AppUtility.isGotOTPException(error)

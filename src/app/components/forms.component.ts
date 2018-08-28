@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, AfterViewInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppFormsControl, AppFormsService } from "./forms.service";
+import { PlatformUtility } from "./app.utility.platform";
 
 @Component({
 	selector: "app-form",
@@ -17,6 +18,8 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Input() controls: Array<AppFormsControl>;
 	@Input() config: Array<any>;
 	@Input() value: any;
+	@Input() lastFocus: any;
+
 	@Output() initEvent: EventEmitter<any> = new EventEmitter();
 	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
@@ -58,6 +61,10 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	public onRefreshCaptcha($event) {
 		this.refreshCaptchaEvent.emit($event);
+	}
+
+	public onLastFocus($event) {
+		PlatformUtility.focus(this.lastFocus);
 	}
 
 	public onSubmit() {

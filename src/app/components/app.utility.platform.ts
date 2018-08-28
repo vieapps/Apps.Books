@@ -1,10 +1,9 @@
+declare var FB: any;
 import { ElementRef } from "@angular/core";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "./app.crypto";
 import { AppUtility } from "./app.utility";
-
-declare var FB: any;
 
 /** Servicing component for working with app on a specific platform */
 export class PlatformUtility {
@@ -30,7 +29,7 @@ export class PlatformUtility {
 	/** Sets focus into the control */
 	public static focus(control: any, defer?: number) {
 		if (AppUtility.isNotNull(control)) {
-			const ctrl = control !== undefined && control instanceof ElementRef
+			const ctrl = control instanceof ElementRef
 				? (control as ElementRef).nativeElement
 				: control;
 			if (ctrl !== undefined && typeof ctrl.focus === "function") {
@@ -39,7 +38,7 @@ export class PlatformUtility {
 					if (this._keyboard !== undefined) {
 						this._keyboard.show();
 					}
-				}, defer || (AppConfig.isRunningOnIOS ? 456 : 234));
+				}, defer || (AppConfig.isRunningOnIOS ? 456 : 123));
 			}
 		}
 	}

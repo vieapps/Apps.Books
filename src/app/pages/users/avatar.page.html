@@ -33,12 +33,14 @@
 			<input type="file" accept="image/*" (change)="prepareImage($event)" />
 		</ion-item>
 		<ion-item>
-			<div [hidden]="mode !== 'Avatar'" class="cropper">
-				<img-cropper #imgcropper [image]="cropper.data" [settings]="cropper.settings"></img-cropper>
-			</div>
 			<div>
-				<img [src]="cropper.data.image" [width]="cropper.settings.croppedWidth" [height]="cropper.settings.croppedHeight" [hidden]="mode !== 'Avatar' || cropper.data.image === ''" />
-				<img [src]="profile.Gravatar" [width]="cropper.settings.croppedWidth" [height]="cropper.settings.croppedHeight" [hidden]="mode === 'Avatar'" />
+				<div [hidden]="mode !== 'Avatar'" class="cropper">
+					<img-cropper #imgcropper [image]="cropper.data" [settings]="cropper.settings"></img-cropper>
+				</div>
+				<div>
+					<img [src]="cropper.data.image" [width]="cropper.settings.croppedWidth" [height]="cropper.settings.croppedHeight" [hidden]="mode !== 'Avatar' || cropper.data.image === ''" />
+					<img [src]="profile.Gravatar" [width]="cropper.settings.croppedWidth" [height]="cropper.settings.croppedHeight" [hidden]="mode === 'Avatar'" />
+				</div>
 			</div>
 		</ion-item>
 	</ion-list>

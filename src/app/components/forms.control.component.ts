@@ -2,8 +2,8 @@ import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, AfterViewIni
 import { FormGroup, FormArray } from "@angular/forms";
 import { CompleterService, CompleterItem } from "ng2-completer";
 import { AppConfig } from "../app.config";
-import { AppFormsControl, AppFormsService } from "./forms.service";
 import { AppUtility } from "./app.utility";
+import { AppFormsControl, AppFormsService } from "./forms.service";
 
 @Component({
 	selector: "app-form-control",
@@ -24,7 +24,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	@Input() formGroup: FormGroup;
 	@Input() control: AppFormsControl;
 	@Input() index: number;
+
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
+	@Output() lastFocusEvent: EventEmitter<any> = new EventEmitter();
 
 	@ViewChild("elementRef") elementRef;
 
@@ -66,6 +68,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	public ngOnDestroy() {
 		this.refreshCaptchaEvent.unsubscribe();
+		this.lastFocusEvent.unsubscribe();
 		if (this.control.Options.CompleterOptions.DataSource !== undefined) {
 			this.control.Options.CompleterOptions.DataSource.cancel();
 		}
@@ -254,7 +257,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			this.formControl.setValue(new Date(value));
 		}
 		catch {}
-		this.appFormsSvc.focusNext(this.control);
+		this.focusNext();
 	}
 
 	public get datetimeDisplayFormat() {
@@ -299,7 +302,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	public selectValuesChange($event) {
 		this.formControl.setValue($event.detail.value);
-		this.appFormsSvc.focusNext(this.control);
+		this.focusNext();
 	}
 
 	public get selectAsRadioBoxes() {
@@ -396,9 +399,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		else if (this.control.Options.CompleterOptions.Handlers.OnItemSelected !== undefined) {
 			this.control.Options.CompleterOptions.Handlers.OnItemSelected(this.formControl, item);
 		}
-		if (item !== undefined) {
-			this.appFormsSvc.focusNext(this.control);
-		}
 	}
 
 	public get captchaUri() {
@@ -445,8 +445,12 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	public onKeyUp($event: KeyboardEvent) {
 		if ($event.code === "Enter") {
-			this.appFormsSvc.focusNext(this.control);
+			this.focusNext();
 		}
+	}
+
+	private focusNext() {
+		this.appFormsSvc.focusNext(this.control, () => this.lastFocusEvent.emit(this.control));
 	}
 
 }

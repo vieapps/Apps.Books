@@ -16,8 +16,11 @@
 		max-width: 320px;
 	}
 }
-ion-app ion-menu ion-header ion-toolbar ion-thumbnail img {
+app-root > ion-app > ion-split-pane > ion-menu > ion-header > ion-toolbar > ion-thumbnail img {
 	border-radius: 50%;
+	width: 80%;
+	height: 80%;
+	margin: 10%;
 }
 
 /* label of invalid controls */
@@ -26,13 +29,17 @@ ion-app ion-menu ion-header ion-toolbar ion-thumbnail img {
 }
 
 /* description label of an input control */
-.label.description, label.description {
+.label.description,
+label.description {
 	font-size: 12px;
 	color: var(--ion-color-medium);
 }
 
 /* completer */
-.completer-container > ng2-completer, .completer-holder, .completer-dropdown-holder, .completer-dropdown {
+.completer-container > ng2-completer,
+.completer-holder,
+.completer-dropdown-holder,
+.completer-dropdown {
 	width: 100% !important;
 }
 ion-item.completer-container {
