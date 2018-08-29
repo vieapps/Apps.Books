@@ -67,9 +67,11 @@ export class AccountAvatarPage implements OnInit {
 	}
 
 	private async updateProfileAsync() {
-		await this.userSvc.updateProfileAsync(this.profile,
+		await this.userSvc.updateProfileAsync({
+				ID: this.profile.ID,
+				Avatar: this.profile.Avatar
+			},
 			async () => {
-				this.configSvc.getAccount().profile = UserProfile.get(this.profile.ID);
 				await this.configSvc.storeProfileAsync(async () => {
 					await TrackingUtility.trackAsync(this.title, "account/avatar");
 					await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync("Ảnh đại diện đã được cập nhật..."));
@@ -95,7 +97,7 @@ export class AccountAvatarPage implements OnInit {
 					await this.updateProfileAsync();
 				},
 				error => {
-					console.error("Error occurred while uploading avatar image => " + AppUtility.getErrorMessage(error), error);
+					console.error("Error occurred while uploading avatar image => " + AppUtility.getErrorMessage(error));
 					this.processing = false;
 				}
 			);

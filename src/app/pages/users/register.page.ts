@@ -219,7 +219,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 	public async refreshCaptchaAsync(control?: AppFormsControl) {
 		await this.authSvc.registerCaptchaAsync(() => {
-			(control || this.register.controls.find(ctrl => ctrl.Type === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
+			(control || this.register.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
 

@@ -125,7 +125,7 @@ export class LogInPage implements OnInit, OnDestroy {
 					this.configSvc.goBack();
 				}
 			},
-			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể đăng nhập", () => this.login.controls[0].focus())
+			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể đăng nhập", () => this.login.controls.find(c => c.Key === "Email").focus())
 		);
 	}
 
@@ -196,8 +196,7 @@ export class LogInPage implements OnInit, OnDestroy {
 			await this.authSvc.logInOTPAsync(this.otp.value.ID, this.otp.value.OTP, this.otp.value.Provider,
 				async () => {
 					await TrackingUtility.trackAsync(this.title, "/session/otp");
-					await this.appFormsSvc.hideLoadingAsync();
-					this.configSvc.goBack();
+					await this.appFormsSvc.hideLoadingAsync(() => this.configSvc.goBack());
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
 					const control = this.otp.controls.find(c => c.Key === "OTP");
@@ -261,7 +260,7 @@ export class LogInPage implements OnInit, OnDestroy {
 			},
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),
-				this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls[0].focus())
+				this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => c.Key === "Captcha").focus())
 			])
 		);
 	}
@@ -279,7 +278,7 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	public async refreshCaptchaAsync(control?: AppFormsControl) {
 		await this.authSvc.registerCaptchaAsync(() => {
-			(control || this.reset.controls.find(ctrl => ctrl.Type === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
+			(control || this.reset.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
 
