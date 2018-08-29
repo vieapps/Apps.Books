@@ -24,8 +24,8 @@ export class AccountAvatarPage implements OnInit {
 	}
 
 	title = "Cập nhật ảnh đại diện";
-	profile: UserProfile = undefined;
 	mode = "Avatar";
+	profile: UserProfile;
 	cropper = {
 		settings: new CropperSettings(),
 		data: {
@@ -60,6 +60,10 @@ export class AccountAvatarPage implements OnInit {
 			this.cropperComponent.setImage(image);
 		};
 		fileReader.readAsDataURL($event.target.files[0]);
+	}
+
+	public get imageUri() {
+		return this.mode === "Gravatar" ? this.profile.Gravatar : this.cropper.data.image;
 	}
 
 	private async updateProfileAsync() {

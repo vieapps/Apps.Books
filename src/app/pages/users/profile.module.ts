@@ -1,7 +1,7 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import { RouterModule } from "@angular/router";
+import { FormsModule } from "@angular/forms";
 import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../components/forms.module";
 import { AccountAvatarPageModule } from "./avatar.module";

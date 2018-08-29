@@ -1,3 +1,5 @@
+import { AppCrypto } from "./components/app.crypto";
+import { AppUtility } from "./components/app.utility";
 import { Account } from "./models/account";
 
 /** Configuration of the app */
@@ -132,9 +134,9 @@ export class AppConfig {
 
 	/** Gets the culture language for working with UI */
 	public static get language() {
-		return AppConfig.session.account !== undefined && AppConfig.session.account.profile !== undefined
-			? AppConfig.session.account.profile.Language
-			: AppConfig.app.language;
+		return this.session.account !== undefined && this.session.account.profile !== undefined
+			? this.session.account.profile.Language
+			: this.app.language;
 	}
 
 	/** Gets the reading options fo the book app */
@@ -145,4 +147,36 @@ export class AppConfig {
 		paragraph: "one",
 		align: "align-left"
 	};
+
+	/** Gets the authenticated headers (JSON) for making requests to APIs */
+	public static getAuthenticatedHeaders(addToken: boolean = true, addAppInfo: boolean = true, addDeviceID: boolean = true) {
+		const headers: {
+			[key: string]: string
+		} = {};
+
+		if (addToken && AppUtility.isObject(this.session.token, true) && AppUtility.isObject(this.session.keys, true) && AppUtility.isNotEmpty(this.session.keys.jwt)) {
+			headers["x-app-token"] = AppCrypto.jwtEncode(this.session.token, this.session.keys.jwt);
+		}
+
+		if (addAppInfo) {
+			headers["x-app-name"] = this.app.name;
+			headers["x-app-platform"] = this.app.platform;
+		}
+
+		if (addDeviceID && AppUtility.isNotEmpty(this.session.device)) {
+			headers["x-device-id"] = this.session.device;
+		}
+
+		return headers;
+	}
+
+	/** Gets the captcha headers (JSON) for making requests to APIs */
+	public static getCaptchaHeaders(captcha: string) {
+		return {
+			"x-captcha": "true",
+			"x-captcha-registered": AppCrypto.aesEncrypt(this.session.captcha.code),
+			"x-captcha-input": AppCrypto.aesEncrypt(captcha)
+		};
+	}
+
 }

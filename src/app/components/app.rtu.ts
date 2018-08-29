@@ -199,7 +199,7 @@ export class AppRTU {
 
 		// create WebSocket
 		this._status = "initializing";
-		this._uri = AppConfig.URIs.apis.replace("http://", "ws://").replace("https://", "wss://") + "rtu?x-request=" + AppUtility.toBase64Url(AppAPI.getAuthHeaders());
+		this._uri = AppConfig.URIs.apis.replace("http://", "ws://").replace("https://", "wss://") + "rtu?x-request=" + AppUtility.toBase64Url(AppConfig.getAuthenticatedHeaders());
 		this._websocket = new WebSocket(this._uri + (AppUtility.isTrue(isRestart) ? "&x-restart=" : ""));
 
 		// assign event handlers

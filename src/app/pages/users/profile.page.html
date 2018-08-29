@@ -144,9 +144,7 @@
 		<ion-item *ngIf="otp.uri !== ''" [class.invalid]="!otp.value || otp.value.length < 5 || otp.value.length > 10">
 			<ion-label position="stacked">Mã OTP của ứng dụng Authenticator</ion-label>
 			<ion-input minlength="5" maxlength="10" [(ngModel)]="otp.value"></ion-input>
-		</ion-item>
-		<ion-item *ngIf="otp.uri !== ''">
-			<ion-button fill="solid" color="primary" [disabled]="!otp.value || otp.value.length < 5 || otp.value.length > 10" (click)="addOTPAsync()">
+			<ion-button fill="solid" color="primary" [disabled]="!otp.value || otp.value.length < 5 || otp.value.length > 10" slot="end" (click)="addOTPAsync()">
 				<ion-icon name="done-all" slot="start"></ion-icon>
 				Xác thực
 			</ion-button>

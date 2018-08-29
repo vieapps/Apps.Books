@@ -1,11 +1,10 @@
 import * as Collections from "typescript-collections";
+import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
-import { List } from "linqts";
 import { AppRTU } from "./../components/app.rtu";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
-import { AppAPI } from "../components/app.api";
 import { AppUtility } from "../components/app.utility";
 import { PlatformUtility } from "../components/app.utility.platform";
 import { Account } from "../models/account";
@@ -84,12 +83,12 @@ export class AuthenticationService extends BaseService {
 		return this.canDo(this.configSvc.appConfig.accountRegistrations.setPrivilegsRole);
 	}
 
-	public logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const body = {
 			Email: AppCrypto.rsaEncrypt(email),
 			Password: AppCrypto.rsaEncrypt(password)
 		};
-		return this.createAsync("users/session", body,
+		await this.createAsync("users/session", body,
 			async data => {
 				if (AppUtility.isTrue(data.Require2FA)) {
 					console.log(this.getLogMessage("Log in with static password successful, need to verify with 2FA"), this.configSvc.isDebug ? data : "");
@@ -117,8 +116,8 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return this.deleteAsync("users/session",
+	public async logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await this.deleteAsync("users/session",
 			async data => {
 				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
 				await this.configSvc.updateSessionAsync(data, async () => {
@@ -136,14 +135,14 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public validateOTPAsync(id: string, otp: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async validateOTPAsync(id: string, otp: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/session?" + this.configSvc.relatedQuery;
 		const body = {
 			ID: AppCrypto.rsaEncrypt(id),
 			OTP: AppCrypto.rsaEncrypt(otp),
 			Info: AppCrypto.rsaEncrypt(info)
 		};
-		return this.updateAsync(path, body,
+		await this.updateAsync(path, body,
 			async data => {
 				console.log(this.getLogMessage("Validate OTP successful"));
 				await this.updateSessionAsync(data, onNext);
@@ -152,16 +151,16 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/reset?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
 		const body = {
 			Email: AppCrypto.rsaEncrypt(email)
 		};
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while requesting new password", error, onError), AppAPI.getCaptchaHeaders(captcha));
+		await this.updateAsync(path, body, onNext, error => this.showError("Error occurred while requesting new password", error, onError), this.configSvc.appConfig.getCaptchaHeaders(captcha));
 	}
 
-	public registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return this.readAsync("users/captcha?register=" + this.configSvc.appConfig.session.id,
+	public async registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await this.readAsync("users/captcha?register=" + this.configSvc.appConfig.session.id,
 			data => {
 				this.configSvc.appConfig.session.captcha = {
 					code: data.Code,
@@ -175,9 +174,9 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public updateSessionAsync(data: any, onNext: (data?: any) => void) {
+	public async updateSessionAsync(data: any, onNext: (data?: any) => void) {
 		AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
-		return this.configSvc.updateSessionAsync(data, () => {
+		await this.configSvc.updateSessionAsync(data, () => {
 			AppRTU.start(() => {
 				this.configSvc.patchSession(() => {
 					this.configSvc.patchAccount(() => {

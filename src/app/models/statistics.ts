@@ -1,5 +1,4 @@
 import * as Collections from "typescript-collections";
-import { List } from "linqts";
 import { AppUtility } from "../components/app.utility";
 
 /** Statistic base information */
@@ -29,33 +28,28 @@ export class StatisticInfo extends StatisticBase {
 			obj.Title = AppUtility.toANSI(obj.FullName).toLowerCase();
 			obj.Children = !AppUtility.isArray(data.Children)
 				? []
-				: new List<any>(data.Children)
-					.Select(c => {
+				: (data.Children as Array<any>).map(c => {
 						const child = new StatisticInfo();
 						AppUtility.copy(c, child);
 						child.FullName = obj.Name + " > " + child.Name;
 						child.Title = AppUtility.toANSI(child.FullName).toLowerCase();
 						return child;
-					})
-					.ToArray();
+					});
 		});
 		return obj;
 	}
 
 	public toJSON() {
-		const json = {
+		return JSON.stringify({
 			Name: this.Name,
 			Counters: this.Counters,
-			Children: []
-		};
-
-		json.Children = new List(this.Children)
-			.Select(c => {
-				return { Name: c.Name, Counters: c.Counters };
+			Children: this.Children.map(c => {
+				return {
+					Name: c.Name,
+					Counters: c.Counters
+				};
 			})
-			.ToArray();
-
-		return JSON.stringify(json);
+		});
 	}
 }
 

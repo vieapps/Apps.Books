@@ -5,7 +5,6 @@ import { ReactiveFormsModule, FormsModule } from "@angular/forms";
 import { RouteReuseStrategy } from "@angular/router";
 
 import { IonicModule, IonicRouteStrategy } from "@ionic/angular";
-import { IonicStorageModule } from "@ionic/storage";
 
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
@@ -14,14 +13,14 @@ import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 
+import { IonicStorageModule } from "@ionic/storage";
 import { Ng2CompleterModule } from "ng2-completer";
 import { ImageCropperModule } from "ng2-img-cropper";
-import { VinumberPipe } from "./components/app.vinumber.pipe";
 
 import { AppComponent } from "./app.component";
 import { AppRoutingModule } from "./app.routes";
 import { AppFormsModule } from "./components/forms.module";
-
+import { VinumberPipe } from "./components/app.vinumber.pipe";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
 import { UserService } from "./providers/user.service";

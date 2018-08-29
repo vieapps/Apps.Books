@@ -1,6 +1,5 @@
 import { Http, Headers } from "@angular/http";
 import { AppConfig } from "../app.config";
-import { AppCrypto } from "./app.crypto";
 import { AppUtility } from "./app.utility";
 
 /** Servicing component for working with remote APIs */
@@ -15,43 +14,11 @@ export class AppAPI {
 		}
 	}
 
-	/** Gets the captcha headers (JSON) for making requests to APIs */
-	public static getCaptchaHeaders(captcha: string) {
-		return {
-			"x-captcha": "true",
-			"x-captcha-registered": AppCrypto.aesEncrypt(AppConfig.session.captcha.code),
-			"x-captcha-input": AppCrypto.aesEncrypt(captcha)
-		};
-	}
-
-	/** Gets the authenticated headers (JSON) for making requests to APIs */
-	public static getAuthHeaders(addToken: boolean = true, addAppInfo: boolean = true, addDeviceID: boolean = true) {
-		const headers: {
-			[key: string]: string
-		} = {};
-
-		if (addToken && AppUtility.isObject(AppConfig.session.token, true)
-			&& AppUtility.isObject(AppConfig.session.keys, true) && AppUtility.isNotEmpty(AppConfig.session.keys.jwt)) {
-			headers["x-app-token"] = AppCrypto.jwtEncode(AppConfig.session.token, AppConfig.session.keys.jwt);
-		}
-
-		if (addAppInfo) {
-			headers["x-app-name"] = AppConfig.app.name;
-			headers["x-app-platform"] = AppConfig.app.platform;
-		}
-
-		if (addDeviceID && AppUtility.isNotEmpty(AppConfig.session.device)) {
-			headers["x-device-id"] = AppConfig.session.device;
-		}
-
-		return headers;
-	}
-
 	/** Gets the headers for making requests to APIs */
 	public static getHeaders(additional?: any, addContentType?: boolean) {
 		const headers = new Headers();
 
-		const authHeaders = this.getAuthHeaders();
+		const authHeaders = AppConfig.getAuthenticatedHeaders();
 		Object.keys(authHeaders).forEach(name => headers.append(name, authHeaders[name]));
 
 		if (AppUtility.isArray(additional, true)) {

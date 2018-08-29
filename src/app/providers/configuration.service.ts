@@ -11,7 +11,6 @@ import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { Storage } from "@ionic/storage";
 import { List } from "linqts";
 import { AppConfig } from "../app.config";
-import { AppAPI } from "../components/app.api";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
@@ -188,8 +187,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Initializes the session with REST API */
-	public initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.readAsync("users/session",
+	public async initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.readAsync("users/session",
 			async data => {
 				await this.updateSessionAsync(data, () => {
 					this.initializeAccount();
@@ -211,8 +210,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Registers the initialized session (anonymous) with REST API */
-	public registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return this.readAsync("users/session?register=" + this.appConfig.session.id,
+	public async registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await this.readAsync("users/session?register=" + this.appConfig.session.id,
 			async () => {
 				this.appConfig.session.account = this.getAccount(true);
 				if (this.isDebug) {
@@ -326,7 +325,7 @@ export class ConfigurationService extends BaseService {
 				ObjectName: "session",
 				Verb: "PATCH",
 				Query: undefined,
-				Header: AppAPI.getAuthHeaders(),
+				Header: this.appConfig.getAuthenticatedHeaders(),
 				Body: undefined,
 				Extra: {
 					"x-session": this.appConfig.session.id
@@ -449,8 +448,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Store the information of current account profile into storage */
-	public storeProfileAsync(onCompleted?: (data?: any) => void) {
-		return this.storeSessionAsync(onCompleted);
+	public async storeProfileAsync(onCompleted?: (data?: any) => void) {
+		await this.storeSessionAsync(onCompleted);
 	}
 
 	/** Watch the connection of Facebook */
@@ -561,15 +560,15 @@ export class ConfigurationService extends BaseService {
 		});
 	}
 
-	private loadGeoCountriesAsync(onCompleted?: (data?: any) => void) {
-		return this.readAsync("statics/geo/countries.json",
+	private async loadGeoCountriesAsync(onCompleted?: (data?: any) => void) {
+		await this.readAsync("statics/geo/countries.json",
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
 			error => this.showError("Error occurred while fetching the meta countries", error)
 		);
 	}
 
-	private loadGeoProvincesAsync(country?: string, onCompleted?: () => void) {
-		return this.readAsync("statics/geo/provinces/" + (country || this.appConfig.meta.country) + ".json",
+	private async loadGeoProvincesAsync(country?: string, onCompleted?: () => void) {
+		await this.readAsync("statics/geo/provinces/" + (country || this.appConfig.meta.country) + ".json",
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
 			error => this.showError("Error occurred while fetching the meta provinces", error)
 		);

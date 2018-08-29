@@ -146,6 +146,16 @@ export class AppFormsControl {
 		this.Extras["_cfg:Parent"] = value;
 	}
 
+	/** Sets the value of the control */
+	public set value(value: any) {
+		this.formRef.setValue(value);
+	}
+
+	/** Gets the value of the control */
+	public get value() {
+		return this.formRef.value;
+	}
+
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
 		control = control || new AppFormsControl();
 		control.Order = options.Order || options.order || order || 0;
@@ -297,11 +307,6 @@ export class AppFormsControl {
 	/** Sets focus into this control */
 	public focus(defer?: number) {
 		PlatformUtility.focus(this.elementRef, defer);
-	}
-
-	/** Sets the value of the control */
-	public setValue(value: any) {
-		this.formRef.setValue(value);
 	}
 
 }
@@ -555,8 +560,8 @@ export class AppFormsService {
 		this.focus(this.getNext(control), whenNoControlFound);
 	}
 
-	/** Checks confirm values of two controls are matched or not */
-	public isMatched(original: string, confirm: string): ValidatorFn {
+	/** Checks values of two controls are equal or not */
+	public areEquals(original: string, confirm: string): ValidatorFn {
 		return (formGroup: FormGroup): { [key: string]: any } | null => {
 			const originalControl = formGroup.controls[original];
 			const confirmControl = formGroup.controls[confirm];

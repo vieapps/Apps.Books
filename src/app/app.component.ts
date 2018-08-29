@@ -343,8 +343,8 @@ export class AppComponent implements OnInit {
 		await this.appFormsSvc.showAlertAsync(header, subHeader, message);
 	}
 
-	private initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
-		return this.configSvc.initializeAsync(
+	private async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
+		await this.configSvc.initializeAsync(
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");

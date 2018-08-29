@@ -18,13 +18,10 @@ export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements C
 	private _rxSubscriptions = new Array<Rx.Subscription>();
 
 	public search(term: string) {
-		this._rxSubscriptions.push(AppAPI.get(this.onRequest(term))
-			.pipe(map(response => response.json()))
-			.subscribe(
-				data => this.next(this.onConvert(data)),
-				error => console.error("[Custom Completer]: Error occurred while fetching remote data => " + AppUtility.getErrorMessage(error), error)
-			)
-		);
+		this._rxSubscriptions.push(AppAPI.get(this.onRequest(term)).pipe(map(response => response.json())).subscribe(
+			data => this.next(this.onConvert(data)),
+			error => console.error("[Custom Completer]: Error occurred while fetching remote data => " + AppUtility.getErrorMessage(error), error)
+		));
 	}
 
 	public cancel() {

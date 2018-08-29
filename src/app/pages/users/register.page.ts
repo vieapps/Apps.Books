@@ -1,6 +1,6 @@
+import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import * as Rx from "rxjs";
 import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -25,7 +25,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 	title = "Đăng ký tài khoản";
 	register = {
-		form: new FormGroup({}, [this.appFormsSvc.isMatched("Email", "ConfirmEmail"), this.appFormsSvc.isMatched("Password", "ConfirmPassword")]),
+		form: new FormGroup({}, [this.appFormsSvc.areEquals("Email", "ConfirmEmail"), this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any,
@@ -219,9 +219,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 	public async refreshCaptchaAsync(control?: AppFormsControl) {
 		await this.authSvc.registerCaptchaAsync(() => {
-			control = control || this.register.controls.find(ctrl => ctrl.Type === "Captcha");
-			control.captchaUri = this.configSvc.appConfig.session.captcha.uri;
-			control.setValue("");
+			(control || this.register.controls.find(ctrl => ctrl.Type === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
 

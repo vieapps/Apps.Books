@@ -1,5 +1,4 @@
 import * as Collections from "typescript-collections";
-import { List } from "linqts";
 import { AppUtility } from "../components/app.utility";
 
 /** Privilege of an individual business service */
@@ -39,7 +38,7 @@ export class Privileges {
 			const data = json[property];
 			if (AppUtility.isArray(data, true)) {
 				const set = new Collections.Set<string>();
-				new List<string>(data).ForEach(p => set.add(p));
+				(data as Array<string>).forEach(p => set.add(p));
 				obj[property] = set;
 			}
 		}

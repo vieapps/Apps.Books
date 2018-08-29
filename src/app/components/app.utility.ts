@@ -1,6 +1,5 @@
 import { Response } from "@angular/http";
 import { List } from "linqts";
-import { AppConfig } from "../app.config";
 import { AppCrypto } from "./app.crypto";
 
 /** Servicing component for working with app */
@@ -62,7 +61,7 @@ export class AppUtility {
 	/** Checks the error to see that is security exception or not */
 	public static isGotSecurityException(error?: any) {
 		return this.isObject(error, true) && this.isNotEmpty(error.Type)
-			? new List(this._exceptions).FirstOrDefault(e => e === error.Type) !== undefined
+			? this._exceptions.find(e => e === error.Type) !== undefined
 			: false;
 	}
 
@@ -114,8 +113,8 @@ export class AppUtility {
 				onPreCompleted(data);
 			}
 		}
-		catch (e) {
-			console.error("[Utility]: Error occurred while copying object", e, source);
+		catch (error) {
+			console.error("[Utility]: Error occurred while copying object", error, source);
 		}
 	}
 
@@ -143,7 +142,7 @@ export class AppUtility {
 	}
 
 	/**
-	 * Cleans null and undefined properties from the object
+	 * Cleans undefined properties from the object
 	 * @param instance The instance of an object to process
 	 * @param onPreCompleted The handler to run when cleaning process is completed
 	*/

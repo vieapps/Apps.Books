@@ -1,9 +1,8 @@
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
-import { AppAPI } from "../components/app.api";
-import { AppCrypto } from "../components/app.crypto";
 import { AppRTU } from "../components/app.rtu";
 import { AppEvents } from "../components/app.events";
+import { AppCrypto } from "../components/app.crypto";
 import { AppUtility } from "../components/app.utility";
 import { PlatformUtility } from "../components/app.utility.platform";
 import { AppCustomCompleter } from "../components/app.completer";
@@ -123,16 +122,16 @@ export class UserService extends BaseService {
 		return super.search(path, request, onNext, onError);
 	}
 
-	public registerAsync(body: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async registerAsync(body: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
 		body["Email"] = AppCrypto.rsaEncrypt(body["Email"]);
 		body["Password"] = AppCrypto.rsaEncrypt(body["Password"]);
 		body["ReferID"] = this.configSvc.appConfig.refer.id;
 		body["ReferSection"] = this.configSvc.appConfig.refer.section;
-		return this.createAsync(path, body, onNext, onError, AppAPI.getCaptchaHeaders(captcha));
+		await this.createAsync(path, body, onNext, onError, this.configSvc.appConfig.getCaptchaHeaders(captcha));
 	}
 
-	public sendInvitationAsync(name: string, email: string, privileges?: Array<Privilege>, relatedInfo?: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async sendInvitationAsync(name: string, email: string, privileges?: Array<Privilege>, relatedInfo?: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/invite?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
 		const body = {
 			Name: name,
@@ -146,12 +145,12 @@ export class UserService extends BaseService {
 		if (relatedInfo) {
 			body["RelatedInfo"] = AppCrypto.rsaEncrypt(JSON.stringify(relatedInfo));
 		}
-		return this.createAsync(path, body, onNext, error => this.showError("Error occurred while sending an invitation", error, onError));
+		await this.createAsync(path, body, onNext, error => this.showError("Error occurred while sending an invitation", error, onError));
 	}
 
-	public activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/activate?mode=" + mode + "&code=" + code + "&" + this.configSvc.relatedQuery;
-		return this.readAsync(path,
+		await this.readAsync(path,
 			async data => {
 				await this.configSvc.updateSessionAsync(data, () => {
 					console.log(this.getLogMessage("Activated..."), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
@@ -164,7 +163,7 @@ export class UserService extends BaseService {
 		);
 	}
 
-	public getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		id = id || this.configSvc.getAccount().id;
 		if (UserProfile.instances.containsKey(id)) {
 			if (onNext !== undefined) {
@@ -173,7 +172,7 @@ export class UserService extends BaseService {
 		}
 		else {
 			const path = "users/profile/" + id + "?" + this.configSvc.relatedQuery;
-			return this.readAsync(path,
+			await this.readAsync(path,
 				data => {
 					UserProfile.update(data);
 					if (onNext !== undefined) {
@@ -185,9 +184,9 @@ export class UserService extends BaseService {
 		}
 	}
 
-	public updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/profile/" + (body.ID || this.configSvc.getAccount().id) + "?" + this.configSvc.relatedQuery;
-		return this.updateAsync(path, body,
+		await this.updateAsync(path, body,
 			data => {
 				UserProfile.update(data);
 				if (onNext !== undefined) {
@@ -198,50 +197,54 @@ export class UserService extends BaseService {
 		);
 	}
 
-	public updatePasswordAsync(oldPassword: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async updatePasswordAsync(oldPassword: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/password?" + this.configSvc.relatedQuery;
 		const body = {
 			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
 			Password: AppCrypto.rsaEncrypt(password)
 		};
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating password", error, onError));
+		await this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating password", error, onError));
 	}
 
-	public updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/email?" + this.configSvc.relatedQuery;
 		const body = {
 			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
 			Email: AppCrypto.rsaEncrypt(email)
 		};
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating email", error, onError));
+		await this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating email", error, onError));
 	}
 
-	public prepare2FAMethodAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async prepare2FAMethodAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp?" + this.configSvc.relatedQuery;
-		return this.readAsync(path, onNext, error => this.showError("Error occurred while preparing an 2FA method", error, onError));
+		await this.readAsync(path, onNext, error => this.showError("Error occurred while preparing an 2FA method", error, onError));
 	}
 
-	public add2FAMethodAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async add2FAMethodAsync(provisioning: string, otp: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp?" + this.configSvc.relatedQuery;
-		return this.updateAsync(path, body, data => this.configSvc.updateAccount(data, onNext), error => this.showError("Error occurred while adding an 2FA method", error, onError));
+		const body = {
+			Provisioning: provisioning,
+			OTP: otp
+		};
+		await this.updateAsync(path, body, data => this.configSvc.updateAccount(data, onNext), error => this.showError("Error occurred while adding an 2FA method", error, onError));
 	}
 
-	public delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp?info=" + info + "&" + this.configSvc.relatedQuery;
-		return this.deleteAsync(path, data => this.configSvc.updateAccount(data, onNext), error => this.showError("Error occurred while deleting an 2FA method", error, onError));
+		await this.deleteAsync(path, data => this.configSvc.updateAccount(data, onNext), error => this.showError("Error occurred while deleting an 2FA method", error, onError));
 	}
 
-	public getPrivilegesAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/" + (id || this.configSvc.getAccount().id) + "?" + this.configSvc.relatedQuery;
-		return this.readAsync(path, onNext, error => this.showError("Error occurred while reading privileges", error, onError));
+	public async getPrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		const path = "users/account/" + id + "?" + this.configSvc.relatedQuery;
+		await this.readAsync(path, onNext, error => this.showError("Error occurred while reading privileges", error, onError));
 	}
 
-	public updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/" + id + "?" + this.configSvc.relatedQuery;
 		const body = {
 			Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
 		};
-		return this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating privileges", error, onError));
+		await this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating privileges", error, onError));
 	}
 
 }

@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter, ViewChild } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
 import { CompleterService, CompleterItem } from "ng2-completer";
-import { AppUtility } from "./app.utility";
 import { AppFormsControl, AppFormsService } from "./forms.service";
+import { AppUtility } from "./app.utility";
 
 @Component({
 	selector: "app-form-control",
@@ -45,6 +45,14 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		if (this.control.Options.CompleterOptions.DataSource !== undefined) {
 			this.control.Options.CompleterOptions.DataSource.cancel();
 		}
+	}
+
+	public get formControl() {
+		return this.formGroup.controls[this.control.Key];
+	}
+
+	public get formControlName() {
+		return this.formArrayIndex !== undefined ? this.formArrayIndex : this.control.Key;
 	}
 
 	public get visible() {
@@ -109,9 +117,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	public get type() {
-		return this.control.Options.Type === "password" && this.show
-			? "text"
-			: this.control.Options.Type;
+		return this.isPasswordControl && this.show ? "text" : this.control.Options.Type;
 	}
 
 	public get required() {
@@ -183,14 +189,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			control: this._style !== "" ? this._style : undefined,
 			description: this.control.Options.DescriptionOptions.Style !== "" ? this.control.Options.DescriptionOptions.Style : undefined
 		};
-	}
-
-	public get formControl() {
-		return this.formGroup.controls[this.control.Key];
-	}
-
-	public get formControlName() {
-		return this.formArrayIndex !== undefined ? this.formArrayIndex : this.control.Key;
 	}
 
 	public get name() {
@@ -382,7 +380,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	public refreshCaptcha() {
-		this.control.setValue("");
+		this.control.value = "";
 		this.control.focus();
 		this.refreshCaptchaEvent.emit(this.control);
 	}

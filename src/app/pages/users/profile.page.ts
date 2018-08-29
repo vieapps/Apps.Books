@@ -1,14 +1,16 @@
+import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import * as Rx from "rxjs";
 import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
+import { AppCrypto } from "../../components/app.crypto";
 import { TrackingUtility } from "../../components/app.utility.trackings";
-import { AppFormsService, AppFormsControl } from "../../components/forms.service";
+import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { UserService } from "../../providers/user.service";
 import { UserProfile } from "../../models/user";
+import { Privilege } from "./../../models/privileges";
 import { AccountAvatarPage } from "./avatar.page";
 
 @Component({
@@ -60,16 +62,17 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
-		value: undefined as any
+		value: undefined as any,
+		hash: undefined as string
 	};
 	password = {
-		form: new FormGroup({}, [this.appFormsSvc.isMatched("Password", "ConfirmPassword")]),
+		form: new FormGroup({}, [this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any
 	};
 	email = {
-		form: new FormGroup({}, [this.appFormsSvc.isMatched("Email", "ConfirmEmail")]),
+		form: new FormGroup({}, [this.appFormsSvc.areEquals("Email", "ConfirmEmail")]),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any
@@ -85,7 +88,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
-		value: undefined as any
+		value: undefined as any,
+		hash: undefined as string
 	};
 	invitation = {
 		form: new FormGroup({}),
@@ -224,6 +228,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	public onFormInitialized($event) {
 		if (this.update.config === $event.config) {
 			this.update.form.patchValue(this.profile);
+			this.update.hash = AppCrypto.md5(JSON.stringify(this.update.value || {}));
 		}
 		else {
 			Object.keys($event.form.controls).forEach(key => $event.form.controls[key].setValue(""));
@@ -374,6 +379,9 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		if (this.update.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.update.form);
 		}
+		else if (this.update.hash === AppCrypto.md5(JSON.stringify(this.update.value || {}))) {
+			await this.openProfileAsync();
+		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.userSvc.updateProfileAsync(this.update.value,
@@ -522,7 +530,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 
 	public async addOTPAsync() {
 		this.appFormsSvc.showLoadingAsync(this.title);
-		await this.userSvc.add2FAMethodAsync({ Provisioning: this.otp.provisioning, OTP: this.otp.value },
+		await this.userSvc.add2FAMethodAsync(this.otp.provisioning, this.otp.value,
 			async () => {
 				this.updateOTP();
 				await this.appFormsSvc.hideLoadingAsync();
@@ -587,7 +595,9 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
-			await this.userSvc.sendInvitationAsync(this.invitation.value.Name, this.invitation.value.Email, undefined, undefined,
+			const privileges: Array<Privilege> = undefined;
+			const relatedInfo: any = undefined;
+			await this.userSvc.sendInvitationAsync(this.invitation.value.Name, this.invitation.value.Email, privileges, relatedInfo,
 				async () => {
 					await TrackingUtility.trackAsync(this.title, "account/invitation");
 					await this.openProfileAsync(async () => this.appFormsSvc.showToastAsync("Lời mời tham gia hệ thống đã được gửi..."));

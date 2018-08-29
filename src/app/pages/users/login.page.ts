@@ -1,6 +1,6 @@
+import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import * as Rx from "rxjs";
 import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { ConfigurationService } from "../../providers/configuration.service";
@@ -29,7 +29,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		value: undefined as any,
 		button: {
 			label: "Đăng nhập",
-			icon: undefined,
+			icon: undefined as string,
 			color: "primary",
 			fill: "solid"
 		}
@@ -41,7 +41,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		value: undefined as any,
 		button: {
 			label: "Xác thực",
-			icon: undefined,
+			icon: undefined as string,
 			color: "primary",
 			fill: "solid"
 		},
@@ -240,9 +240,7 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	public async refreshCaptchaAsync(control?: AppFormsControl) {
 		await this.authSvc.registerCaptchaAsync(() => {
-			control = control || this.reset.controls.find(ctrl => ctrl.Type === "Captcha");
-			control.captchaUri = this.configSvc.appConfig.session.captcha.uri;
-			control.setValue("");
+			(control || this.reset.controls.find(ctrl => ctrl.Type === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
 
