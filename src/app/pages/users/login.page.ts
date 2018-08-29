@@ -1,8 +1,8 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { TrackingUtility } from "../../components/app.utility.trackings";
+import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 
@@ -35,6 +35,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		}
 	};
 	otp = {
+		providers: new Array<{ Info: string, Label: string, Time: Date, Type: string }>(),
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
@@ -44,9 +45,7 @@ export class LogInPage implements OnInit, OnDestroy {
 			icon: undefined as string,
 			color: "primary",
 			fill: "solid"
-		},
-		id: undefined as string,
-		providers: undefined as Array<any>
+		}
 	};
 	reset = {
 		form: new FormGroup({}),
@@ -108,7 +107,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.configSvc.appTitle = this.title;
 	}
 
-	public async loginAsync() {
+	public async logInAsync() {
 		if (this.login.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.login.form);
 			return;
@@ -120,7 +119,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				await TrackingUtility.trackAsync(this.title, "/session/login");
 				await this.appFormsSvc.hideLoadingAsync();
 				if (data.Require2FA) {
-					this.openValidateOTP(data);
+					this.openLoginOTP(data);
 				}
 				else {
 					this.configSvc.goBack();
@@ -130,14 +129,34 @@ export class LogInPage implements OnInit, OnDestroy {
 		);
 	}
 
-	public openValidateOTP(data: any) {
+	public openLoginOTP(data: any) {
+		this.otp.providers = data.Providers;
 		this.otp.config = [
+			{
+				Key: "ID",
+				Excluded: true
+			},
+			{
+				Key: "Provider",
+				Type: "Select",
+				Options: {
+					Label: "Kiểu xác thực lần hai",
+					SelectOptions: {
+						Values: this.otp.providers.map(provider => {
+							return {
+								Value: provider.Info,
+								Label: provider.Label
+							};
+						})
+					},
+				}
+			},
 			{
 				Key: "OTP",
 				Required: true,
 				Options: {
 					Label: `Mã xác thực lần hai`,
-					Description: "SMS" === data.Providers[0].Type ? "Nhập mã OTP trong SMS được gửi tới số trên điện thoại đã đăng ký" : `Nhập mã OTP được sinh bởi ứng dụng ${data.Providers[0].Label} trên điện thoại`,
+					Description: "",
 					DescriptionOptions: {
 						Css: "--description-label-css"
 					},
@@ -147,28 +166,46 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		this.otp.id = data.ID;
-		this.otp.providers = data.Providers;
+		if (this.otp.providers.length < 2) {
+			this.otp.config.find(c => c.Key === "Provider")["Excluded"] = true;
+		}
+
+		this.otp.value = {
+			ID: data.ID,
+			Provider: this.otp.providers[0].Info,
+			OTP: ""
+		};
+		this._rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => {
+			const provider = this.otp.providers.find(p => p.Info === value.Provider) || this.otp.providers[0];
+			this.otp.controls.find(c => c.Key === "OTP").Options.Description = "SMS" === provider.Type
+				? "Nhập mã OTP trong SMS được gửi tới số trên điện thoại đã đăng ký"
+				: `Nhập mã OTP được sinh bởi ứng dụng ${provider.Label} trên điện thoại`;
+		}));
+
 		this.mode = "otp";
 		this.title = "Xác thực lần hai";
 		this.configSvc.appTitle = this.title;
 	}
 
-	public async validateOTPAsync() {
+	public async logInOTPAsync() {
 		if (this.otp.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.otp.form);
-			return;
 		}
-
-		await this.appFormsSvc.showLoadingAsync(this.title);
-		await this.authSvc.validateOTPAsync(this.otp.id, this.otp.value.OTP, this.otp.providers[0].Info,
-			async data => {
-				await TrackingUtility.trackAsync(this.title, "/session/otp");
-				await this.appFormsSvc.hideLoadingAsync();
-				this.configSvc.goBack();
-			},
-			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.otp.controls[0].focus())
-		);
+		else {
+			await this.appFormsSvc.showLoadingAsync(this.title);
+			await this.authSvc.logInOTPAsync(this.otp.value.ID, this.otp.value.OTP, this.otp.value.Provider,
+				async () => {
+					await TrackingUtility.trackAsync(this.title, "/session/otp");
+					await this.appFormsSvc.hideLoadingAsync();
+					this.configSvc.goBack();
+				},
+				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
+					const control = this.otp.controls.find(c => c.Key === "OTP");
+					control.value = "";
+					control.focus();
+				})
+			);
+		}
 	}
 
 	public openResetPassword() {
@@ -218,7 +255,7 @@ export class LogInPage implements OnInit, OnDestroy {
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.authSvc.resetPasswordAsync(this.reset.value.Email, this.reset.value.Captcha,
-			async data => {
+			async () => {
 				await TrackingUtility.trackAsync(this.title, "/session/reset");
 				await this.appFormsSvc.showAlertAsync("Mật khẩu mới", undefined, `Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, () => this.configSvc.goBack());
 			},
@@ -230,8 +267,10 @@ export class LogInPage implements OnInit, OnDestroy {
 	}
 
 	public onResetPasswordFormInitialized($event) {
-		this.reset.form.patchValue({ Email: this.login.form.value.Email });
 		this.refreshCaptchaAsync();
+		this.reset.form.patchValue({
+			Email: this.login.form.value.Email
+		});
 	}
 
 	public onRefreshCaptcha($event) {

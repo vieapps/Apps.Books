@@ -1,5 +1,6 @@
 import { Privilege } from "./privileges";
 import { UserProfile } from "./user";
+import { AppUtility } from "../components/app.utility";
 
 /** Account of the app */
 export class Account {
@@ -18,4 +19,15 @@ export class Account {
 		pictureUrl: string,
 		profileUrl: string
 	};
+
+	public static deserialize(json: any = {}, onCompleted?: (account: Account, data: any) => void) {
+		const account = new Account();
+		AppUtility.copy(json, account, data => {
+			account.profile = data.profile !== undefined ? UserProfile.deserialize(data.profile) : undefined;
+			if (onCompleted !== undefined) {
+				onCompleted(account, data);
+			}
+		});
+		return account;
+	}
 }

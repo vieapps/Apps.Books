@@ -103,7 +103,7 @@ export class AuthenticationService extends BaseService {
 			},
 			async error => {
 				if (AppUtility.isGotSecurityException(error)) {
-					await this.configSvc.deleteSessionAsync(async () => {
+					await this.configSvc.resetSessionAsync(async () => {
 						await this.configSvc.initializeSessionAsync(async () => {
 							await this.configSvc.registerSessionAsync(() => {
 								console.log(this.getLogMessage("The session is re-registered (anonymous)"));
@@ -116,38 +116,38 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
+	public async logInOTPAsync(userID: string, otpCode: string, providerInfo: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		const path = "users/session?" + this.configSvc.relatedQuery;
+		const body = {
+			ID: AppCrypto.rsaEncrypt(userID),
+			OTP: AppCrypto.rsaEncrypt(otpCode),
+			Info: AppCrypto.rsaEncrypt(providerInfo)
+		};
+		await this.updateAsync(path, body,
+			async data => {
+				console.log(this.getLogMessage("Log in with OTP successful"));
+				await this.updateSessionAsync(data, onNext);
+			},
+			error => this.showError("Error occurred while logging in with OTP", error, onError)
+		);
+	}
+
 	public async logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await this.deleteAsync("users/session",
 			async data => {
 				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
 				await this.configSvc.updateSessionAsync(data, async () => {
-					await this.configSvc.registerSessionAsync(session => {
+					await this.configSvc.registerSessionAsync(() => {
 						this.configSvc.patchSession(() => {
 							console.log(this.getLogMessage("Log out successful"), this.configSvc.isDebug ? data : "");
 							if (onNext !== undefined) {
-								onNext(session);
+								onNext();
 							}
 						});
 					}, onError);
 				}, true);
 			},
 			error => this.showError("Error occurred while logging out", error, onError)
-		);
-	}
-
-	public async validateOTPAsync(id: string, otp: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/session?" + this.configSvc.relatedQuery;
-		const body = {
-			ID: AppCrypto.rsaEncrypt(id),
-			OTP: AppCrypto.rsaEncrypt(otp),
-			Info: AppCrypto.rsaEncrypt(info)
-		};
-		await this.updateAsync(path, body,
-			async data => {
-				console.log(this.getLogMessage("Validate OTP successful"));
-				await this.updateSessionAsync(data, onNext);
-			},
-			error => this.showError("Error occurred while validating OTP", error, onError)
 		);
 	}
 
@@ -174,7 +174,7 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public async updateSessionAsync(data: any, onNext: (data?: any) => void) {
+	private async updateSessionAsync(data: any, onNext: (data?: any) => void) {
 		AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
 		await this.configSvc.updateSessionAsync(data, () => {
 			AppRTU.start(() => {

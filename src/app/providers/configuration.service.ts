@@ -127,9 +127,9 @@ export class ConfigurationService extends BaseService {
 		this._queryParams = value || {};
 	}
 
-	/** Gets the request params of the current page/view (means decoded JSON of 'request' query parameter) */
+	/** Gets the request params of the current page/view (means decoded JSON of 'x-request' query parameter) */
 	public get requestParams() {
-		return AppUtility.getJsonOfQuery(this.queryParams["request"]);
+		return AppUtility.getJsonOfQuery(this.queryParams["x-request"]);
 	}
 
 	/** Prepare the working environments of the app */
@@ -191,11 +191,10 @@ export class ConfigurationService extends BaseService {
 		await super.readAsync("users/session",
 			async data => {
 				await this.updateSessionAsync(data, () => {
-					this.initializeAccount();
-					if (this.isAuthenticated && !this.appConfig.session.account.id) {
+					this.appConfig.session.account = this.getAccount(!this.isAuthenticated);
+					if (this.isAuthenticated) {
 						this.appConfig.session.account.id = this.appConfig.session.token.uid;
 					}
-
 					if (this.isDebug) {
 						console.log(this.getLogMessage("The session is initialized by APIs"));
 					}
@@ -253,8 +252,8 @@ export class ConfigurationService extends BaseService {
 			this.appConfig.session.token = AppCrypto.jwtDecode(session.Token, AppUtility.isObject(this.appConfig.session.keys, true) ? this.appConfig.session.keys.jwt : this.appConfig.app.name);
 		}
 
+		this.appConfig.session.account = this.getAccount(!this.isAuthenticated);
 		if (this.isAuthenticated) {
-			this.initializeAccount();
 			this.appConfig.session.account.id = this.appConfig.session.token.uid;
 		}
 
@@ -274,17 +273,15 @@ export class ConfigurationService extends BaseService {
 			const session = await this.storage.get("VIEApps-Session");
 			if (AppUtility.isNotEmpty(session) && session !== "{}") {
 				this.appConfig.session = JSON.parse(session as string);
-				if (this.appConfig.session.account !== undefined && this.appConfig.session.account.profile !== undefined) {
-					this.appConfig.session.account.profile = UserProfile.deserialize(this.appConfig.session.account.profile);
-				}
+				this.appConfig.session.account = Account.deserialize(this.appConfig.session.account);
 				if (this.isDebug) {
-					console.log(this.getLogMessage("The session is loaded from storage"));
+					console.log(this.getLogMessage("The session is loaded from storage"), this.appConfig.session);
 				}
 				AppEvents.broadcast("Session", { Type: "Loaded", Info: this.appConfig.session });
 			}
 		}
 		catch (error) {
-			this.showError("Error occurred while loading the saved/offline session", error);
+			this.showError("Error occurred while loading the session from storage", error);
 		}
 		if (onCompleted !== undefined) {
 			onCompleted(this.appConfig.session);
@@ -301,15 +298,15 @@ export class ConfigurationService extends BaseService {
 			AppEvents.broadcast("Session", { Type: "Updated", Info: this.appConfig.session });
 		}
 		catch (error) {
-			this.showError("Error occurred while saving/storing the session", error);
+			this.showError("Error occurred while storing the session into storage", error);
 		}
 		if (onCompleted !== undefined) {
 			onCompleted(this.appConfig.session);
 		}
 	}
 
-	/** Deletes the session from storage */
-	public async deleteSessionAsync(onCompleted?: (data?: any) => void) {
+	/** Resets information and re-store into storage */
+	public async resetSessionAsync(onCompleted?: (data?: any) => void) {
 		this.appConfig.session.id = undefined;
 		this.appConfig.session.token = undefined;
 		this.appConfig.session.keys = undefined;
@@ -335,10 +332,6 @@ export class ConfigurationService extends BaseService {
 				onNext();
 			}
 		}, defer || 456);
-	}
-
-	private initializeAccount() {
-		this.appConfig.session.account = this.getAccount(!this.isAuthenticated);
 	}
 
 	/** Gets the information of the current/default account */
@@ -392,7 +385,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Updates information of the account */
 	public updateAccount(data: any, onCompleted?: (data?: any) => void) {
-		if (this.appConfig.session.account.id === data.ID) {
+		if (this.appConfig.session.account.id !== undefined && this.appConfig.session.account.id === data.ID) {
 			const account = this.prepareAccount(data);
 			this.appConfig.session.account.roles = account.Roles;
 			this.appConfig.session.account.privileges = account.Privileges;
@@ -402,8 +395,9 @@ export class ConfigurationService extends BaseService {
 				providers: account.TwoFactorsAuthentication.Providers
 			};
 			AppEvents.broadcast("Account", { Type: "Updated", Info: this.appConfig.session.account });
+			this.storeSessionAsync(onCompleted);
 		}
-		if (onCompleted !== undefined) {
+		else if (onCompleted !== undefined) {
 			onCompleted(data);
 		}
 	}
@@ -482,7 +476,7 @@ export class ConfigurationService extends BaseService {
 					pictureUrl: undefined
 				};
 				this.storeProfileAsync(() => {
-					console.log(this.getLogMessage("Account profile is updated with information of Facebook profile"), this.appConfig.isDebug ? this.appConfig.session.account : "");
+					console.log(this.getLogMessage("Account is updated with information of Facebook profile"), this.appConfig.isDebug ? this.appConfig.session.account : "");
 				});
 				this.getFacebookAvatar();
 			}
@@ -540,17 +534,12 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private async loadGeoMetaAsync() {
-		const data = await this.storage.get("VIEApps-GeoMeta");
-		if (AppUtility.isNotEmpty(data) && data !== "{}") {
-			this.appConfig.meta = JSON.parse(data as string);
-		}
-
-		if (!AppUtility.isNotEmpty(this.appConfig.meta.country)) {
-			this.appConfig.meta.country = "VN";
-		}
+		this.appConfig.meta.country = await this.storage.get("VIEApps-GeoMeta-Country") || "VN";
+		this.appConfig.meta.countries = await this.storage.get("VIEApps-GeoMeta-Countries") || [];
+		this.appConfig.meta.provinces = await this.storage.get("VIEApps-GeoMeta-Provinces") || {};
 
 		if (this.appConfig.meta.provinces[this.appConfig.meta.country] !== undefined) {
-			AppEvents.broadcast("GeoMetaIsLoaded", this.appConfig.meta);
+			AppEvents.broadcast("GeoMeta", { Type: "Loaded", Data: this.appConfig.meta });
 		}
 
 		await this.loadGeoProvincesAsync(this.appConfig.meta.country, async () => {
@@ -558,6 +547,26 @@ export class ConfigurationService extends BaseService {
 				await this.loadGeoCountriesAsync();
 			}
 		});
+	}
+
+	private async saveGeoMetaAsync(data: any, onCompleted?: (data?: any) => void) {
+		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces)) {
+			this.appConfig.meta.provinces[data.code] = data;
+		}
+		else if (AppUtility.isObject(data, true) && AppUtility.isArray(data.countries)) {
+			this.appConfig.meta.countries = data.countries;
+		}
+
+		await Promise.all([
+			this.storage.set("VIEApps-GeoMeta-Country", this.appConfig.meta.country),
+			this.storage.set("VIEApps-GeoMeta-Countries", this.appConfig.meta.countries),
+			this.storage.set("VIEApps-GeoMeta-Provinces", this.appConfig.meta.provinces)
+		]);
+
+		AppEvents.broadcast("GeoMeta", { Type: "Loaded", Data: this.appConfig.meta });
+		if (onCompleted !== undefined) {
+			onCompleted(data);
+		}
 	}
 
 	private async loadGeoCountriesAsync(onCompleted?: (data?: any) => void) {
@@ -572,21 +581,6 @@ export class ConfigurationService extends BaseService {
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
 			error => this.showError("Error occurred while fetching the meta provinces", error)
 		);
-	}
-
-	private async saveGeoMetaAsync(data: any, onCompleted?: (data?: any) => void) {
-		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces)) {
-			this.appConfig.meta.provinces[data.code] = data;
-		}
-		else if (AppUtility.isObject(data, true) && AppUtility.isArray(data.countries)) {
-			this.appConfig.meta.countries = data.countries;
-		}
-
-		await this.storage.set("VIEApps-GeoMeta", JSON.stringify(this.appConfig.meta));
-		AppEvents.broadcast("GeoMetaIsLoaded", this.appConfig.meta);
-		if (onCompleted !== undefined) {
-			onCompleted(data);
-		}
 	}
 
 }

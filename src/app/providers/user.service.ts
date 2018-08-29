@@ -26,20 +26,20 @@ export class UserService extends BaseService {
 	private async processRTUMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
 		switch (message.Type.Object) {
 			case "Session":
-				if (this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.UserID) {
+				if (this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.UserID) {
 					switch (message.Type.Event) {
 						case "Update":
 							await this.configSvc.updateSessionAsync(message.Data, () => {
-								console.warn(this.getLogMessage("Update session with the new token"), this.configSvc.appConfig.session);
+								console.warn(this.getLogMessage("The session is updated with new token"), this.configSvc.appConfig.session);
 								this.configSvc.patchSession(() => this.configSvc.patchAccount());
 							});
 							break;
 
 						case "Revoke":
-							await this.configSvc.deleteSessionAsync(async () => {
+							await this.configSvc.resetSessionAsync(async () => {
 								await this.configSvc.initializeSessionAsync(async () => {
 									await this.configSvc.registerSessionAsync(() => {
-										console.log(this.getLogMessage("Revoke session"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+										console.warn(this.getLogMessage("The session is revoked by the APIs"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 										this.configSvc.patchSession(() => AppEvents.broadcast("GoHome"));
 									});
 								});
@@ -65,21 +65,23 @@ export class UserService extends BaseService {
 				break;
 
 			case "Account":
-				if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID) {
+				if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
 					this.configSvc.updateAccount(message.Data);
+					if (this.configSvc.isDebug) {
+						console.log(this.getLogMessage("Account is updated"), this.configSvc.getAccount());
+					}
 				}
 				break;
 
 			case "Profile":
 				UserProfile.update(message.Data);
-				if (this.configSvc.appConfig.session.account && this.configSvc.appConfig.session.account.id === message.Data.ID && this.configSvc.appConfig.session.token && this.configSvc.appConfig.session.token.uid === message.Data.ID) {
-					this.configSvc.appConfig.session.account.id = message.Data.ID;
-					this.configSvc.appConfig.session.account.profile = UserProfile.get(message.Data.ID);
+				if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
+					this.configSvc.getAccount().profile = UserProfile.get(message.Data.ID);
 					await this.configSvc.storeProfileAsync(() => {
 						if (this.configSvc.isDebug) {
-							console.log(this.getLogMessage("Account profile is updated"), this.configSvc.appConfig.session.account);
+							console.log(this.getLogMessage("User profile is updated"), this.configSvc.getAccount().profile);
 						}
-						if (this.configSvc.appConfig.facebook.token && this.configSvc.appConfig.facebook.id) {
+						if (this.configSvc.appConfig.facebook.token !== undefined && this.configSvc.appConfig.facebook.id !== undefined) {
 							this.configSvc.getFacebookProfile();
 						}
 					});

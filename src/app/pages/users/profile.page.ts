@@ -352,9 +352,9 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 					CompleterOptions: {
 						DataSource: this.userSvc.completerDataSource,
 						Handlers: {
-							OnItemSelected: (formControl, selectedItem) => {
-								console.log("Control", formControl);
-								console.log("Item", selectedItem);
+							OnItemSelected: (selectedItem, control) => {
+								console.log("Selected Item", selectedItem);
+								console.log("Control", control);
 							}
 						}
 					}

@@ -15,10 +15,9 @@
 		<app-form
 			[form]="login.form"
 			[config]="login.config"
-			[controls]="login.controls"
-			[lastFocus]="submit"></app-form>
+			[controls]="login.controls"></app-form>
 		<ion-buttons>
-			<ion-button #submit [fill]="login.button.fill" [color]="login.button.color" (click)="loginAsync()">
+			<ion-button [fill]="login.button.fill" [color]="login.button.color" (click)="logInAsync()">
 				<ion-icon *ngIf="login.button.icon" [icon]="login.button.icon" slot="start"></ion-icon>
 				{{login.button.label}}
 			</ion-button>
@@ -34,9 +33,9 @@
 			[form]="otp.form"
 			[config]="otp.config"
 			[controls]="otp.controls"
-			[lastFocus]="submit"></app-form>
+			[value]="otp.value"></app-form>
 		<ion-buttons>
-			<ion-button #submit [fill]="otp.button.fill" [color]="otp.button.color" (click)="validateOTPAsync()">
+			<ion-button [fill]="otp.button.fill" [color]="otp.button.color" (click)="logInOTPAsync()">
 				<ion-icon *ngIf="otp.button.icon" [icon]="otp.button.icon" slot="start"></ion-icon>
 				{{otp.button.label}}
 			</ion-button>
@@ -48,11 +47,10 @@
 			[form]="reset.form"
 			[config]="reset.config"
 			[controls]="reset.controls"
-			[lastFocus]="submit"
 			(initEvent)="onResetPasswordFormInitialized($event)"
 			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
 		<ion-buttons>
-			<ion-button #submit [fill]="reset.button.fill" [color]="reset.button.color" (click)="resetPasswordAsync()">
+			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="resetPasswordAsync()">
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{reset.button.label}}
 			</ion-button>

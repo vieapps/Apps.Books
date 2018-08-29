@@ -130,7 +130,7 @@ export class AppComponent implements OnInit {
 				thumbnail: undefined,
 				detail: false
 			},
-			registerAccount: {
+			register: {
 				title: "Đăng ký tài khoản",
 				url: "/register-account",
 				queryParams: undefined as Params,
@@ -139,7 +139,7 @@ export class AppComponent implements OnInit {
 				thumbnail: undefined,
 				detail: false
 			},
-			viewAccountProfile: {
+			profile: {
 				title: "Thông tin tài khoản",
 				url: "/account-profile",
 				queryParams: undefined as Params,
@@ -187,14 +187,14 @@ export class AppComponent implements OnInit {
 			this.updateSidebarItem(index, -1, this.sidebarItems.home);
 
 			if (this.configSvc.isAuthenticated) {
-				this.updateSidebarItem(index, -1, this.sidebarItems.viewAccountProfile);
+				this.updateSidebarItem(index, -1, this.sidebarItems.profile);
 			}
 			else {
 				this.updateSidebarItem(index, -1, this.sidebarItems.login);
 			}
 
 			if (this.authSvc.canRegisterNewAccounts) {
-				this.updateSidebarItem(index, -1, this.sidebarItems.registerAccount);
+				this.updateSidebarItem(index, -1, this.sidebarItems.register);
 			}
 		}
 		else {
@@ -260,18 +260,18 @@ export class AppComponent implements OnInit {
 
 				const items = this.sidebar.left.menu[0].items;
 				if (this.configSvc.isAuthenticated) {
-					AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith(this.sidebarItems.registerAccount.url)));
+					AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith(this.sidebarItems.register.url)));
 					const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url));
 					if (index > -1) {
-						items[index] = this.sidebarItems.viewAccountProfile;
+						items[index] = this.sidebarItems.profile;
 					}
-					else if (items.findIndex(item => item.url.startsWith(this.sidebarItems.viewAccountProfile.url)) < 0) {
-						AppUtility.insertAt(items, this.sidebarItems.viewAccountProfile);
+					else if (items.findIndex(item => item.url.startsWith(this.sidebarItems.profile.url)) < 0) {
+						AppUtility.insertAt(items, this.sidebarItems.profile);
 					}
 				}
 				else {
 					if (items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url)) < 0) {
-						const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.viewAccountProfile.url));
+						const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.profile.url));
 						if (index > -1) {
 							items[index] = this.sidebarItems.login;
 						}
@@ -279,9 +279,9 @@ export class AppComponent implements OnInit {
 							AppUtility.insertAt(items, this.sidebarItems.login);
 						}
 					}
-					if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith(this.sidebarItems.registerAccount.url)) < 0) {
+					if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith(this.sidebarItems.register.url)) < 0) {
 						const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url));
-						AppUtility.insertAt(items, this.sidebarItems.registerAccount, index > -1 ? index + 1 : -1);
+						AppUtility.insertAt(items, this.sidebarItems.register, index > -1 ? index + 1 : -1);
 					}
 				}
 			}
@@ -348,19 +348,19 @@ export class AppComponent implements OnInit {
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-					await this.prepareAsync(onCompleted);
+					this.onInitialized(onCompleted);
 				}
 				else {
 					console.log("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.configSvc.registerSessionAsync(
-						async () => {
+						() => {
 							console.log("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-							await this.prepareAsync(onCompleted);
+							this.onInitialized(onCompleted);
 						},
 						async error => {
 							if (AppUtility.isGotSecurityException(error)) {
 								console.warn("<AppComponent>: Cannot register, the session is need to be re-initialized (anonymous)");
-								await this.configSvc.deleteSessionAsync(() => {
+								await this.configSvc.resetSessionAsync(() => {
 									PlatformUtility.setTimeout(async () => {
 										await this.initializeAsync(onCompleted, noInitializeSession);
 									}, 234);
@@ -377,7 +377,7 @@ export class AppComponent implements OnInit {
 			async error => {
 				if (AppUtility.isGotSecurityException(error)) {
 					console.warn("<AppComponent>: Cannot initialize, the session is need to be re-initialized (anonymous)");
-					await this.configSvc.deleteSessionAsync(() => {
+					await this.configSvc.resetSessionAsync(() => {
 						PlatformUtility.setTimeout(async () => {
 							await this.initializeAsync(onCompleted, noInitializeSession);
 						}, 234);
@@ -392,18 +392,17 @@ export class AppComponent implements OnInit {
 		);
 	}
 
-	private async prepareAsync(onCompleted?: () => void) {
-		if (this.configSvc.isWebApp) {
-			PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());
-		}
-
-		AppRTU.start(() => {
+	private onInitialized(onCompleted?: () => void) {
+		AppRTU.start(async () => {
+			if (this.configSvc.isWebApp) {
+				PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());
+			}
 			if (this.configSvc.isAuthenticated) {
 				this.configSvc.patchAccount(() => this.configSvc.getProfile());
 			}
 			console.log("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 			AppEvents.broadcast("AppIsInitialized", this.configSvc.appConfig.app);
-			this.appFormsSvc.hideLoadingAsync(onCompleted);
+			await this.appFormsSvc.hideLoadingAsync(onCompleted);
 		});
 	}
 
