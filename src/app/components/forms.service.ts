@@ -161,12 +161,12 @@ export class AppFormsControl {
 		control.AsyncValidators = options.AsyncValidators;
 
 		const controlOptions = options.Options || options.options;
-		if (controlOptions !== undefined && controlOptions !== null) {
+		if (controlOptions !== undefined) {
 			control.Options.Type = controlOptions.Type || controlOptions.type || "text";
 
 			control.Options.Label = controlOptions.Label || controlOptions.label;
 			const labelOptions = controlOptions.LabelOptions || controlOptions.labeloptions;
-			if (labelOptions !== undefined && labelOptions !== null) {
+			if (labelOptions !== undefined) {
 				control.Options.LabelOptions.Position = labelOptions.Position || labelOptions.position || "stacked";
 				control.Options.LabelOptions.Color = labelOptions.Color || labelOptions.color || "";
 				control.Options.LabelOptions.Css = labelOptions.Css || labelOptions.css || "";
@@ -174,7 +174,7 @@ export class AppFormsControl {
 
 			control.Options.Description = controlOptions.Description || controlOptions.description;
 			const descriptionOptions = controlOptions.DescriptionOptions || controlOptions.descriptionoptions;
-			if (descriptionOptions !== undefined && descriptionOptions !== null) {
+			if (descriptionOptions !== undefined) {
 				control.Options.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--description-label-css", "description");
 				control.Options.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
 			}
@@ -204,7 +204,7 @@ export class AppFormsControl {
 			control.Options.MaxHeight = controlOptions.MaxHeight || controlOptions.maxheight;
 
 			const selectOptions = controlOptions.SelectOptions || controlOptions.selectoptions;
-			if (selectOptions !== undefined && selectOptions !== null) {
+			if (selectOptions !== undefined) {
 				control.Options.SelectOptions = {
 					Values: ((selectOptions.Values || selectOptions.values) as Array<any> || []).map(kvp => {
 						return {
@@ -222,7 +222,7 @@ export class AppFormsControl {
 			}
 
 			const dateOptions = controlOptions.DateOptions || controlOptions.dateoptions;
-			if (dateOptions !== undefined && dateOptions !== null) {
+			if (dateOptions !== undefined) {
 				control.Options.DateOptions = {
 					AllowTimes: !!(dateOptions.AllowTimes || dateOptions.allowtimes),
 					DisplayFormat: dateOptions.DisplayFormat || dateOptions.displayformat,
@@ -237,7 +237,7 @@ export class AppFormsControl {
 			}
 
 			const completerOptions = controlOptions.CompleterOptions || controlOptions.completeroptions;
-			if (completerOptions !== undefined && completerOptions !== null) {
+			if (completerOptions !== undefined) {
 				const handlers = completerOptions.Handlers || completerOptions.handlers || {};
 				control.Options.CompleterOptions = {
 					SearchingText: completerOptions.SearchingText || completerOptions.searchingtext || "Searching...",
@@ -255,9 +255,9 @@ export class AppFormsControl {
 		}
 
 		const subControls = options.SubControls || options.subcontrols;
-		if (subControls !== undefined && subControls !== null) {
+		if (subControls !== undefined) {
 			const subConfig = subControls.Controls || subControls.controls;
-			if (subConfig !== undefined && subConfig !== null && Array.isArray(subConfig)) {
+			if (AppUtility.isArray(subConfig, true)) {
 				control.SubControls = {
 					AsArray: !!(subControls.AsArray || subControls.asarray),
 					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Key)).sort((a, b) => a.Order - b.Order)
@@ -297,6 +297,11 @@ export class AppFormsControl {
 	/** Sets focus into this control */
 	public focus(defer?: number) {
 		PlatformUtility.focus(this.elementRef, defer);
+	}
+
+	/** Sets the value of the control */
+	public setValue(value: any) {
+		this.formRef.setValue(value);
 	}
 
 }
@@ -368,7 +373,7 @@ export class AppFormsService {
 
 	/** Builds the form */
 	public buildForm(form: FormGroup, controls: Array<AppFormsControl> = [], value?: any, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
-		if (value !== undefined && value !== null) {
+		if (value !== undefined) {
 			this.updateControls(controls, value);
 			this.getFormGroup(controls, form, validators, asyncValidators);
 			form.patchValue(value);
@@ -425,7 +430,7 @@ export class AppFormsService {
 	private getValidators(control: AppFormsControl) {
 		let validators = new Array<ValidatorFn>();
 
-		if (control.Validators !== undefined && control.Validators !== null && control.Validators.length > 0) {
+		if (control.Validators !== undefined && control.Validators.length > 0) {
 			if (typeof control.Validators[0] === "string") {
 
 			}
@@ -551,7 +556,7 @@ export class AppFormsService {
 	}
 
 	/** Checks confirm values of two controls are matched or not */
-	public confirmIsMatched(original: string, confirm: string): ValidatorFn {
+	public isMatched(original: string, confirm: string): ValidatorFn {
 		return (formGroup: FormGroup): { [key: string]: any } | null => {
 			const originalControl = formGroup.controls[original];
 			const confirmControl = formGroup.controls[confirm];
@@ -565,8 +570,8 @@ export class AppFormsService {
 		};
 	}
 
-	/** Checks value of the control is matched or not with other control */
-	public isMatched(other: string): ValidatorFn {
+	/** Checks value of the control is equal with other control value or not */
+	public isEquals(other: string): ValidatorFn {
 		return (formControl: AbstractControl): { [key: string]: any } | null => {
 			const otherControl = formControl.parent instanceof FormGroup
 				? (formControl.parent as FormGroup).controls[other]

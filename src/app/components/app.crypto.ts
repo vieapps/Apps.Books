@@ -71,7 +71,7 @@ export class AppCrypto {
 		const elements = jwt.split(".");
 		return this.urlSign(elements[0] + "." + elements[1], key || this._jwt) === elements[2]
 			? JSON.parse(this.urlDecode(elements[1]))
-			: null;
+			: undefined;
 	}
 
 	/** Encrypts the string by RSA */
@@ -91,13 +91,13 @@ export class AppCrypto {
 
 	/** Initializes key for working with RSA and AES */
 	public static init(keys: any) {
-		if (keys.aes !== undefined && keys.aes != null) {
+		if (keys.aes !== undefined) {
 			this.initAES(keys.aes.key, keys.aes.iv);
 		}
-		if (keys.rsa !== undefined && keys.rsa != null) {
+		if (keys.rsa !== undefined) {
 			this.initRSA(keys.rsa.exponent, keys.rsa.modulus);
 		}
-		if (keys.jwt !== undefined && keys.jwt != null) {
+		if (keys.jwt !== undefined) {
 			this._jwt = keys.jwt;
 		}
 	}

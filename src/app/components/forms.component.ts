@@ -25,17 +25,14 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 
 	public ngOnInit() {
-		if (this.controls === undefined || this.controls === null || this.controls.length < 1) {
-			if (this.config !== undefined && this.config !== null) {
-				this.controls = this.appFormsSvc.getControls(this.config, this.controls);
-			}
+		if ((this.controls === undefined || this.controls.length < 1) && this.config !== undefined) {
+			this.controls = this.appFormsSvc.getControls(this.config, this.controls);
 		}
 
-		if (this.controls === undefined || this.controls === null) {
+		if (this.controls === undefined) {
 			throw new Error("Controls or config of the form need to be initialized first (controls/config attributes)");
 		}
-
-		if (this.controls.length < 1) {
+		else if (this.controls.length < 1) {
 			console.warn("[Forms]: No control");
 		}
 		else {

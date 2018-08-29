@@ -80,7 +80,7 @@ export class AccountAvatarPage implements OnInit {
 
 	public async updateAsync() {
 		this.processing = true;
-		if (this.mode === "Avatar" && this.cropper.data.image !== "" && this.cropper.data.image !== this.profile.Avatar) {
+		if (this.mode === "Avatar" && this.cropper.data.original !== undefined) {
 			await this.fileSvc.uploadAvatarAsync(this.cropper.data.image,
 				async data => {
 					this.profile.Avatar = data.Uri;

@@ -174,7 +174,7 @@ export class ConfigurationService extends BaseService {
 		}
 
 		// load saved session
-		if (this.appConfig.session.token === null || this.appConfig.session.keys === null) {
+		if (this.appConfig.session.token === undefined || this.appConfig.session.keys === undefined) {
 			await this.loadSessionAsync();
 		}
 
@@ -275,7 +275,7 @@ export class ConfigurationService extends BaseService {
 			const session = await this.storage.get("VIEApps-Session");
 			if (AppUtility.isNotEmpty(session) && session !== "{}") {
 				this.appConfig.session = JSON.parse(session as string);
-				if (this.appConfig.session.account !== null && this.appConfig.session.account.profile !== null) {
+				if (this.appConfig.session.account !== undefined && this.appConfig.session.account.profile !== undefined) {
 					this.appConfig.session.account.profile = UserProfile.deserialize(this.appConfig.session.account.profile);
 				}
 				if (this.isDebug) {
@@ -311,9 +311,9 @@ export class ConfigurationService extends BaseService {
 
 	/** Deletes the session from storage */
 	public async deleteSessionAsync(onCompleted?: (data?: any) => void) {
-		this.appConfig.session.id = null;
-		this.appConfig.session.token = null;
-		this.appConfig.session.keys = null;
+		this.appConfig.session.id = undefined;
+		this.appConfig.session.token = undefined;
+		this.appConfig.session.keys = undefined;
 		this.appConfig.session.account = this.getAccount(true);
 		await this.storeSessionAsync(onCompleted);
 	}
@@ -325,9 +325,9 @@ export class ConfigurationService extends BaseService {
 				ServiceName: "users",
 				ObjectName: "session",
 				Verb: "PATCH",
-				Query: null,
+				Query: undefined,
 				Header: AppAPI.getAuthHeaders(),
-				Body: null,
+				Body: undefined,
 				Extra: {
 					"x-session": this.appConfig.session.id
 				}
@@ -344,7 +344,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets the information of the current/default account */
 	public getAccount(getDefault?: boolean) {
-		const account = AppUtility.isTrue(getDefault) || this.appConfig.session.account === null
+		const account = AppUtility.isTrue(getDefault) || this.appConfig.session.account === undefined
 			? undefined
 			: this.appConfig.session.account;
 		return account || new Account();
@@ -417,9 +417,9 @@ export class ConfigurationService extends BaseService {
 				ObjectName: "account",
 				Verb: "GET",
 				Query: { "x-status": "" },
-				Header: null,
-				Body: null,
-				Extra: null
+				Header: undefined,
+				Body: undefined,
+				Extra: undefined
 			});
 			if (onNext !== undefined) {
 				onNext();
@@ -439,9 +439,9 @@ export class ConfigurationService extends BaseService {
 				"language": this.appConfig.language,
 				"host": PlatformUtility.host
 			},
-			Header: null,
-			Body: null,
-			Extra: null
+			Header: undefined,
+			Body: undefined,
+			Extra: undefined
 		});
 		if (onNext !== undefined) {
 			onNext();
@@ -461,12 +461,12 @@ export class ConfigurationService extends BaseService {
 					this.appConfig.facebook.token = response.authResponse.accessToken;
 					this.appConfig.facebook.id = response.authResponse.userID;
 					console.log(this.getLogMessage("Facebook is connected"), this.appConfig.isDebug ? this.appConfig.facebook : "");
-					if (this.appConfig.session.account.facebook !== null) {
+					if (this.appConfig.session.account.facebook !== undefined) {
 						this.getFacebookProfile();
 					}
 				}
 				else {
-					this.appConfig.facebook.token = null;
+					this.appConfig.facebook.token = undefined;
 				}
 			}
 		);

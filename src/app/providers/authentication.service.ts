@@ -24,7 +24,7 @@ export class AuthenticationService extends BaseService {
 	}
 
 	private isGotRole(role: string, roles: any) {
-		return !AppUtility.isNotEmpty(role) || roles === undefined || roles === null
+		return !AppUtility.isNotEmpty(role)
 			? false
 			: AppUtility.isArray(roles, true)
 				? new List<string>(roles).FirstOrDefault(r => r === role) !== undefined
@@ -34,7 +34,7 @@ export class AuthenticationService extends BaseService {
 	}
 
 	private isGotServiceRole(serviceName: string, role: string, privileges: Array<Privilege>) {
-		return !AppUtility.isNotEmpty(serviceName) || !AppUtility.isNotEmpty(role) || privileges === undefined || privileges === null
+		return !AppUtility.isNotEmpty(serviceName) || !AppUtility.isNotEmpty(role) || privileges === undefined
 			? false
 			: new List(privileges).FirstOrDefault(p => p.ServiceName === serviceName && p.Role === role) !== undefined;
 	}

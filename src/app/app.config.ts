@@ -36,10 +36,10 @@ export class AppConfig {
 
 	/** Session information */
 	public static session = {
-		id: null as string,
-		token: null,
-		account: null as Account,
-		keys: null,
+		id: undefined as string,
+		token: undefined as any,
+		account: undefined as Account,
+		keys: undefined as any,
 		device: "",
 		captcha: {
 			code: "",
@@ -132,7 +132,7 @@ export class AppConfig {
 
 	/** Gets the culture language for working with UI */
 	public static get language() {
-		return AppConfig.session.account !== undefined && AppConfig.session.account !== null && AppConfig.session.account.profile !== undefined
+		return AppConfig.session.account !== undefined && AppConfig.session.account.profile !== undefined
 			? AppConfig.session.account.profile.Language
 			: AppConfig.app.language;
 	}

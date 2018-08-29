@@ -54,17 +54,15 @@ export class AppAPI {
 		const authHeaders = this.getAuthHeaders();
 		Object.keys(authHeaders).forEach(name => headers.append(name, authHeaders[name]));
 
-		if (additional !== undefined && additional !== null) {
-			if (AppUtility.isArray(additional, true)) {
-				(additional as Array<any>).forEach(header => {
-					if (AppUtility.isObject(header, true) && AppUtility.isNotEmpty(header.name) && AppUtility.isNotEmpty(header.value)) {
-						headers.append(header.name as string, header.value as string);
-					}
-				});
-			}
-			else if (AppUtility.isObject(additional)) {
-				Object.keys(additional).forEach(name => headers.append(name, additional[name]));
-			}
+		if (AppUtility.isArray(additional, true)) {
+			(additional as Array<any>).forEach(header => {
+				if (AppUtility.isObject(header, true) && AppUtility.isNotEmpty(header.name) && AppUtility.isNotEmpty(header.value)) {
+					headers.append(header.name as string, header.value as string);
+				}
+			});
+		}
+		else if (AppUtility.isObject(additional, true)) {
+			Object.keys(additional).forEach(name => headers.append(name, additional[name]));
 		}
 
 		if (AppUtility.isTrue(addContentType)) {

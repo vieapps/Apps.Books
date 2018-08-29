@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import * as Rx from "rxjs";
-import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
+import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { UserService } from "../../providers/user.service";
@@ -63,13 +63,13 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		value: undefined as any
 	};
 	password = {
-		form: new FormGroup({}, [this.appFormsSvc.confirmIsMatched("Password", "ConfirmPassword")]),
+		form: new FormGroup({}, [this.appFormsSvc.isMatched("Password", "ConfirmPassword")]),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any
 	};
 	email = {
-		form: new FormGroup({}, [this.appFormsSvc.confirmIsMatched("Email", "ConfirmEmail")]),
+		form: new FormGroup({}, [this.appFormsSvc.isMatched("Email", "ConfirmEmail")]),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any
@@ -416,7 +416,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			{
 				Key: "ConfirmPassword",
 				Required: true,
-				Validators: [this.appFormsSvc.isMatched("Password")],
+				Validators: [this.appFormsSvc.isEquals("Password")],
 				Options: {
 					Type: "password",
 					Label: "Nhập lại mật khẩu mới",
@@ -470,7 +470,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			{
 				Key: "ConfirmEmail",
 				Required: true,
-				Validators: [this.appFormsSvc.isMatched("Email")],
+				Validators: [this.appFormsSvc.isEquals("Email")],
 				Options: {
 					Type: "email",
 					Label: "Nhập lại email đăng nhập mới",

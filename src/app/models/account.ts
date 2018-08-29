@@ -3,19 +3,19 @@ import { UserProfile } from "./user";
 
 /** Account of the app */
 export class Account {
-	id: string = undefined;
-	roles: Array<string> = undefined;
-	privileges: Array<Privilege> = undefined;
-	status: string = undefined;
-	twoFactors = {
-		required: false,
-		providers: new Array<{ Label: string, Type: string, Time: Date, Info: string }>()
+	id: string;
+	roles: Array<string>;
+	privileges: Array<Privilege>;
+	status: string;
+	twoFactors: {
+		required: boolean,
+		providers: Array<{ Label: string, Type: string, Time: Date, Info: string }>
 	};
-	profile: UserProfile = undefined;
-	facebook = {
-		id: null as string,
-		name: null as string,
-		pictureUrl: null as string,
-		profileUrl: null as string
+	profile: UserProfile;
+	facebook: {
+		id: string,
+		name: string,
+		pictureUrl: string,
+		profileUrl: string
 	};
 }

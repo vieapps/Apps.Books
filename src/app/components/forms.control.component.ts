@@ -382,7 +382,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	public refreshCaptcha() {
-		this.formControl.setValue("");
+		this.control.setValue("");
 		this.control.focus();
 		this.refreshCaptchaEvent.emit(this.control);
 	}

@@ -239,10 +239,10 @@ export class LogInPage implements OnInit, OnDestroy {
 	}
 
 	public async refreshCaptchaAsync(control?: AppFormsControl) {
-		control = control || this.reset.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
 		await this.authSvc.registerCaptchaAsync(() => {
-			this.reset.form.controls[control.Key].setValue("");
+			control = control || this.reset.controls.find(ctrl => ctrl.Type === "Captcha");
 			control.captchaUri = this.configSvc.appConfig.session.captcha.uri;
+			control.setValue("");
 		});
 	}
 

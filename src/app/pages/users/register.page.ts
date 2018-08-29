@@ -25,13 +25,13 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 	title = "Đăng ký tài khoản";
 	register = {
-		form: new FormGroup({}, [this.appFormsSvc.confirmIsMatched("Email", "ConfirmEmail"), this.appFormsSvc.confirmIsMatched("Password", "ConfirmPassword")]),
+		form: new FormGroup({}, [this.appFormsSvc.isMatched("Email", "ConfirmEmail"), this.appFormsSvc.isMatched("Password", "ConfirmPassword")]),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any,
 		button: {
 			label: "Đăng ký",
-			icon: undefined,
+			icon: undefined as string,
 			color: "primary",
 			fill: "solid"
 		}
@@ -69,7 +69,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			{
 				Key: "ConfirmEmail",
 				Required: true,
-				Validators: [this.appFormsSvc.isMatched("Email")],
+				Validators: [this.appFormsSvc.isEquals("Email")],
 				Options: {
 					Type: "email",
 					Label: "Nhập lại email",
@@ -90,7 +90,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			{
 				Key: "ConfirmPassword",
 				Required: true,
-				Validators: [this.appFormsSvc.isMatched("Password")],
+				Validators: [this.appFormsSvc.isEquals("Password")],
 				Options: {
 					Type: "password",
 					Label: "Nhập lại mật khẩu",
@@ -132,10 +132,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 								Value: "Female",
 								Label: "Nữ"
 							}
-						],
-						AsBoxes: false,
-						Multiple: false,
-						Interface: "alert"
+						]
 					},
 				}
 			},
@@ -221,10 +218,10 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	}
 
 	public async refreshCaptchaAsync(control?: AppFormsControl) {
-		control = control || this.register.controls.filter(ctrl => ctrl.Type === "Captcha")[0];
 		await this.authSvc.registerCaptchaAsync(() => {
-			this.register.form.controls[control.Key].setValue("");
+			control = control || this.register.controls.find(ctrl => ctrl.Type === "Captcha");
 			control.captchaUri = this.configSvc.appConfig.session.captcha.uri;
+			control.setValue("");
 		});
 	}
 
@@ -236,7 +233,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.userSvc.registerAsync(AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Addresses", "Captcha"]), this.register.value.Captcha,
-			async data => {
+			async () => {
 				await TrackingUtility.trackAsync(this.title, "/user/register");
 				await this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.goBack());
 			},
