@@ -23,8 +23,9 @@ import { AppFormsModule } from "./components/forms.module";
 import { VinumberPipe } from "./components/app.vinumber.pipe";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
-import { UserService } from "./providers/user.service";
-import { FileService } from "./providers/file.service";
+import { UsersService } from "./providers/users.service";
+import { FilesService } from "./providers/files.service";
+import { BooksService } from "./providers/books.service";
 
 @NgModule({
 	declarations: [
@@ -52,8 +53,9 @@ import { FileService } from "./providers/file.service";
 		GoogleAnalytics,
 		ConfigurationService,
 		AuthenticationService,
-		UserService,
-		FileService,
+		UsersService,
+		FilesService,
+		BooksService,
 		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
 	],
 	bootstrap: [AppComponent]

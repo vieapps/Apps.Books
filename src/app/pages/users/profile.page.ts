@@ -8,7 +8,7 @@ import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
-import { UserService } from "../../providers/user.service";
+import { UsersService } from "../../providers/users.service";
 import { UserProfile } from "../../models/user";
 import { Privilege } from "./../../models/privileges";
 import { AccountAvatarPage } from "./avatar.page";
@@ -24,7 +24,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
-		public userSvc: UserService
+		public usersSvc: UsersService
 	) {
 	}
 
@@ -241,7 +241,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 		}
 		const id = this._id || this.configSvc.getAccount().id;
-		await this.userSvc.getProfileAsync(id,
+		await this.usersSvc.getProfileAsync(id,
 			async () => {
 				if (this.profile === undefined) {
 					await TrackingUtility.trackAsync(this.title, "/user/profile");
@@ -384,7 +384,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
-			await this.userSvc.updateProfileAsync(this.update.value,
+			await this.usersSvc.updateProfileAsync(this.update.value,
 				async data => {
 					if (this.profile.ID === data.ID) {
 						this.configSvc.appConfig.session.account.profile = UserProfile.get(this.profile.ID);
@@ -442,7 +442,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
-			await this.userSvc.updatePasswordAsync(this.password.value.OldPassword, this.password.value.Password,
+			await this.usersSvc.updatePasswordAsync(this.password.value.OldPassword, this.password.value.Password,
 				async () => {
 					await TrackingUtility.trackAsync(this.title, "account/password");
 					await this.openProfileAsync(async () => this.appFormsSvc.showToastAsync("Mật khẩu đăng nhập đã được thay đổi thành công..."));
@@ -496,7 +496,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
-			await this.userSvc.updateEmailAsync(this.email.value.OldPassword, this.email.value.Email,
+			await this.usersSvc.updateEmailAsync(this.email.value.OldPassword, this.email.value.Email,
 				async () => {
 					await TrackingUtility.trackAsync(this.title, "account/email");
 					await this.openProfileAsync(async () => this.appFormsSvc.showToastAsync("Email đăng nhập đã được thay đổi thành công..."));
@@ -518,7 +518,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 
 	public async prepareOTPAsync() {
 		this.appFormsSvc.showLoadingAsync(this.title);
-		await this.userSvc.prepare2FAMethodAsync(
+		await this.usersSvc.prepare2FAMethodAsync(
 			async data => {
 				this.otp.provisioning = data.Provisioning;
 				this.otp.uri = data.Uri;
@@ -530,7 +530,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 
 	public async addOTPAsync() {
 		this.appFormsSvc.showLoadingAsync(this.title);
-		await this.userSvc.add2FAMethodAsync(this.otp.provisioning, this.otp.value,
+		await this.usersSvc.add2FAMethodAsync(this.otp.provisioning, this.otp.value,
 			async () => {
 				this.updateOTP();
 				await this.appFormsSvc.hideLoadingAsync();
@@ -544,7 +544,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			"Xoá",
 			undefined,
 			`Chắc chắn muốn xoá bỏ phương thức xác thực lần hai [${provider.Label}] này?`,
-			async () => await this.userSvc.delete2FAMethodAsync(provider.Info,
+			async () => await this.usersSvc.delete2FAMethodAsync(provider.Info,
 				async () => {
 					await TrackingUtility.trackAsync(this.title, "session/otp");
 					this.updateOTP();
@@ -597,7 +597,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			const privileges: Array<Privilege> = undefined;
 			const relatedInfo: any = undefined;
-			await this.userSvc.sendInvitationAsync(this.invitation.value.Name, this.invitation.value.Email, privileges, relatedInfo,
+			await this.usersSvc.sendInvitationAsync(this.invitation.value.Name, this.invitation.value.Email, privileges, relatedInfo,
 				async () => {
 					await TrackingUtility.trackAsync(this.title, "account/invitation");
 					await this.openProfileAsync(async () => this.appFormsSvc.showToastAsync("Lời mời tham gia hệ thống đã được gửi..."));

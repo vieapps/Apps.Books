@@ -82,3 +82,17 @@ export class Book extends BaseModel {
 		}
 	}
 }
+
+/** Bookmark of an e-book */
+export class Bookmark {
+	ID = "";
+	Chapter = 0;
+	Position = 0;
+	Time = new Date();
+
+	static deserialize(json: any, bookmark?: Bookmark) {
+		bookmark = bookmark || new Bookmark();
+		AppUtility.copy(json, bookmark);
+		return bookmark;
+	}
+}

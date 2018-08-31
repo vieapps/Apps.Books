@@ -16,7 +16,6 @@ import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
 import { PlatformUtility } from "../components/app.utility.platform";
 import { TrackingUtility } from "../components/app.utility.trackings";
-import { UserProfile } from "../models/user";
 import { Account } from "../models/account";
 import { Privilege } from "../models/privileges";
 import { Base as BaseService } from "./base.service";
@@ -114,7 +113,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets the query with related service, language and host */
 	public get relatedQuery() {
-		return "related-service=" + this.appConfig.app.service + "&language=" + this.appConfig.language + "&host=" + PlatformUtility.host;
+		return PlatformUtility.getRelatedQuery(this.appConfig.app.service);
 	}
 
 	/** Gets the query params of the current page/view */

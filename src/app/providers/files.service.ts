@@ -6,7 +6,7 @@ import { Base as BaseService } from "./base.service";
 import { ConfigurationService } from "./configuration.service";
 
 @Injectable()
-export class FileService extends BaseService {
+export class FilesService extends BaseService {
 
 	constructor (
 		public http: Http,

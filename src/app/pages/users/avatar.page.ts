@@ -4,8 +4,8 @@ import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
-import { UserService } from "../../providers/user.service";
-import { FileService } from "../../providers/file.service";
+import { UsersService } from "../../providers/users.service";
+import { FilesService } from "../../providers/files.service";
 import { UserProfile } from "../../models/user";
 
 @Component({
@@ -18,8 +18,8 @@ export class AccountAvatarPage implements OnInit {
 	constructor (
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public fileSvc: FileService,
-		public userSvc: UserService
+		public filesSvc: FilesService,
+		public usersSvc: UsersService
 	) {
 	}
 
@@ -67,7 +67,7 @@ export class AccountAvatarPage implements OnInit {
 	}
 
 	private async updateProfileAsync() {
-		await this.userSvc.updateProfileAsync({
+		await this.usersSvc.updateProfileAsync({
 				ID: this.profile.ID,
 				Avatar: this.profile.Avatar
 			},
@@ -87,7 +87,7 @@ export class AccountAvatarPage implements OnInit {
 	public async updateAsync() {
 		this.processing = true;
 		if (this.mode === "Avatar" && this.cropper.data.original !== undefined) {
-			await this.fileSvc.uploadAvatarAsync(this.cropper.data.image,
+			await this.filesSvc.uploadAvatarAsync(this.cropper.data.image,
 				async data => {
 					this.profile.Avatar = data.Uri;
 					this.cropper.data = {

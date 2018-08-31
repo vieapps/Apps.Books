@@ -6,7 +6,7 @@ import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
-import { UserService } from "./../../providers/user.service";
+import { UsersService } from "../../providers/users.service";
 
 @Component({
 	selector: "page-register",
@@ -19,7 +19,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
-		public userSvc: UserService
+		public usersSvc: UsersService
 	) {
 	}
 
@@ -230,7 +230,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		}
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
-		await this.userSvc.registerAsync(AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Addresses", "Captcha"]), this.register.value.Captcha,
+		await this.usersSvc.registerAsync(AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Addresses", "Captcha"]), this.register.value.Captcha,
 			async () => {
 				await TrackingUtility.trackAsync(this.title, "/user/register");
 				await this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.goBack());

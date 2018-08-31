@@ -139,15 +139,6 @@ export class AppConfig {
 			: this.app.language;
 	}
 
-	/** Gets the reading options fo the book app */
-	public static readingOptions = {
-		font: "default",
-		size: "normal",
-		color: "white",
-		paragraph: "one",
-		align: "align-left"
-	};
-
 	/** Gets the authenticated headers (JSON) for making requests to APIs */
 	public static getAuthenticatedHeaders(addToken: boolean = true, addAppInfo: boolean = true, addDeviceID: boolean = true) {
 		const headers: {

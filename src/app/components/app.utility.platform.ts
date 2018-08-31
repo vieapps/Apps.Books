@@ -111,6 +111,14 @@ export class PlatformUtility {
 		return host;
 	}
 
+	/** Gets the query with related service, language and host */
+	public static getRelatedQuery(relatedService?: string) {
+		return (relatedService !== undefined && relatedService !== AppConfig.app.service
+			? "related-service=" + AppConfig.app.service + "&"
+			: "")
+			+ "language=" + AppConfig.language + "&host=" + this.host;
+	}
+
 	/** Opens an uri by OS/In-App browser */
 	public static openURI(uri?: string) {
 		if (AppUtility.isNotEmpty(uri) && (uri.startsWith("http://") || uri.startsWith("https://"))) {

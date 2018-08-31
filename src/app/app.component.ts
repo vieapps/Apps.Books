@@ -15,7 +15,8 @@ import { TrackingUtility } from "./components/app.utility.trackings";
 import { AppFormsService } from "./components/forms.service";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
-import { UserService } from "./providers/user.service";
+import { UsersService } from "./providers/users.service";
+import { BooksService } from "./providers/books.service";
 
 @Component({
 	selector: "app-root",
@@ -33,7 +34,8 @@ export class AppComponent implements OnInit {
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
-		public userSvc: UserService
+		public usersSvc: UsersService,
+		public booksSvc: BooksService
 	) {
 	}
 
@@ -182,8 +184,12 @@ export class AppComponent implements OnInit {
 			});
 		}
 
-		if (index === 0) {
+		const reset = info.reset !== undefined ? info.reset as boolean : true;
+		if (reset) {
 			this.sidebar.left.menu[index].items = [];
+		}
+
+		if (index === 0) {
 			this.updateSidebarItem(index, -1, this.sidebarItems.home);
 
 			if (this.configSvc.isAuthenticated) {
@@ -292,7 +298,7 @@ export class AppComponent implements OnInit {
 		const mode = this.configSvc.queryParams["mode"];
 		const code = this.configSvc.queryParams["code"];
 		if (AppUtility.isNotEmpty(mode) && AppUtility.isNotEmpty(code)) {
-			await this.userSvc.activateAsync(mode, code,
+			await this.usersSvc.activateAsync(mode, code,
 				async () => {
 					await this.initializeAsync(async () => {
 						await Promise.all([

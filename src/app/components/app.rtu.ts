@@ -339,11 +339,8 @@ export class AppRTU {
 			this._websocket.send(JSON.stringify(request));
 		}
 		else {
-			let path = `${request.ServiceName}/${request.ObjectName}`;
-			let query = request.ServiceName !== AppConfig.app.service
-				? `related-service=${AppConfig.app.service}&`
-				: "";
-			query += `language=${AppConfig.language}&host=${PlatformUtility.host}`;
+			let path = `${request.ServiceName.toLowerCase()}/${request.ObjectName.toLowerCase()}`;
+			let query = PlatformUtility.getRelatedQuery(AppConfig.app.service);
 			if (AppUtility.isObject(request.Query, true)) {
 				if (request.Query["object-identity"]) {
 					path += "/" + request.Query["object-identity"];
@@ -351,16 +348,14 @@ export class AppRTU {
 				}
 				query += "&" + AppUtility.getQueryOfJson(request.Query);
 			}
-			AppAPI.send(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body)
-				.pipe(map(response => response.json()))
-				.subscribe(
-					data => {
-						if (whenNotReady !== undefined) {
-							whenNotReady(data);
-						}
-					},
-					error => console.error("[RTU]: Error occurred while sending request => " + AppUtility.getErrorMessage(error), error)
-				);
+			AppAPI.send(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body).toPromise().then(
+				data => {
+					if (whenNotReady !== undefined) {
+						whenNotReady(data);
+					}
+				},
+				error => console.error("[RTU]: Error occurred while sending request => " + AppUtility.getErrorMessage(error), error)
+			);
 		}
 	}
 
