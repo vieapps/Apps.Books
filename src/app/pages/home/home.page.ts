@@ -3,7 +3,7 @@ import { AppUtility } from "../../components/app.utility";
 import { ConfigurationService } from "../../providers/configuration.service";
 
 @Component({
-	selector: "app-home",
+	selector: "page-home",
 	templateUrl: "home.page.html",
 	styleUrls: ["home.page.scss"],
 })
@@ -16,6 +16,7 @@ export class HomePage implements OnInit {
 
 	public ngOnInit() {
 		this.configSvc.appTitle = "Màn hình chính";
+		this.configSvc.resetUrl();
 	}
 
 }

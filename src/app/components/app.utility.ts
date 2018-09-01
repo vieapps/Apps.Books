@@ -1,5 +1,5 @@
-import { Response } from "@angular/http";
 import { List } from "linqts";
+import { Response } from "@angular/http";
 import { AppCrypto } from "./app.crypto";
 
 /** Servicing component for working with app */
@@ -28,12 +28,12 @@ export class AppUtility {
 
 	/** Checks to see the object is array or not */
 	public static isArray(obj?: any, notNull?: boolean) {
-		return obj instanceof Array && (this.isTrue(notNull) ? obj !== undefined && obj !== null : true);
+		return obj !== undefined && Array.isArray(obj) && (this.isTrue(notNull) ? obj !== null : true);
 	}
 
 	/** Checks to see the object is date or not */
 	public static isDate(obj?: any) {
-		return obj instanceof Date;
+		return obj !== undefined && obj instanceof Date;
 	}
 
 	/** Checks to see the object is null or not */
@@ -90,9 +90,9 @@ export class AppUtility {
 	 * Copys data from the source (object or JSON) into the objects" properties
 	 * @param source The source (object or JSON) to copy data from
 	 * @param obj The instance of an object to copy data into
-	 * @param onPreCompleted The handler to run when copying process is completed
+	 * @param onCompleted The handler to run when copying process is completed
 	*/
-	public static copy(source: any, obj: any, onPreCompleted?: (data: any) => void) {
+	public static copy(source: any, obj: any, onCompleted?: (data: any) => void) {
 		try {
 			const data = this.isNotEmpty(source)
 				? JSON.parse(source)
@@ -100,30 +100,55 @@ export class AppUtility {
 					? source
 					: {};
 
-			for (const name in data) {
+			Object.getOwnPropertyNames(data).forEach(name => {
 				const type = typeof obj[name];
 				if (type !== "undefined" && type !== "function") {
 					obj[name] = this.isDate(obj[name])
 						? new Date(data[name])
 						: data[name];
 				}
-			}
+			});
 
-			if (onPreCompleted !== undefined) {
-				onPreCompleted(data);
+			if (onCompleted !== undefined) {
+				onCompleted(data);
 			}
 		}
 		catch (error) {
-			console.error("[Utility]: Error occurred while copying object", error, source);
+			console.error(`[Utility]: Error occurred while copying object`, error);
 		}
+	}
+
+	/**
+	 * Cleans undefined properties from the object
+	 * @param obj The instance of an object to process
+	 * @param onCompleted The handler to run when cleaning process is completed
+	*/
+	public static clean(obj: any, onCompleted?: (obj: any) => void) {
+		Object.getOwnPropertyNames(obj).forEach(name => {
+			if (this.isNull(obj[name])) {
+				delete obj[name];
+			}
+			else if (this.isObject(obj[name])) {
+				this.clean(obj[name]);
+				if (Object.getOwnPropertyNames(obj[name]).length < 1) {
+					delete obj[name];
+				}
+			}
+		});
+		if (onCompleted !== undefined) {
+			onCompleted(obj);
+		}
+		return obj;
 	}
 
 	/**
 	  * Clones the object (means do stringify the source object and re-parse via JSON
 	  * @param source The source object for cloning
-	  * @param beRemoved The array of attributes of the cloning object to be removed before returing
+	  * @param beRemovedOrCleanUndefined The array of attributes of the cloning object to be removed before returing or the boolean value to specified to clean undefined properties
+	 	* @param onCompleted The handler to run when process is completed
 	*/
-	public static clone(source?: any, beRemoved?: Array<string>) {
+	public static clone(source?: any, beRemovedOrCleanUndefined?: Array<string> | boolean, onCompleted?: (obj: any) => void) {
+		// clone
 		const exists = [];
 		const json = JSON.stringify(source, (key: string, value: any) => {
 			if (this.isObject(value, true)) {
@@ -135,34 +160,22 @@ export class AppUtility {
 			return value;
 		});
 		const obj = JSON.parse(json);
-		if (this.isArray(beRemoved, true)) {
-			beRemoved.forEach(a => delete obj[a]);
-		}
-		return obj;
-	}
 
-	/**
-	 * Cleans undefined properties from the object
-	 * @param instance The instance of an object to process
-	 * @param onPreCompleted The handler to run when cleaning process is completed
-	*/
-	public static clean(instance: any, onPreCompleted?: (obj: any) => void) {
-		const properties = Object.getOwnPropertyNames(instance);
-		for (const property of properties) {
-			if (this.isNull(instance[property])) {
-				delete instance[property];
-			}
-			else if (this.isObject(instance[property])) {
-				this.clean(instance[property]);
-				if (Object.getOwnPropertyNames(instance[property]).length < 1) {
-					delete instance[property];
-				}
+		// remove the specified properties
+		if (this.isArray(beRemovedOrCleanUndefined, true)) {
+			(beRemovedOrCleanUndefined as Array<string>).forEach(name => delete obj[name]);
+			if (onCompleted !== undefined) {
+				onCompleted(obj);
 			}
 		}
-		if (onPreCompleted !== undefined) {
-			onPreCompleted(instance);
+
+		// clean undefined
+		else if (this.isTrue(beRemovedOrCleanUndefined)) {
+			this.clean(obj, onCompleted);
 		}
-		return instance;
+
+		// return clone object
+		return obj;
 	}
 
 	/** Gets the position of the sub-string in the string */
@@ -190,13 +203,11 @@ export class AppUtility {
 	}
 
 	/** Gets the query of JSON */
-	public static getQueryOfJson(json: any): string {
+	public static getQueryOfJson(json: { [key: string]: any }): string {
 		let query = "";
 		try {
 			if (this.isObject(json, true)) {
-				for (const name in json) {
-					query += `${name}=${encodeURIComponent(json[name])}&`;
-				}
+				Object.keys(json).forEach(name => query += `${name}=${encodeURIComponent(json[name])}&`);
 			}
 		}
 		catch { }
@@ -519,7 +530,7 @@ export class AppUtility {
 		result = result.replace(/\u0111/g, "d");
 
 		// double spaces
-		result = result.replace(/\s\s/g, " ");
+		// result = result.replace(/\s\s+/g, " ");
 
 		return result.trim();
 	}

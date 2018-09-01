@@ -104,7 +104,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	public ngOnInit() {
 		if (!this.configSvc.isAuthenticated) {
 			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.goHome();
+			this.configSvc.navigateHome();
 			return;
 		}
 
@@ -616,10 +616,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				async () => {
 					await TrackingUtility.trackAsync("Đăng xuất", "session/log-out");
 					if (this.configSvc.previousUrl.startsWith("/log-in") || this.configSvc.previousUrl.startsWith("/account-profile")) {
-						this.configSvc.goHome();
+						this.configSvc.navigateHome();
 					}
 					else {
-						this.configSvc.goBack();
+						this.configSvc.navigateBack();
 					}
 				},
 				error => this.appFormsSvc.showErrorAsync(error)

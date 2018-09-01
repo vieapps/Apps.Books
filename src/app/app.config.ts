@@ -28,12 +28,12 @@ export class AppConfig {
 		language: "vi-VN",
 		service: "books",
 		services: "system,users,books,libraries,marketplaces",
-		url: {
-			previous: "",
-			current: ""
-		},
 		debug: true,
-		offline: false
+		offline: false,
+		routes: new Array<{
+			url: string,
+			params: { [key: string]: any }
+		}>()
 	};
 
 	/** Session information */

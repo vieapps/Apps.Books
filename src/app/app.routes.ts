@@ -21,9 +21,13 @@ import { Routes, RouterModule } from "@angular/router";
 			loadChildren: "./pages/users/register.module#RegisterAccountPageModule"
 		},
 		{
-			path: "account-profile",
+			path: "account-profile/:id",
 			loadChildren: "./pages/users/profile.module#AccountProfilePageModule"
 		},
+		{
+			path: "list-books/:related",
+			loadChildren: "./pages/books/list.module#ListBooksPageModule"
+		}
 	])],
 	exports: [RouterModule]
 })

@@ -23,14 +23,14 @@ export class UsersService extends BaseService {
 		AppRTU.registerAsServiceScopeProcessor(this.Name, message => this.processUpdateMessageAsync(message));
 	}
 
-	private getSearchURI(request: any) {
+	public getSearchURI(request: any) {
 		return "users/profile/search?x-request=" + AppUtility.toBase64Url(request) + "&" + this.configSvc.relatedQuery;
 	}
 
 	public get completerDataSource() {
 		return new AppCustomCompleter(
 			term => this.getSearchURI(AppPagination.buildRequest({ Query: term })),
-			data => (data.Objects as Array<any>).map(o => {
+			data => (data.Objects as Array<any> || []).map(o => {
 				const profile = UserProfile.deserialize(o);
 				return {
 					title: profile.Name,
@@ -42,15 +42,25 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = this.getSearchURI(request);
-		onNext = AppUtility.isNotNull(onNext)
-			? data => {
-				(data.Objects as Array<any>).forEach(profile => UserProfile.update(profile));
-				onNext(data);
+	public async searchAsync(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.searchAsync(
+			this.getSearchURI(request),
+			request,
+			AppUtility.isNotNull(onNext)
+				? data => {
+					if (data !== undefined) {
+						(data.Objects as Array<any> || []).forEach(o => UserProfile.update(o));
+					}
+					onNext(data);
+				}
+				: undefined,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while searching", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
 			}
-			: undefined;
-		return super.search(path, request, onNext, onError);
+		);
 	}
 
 	public async registerAsync(body: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
@@ -76,7 +86,17 @@ export class UsersService extends BaseService {
 		if (relatedInfo) {
 			body["RelatedInfo"] = AppCrypto.rsaEncrypt(JSON.stringify(relatedInfo));
 		}
-		await this.createAsync(path, body, onNext, error => this.showError("Error occurred while sending an invitation", error, onError));
+		await this.createAsync(
+			path,
+			body,
+			onNext,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while sending an invitation", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	public async activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
@@ -90,7 +110,12 @@ export class UsersService extends BaseService {
 					}
 				});
 			},
-			error => this.showError(`Error occurred while activating (${mode})`, error, onError)
+			error => {
+				console.error(this.getErrorMessage(`Error occurred while activating (${mode})`, error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
 		);
 	}
 
@@ -110,7 +135,12 @@ export class UsersService extends BaseService {
 						onNext(data);
 					}
 				},
-				error => this.showError("Error occurred while reading profile", error, onError)
+				error => {
+					console.error(this.getErrorMessage("Error occurred while reading profile", error));
+					if (onError !== undefined) {
+						onError(error);
+					}
+				}
 			);
 		}
 	}
@@ -124,7 +154,12 @@ export class UsersService extends BaseService {
 					onNext(data);
 				}
 			},
-			error => this.showError("Error occurred while updating profile", error, onError)
+			error => {
+				console.error(this.getErrorMessage("Error occurred while updating profile", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
 		);
 	}
 
@@ -134,7 +169,17 @@ export class UsersService extends BaseService {
 			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
 			Password: AppCrypto.rsaEncrypt(password)
 		};
-		await this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating password", error, onError));
+		await this.updateAsync(
+			path,
+			body,
+			onNext,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while updating password", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	public async updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
@@ -143,12 +188,31 @@ export class UsersService extends BaseService {
 			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
 			Email: AppCrypto.rsaEncrypt(email)
 		};
-		await this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating email", error, onError));
+		await this.updateAsync(
+			path,
+			body,
+			onNext,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while updating email", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	public async prepare2FAMethodAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp?" + this.configSvc.relatedQuery;
-		await this.readAsync(path, onNext, error => this.showError("Error occurred while preparing an 2FA method", error, onError));
+		await this.readAsync(
+			path,
+			onNext,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while preparing an 2FA method", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	public async add2FAMethodAsync(provisioning: string, otp: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
@@ -157,17 +221,45 @@ export class UsersService extends BaseService {
 			Provisioning: provisioning,
 			OTP: otp
 		};
-		await this.updateAsync(path, body, data => this.configSvc.updateAccount(data, onNext), error => this.showError("Error occurred while adding an 2FA method", error, onError));
+		await this.updateAsync(
+			path,
+			body,
+			data => this.configSvc.updateAccount(data, onNext),
+			error => {
+				console.error(this.getErrorMessage("Error occurred while adding an 2FA method", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	public async delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/otp?info=" + info + "&" + this.configSvc.relatedQuery;
-		await this.deleteAsync(path, data => this.configSvc.updateAccount(data, onNext), error => this.showError("Error occurred while deleting an 2FA method", error, onError));
+		await this.deleteAsync(
+			path,
+			data => this.configSvc.updateAccount(data, onNext),
+			error => {
+				console.error(this.getErrorMessage("Error occurred while deleting an 2FA method", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	public async getPrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = "users/account/" + id + "?" + this.configSvc.relatedQuery;
-		await this.readAsync(path, onNext, error => this.showError("Error occurred while reading privileges", error, onError));
+		await this.readAsync(
+			path,
+			onNext,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while reading privileges", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	public async updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
@@ -175,7 +267,17 @@ export class UsersService extends BaseService {
 		const body = {
 			Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
 		};
-		await this.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating privileges", error, onError));
+		await this.updateAsync(
+			path,
+			body,
+			onNext,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while updating privileges", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	private async processUpdateMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {

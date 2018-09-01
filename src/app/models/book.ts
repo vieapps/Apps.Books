@@ -1,5 +1,4 @@
 import * as Collections from "typescript-collections";
-import { AppConfig } from "../app.config";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseModel } from "./base";
 import { RatingPoint } from "./ratingpoint";
@@ -55,17 +54,13 @@ export class Book extends BaseModel {
 		book = book || new Book();
 		book.copy(json, data => {
 			book.Counters = new Collections.Dictionary<string, CounterInfo>();
-			(data.Counters as Array<any>).forEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
+			(data.Counters as Array<any>).forEach(o => book.Counters.setValue(o.Type, CounterInfo.deserialize(o)));
 
 			book.RatingPoints = new Collections.Dictionary<string, RatingPoint>();
-			(data.RatingPoints as Array<any>).forEach(r => book.RatingPoints.setValue(r.Type, RatingPoint.deserialize(r)));
-
-			if (book.SourceUrl !== "" && AppConfig.isNativeApp) {
-				book.SourceUrl = "";
-			}
+			(data.RatingPoints as Array<any>).forEach(o => book.RatingPoints.setValue(o.Type, RatingPoint.deserialize(o)));
 
 			book.Chapters = book.TotalChapters > 1 && book.Chapters.length < 1
-				? book.TOCs.map(t => "")
+				? book.TOCs.map(o => "")
 				: book.Chapters;
 
 			book.ANSITitle = AppUtility.toANSI(book.Title + " " + book.Author).toLowerCase();

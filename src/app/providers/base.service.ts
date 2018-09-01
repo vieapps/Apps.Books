@@ -19,7 +19,8 @@ export class Base {
 	/** Name of the service (for working with paginations as prefix, display logs/errors, ...) */
 	protected Name = "";
 
-	private get serviceName() {
+	/** Gets name of the service (for working with paginations as prefix, display logs/errors, ...) */
+	public get serviceName() {
 		return AppUtility.isNotEmpty(this.Name) ? this.Name : this.constructor.name;
 	}
 
@@ -166,51 +167,6 @@ export class Base {
 		}
 	}
 
-	/**
-	 * Searchs for instances (sends a request to remote API for searching with GET verb and "x-request" of query parameter)
-	 * @param path The URI path of the remote API to send the request to
-	 * @param request The request to search (contains filter, sort and pagination)
-	 * @param onNext The handler to run when the process is completed - null or undefined to get the Observable instance
-	 * @param onError The handler to run when got any error
-	 * @param dontProcessPagination Set to true to by-pass process pagination
-	*/
-	protected search(path: string, request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean) {
-		// stop if got pagination (means data are already)
-		const processPagination = AppUtility.isFalse(dontProcessPagination);
-		const pagination = processPagination
-			? AppPagination.get(request, this.Name)
-			: undefined;
-		if (AppUtility.isNotNull(pagination) && pagination.PageNumber >= pagination.TotalPages) {
-			if (onNext !== undefined) {
-				onNext();
-			}
-			return undefined;
-		}
-
-		// update the page number and send request to search
-		request.Pagination.PageNumber++;
-		const searcher = AppAPI.get(path);
-
-		// return the observable/subscription
-		return AppUtility.isNotNull(onNext)
-			? searcher.pipe(map(response => response.json())).subscribe(
-				data => {
-					if (processPagination) {
-						AppPagination.set(data, this.Name);
-					}
-					onNext(data);
-				},
-				error => {
-					if (onError !== undefined) {
-						onError(AppUtility.parseError(error));
-					}
-					else {
-						this.showError("Error occurred while searching", error);
-					}
-				})
-			: searcher;
-	}
-
 	/** Sends a request/info to remote API via WebSocket connection (of the real-time update component) */
 	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: any, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
 		AppRTU.send(request, whenNotReady);
@@ -228,7 +184,7 @@ export class Base {
 
 	/** Prints the error message to console/log file and run the next action */
 	protected showError(message: string, error?: any, onNext?: (error?: any) => void) {
-		console.error(this.getErrorMessage(message, error));
+		console.error(this.getErrorMessage(message, error), error);
 		if (onNext !== undefined) {
 			onNext(error);
 		}

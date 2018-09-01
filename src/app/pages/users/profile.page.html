@@ -1,7 +1,9 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-back-button *ngIf="mode === 'profile'" [defaultHref]="configSvc.previousUrl"></ion-back-button>
+			<ion-button *ngIf="mode === 'profile'" (click)="configSvc.navigateBack()">
+				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+			</ion-button>
 			<ion-button *ngIf="buttons.cancel" color="secondary" (click)="buttons.cancel.handler()">
 				<ion-icon *ngIf="buttons.cancel.icon" [name]="buttons.cancel.icon" slot="start"></ion-icon>
 				{{buttons.cancel.text}}

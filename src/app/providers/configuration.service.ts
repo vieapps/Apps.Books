@@ -1,7 +1,6 @@
 declare var FB: any;
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
-import { Params, NavigationExtras } from "@angular/router";
 import { Title } from "@angular/platform-browser";
 import { Platform } from "@ionic/angular";
 import { Device } from "@ionic-native/device/ngx";
@@ -39,8 +38,6 @@ export class ConfigurationService extends BaseService {
 		});
 	}
 
-	private _queryParams: Params = {};
-
 	/** Gets the configuration of the app */
 	public get appConfig() {
 		return AppConfig;
@@ -71,34 +68,57 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.isRunningOnIOS;
 	}
 
-	/** Sets the previous url */
-	public setPreviousUrl(value: string) {
-		this.appConfig.app.url.previous = value;
-	}
-
-	/** Sets the current url */
-	public setCurrentUrl(value: string) {
-		this.appConfig.app.url.current = value;
+	private getCurrentUrl() {
+		return this.appConfig.app.routes.length > 0 ? this.appConfig.app.routes[this.appConfig.app.routes.length - 1] : undefined;
 	}
 
 	/** Gets the previous url */
-	public get previousUrl() {
-		return this.appConfig.app.url.previous || "/home";
+	private getPreviousUrl() {
+		return this.appConfig.app.routes.length > 1 ? this.appConfig.app.routes[this.appConfig.app.routes.length - 2] : undefined;
+	}
+
+	/** Adds an url into stack of routes */
+	public addUrl(url: string, params: { [key: string]: any }) {
+		url = url.indexOf("?") > 0 ? url.substr(0, url.indexOf("?")) : url;
+		const previous = this.getPreviousUrl();
+		const current = this.getCurrentUrl();
+		if (previous !== undefined && previous.url.startsWith(url)) {
+			this.appConfig.app.routes.pop();
+		}
+		else if (current === undefined || !current.url.startsWith(url)) {
+			this.appConfig.app.routes.push({
+				url: url,
+				params: params
+			});
+		}
+		if (this.appConfig.app.routes.length > 30) {
+			this.appConfig.app.routes.splice(0, this.appConfig.app.routes.length - 30);
+		}
+	}
+
+	/** Resets the stack of routes */
+	public resetUrl() {
+		this.appConfig.app.routes = [];
+	}
+
+	private getUrl(info: { url: string, params: { [key: string]: any } }) {
+		if (info !== undefined) {
+			const query = AppUtility.getQueryOfJson(info.params);
+			return info.url + (query !== "" ? "?" + query : "");
+		}
+		else {
+			return "/home";
+		}
 	}
 
 	/** Gets the current url */
 	public get currentUrl() {
-		return this.appConfig.app.url.current || "/home";
+		return this.getUrl(this.getCurrentUrl());
 	}
 
-	/** Sets the current url */
-	public set currentUrl(value: string) {
-		if (value !== this.currentUrl) {
-			if (this.currentUrl !== this.previousUrl) {
-				this.setPreviousUrl(this.currentUrl);
-			}
-			this.setCurrentUrl(value);
-		}
+	/** Gets the previous url */
+	public get previousUrl() {
+		return this.getUrl(this.getPreviousUrl());
 	}
 
 	/** Gets the current version of the app title */
@@ -118,12 +138,8 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets the query params of the current page/view */
 	public get queryParams() {
-		return this._queryParams;
-	}
-
-	/** Sets the query params of the current page/view */
-	public set queryParams(value: Params) {
-		this._queryParams = value || {};
+		const current = this.getCurrentUrl();
+		return current !== undefined ? current.params : {} as { [key: string]: any };
 	}
 
 	/** Gets the request params of the current page/view (means decoded JSON of 'x-request' query parameter) */
@@ -497,36 +513,28 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
-	/** Sends a request to tell app component navigates forward one step */
-	public goForward(url: string, animated: boolean = true, extras?: NavigationExtras) {
-		AppEvents.broadcast("GoForward", {
-			url: url,
+	/** Sends a request to tell app component navigates to home screen as root */
+	public navigateHome(animated: boolean = true, extras?: { [key: string]: any }) {
+		AppEvents.broadcast("NavigateHome", {
 			animated: AppUtility.isTrue(animated),
 			extras: extras
 		});
 	}
 
 	/** Sends a request to tell app component navigates back one step */
-	public goBack(url: string = null, animated: boolean = true, extras?: NavigationExtras) {
-		AppEvents.broadcast("GoBack", {
-			url: url || this.previousUrl,
+	public navigateBack(animated: boolean = true) {
+		const previous = this.getPreviousUrl();
+		AppEvents.broadcast("NavigateBack", {
+			url: previous !== undefined ? previous.url : "/home",
 			animated: AppUtility.isTrue(animated),
-			extras: extras
+			extras: previous !== undefined ? previous.params : {}
 		});
 	}
 
-	/** Sends a request to tell app component navigates as root */
-	public goRoot(url: string, animated: boolean = true, extras?: NavigationExtras) {
-		AppEvents.broadcast("GoRoot", {
+	/** Sends a request to tell app component navigates forward one step */
+	public navigateForward(url: string, animated: boolean = true, extras?: { [key: string]: any }) {
+		AppEvents.broadcast("NavigateForward", {
 			url: url,
-			animated: AppUtility.isTrue(animated),
-			extras: extras
-		});
-	}
-
-	/** Sends a request to tell app component navigates to home screen as root */
-	public goHome(animated: boolean = true, extras?: NavigationExtras) {
-		AppEvents.broadcast("GoHome", {
 			animated: AppUtility.isTrue(animated),
 			extras: extras
 		});

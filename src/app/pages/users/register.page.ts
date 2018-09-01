@@ -41,7 +41,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	public ngOnInit() {
 		if (!this.configSvc.isReady || !this.authSvc.canRegisterNewAccounts || this.configSvc.isAuthenticated) {
 			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.goHome();
+			this.configSvc.navigateHome();
 		}
 		else {
 			this._rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
@@ -233,7 +233,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		await this.usersSvc.registerAsync(AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Addresses", "Captcha"]), this.register.value.Captcha,
 			async () => {
 				await TrackingUtility.trackAsync(this.title, "/user/register");
-				await this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.goBack());
+				await this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.navigateBack());
 			},
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),

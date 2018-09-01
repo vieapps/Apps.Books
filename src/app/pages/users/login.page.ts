@@ -64,7 +64,7 @@ export class LogInPage implements OnInit, OnDestroy {
 	public ngOnInit() {
 		if (!this.configSvc.isReady || this.configSvc.isAuthenticated) {
 			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.goHome();
+			this.configSvc.navigateHome();
 		}
 		else {
 			this._rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
@@ -122,7 +122,7 @@ export class LogInPage implements OnInit, OnDestroy {
 					this.openLoginOTP(data);
 				}
 				else {
-					this.configSvc.goBack();
+					this.configSvc.navigateBack();
 				}
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể đăng nhập", () => this.login.controls.find(c => c.Key === "Email").focus())
@@ -196,7 +196,7 @@ export class LogInPage implements OnInit, OnDestroy {
 			await this.authSvc.logInOTPAsync(this.otp.value.ID, this.otp.value.OTP, this.otp.value.Provider,
 				async () => {
 					await TrackingUtility.trackAsync(this.title, "/session/otp");
-					await this.appFormsSvc.hideLoadingAsync(() => this.configSvc.goBack());
+					await this.appFormsSvc.hideLoadingAsync(() => this.configSvc.navigateBack());
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
 					const control = this.otp.controls.find(c => c.Key === "OTP");
@@ -256,7 +256,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		await this.authSvc.resetPasswordAsync(this.reset.value.Email, this.reset.value.Captcha,
 			async () => {
 				await TrackingUtility.trackAsync(this.title, "/session/reset");
-				await this.appFormsSvc.showAlertAsync("Mật khẩu mới", undefined, `Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, () => this.configSvc.goBack());
+				await this.appFormsSvc.showAlertAsync("Mật khẩu mới", undefined, `Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, () => this.configSvc.navigateBack());
 			},
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),

@@ -33,15 +33,14 @@ export class Privileges {
 
 	public static deserialize(json: any, obj?: Privileges) {
 		obj = obj || new Privileges();
-		const properties = Object.getOwnPropertyNames(obj);
-		for (const property of properties) {
+		Object.getOwnPropertyNames(obj).forEach(property => {
 			const data = json[property];
 			if (AppUtility.isArray(data, true)) {
 				const set = new Collections.Set<string>();
-				(data as Array<string>).forEach(p => set.add(p));
+				(data as Array<string>).forEach(o => set.add(o));
 				obj[property] = set;
 			}
-		}
+		});
 		return obj;
 	}
 }

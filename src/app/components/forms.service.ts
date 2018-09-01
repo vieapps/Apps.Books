@@ -328,7 +328,7 @@ export class AppFormsService {
 	private _modal: any;
 	private _alert: any;
 	private _textControls = ["text", "password", "email", "search", "tel", "url"];
-	private _counties: {
+	private _metaCounties: {
 		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
 	} = {};
 
@@ -591,10 +591,10 @@ export class AppFormsService {
 		};
 	}
 
-	/** Gets the listing of counties of a specified country */
-	public getCounties(country?: string) {
+	/** Gets the listing of meta counties of a specified country */
+	public getMetaCounties(country?: string) {
 		country = country || AppConfig.meta.country;
-		if (this._counties[country] === undefined && AppConfig.meta.provinces[country] !== undefined) {
+		if (this._metaCounties[country] === undefined && AppConfig.meta.provinces[country] !== undefined) {
 			const counties = new Array<{
 				County: string,
 				Province: string,
@@ -610,9 +610,9 @@ export class AppFormsService {
 				Title: county.title + ", " + province.title + ", " + country,
 				TitleANSI: AppUtility.toANSI(county.title + ", " + province.title + ", " + country)
 			})));
-			this._counties[country] = counties;
+			this._metaCounties[country] = counties;
 		}
-		return this._counties[country] || [];
+		return this._metaCounties[country] || [];
 	}
 
 	/** Shows the loading */

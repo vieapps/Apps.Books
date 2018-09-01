@@ -114,7 +114,7 @@ export class UserProfile extends UserProfileBase {
 		super.copy(source, data => {
 			this.RatingPoints = new Collections.Dictionary<string, RatingPoint>();
 			if (AppUtility.isArray(data.RatingPoints)) {
-				(data.RatingPoints as Array<any>).forEach(r => this.RatingPoints.setValue(r.Type, RatingPoint.deserialize(r)));
+				(data.RatingPoints as Array<any>).forEach(o => this.RatingPoints.setValue(o.Type, RatingPoint.deserialize(o)));
 			}
 			if (onCompleted !== undefined) {
 				onCompleted(data);

@@ -24,11 +24,11 @@ export class BooksService extends BaseService {
 		public configSvc: ConfigurationService
 	) {
 		super(http, "Books");
-		AppRTU.registerAsServiceScopeProcessor("Books", message => {});
+		AppRTU.registerAsServiceScopeProcessor(this.Name, message => {});
+		AppRTU.registerAsObjectScopeProcessor(this.Name, "Book", async message => await this.processUpdateBookMessageAsync(message));
+		AppRTU.registerAsObjectScopeProcessor(this.Name, "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
+		AppRTU.registerAsObjectScopeProcessor(this.Name, "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
 		AppRTU.registerAsServiceScopeProcessor("Scheduler", message => this.sendBookmarks());
-		AppRTU.registerAsObjectScopeProcessor("Books", "Book", async message => await this.processUpdateBookMessageAsync(message));
-		AppRTU.registerAsObjectScopeProcessor("Books", "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
-		AppRTU.registerAsObjectScopeProcessor("Books", "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
 
 		AppEvents.on("AppIsInitialized", async info => {
 			await Promise.all([
@@ -58,15 +58,14 @@ export class BooksService extends BaseService {
 					items: this.categories.map((category, index) => {
 						return {
 							title: category.Name,
-							url: "/list-books",
+							url: `/list-books/${index}`,
 							queryParams: {
 								"x-request": AppUtility.toBase64Url({
-									title: category.Name,
-									index: index,
-									parent: parent
+									Category: category.Name,
+									Index: index,
+									Parent: parent
 								})
 							},
-							direction: "forward",
 							detail: category.Children !== undefined && category.Children.length > 0
 						};
 					})
@@ -75,14 +74,14 @@ export class BooksService extends BaseService {
 		});
 	}
 
-	private getSearchURI(request: any) {
+	public getSearchURI(request: any) {
 		return "books/book/search?x-request=" + AppUtility.toBase64Url(request) + "&" + this.configSvc.relatedQuery;
 	}
 
 	public get completerDataSource() {
 		return new AppCustomCompleter(
 			term => this.getSearchURI(AppPagination.buildRequest({ Query: term })),
-			data => (data.Objects as Array<any>).map(o => {
+			data => (data.Objects as Array<any> || []).map(o => {
 				const book = Book.deserialize(o);
 				return {
 					title: book.Title,
@@ -94,15 +93,25 @@ export class BooksService extends BaseService {
 		);
 	}
 
-	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = this.getSearchURI(request);
-		onNext = AppUtility.isNotNull(onNext)
-			? data => {
-				(data.Objects as Array<any>).forEach(book => Book.update(book));
-				onNext(data);
+	public async searchAsync(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.searchAsync(
+			this.getSearchURI(request),
+			request,
+			AppUtility.isNotNull(onNext)
+				? data => {
+					if (data !== undefined) {
+						(data.Objects as Array<any> || []).forEach(o => Book.update(o));
+					}
+					onNext(data);
+				}
+				: undefined,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while searching", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
 			}
-			: undefined;
-		return super.search(path, request, onNext, onError);
+		);
 	}
 
 	public async getAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontUpdateCounter?: boolean) {
@@ -128,7 +137,12 @@ export class BooksService extends BaseService {
 						onNext(data);
 					}
 				},
-				error => this.showError("Error occurred while reading a book", error, onError)
+				error => {
+					console.error(this.getErrorMessage("Error occurred while reading", error));
+					if (onError !== undefined) {
+						onError(error);
+					}
+				}
 			);
 		}
 	}
@@ -156,7 +170,12 @@ export class BooksService extends BaseService {
 						onNext(data);
 					}
 				},
-				error => this.showError("Error occurred while reading a book's chapter", error, onError)
+				error => {
+					console.error(this.getErrorMessage("Error occurred while reading a chapter", error));
+					if (onError !== undefined) {
+						onError(error);
+					}
+				}
 			);
 		}
 	}
@@ -260,12 +279,32 @@ export class BooksService extends BaseService {
 
 	public async requestUpdateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = `books/book/${body.ID}`;
-		await super.createAsync(path, body, onNext, error => this.showError("Error occurred while sending a request to update a book", error, onError));
+		await super.createAsync(
+			path,
+			body,
+			onNext,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while requesting to update", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
 	}
 
 	public async updateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const path = `books/book/${body.ID}`;
-		await super.updateAsync(path, body, onNext, error => this.showError("Error occurred while updating a book", error, onError));
+		await super.updateAsync(
+			path,
+			body,
+			onNext,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while updating", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+	);
 	}
 
 	public async deleteAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
@@ -278,7 +317,12 @@ export class BooksService extends BaseService {
 					onNext(data);
 				}
 			},
-			error => this.showError("Error occurred while deleting a book", error, onError)
+			error => {
+				console.error(this.getErrorMessage("Error occurred while deleting", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
 		);
 	}
 

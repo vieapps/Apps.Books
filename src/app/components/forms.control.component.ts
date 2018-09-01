@@ -301,7 +301,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	completerInit() {
 		if (this.control.Options.Type === "Address") {
-			this.control.Options.CompleterOptions.DataSource = this.completerSvc.local(this.appFormsSvc.getCounties(), "Title,TitleANSI", "Title");
+			this.control.Options.CompleterOptions.DataSource = this.completerSvc.local(this.appFormsSvc.getMetaCounties(), "Title,TitleANSI", "Title");
 		}
 		else if (this.control.Options.CompleterOptions.Handlers.Initialize !== undefined) {
 			this.control.Options.CompleterOptions.Handlers.Initialize(this.control);
@@ -351,7 +351,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				const formControl = this.formGroup.controls[key];
 				value[key] = formControl !== undefined ? formControl.value : "";
 			});
-			return this.appFormsSvc.getCounties().find(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
+			return this.appFormsSvc.getMetaCounties().find(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
 		}
 		else {
 			return this.control.Options.CompleterOptions.Handlers.GetInitialValue !== undefined

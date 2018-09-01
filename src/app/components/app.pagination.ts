@@ -8,34 +8,13 @@ export class AppPagination {
 	/** All pagination instances */
 	public static instances = new Collections.Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
 
-	private static getFilterBy(info?: any) {
-		return AppUtility.isObject(info, true) && AppUtility.isObject(info.FilterBy, true)
-			? info.FilterBy
-			: undefined;
-	}
-
-	private static getSortBy(info?: any) {
-		return AppUtility.isObject(info, true) && AppUtility.isObject(info.SortBy, true)
-			? info.SortBy
-			: undefined;
-	}
-
-	private static getQuery(info?: any) {
-		const filterby = this.getFilterBy(info);
-		return AppUtility.isObject(filterby, true) && AppUtility.isObject(filterby.FilterBy, true) && AppUtility.isNotEmpty(filterby.FilterBy.Query)
-			? filterby.FilterBy.Query as string
-			: undefined;
-	}
-
 	private static getKey(info?: any, prefix?: string) {
-		if (this.getQuery(info)) {
-			return undefined;
-		}
-
-		prefix = AppUtility.isNotEmpty(prefix) ? prefix : "";
-		const filterby = AppUtility.clean(this.getFilterBy(info) || {});
-		const sortby = AppUtility.clean(this.getSortBy(info) || {});
-		return prefix + ":" + AppCrypto.md5((JSON.stringify(filterby) + JSON.stringify(sortby)).toLowerCase());
+		const filterBy = info !== undefined
+			? AppUtility.clone(info.FilterBy || {}, true)
+			: undefined;
+		return filterBy !== undefined && AppUtility.isNotEmpty(filterBy.Query)
+			? undefined
+			: (AppUtility.isNotEmpty(prefix) ? prefix + ":" : "") + AppCrypto.md5((JSON.stringify(filterBy || {}) + JSON.stringify(info !== undefined ? AppUtility.clone(info.SortBy || {}, true) : {})).toLowerCase());
 	}
 
 	/** Gets the default pagination */
@@ -90,14 +69,14 @@ export class AppPagination {
 	}
 
 	/** Builds the well-formed request (contains filter, sort and pagination) for working with remote APIs */
-	public static buildRequest(filterBy?: any, sortBy?: any, pagination?: any, onPreCompleted?: (request: { FilterBy: any, SortBy: any, Pagination: any }) => void) {
+	public static buildRequest(filterBy?: any, sortBy?: any, pagination?: any, onCompleted?: (request: { FilterBy: { [key: string]: any }, SortBy: { [key: string]: any }, Pagination: { [key: string]: any } }) => void) {
 		const request = {
-			FilterBy: AppUtility.isObject(filterBy, true) ? AppUtility.clone(filterBy) : {},
-			SortBy: AppUtility.isObject(sortBy, true) ? AppUtility.clone(sortBy) : {},
-			Pagination: this.getDefault({ Pagination: AppUtility.isObject(pagination, true) ? AppUtility.clone(pagination) : undefined })
+			FilterBy: AppUtility.clone(filterBy || {}, true),
+			SortBy: AppUtility.clone(sortBy || {}, true),
+			Pagination: this.getDefault({ Pagination: pagination })
 		};
-		if (onPreCompleted !== undefined) {
-			onPreCompleted(request);
+		if (onCompleted !== undefined) {
+			onCompleted(request);
 		}
 		return request;
 	}

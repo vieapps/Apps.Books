@@ -70,11 +70,10 @@ export class AppComponent implements OnInit {
 		console.log("<AppComponent>: Initializing the app", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 
 		// capture router info
-		this.configSvc.setPreviousUrl("/");
+		this.configSvc.addUrl("/home", {});
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
-				this.configSvc.currentUrl = (event as NavigationEnd).url;
-				this.configSvc.queryParams = this.router.routerState.snapshot.root.queryParams;
+				this.configSvc.addUrl((event as NavigationEnd).url, this.router.routerState.snapshot.root.queryParams);
 			}
 		});
 
@@ -143,7 +142,7 @@ export class AppComponent implements OnInit {
 			},
 			profile: {
 				title: "Thông tin tài khoản",
-				url: "/account-profile",
+				url: "/account-profile/0",
 				queryParams: undefined as Params,
 				direction: "forward",
 				icon: "person",
@@ -162,8 +161,8 @@ export class AppComponent implements OnInit {
 			const item = {
 				title: itemInfo.title,
 				url: itemInfo.url,
-				queryParams: itemInfo.queryParams,
-				direction: itemInfo.direction || "root",
+				queryParams: itemInfo.queryParams as Params,
+				direction: itemInfo.direction || "forward",
 				icon: itemInfo.icon,
 				thumbnail: itemInfo.thumbnail,
 				detail: !!itemInfo.detail
@@ -219,7 +218,7 @@ export class AppComponent implements OnInit {
 						direction: item.direction,
 						icon: item.icon,
 						thumbnail: item.thumbnail,
-						detail: !!item.detail,
+						detail: item.detail,
 					};
 				})
 				.filter(item => AppUtility.isNotEmpty(item.title) && AppUtility.isNotEmpty(item.url))
@@ -227,30 +226,19 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	private navigate(direction: string = "Root", url: string = "/home", animated: boolean = true, extras?: NavigationExtras) {
-		switch (direction) {
-			case "Forward":
-				this.navController.navigateForward(url, animated, extras);
-				break;
-			case "Back":
-				this.navController.navigateBack(url, animated, extras);
-				break;
-			default:
-				this.navController.navigateRoot(url, animated, extras);
-				break;
-		}
-	}
-
 	private setupEventHandlers() {
-		AppEvents.on("Navigate", info => this.navigate(info.args.direction || "Forward", info.args.url, info.args.animated, info.args.extras));
-		AppEvents.on("GoForward", info => this.navigate("Forward", info.args.url, info.args.animated, info.args.extras));
-		AppEvents.on("GoBack", info => this.navigate("Back", info.args.url, info.args.animated, info.args.extras));
-		AppEvents.on("GoRoot", info => this.navigate("Root", info.args.url, info.args.animated, info.args.extras));
-		AppEvents.on("GoHome", info => this.navigate("Root", "/home", info.args.animated, info.args.extras));
+		AppEvents.on("Navigate", info => this.navController.navigateForward(info.args.url || "/home", info.args.animated, info.args.extras));
+		AppEvents.on("NavigateForward", info => this.navController.navigateForward(info.args.url || "/home", info.args.animated, info.args.extras));
+		AppEvents.on("NavigateBack", info => this.navController.navigateBack(info.args.url || "/home", info.args.animated, info.args.extras));
+		AppEvents.on("NavigateHome", info => {
+			this.configSvc.resetUrl();
+			this.navController.navigateRoot("/home", info.args.animated, info.args.extras);
+		});
 
 		AppEvents.on("UpdateSidebar", info => this.updateSidebar(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args["MenuIndex"] || -1, -1, info.args["ItemInfo"]));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args["MenuIndex"] || -1, info.args["ItemIndex"] || -1, info.args["ItemInfo"]));
+
 		AppEvents.on("UpdateSidebarTitle", info => {
 			if (AppUtility.isNotEmpty(info.args.title)) {
 				this.sidebar.left.title = info.args.title;
