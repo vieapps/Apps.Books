@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { Router, Params, NavigationEnd, NavigationExtras } from "@angular/router";
+import { Router, NavigationEnd } from "@angular/router";
 
 import { Platform, NavController } from "@ionic/angular";
 
@@ -50,13 +50,13 @@ export class AppComponent implements OnInit {
 				parent: {
 					title: string,
 					url: string,
-					queryParams: Params,
+					queryParams: { [key: string]: any },
 					direction: string
 				},
 				items: Array<{
 					title: string,
 					url: string,
-					queryParams: Params,
+					queryParams: { [key: string]: any },
 					icon: string,
 					thumbnail: string,
 					direction: string,
@@ -125,7 +125,7 @@ export class AppComponent implements OnInit {
 			login: {
 				title: "Đăng nhập",
 				url: "/log-in",
-				queryParams: undefined as Params,
+				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "log-in",
 				thumbnail: undefined,
@@ -134,7 +134,7 @@ export class AppComponent implements OnInit {
 			register: {
 				title: "Đăng ký tài khoản",
 				url: "/register-account",
-				queryParams: undefined as Params,
+				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person-add",
 				thumbnail: undefined,
@@ -143,7 +143,7 @@ export class AppComponent implements OnInit {
 			profile: {
 				title: "Thông tin tài khoản",
 				url: "/account-profile/0",
-				queryParams: undefined as Params,
+				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person",
 				thumbnail: undefined,
@@ -161,7 +161,7 @@ export class AppComponent implements OnInit {
 			const item = {
 				title: itemInfo.title,
 				url: itemInfo.url,
-				queryParams: itemInfo.queryParams as Params,
+				queryParams: itemInfo.queryParams as { [key: string]: any },
 				direction: itemInfo.direction || "forward",
 				icon: itemInfo.icon,
 				thumbnail: itemInfo.thumbnail,
