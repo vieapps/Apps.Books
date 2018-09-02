@@ -102,13 +102,9 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUri?: string) {
-		if (info !== undefined) {
-			const query = AppUtility.getQueryOfJson(info.params);
-			return info.url + (query !== "" ? "?" + query : "");
-		}
-		else {
-			return alternativeUri || "/home";
-		}
+		return info !== undefined
+			? PlatformUtility.getURI(info.url, info.params)
+			: alternativeUri || "/home";
 	}
 
 	/** Gets the current url */

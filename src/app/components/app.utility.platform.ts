@@ -177,6 +177,12 @@ export class PlatformUtility {
 		return url + "home?prego=activate&mode={mode}&code={code}";
 	}
 
+	/** Gets the URI for navigating */
+	public static getURI(url: string, queryParams?: { [key: string]: any }) {
+		const query = AppUtility.getQueryOfJson(queryParams);
+		return url + (query !== "" ? "?" + query : "");
+	}
+
 	/** Opens Google Maps by address or location via query */
 	public static openGoogleMaps(info: string) {
 		this.openURI("https://www.google.com/maps?q=" + encodeURIComponent(info));

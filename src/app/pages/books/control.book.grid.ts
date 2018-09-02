@@ -1,5 +1,6 @@
 import { Component, Input } from "@angular/core";
 import { AppUtility } from "../../components/app.utility";
+import { PlatformUtility } from "../../components/app.utility.platform";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { Book } from "../../models/book";
 
@@ -28,10 +29,10 @@ export class BookGridControl {
 			"x-request": AppUtility.toBase64Url({
 				ID: this.book.ID
 			})
-		};
+		} as { [key: string]: any };
 	}
 
 	open() {
-		this.configSvc.navigateForward(this.routerLink, true, { queryParams: this.queryParams });
+		this.configSvc.navigateForward(PlatformUtility.getURI(this.routerLink, this.queryParams));
 	}
 }

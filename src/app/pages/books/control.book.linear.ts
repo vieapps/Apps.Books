@@ -26,7 +26,7 @@ export class BookLinearControl {
 			"x-request": AppUtility.toBase64Url({
 				ID: this.book.ID
 			})
-		};
+		} as { [key: string]: any };
 	}
 
 }
