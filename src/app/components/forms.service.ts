@@ -647,12 +647,21 @@ export class AppFormsService {
 	}
 
 	/** Shows the action sheet */
-	public async showActionSheetAsync(buttons: Array<{ text: string, role: string, icon: string, handler: () => void }>, backdropDismiss?: boolean) {
-		if (AppConfig.isRunningOnIOS) {
-			buttons.forEach(button => button.icon = undefined);
+	public async showActionSheetAsync(buttons: Array<{ text: string, role: string, icon: string, handler: () => void }>, backdropDismiss?: boolean, dontAddCancelButton?: boolean) {
+		const isRunningOnIOS = AppConfig.isRunningOnIOS;
+		const actions = buttons.map(button => {
+			return {
+				text: button.text,
+				role: button.role,
+				icon: isRunningOnIOS ? undefined : button.icon,
+				handler: button.handler
+			};
+		});
+		if (AppUtility.isFalse(dontAddCancelButton)) {
+			actions.push(this.getActionSheetButton("Huỷ", "close", async () => await this.hideActionSheetAsync(), "cancel"));
 		}
 		this._actionsheet = await this.actionsheetController.create({
-			buttons: buttons,
+			buttons: actions,
 			backdropDismiss: backdropDismiss
 		});
 		await Promise.all([

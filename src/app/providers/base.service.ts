@@ -1,5 +1,7 @@
-import { map } from "rxjs/operators";
+import { Injectable } from "@angular/core";
+import { Router, CanActivate } from "@angular/router";
 import { Http } from "@angular/http";
+import { AppConfig } from "../app.config";
 import { AppAPI } from "../components/app.api";
 import { AppRTU } from "../components/app.rtu";
 import { AppPagination } from "../components/app.pagination";
@@ -124,45 +126,44 @@ export class Base {
 
 	/**
 	 * Searchs for instances (sends a request to remote API for searching with GET verb and "x-request" of query parameter)
-	 * @param path The URI path of the remote API to send the request to
+	 * @param path The URI path of the remote API to send the request to (with 'x-request' query string)
 	 * @param request The request to search (contains filter, sort and pagination)
 	 * @param onNext The handler to run when the process is completed
 	 * @param onError The handler to run when got any error
 	 * @param dontProcessPagination Set to true to by-pass process pagination
 	*/
-	protected async searchAsync(path: string, request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean) {
-		// stop if got pagination (means data are already)
+	protected async searchAsync(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean) {
 		const processPagination = AppUtility.isFalse(dontProcessPagination);
-		const pagination = processPagination
-			? AppPagination.get(request, this.Name)
-			: undefined;
-		if (AppUtility.isNotNull(pagination) && pagination.PageNumber >= pagination.TotalPages) {
+		const pagination = processPagination ? AppPagination.get(request, this.serviceName) : undefined;
+		const pageNumber = processPagination && request.Pagination !== undefined ? request.Pagination.PageNumber : pagination !== undefined ? pagination.PageNumber : 0;
+		if (pagination !== undefined && (pageNumber < pagination.PageNumber || pagination.TotalPages <= pagination.PageNumber)) {
 			if (onNext !== undefined) {
 				onNext();
 			}
-			return;
 		}
-
-		// update the page number and send request to search
-		try {
-			request.Pagination.PageNumber++;
-			const response = await AppAPI.getAsync(path);
-			if (processPagination || onNext !== undefined) {
-				const data = response.json();
-				if (processPagination) {
-					AppPagination.set(data, this.Name);
+		else {
+			try {
+				if (request.Pagination !== undefined && request.Pagination.PageNumber !== undefined) {
+					request.Pagination.PageNumber++;
 				}
-				if (onNext !== undefined) {
-					onNext(data);
+				const response = await AppAPI.getAsync(path + AppUtility.toBase64Url(request));
+				if (processPagination || onNext !== undefined) {
+					const data = response.json();
+					if (processPagination) {
+						AppPagination.set(data, this.serviceName);
+					}
+					if (onNext !== undefined) {
+						onNext(data);
+					}
 				}
 			}
-		}
-		catch (error) {
-			if (onError !== undefined) {
-				onError(AppUtility.parseError(error));
-			}
-			else {
-				this.showError("Error occurred while searching", error);
+			catch (error) {
+				if (onError !== undefined) {
+					onError(AppUtility.parseError(error));
+				}
+				else {
+					this.showError("Error occurred while searching", error);
+				}
 			}
 		}
 	}
@@ -190,4 +191,67 @@ export class Base {
 		}
 	}
 
+}
+
+@Injectable()
+export class AppReadyGuardService implements CanActivate {
+	constructor(
+		public router: Router
+	) {
+	}
+
+	canActivate() {
+		const canActivate = AppConfig.isReady;
+		if (!canActivate) {
+			this.router.navigateByUrl("/home");
+		}
+		return canActivate;
+	}
+}
+
+@Injectable()
+export class AuthenticatedGuardService implements CanActivate {
+	constructor(
+		public router: Router
+	) {
+	}
+
+	canActivate() {
+		const canActivate = AppConfig.isAuthenticated;
+		if (!canActivate) {
+			this.router.navigateByUrl("/home");
+		}
+		return canActivate;
+	}
+}
+
+@Injectable()
+export class NotAuthenticatedGuardService implements CanActivate {
+	constructor(
+		public router: Router
+	) {
+	}
+
+	canActivate() {
+		const canActivate = !AppConfig.isAuthenticated;
+		if (!canActivate) {
+			this.router.navigateByUrl("/home");
+		}
+		return canActivate;
+	}
+}
+
+@Injectable()
+export class RegisterGuardService implements CanActivate {
+	constructor(
+		public router: Router
+	) {
+	}
+
+	canActivate() {
+		if (!AppConfig.accountRegistrations.registrable) {
+			this.router.navigateByUrl("/home");
+		}
+		return AppConfig.accountRegistrations.registrable;
+	}
 }

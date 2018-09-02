@@ -1,0 +1,26 @@
+<ion-item [routerLink]="routerLink" [queryParams]="queryParams" routerDirection="forward">
+	<ion-thumbnail slot="start">
+		<img [src]="book.Cover" />
+	</ion-thumbnail>
+	<div>
+		<div>
+			<span [hidden]="hideAuthor">
+				{{book.Author}}
+			</span>
+			<span [hidden]="hideCategory">
+				{{book.Category}}
+			</span>
+			<label>
+				<span *ngIf="book.TotalChapters > 1">
+					<span class="chapters">
+						{{book.TotalChapters | number}}
+					</span>
+					<ion-icon name="copy" slot="end"></ion-icon>
+				</span>
+			</label>
+		</div>
+		<h2>
+			{{book.Title}}
+		</h2>
+	</div>
+</ion-item>

@@ -1,0 +1,14 @@
+<div (click)="open()">
+	<div [style.background-image]="'url(' + book.Cover + ')'"></div>
+	<section>
+		<h2>
+			{{book.Title}}
+		</h2>
+		<span [hidden]="hideAuthor">
+			{{book.Author}}
+		</span>
+		<span [hidden]="hideCategory">
+			{{book.Category}}
+		</span>
+	</section>	
+</div>

@@ -1,17 +1,65 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-button (click)="configSvc.navigateBack()">
+			<ion-button (click)="cancel()">
 				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
-		<ion-title>
+		<ion-buttons *ngIf="!searching" slot="end">
+			<ion-button [disabled]="!asGrid" (click)="asGrid = false">
+				<ion-icon name="list" slot="icon-only"></ion-icon>
+			</ion-button>
+			<ion-button [disabled]="asGrid" (click)="asGrid = true">
+				<ion-icon name="grid" slot="icon-only"></ion-icon>
+			</ion-button>
+		</ion-buttons>
+		<ion-title [hidden]="searching || filtering">
 			{{title}}
 		</ion-title>
+		<ion-searchbar [hidden]="!searching && !filtering" placeholder="tìm nhanh, không dấu cũng OK" (ionChange)="onStartSearch($event)" (ionCancel)="onCancelSearch($event)" (ionClear)="onCancelSearch($event)"></ion-searchbar>
 	</ion-toolbar>
 </ion-header>
 
+<ion-footer *ngIf="!filtering">
+	<ion-toolbar>
+		<ion-buttons *ngIf="actions" slot="end">
+			<ion-button color="primary" (click)="showActionsAsync()">
+				<ion-icon name="more" slot="icon-only"></ion-icon>
+			</ion-button>
+		</ion-buttons>
+		<div>
+			<label [hidden]="!pagination">
+				<ion-icon name="book" color="primary" slot="start"></ion-icon>
+				{{ totalRecords }} / {{ pagination ? pagination.TotalRecords : '?' }}	
+			</label>
+			<span [hidden]="!pagination || pagination.TotalPages < 2">
+				<ion-icon name="code" color="primary" slot="start"></ion-icon>
+				{{ pageNumber }} / {{ pagination ? pagination.TotalPages : '?' }}
+			</span>
+		</div>
+	</ion-toolbar>
+</ion-footer>
+
 <ion-content>
-	<ion-list>
+
+	<ion-list *ngIf="!displayAsGrid">
+		<control-book-linear *ngFor="let book of books; trackBy: trackBook"
+			[book]="book"
+			[hideAuthor]="hideAuthor"
+			[hideCategory]="hideCategory"></control-book-linear>
 	</ion-list>
+
+	<div *ngIf="displayAsGrid" ion-grid padding>
+		<div ion-row>
+			<control-book-grid *ngFor="let book of books; trackBy: trackBook" ion-col col-6 col-md-4 col-xl-3
+				[book]="book"
+				[hideAuthor]="hideAuthor"
+				[hideCategory]="hideCategory"></control-book-grid>
+		</div>
+	</div>
+
+	<ion-infinite-scroll threshold="288px" position="bottom" [hidden]="filtering" (ionInfinite)="onScroll($event)">
+		<ion-infinite-scroll-content></ion-infinite-scroll-content>
+	</ion-infinite-scroll>
+
 </ion-content>

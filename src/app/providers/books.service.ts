@@ -41,6 +41,14 @@ export class BooksService extends BaseService {
 			if (this.configSvc.isAuthenticated) {
 				await this.loadBookmarksAsync();
 			}
+			AppEvents.broadcast("AddSidebarItem", {
+				MenuIndex: 0,
+				ItemInfo: {
+					title: "Tìm kiếm",
+					url: "/search-books",
+					icon: "search"
+				}
+			});
 		});
 
 		AppEvents.on("Session", info => {
@@ -74,13 +82,13 @@ export class BooksService extends BaseService {
 		});
 	}
 
-	public getSearchURI(request: any) {
-		return "books/book/search?x-request=" + AppUtility.toBase64Url(request) + "&" + this.configSvc.relatedQuery;
+	public get searchURI() {
+		return "books/book/search?" + this.configSvc.relatedQuery + "&x-request=";
 	}
 
 	public get completerDataSource() {
 		return new AppCustomCompleter(
-			term => this.getSearchURI(AppPagination.buildRequest({ Query: term })),
+			term => this.searchURI + AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })),
 			data => (data.Objects as Array<any> || []).map(o => {
 				const book = Book.deserialize(o);
 				return {
@@ -95,7 +103,7 @@ export class BooksService extends BaseService {
 
 	public async searchAsync(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.searchAsync(
-			this.getSearchURI(request),
+			this.searchURI,
 			request,
 			AppUtility.isNotNull(onNext)
 				? data => {
@@ -650,6 +658,20 @@ export class BooksService extends BaseService {
 		if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
 			await this.syncBookmarks(message.Data);
 		}
+	}
+
+	public sendRequestToCrawl(url: string) {
+		this.send({
+			ServiceName: "books",
+			ObjectName: "crawl",
+			Verb: "GET",
+			Query: {
+				url: url
+			},
+			Header: undefined,
+			Body: undefined,
+			Extra: undefined
+		});
 	}
 
 }

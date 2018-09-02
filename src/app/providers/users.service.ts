@@ -23,13 +23,13 @@ export class UsersService extends BaseService {
 		AppRTU.registerAsServiceScopeProcessor(this.Name, message => this.processUpdateMessageAsync(message));
 	}
 
-	public getSearchURI(request: any) {
-		return "users/profile/search?x-request=" + AppUtility.toBase64Url(request) + "&" + this.configSvc.relatedQuery;
+	public get searchURI() {
+		return "users/profile/search?" + this.configSvc.relatedQuery + "&x-request=";
 	}
 
 	public get completerDataSource() {
 		return new AppCustomCompleter(
-			term => this.getSearchURI(AppPagination.buildRequest({ Query: term })),
+			term => this.searchURI + AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })),
 			data => (data.Objects as Array<any> || []).map(o => {
 				const profile = UserProfile.deserialize(o);
 				return {
@@ -44,7 +44,7 @@ export class UsersService extends BaseService {
 
 	public async searchAsync(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.searchAsync(
-			this.getSearchURI(request),
+			this.searchURI,
 			request,
 			AppUtility.isNotNull(onNext)
 				? data => {

@@ -22,6 +22,7 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	title = "Đăng nhập";
 	mode = "log-in";
+	rxSubscriptions = new Array<Rx.Subscription>();
 	login = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
@@ -59,26 +60,19 @@ export class LogInPage implements OnInit, OnDestroy {
 			fill: "clear"
 		}
 	};
-	private _rxSubscriptions = new Array<Rx.Subscription>();
 
-	public ngOnInit() {
-		if (!this.configSvc.isReady || this.configSvc.isAuthenticated) {
-			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.navigateHome();
-		}
-		else {
-			this._rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
-			this._rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => this.otp.value = value));
-			this._rxSubscriptions.push(this.reset.form.valueChanges.subscribe(value => this.reset.value = value));
-			this.openLogin();
-		}
+	ngOnInit() {
+		this.rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
+		this.rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => this.otp.value = value));
+		this.rxSubscriptions.push(this.reset.form.valueChanges.subscribe(value => this.reset.value = value));
+		this.openLogin();
 	}
 
-	public ngOnDestroy() {
-		this._rxSubscriptions.forEach(subscription => subscription.unsubscribe());
+	ngOnDestroy() {
+		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
-	public openLogin() {
+	openLogin() {
 		this.login.config = [
 			{
 				Key: "Email",
@@ -107,7 +101,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.configSvc.appTitle = this.title;
 	}
 
-	public async logInAsync() {
+	async logInAsync() {
 		if (this.login.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.login.form);
 			return;
@@ -129,7 +123,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		);
 	}
 
-	public openLoginOTP(data: any) {
+	openLoginOTP(data: any) {
 		this.otp.providers = data.Providers;
 		this.otp.config = [
 			{
@@ -175,7 +169,7 @@ export class LogInPage implements OnInit, OnDestroy {
 			Provider: this.otp.providers[0].Info,
 			OTP: ""
 		};
-		this._rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => {
+		this.rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => {
 			const provider = this.otp.providers.find(p => p.Info === value.Provider) || this.otp.providers[0];
 			this.otp.controls.find(c => c.Key === "OTP").Options.Description = "SMS" === provider.Type
 				? "Nhập mã OTP trong SMS được gửi tới số trên điện thoại đã đăng ký"
@@ -187,7 +181,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.configSvc.appTitle = this.title;
 	}
 
-	public async logInOTPAsync() {
+	async logInOTPAsync() {
 		if (this.otp.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.otp.form);
 		}
@@ -207,7 +201,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		}
 	}
 
-	public openResetPassword() {
+	openResetPassword() {
 		this.reset.config = [
 			{
 				Key: "Email",
@@ -246,7 +240,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.configSvc.appTitle = this.title;
 	}
 
-	public async resetPasswordAsync() {
+	async resetPasswordAsync() {
 		if (this.reset.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.reset.form);
 			return;
@@ -265,18 +259,18 @@ export class LogInPage implements OnInit, OnDestroy {
 		);
 	}
 
-	public onResetPasswordFormInitialized($event) {
+	onResetPasswordFormInitialized($event) {
 		this.refreshCaptchaAsync();
 		this.reset.form.patchValue({
 			Email: this.login.form.value.Email
 		});
 	}
 
-	public onRefreshCaptcha($event) {
+	onRefreshCaptcha($event) {
 		this.refreshCaptchaAsync($event as AppFormsControl);
 	}
 
-	public async refreshCaptchaAsync(control?: AppFormsControl) {
+	async refreshCaptchaAsync(control?: AppFormsControl) {
 		await this.authSvc.registerCaptchaAsync(() => {
 			(control || this.reset.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
 		});

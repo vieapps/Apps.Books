@@ -8,22 +8,22 @@ import { AppFormsComponent } from "./forms.component";
 import { AppFormsControlComponent } from "./forms.control.component";
 
 @NgModule({
+	declarations: [
+		AppFormsComponent,
+		AppFormsControlComponent
+	],
 	imports: [
 		CommonModule,
 		ReactiveFormsModule,
 		IonicModule,
 		Ng2CompleterModule
 	],
-	providers: [
-		AppFormsService
-	],
-	declarations: [
-		AppFormsComponent,
-		AppFormsControlComponent
-	],
 	exports: [
 		AppFormsComponent,
 		AppFormsControlComponent
+	],
+	providers: [
+		AppFormsService
 	]
 })
 export class AppFormsModule {}

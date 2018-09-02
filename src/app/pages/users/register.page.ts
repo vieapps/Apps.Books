@@ -24,6 +24,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	}
 
 	title = "Đăng ký tài khoản";
+	rxSubscriptions = new Array<Rx.Subscription>();
 	register = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Email", "ConfirmEmail"), this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
 		config: undefined as Array<any>,
@@ -36,24 +37,17 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			fill: "solid"
 		}
 	};
-	private _rxSubscriptions = new Array<Rx.Subscription>();
 
-	public ngOnInit() {
-		if (!this.configSvc.isReady || !this.authSvc.canRegisterNewAccounts || this.configSvc.isAuthenticated) {
-			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.navigateHome();
-		}
-		else {
-			this._rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
-			this.initializeForm();
-		}
+	ngOnInit() {
+		this.rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
+		this.initializeForm();
 	}
 
-	public ngOnDestroy() {
-		this._rxSubscriptions.forEach(subscription => subscription.unsubscribe());
+	ngOnDestroy() {
+		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
-	public initializeForm() {
+	initializeForm() {
 		this.register.config = [
 			{
 				Key: "Email",
@@ -208,22 +202,22 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		this.configSvc.appTitle = this.title;
 	}
 
-	public onFormInitialized($event) {
+	onFormInitialized($event) {
 		this.refreshCaptchaAsync();
 		this.register.form.patchValue({ Gender: "NotProvided" });
 	}
 
-	public onRefreshCaptcha($event) {
+	onRefreshCaptcha($event) {
 		this.refreshCaptchaAsync($event as AppFormsControl);
 	}
 
-	public async refreshCaptchaAsync(control?: AppFormsControl) {
+	async refreshCaptchaAsync(control?: AppFormsControl) {
 		await this.authSvc.registerCaptchaAsync(() => {
 			(control || this.register.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
 		});
 	}
 
-	public async registerAsync() {
+	async registerAsync() {
 		if (this.register.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.register.form);
 			return;

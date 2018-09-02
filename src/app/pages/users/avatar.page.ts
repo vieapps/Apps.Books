@@ -36,7 +36,7 @@ export class AccountAvatarPage implements OnInit {
 	processing = false;
 	@ViewChild("imgcropper") cropperComponent: ImageCropperComponent;
 
-	public ngOnInit() {
+	ngOnInit() {
 		this.profile = this.configSvc.getAccount().profile;
 		this.mode = this.profile.Avatar === "" || this.profile.Avatar === this.profile.Gravatar
 			? "Gravatar"
@@ -52,7 +52,7 @@ export class AccountAvatarPage implements OnInit {
 		this.cropper.settings.noFileInput = true;
 	}
 
-	public prepareImage($event) {
+	prepareImage($event) {
 		const image = new Image();
 		const fileReader = new FileReader();
 		fileReader.onloadend = (loadEvent: any) => {
@@ -62,11 +62,11 @@ export class AccountAvatarPage implements OnInit {
 		fileReader.readAsDataURL($event.target.files[0]);
 	}
 
-	public get imageUri() {
+	get imageUri() {
 		return this.mode === "Gravatar" ? this.profile.Gravatar : this.cropper.data.image;
 	}
 
-	private async updateProfileAsync() {
+	async updateProfileAsync() {
 		await this.usersSvc.updateProfileAsync({
 				ID: this.profile.ID,
 				Avatar: this.profile.Avatar
@@ -84,7 +84,7 @@ export class AccountAvatarPage implements OnInit {
 		);
 	}
 
-	public async updateAsync() {
+	async updateAsync() {
 		this.processing = true;
 		if (this.mode === "Avatar" && this.cropper.data.original !== undefined) {
 			await this.filesSvc.uploadAvatarAsync(this.cropper.data.image,
@@ -111,7 +111,7 @@ export class AccountAvatarPage implements OnInit {
 		}
 	}
 
-	public async cancelAsync(onDismiss?: () => void) {
+	async cancelAsync(onDismiss?: () => void) {
 		await this.appFormsSvc.hideModalAsync(onDismiss);
 	}
 

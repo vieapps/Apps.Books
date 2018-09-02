@@ -30,7 +30,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 
 	title = "Thông tin tài khoản";
 	mode = "profile";
+	id: string;
 	profile: UserProfile;
+	rxSubscriptions = new Array<Rx.Subscription>();
+	rxSubject = new Rx.Subject<{ mode: string, title: string }>();
 	buttons: {
 		ok: {
 			text: string,
@@ -97,23 +100,14 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any
 	};
-	private _id: string;
-	private _rxSubscriptions = new Array<Rx.Subscription>();
-	private _rxSubject = new Rx.Subject<{ mode: string, title: string }>();
 
-	public ngOnInit() {
-		if (!this.configSvc.isAuthenticated) {
-			this.appFormsSvc.showToastAsync("Hmmmmm...");
-			this.configSvc.navigateHome();
-			return;
-		}
-
-		this._rxSubscriptions.push(this.update.form.valueChanges.subscribe(value => this.update.value = value));
-		this._rxSubscriptions.push(this.password.form.valueChanges.subscribe(value => this.password.value = value));
-		this._rxSubscriptions.push(this.email.form.valueChanges.subscribe(value => this.email.value = value));
-		this._rxSubscriptions.push(this.privileges.form.valueChanges.subscribe(value => this.privileges.value = value));
-		this._rxSubscriptions.push(this.invitation.form.valueChanges.subscribe(value => this.invitation.value = value));
-		this._rxSubscriptions.push(this._rxSubject.subscribe(({ mode, title }) => {
+	ngOnInit() {
+		this.rxSubscriptions.push(this.update.form.valueChanges.subscribe(value => this.update.value = value));
+		this.rxSubscriptions.push(this.password.form.valueChanges.subscribe(value => this.password.value = value));
+		this.rxSubscriptions.push(this.email.form.valueChanges.subscribe(value => this.email.value = value));
+		this.rxSubscriptions.push(this.privileges.form.valueChanges.subscribe(value => this.privileges.value = value));
+		this.rxSubscriptions.push(this.invitation.form.valueChanges.subscribe(value => this.invitation.value = value));
+		this.rxSubscriptions.push(this.rxSubject.subscribe(({ mode, title }) => {
 			this.mode = mode;
 			this.title = title;
 			this.configSvc.appTitle = this.title;
@@ -133,16 +127,16 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.openProfileAsync();
 	}
 
-	public ngOnDestroy() {
-		this._rxSubscriptions.forEach(subscription => subscription.unsubscribe());
+	ngOnDestroy() {
+		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 		AppEvents.off("Session", "UserProfilePage");
 	}
 
-	private setMode(mode: string = "profile", title: string = "Thông tin tài khoản") {
-		this._rxSubject.next({ mode: mode, title: title});
+	setMode(mode: string = "profile", title: string = "Thông tin tài khoản") {
+		this.rxSubject.next({ mode: mode, title: title});
 	}
 
-	private prepareButtons() {
+	prepareButtons() {
 		this.buttons.cancel = { text: "Huỷ", icon: undefined, handler: async () => await this.openProfileAsync() };
 		this.buttons.ok = { text: "Cập nhật", icon: undefined, handler: undefined };
 
@@ -187,7 +181,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			: undefined;
 	}
 
-	private prepareActions() {
+	prepareActions() {
 		if (this.mode !== "profile") {
 			this.actions = undefined;
 		}
@@ -208,24 +202,21 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				this.actions.push(this.appFormsSvc.getActionSheetButton("Đặt quyền truy cập", "settings", () => this.updatePrivileges()));
 			}
 
-			if (this._id === undefined || this._id === this.configSvc.appConfig.session.account.id) {
+			if (this.id === undefined || this.id === this.configSvc.appConfig.session.account.id) {
 				this.actions.push(this.appFormsSvc.getActionSheetButton("Đăng xuất", "log-out", async () => await this.logoutAsync()));
 			}
 
 			if (this.actions.length < 1) {
 				this.actions = undefined;
 			}
-			else {
-				this.actions.push(this.appFormsSvc.getActionSheetButton("Huỷ", "close", async () => await this.appFormsSvc.hideActionSheetAsync(), "cancel"));
-			}
 		}
 	}
 
-	public async showActionsAsync() {
+	async showActionsAsync() {
 		await this.appFormsSvc.showActionSheetAsync(this.actions, true);
 	}
 
-	public onFormInitialized($event) {
+	onFormInitialized($event) {
 		if (this.update.config === $event.config) {
 			this.update.form.patchValue(this.profile);
 			this.update.hash = AppCrypto.md5(JSON.stringify(this.update.value || {}));
@@ -235,12 +226,12 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private async openProfileAsync(onNext?: () => void) {
-		this._id = this.configSvc.requestParams["ID"];
-		if (this.profile === undefined && this._id !== undefined && !UserProfile.instances.containsKey(this._id)) {
+	async openProfileAsync(onNext?: () => void) {
+		this.id = this.configSvc.requestParams["ID"];
+		if (this.profile === undefined && this.id !== undefined && !UserProfile.instances.containsKey(this.id)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 		}
-		const id = this._id || this.configSvc.getAccount().id;
+		const id = this.id || this.configSvc.getAccount().id;
 		await this.usersSvc.getProfileAsync(id,
 			async () => {
 				if (this.profile === undefined) {
@@ -254,7 +245,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		);
 	}
 
-	private updateProfile() {
+	updateProfile() {
 		this.update.config = [
 			{
 				Key: "Name",
@@ -375,7 +366,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.setMode("update", "Cập nhật hồ sơ");
 	}
 
-	private async updateProfileAsync() {
+	async updateProfileAsync() {
 		if (this.update.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.update.form);
 		}
@@ -398,7 +389,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private updatePassword() {
+	updatePassword() {
 		this.password.config = [
 			{
 				Key: "OldPassword",
@@ -436,7 +427,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.setMode("password", "Đổi mật khẩu đăng nhập");
 	}
 
-	private async updatePasswordAsync() {
+	async updatePasswordAsync() {
 		if (this.password.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.password.form);
 		}
@@ -452,7 +443,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private updateEmail() {
+	updateEmail() {
 		this.email.config = [
 			{
 				Key: "OldPassword",
@@ -490,7 +481,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.setMode("email", "Đổi email đăng nhập");
 	}
 
-	private async updateEmailAsync() {
+	async updateEmailAsync() {
 		if (this.email.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.email.form);
 		}
@@ -506,7 +497,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private updateOTP() {
+	updateOTP() {
 		const account = this.configSvc.getAccount();
 		this.otp.required = account.twoFactors.required;
 		this.otp.providers = account.twoFactors.providers;
@@ -516,7 +507,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.setMode("otp", "Thiết lập xác thực lần hai");
 	}
 
-	public async prepareOTPAsync() {
+	async prepareOTPAsync() {
 		this.appFormsSvc.showLoadingAsync(this.title);
 		await this.usersSvc.prepare2FAMethodAsync(
 			async data => {
@@ -528,7 +519,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		);
 	}
 
-	public async addOTPAsync() {
+	async addOTPAsync() {
 		this.appFormsSvc.showLoadingAsync(this.title);
 		await this.usersSvc.add2FAMethodAsync(this.otp.provisioning, this.otp.value,
 			async () => {
@@ -539,7 +530,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		);
 	}
 
-	public async deleteOTPAsync(provider: { Type: string, Label: string, Time: Date, Info: string }) {
+	async deleteOTPAsync(provider: { Type: string, Label: string, Time: Date, Info: string }) {
 		await this.appFormsSvc.showAlertAsync(
 			"Xoá",
 			undefined,
@@ -556,14 +547,14 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		);
 	}
 
-	private updatePrivileges() {
+	updatePrivileges() {
 		this.setMode("privileges", "Đặt quyền truy cập");
 	}
 
-	private async updatePrivilegesAsync() {
+	async updatePrivilegesAsync() {
 	}
 
-	private sendInvitation() {
+	sendInvitation() {
 		this.invitation.config = [
 			{
 				Key: "Name",
@@ -589,7 +580,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.setMode("invitation", "Gửi lời mời tham gia hệ thống");
 	}
 
-	private async sendInvitationAsync() {
+	async sendInvitationAsync() {
 		if (this.invitation.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.invitation.form);
 		}
@@ -607,7 +598,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private async logoutAsync() {
+	async logoutAsync() {
 		await this.appFormsSvc.showAlertAsync(
 			"Đăng xuất",
 			undefined,

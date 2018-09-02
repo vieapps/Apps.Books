@@ -9,9 +9,7 @@ export class AppPagination {
 	public static instances = new Collections.Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
 
 	private static getKey(info?: any, prefix?: string) {
-		const filterBy = info !== undefined
-			? AppUtility.clone(info.FilterBy || {}, true)
-			: undefined;
+		const filterBy = info !== undefined ? AppUtility.clone(info.FilterBy || {}, true) : undefined;
 		return filterBy !== undefined && AppUtility.isNotEmpty(filterBy.Query)
 			? undefined
 			: (AppUtility.isNotEmpty(prefix) ? prefix + ":" : "") + AppCrypto.md5((JSON.stringify(filterBy || {}) + JSON.stringify(info !== undefined ? AppUtility.clone(info.SortBy || {}, true) : {})).toLowerCase());
@@ -37,25 +35,31 @@ export class AppPagination {
 
 	/** Gets a pagination */
 	public static get(info?: any, prefix?: string) {
-		const id = this.getKey(info, prefix);
-		return AppUtility.isNotEmpty(id)
-			? this.instances.getValue(id)
+		const key = this.getKey(info, prefix);
+		const pagination = AppUtility.isNotEmpty(key) ? this.instances.getValue(key) : undefined;
+		return pagination !== undefined
+			? {
+				TotalRecords: pagination.TotalRecords,
+				TotalPages: pagination.TotalPages,
+				PageSize: pagination.PageSize,
+				PageNumber: pagination.PageNumber
+			}
 			: undefined;
 	}
 
 	/** Sets a pagination */
 	public static set(info?: any, prefix?: string) {
-		const id = this.getKey(info, prefix);
-		if (AppUtility.isNotEmpty(id)) {
-			this.instances.setValue(id, this.getDefault(info));
+		const key = this.getKey(info, prefix);
+		if (AppUtility.isNotEmpty(key)) {
+			this.instances.setValue(key, this.getDefault(info));
 		}
 	}
 
 	/** Removes a pagination */
 	public static remove(info?: any, prefix?: string) {
-		const id = this.getKey(info, prefix);
-		if (AppUtility.isNotEmpty(id)) {
-			this.instances.remove(id);
+		const key = this.getKey(info, prefix);
+		if (AppUtility.isNotEmpty(key)) {
+			this.instances.remove(key);
 		}
 	}
 
@@ -69,7 +73,7 @@ export class AppPagination {
 	}
 
 	/** Builds the well-formed request (contains filter, sort and pagination) for working with remote APIs */
-	public static buildRequest(filterBy?: any, sortBy?: any, pagination?: any, onCompleted?: (request: { FilterBy: { [key: string]: any }, SortBy: { [key: string]: any }, Pagination: { [key: string]: any } }) => void) {
+	public static buildRequest(filterBy?: { [key: string]: any }, sortBy?: { [key: string]: any }, pagination?: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }, onCompleted?: (request: { FilterBy: { [key: string]: any }, SortBy: { [key: string]: any }, Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } }) => void) {
 		const request = {
 			FilterBy: AppUtility.clone(filterBy || {}, true),
 			SortBy: AppUtility.clone(sortBy || {}, true),

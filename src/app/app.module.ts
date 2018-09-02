@@ -21,6 +21,7 @@ import { AppComponent } from "./app.component";
 import { AppRoutingModule } from "./app.routes";
 import { AppFormsModule } from "./components/forms.module";
 import { VinumberPipe } from "./components/app.vinumber.pipe";
+import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "./providers/base.service";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
 import { UsersService } from "./providers/users.service";
@@ -51,6 +52,10 @@ import { BooksService } from "./providers/books.service";
 		Keyboard,
 		AppVersion,
 		GoogleAnalytics,
+		AppReadyGuardService,
+		RegisterGuardService,
+		AuthenticatedGuardService,
+		NotAuthenticatedGuardService,
 		ConfigurationService,
 		AuthenticationService,
 		UsersService,

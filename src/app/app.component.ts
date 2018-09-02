@@ -66,7 +66,7 @@ export class AppComponent implements OnInit {
 		}
 	};
 
-	public ngOnInit() {
+	ngOnInit() {
 		console.log("<AppComponent>: Initializing the app", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 
 		// capture router info
@@ -114,13 +114,16 @@ export class AppComponent implements OnInit {
 		});
 	}
 
-	private get sidebarItems() {
+	get sidebarItems() {
 		return {
 			home: {
 				title: "Màn hình chính",
 				url: "/home",
+				queryParams: undefined as { [key: string]: any },
 				direction: "root",
-				icon: "home"
+				icon: "home",
+				thumbnail: undefined,
+				detail: false
 			},
 			login: {
 				title: "Đăng nhập",
@@ -152,11 +155,11 @@ export class AppComponent implements OnInit {
 		};
 	}
 
-	public trackSidebarItem(index: number, item: any) {
+	trackSidebarItem(index: number, item: any) {
 		return item.title;
 	}
 
-	private updateSidebarItem(menuIndex: number = -1, itemIndex: number = -1, itemInfo: any = {}) {
+	updateSidebarItem(menuIndex: number = -1, itemIndex: number = -1, itemInfo: any = {}) {
 		if (menuIndex > -1 && menuIndex < this.sidebar.left.menu.length) {
 			const item = {
 				title: itemInfo.title,
@@ -171,7 +174,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	private updateSidebar(info: any = {}) {
+	updateSidebar(info: any = {}) {
 		const index = info.index || 0;
 		while (this.sidebar.left.menu.length < index + 1) {
 			this.sidebar.left.menu.push({
@@ -226,7 +229,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	private setupEventHandlers() {
+	setupEventHandlers() {
 		AppEvents.on("Navigate", info => this.navController.navigateForward(info.args.url || "/home", info.args.animated, info.args.extras));
 		AppEvents.on("NavigateForward", info => this.navController.navigateForward(info.args.url || "/home", info.args.animated, info.args.extras));
 		AppEvents.on("NavigateBack", info => this.navController.navigateBack(info.args.url || "/home", info.args.animated, info.args.extras));
@@ -236,8 +239,8 @@ export class AppComponent implements OnInit {
 		});
 
 		AppEvents.on("UpdateSidebar", info => this.updateSidebar(info.args));
-		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args["MenuIndex"] || -1, -1, info.args["ItemInfo"]));
-		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args["MenuIndex"] || -1, info.args["ItemIndex"] || -1, info.args["ItemInfo"]));
+		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
+		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
 
 		AppEvents.on("UpdateSidebarTitle", info => {
 			if (AppUtility.isNotEmpty(info.args.title)) {
@@ -246,7 +249,7 @@ export class AppComponent implements OnInit {
 		});
 
 		AppEvents.on("Session", info => {
-			const type = info.args["Type"] || "Unknown";
+			const type = info.args.Type || "Unknown";
 			if (type === "Loaded" || type === "Updated") {
 				const profile = this.configSvc.getAccount().profile;
 				this.sidebar.left.title = profile ? profile.Name : this.configSvc.appConfig.app.name;
@@ -282,7 +285,7 @@ export class AppComponent implements OnInit {
 		});
 	}
 
-	private async activateAsync() {
+	async activateAsync() {
 		const mode = this.configSvc.queryParams["mode"];
 		const code = this.configSvc.queryParams["code"];
 		if (AppUtility.isNotEmpty(mode) && AppUtility.isNotEmpty(code)) {
@@ -322,7 +325,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	private async showActivationResultAsync(data: any) {
+	async showActivationResultAsync(data: any) {
 		const header = "password" === data.Mode
 			? "Mật khẩu mới"
 			: "Tài khoản mới";
@@ -337,7 +340,7 @@ export class AppComponent implements OnInit {
 		await this.appFormsSvc.showAlertAsync(header, subHeader, message);
 	}
 
-	private async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
+	async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
 		await this.configSvc.initializeAsync(
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
@@ -386,7 +389,7 @@ export class AppComponent implements OnInit {
 		);
 	}
 
-	private onInitialized(onCompleted?: () => void) {
+	onInitialized(onCompleted?: () => void) {
 		AppRTU.start(async () => {
 			if (this.configSvc.isWebApp) {
 				PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());

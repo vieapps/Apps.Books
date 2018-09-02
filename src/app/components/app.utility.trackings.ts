@@ -11,18 +11,20 @@ export class TrackingUtility {
 	public static async initializeAsync(googleAnalytics?: GoogleAnalytics) {
 		const promises = new Array<Promise<void>>();
 		// Google Analytics
-		if (this._googleAnalytics === undefined && googleAnalytics !== undefined && AppUtility.isNotEmpty(AppConfig.tracking.google)) {
+		if (this._googleAnalytics === undefined && googleAnalytics !== undefined && AppConfig.tracking.google.length > 0) {
 			this._googleAnalytics = googleAnalytics;
-			promises.push(this._googleAnalytics.startTrackerWithId(AppConfig.tracking.google)
-				.then(() => {
-					this._googleAnalytics.setAppVersion(AppConfig.app.version);
-					console.log("[Tracking]: Google Analytics is ready now...", AppConfig.isDebug ? this._googleAnalytics : "");
-				})
-				.catch(error => {
-					console.error("[Tracking]: Error occurred while initializing Google Analytics => " + AppUtility.getErrorMessage(error));
-					this._googleAnalytics = undefined;
-				})
-			);
+			AppConfig.tracking.google.forEach(googleID => {
+				promises.push(this._googleAnalytics.startTrackerWithId(googleID)
+					.then(() => {
+						this._googleAnalytics.setAppVersion(AppConfig.app.version);
+						console.log(`[Tracking]: Google Analytics [${googleID}] is ready now...`, AppConfig.isDebug ? this._googleAnalytics : "");
+					})
+					.catch(error => {
+						console.error(`[Tracking]: Error occurred while initializing Google Analytics [${googleID}] => ${AppUtility.getErrorMessage(error)}`);
+						this._googleAnalytics = undefined;
+					})
+				);
+			});
 		}
 		await Promise.all(promises);
 	}

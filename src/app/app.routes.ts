@@ -1,5 +1,6 @@
 import { NgModule } from "@angular/core";
-import { Routes, RouterModule } from "@angular/router";
+import { RouterModule } from "@angular/router";
+import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "./providers/base.service";
 
 @NgModule({
 	imports: [RouterModule.forRoot([
@@ -14,19 +15,28 @@ import { Routes, RouterModule } from "@angular/router";
 		},
 		{
 			path: "log-in",
-			loadChildren: "./pages/users/login.module#LogInPageModule"
+			loadChildren: "./pages/users/login.module#LogInPageModule",
+			canActivate: [AppReadyGuardService, NotAuthenticatedGuardService]
 		},
 		{
 			path: "register-account",
-			loadChildren: "./pages/users/register.module#RegisterAccountPageModule"
+			loadChildren: "./pages/users/register.module#RegisterAccountPageModule",
+			canActivate: [AppReadyGuardService, RegisterGuardService, NotAuthenticatedGuardService]
 		},
 		{
 			path: "account-profile/:id",
-			loadChildren: "./pages/users/profile.module#AccountProfilePageModule"
+			loadChildren: "./pages/users/profile.module#AccountProfilePageModule",
+			canActivate: [AppReadyGuardService, AuthenticatedGuardService]
+		},
+		{
+			path: "search-books",
+			loadChildren: "./pages/books/list.module#ListBooksPageModule",
+			canActivate: [AppReadyGuardService]
 		},
 		{
 			path: "list-books/:related",
-			loadChildren: "./pages/books/list.module#ListBooksPageModule"
+			loadChildren: "./pages/books/list.module#ListBooksPageModule",
+			canActivate: [AppReadyGuardService],
 		}
 	])],
 	exports: [RouterModule]

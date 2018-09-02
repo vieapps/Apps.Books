@@ -45,12 +45,12 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets the state that determines the app is ready to go */
 	public get isReady() {
-		return AppUtility.isObject(this.appConfig.session.keys, true) && AppUtility.isObject(this.appConfig.session.token, true);
+		return this.appConfig.isReady;
 	}
 
 	/** Gets the state that determines the current account is authenticated or not */
 	public get isAuthenticated() {
-		return AppUtility.isObject(this.appConfig.session.token, true) && AppUtility.isNotEmpty(this.appConfig.session.token.uid);
+		return this.appConfig.isAuthenticated;
 	}
 
 	/** Gets the state that determines the app is running in debug mode or not */
@@ -101,13 +101,13 @@ export class ConfigurationService extends BaseService {
 		this.appConfig.app.routes = [];
 	}
 
-	private getUrl(info: { url: string, params: { [key: string]: any } }) {
+	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUri?: string) {
 		if (info !== undefined) {
 			const query = AppUtility.getQueryOfJson(info.params);
 			return info.url + (query !== "" ? "?" + query : "");
 		}
 		else {
-			return "/home";
+			return alternativeUri || "/home";
 		}
 	}
 
@@ -522,12 +522,11 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Sends a request to tell app component navigates back one step */
-	public navigateBack(animated: boolean = true) {
-		const previous = this.getPreviousUrl();
+	public navigateBack(animated: boolean = true, extras?: { [key: string]: any }) {
 		AppEvents.broadcast("NavigateBack", {
-			url: previous !== undefined ? previous.url : "/home",
+			url: this.previousUrl,
 			animated: AppUtility.isTrue(animated),
-			extras: previous !== undefined ? previous.params : {}
+			extras: extras
 		});
 	}
 

@@ -33,7 +33,17 @@ export class AppConfig {
 		routes: new Array<{
 			url: string,
 			params: { [key: string]: any }
-		}>()
+		}>(),
+		url: {
+			previous: undefined as {
+				url: string,
+				params: { [key: string]: any }
+			},
+			current: undefined as {
+				url: string,
+				params: { [key: string]: any }
+			}
+		}
 	};
 
 	/** Session information */
@@ -84,9 +94,9 @@ export class AppConfig {
 
 	/** Tracking information */
 	public static tracking = {
-		google: "UA-3060572-8",
-		googleDomains: ["viebooks.net", "books.vieapps.net", "books.vieapps.com"],
-		facebook: ""
+		google: ["UA-3060572-8"],
+		facebook: new Array<string>(),
+		domains: ["viebooks.net", "books.vieapps.net", "books.vieapps.com"],
 	};
 
 	/** Facebook integration */
@@ -106,6 +116,16 @@ export class AppConfig {
 	public static extras: {
 		[key: string]: any
 	} = {};
+
+	/** Gets the state that determines the app is ready to go */
+	public static get isReady() {
+		return AppUtility.isObject(this.session.keys, true) && AppUtility.isObject(this.session.token, true);
+	}
+
+	/** Gets the state that determines the current account is authenticated or not */
+	public static get isAuthenticated() {
+		return this.isReady && AppUtility.isNotEmpty(this.session.token.uid);
+	}
 
 	/** Gets the state that determines is native app */
 	public static get isNativeApp() {
