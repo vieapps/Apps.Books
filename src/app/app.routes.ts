@@ -24,20 +24,37 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 			canActivate: [AppReadyGuardService, RegisterGuardService, NotAuthenticatedGuardService]
 		},
 		{
-			path: "account-profile/:id",
+			path: "account-profile/:data",
 			loadChildren: "./pages/users/profile.module#AccountProfilePageModule",
 			canActivate: [AppReadyGuardService, AuthenticatedGuardService]
 		},
 		{
-			path: "search-books",
-			loadChildren: "./pages/books/list.module#ListBooksPageModule",
-			canActivate: [AppReadyGuardService]
-		},
-		{
-			path: "list-books/:related",
-			loadChildren: "./pages/books/list.module#ListBooksPageModule",
+			path: "books",
 			canActivate: [AppReadyGuardService],
-		}
+			children: [
+				{
+					path: "",
+					redirectTo: "/home",
+					pathMatch: "full"
+				},
+				{
+					path: "search",
+					loadChildren: "./pages/books/list.module#ListBooksPageModule"
+				},
+				{
+					path: "list/:data",
+					loadChildren: "./pages/books/list.module#ListBooksPageModule"
+				},
+				// {
+				// 	path: "read/:data",
+				// 	loadChildren: "./pages/books/read.module#ReadBookPageModule"
+				// },
+				// {
+				// 	path: "info/:data",
+				// 	loadChildren: "./pages/books/info.module#ViewBookInfoPageModule"
+				// }
+			]
+		},
 	])],
 	exports: [RouterModule]
 })

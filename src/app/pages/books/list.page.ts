@@ -136,7 +136,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		this.requestParams = this.configSvc.requestParams;
 		this.filterBy.And.Category.Equals = this.requestParams["Category"];
 		this.filterBy.And.Author.Equals = this.requestParams["Author"];
-		this.searching = this.configSvc.currentUrl.startsWith("/search-books");
+		this.searching = this.configSvc.currentUrl.startsWith("/books/search");
 
 		this.title = this.searching
 			? "Tìm kiếm"

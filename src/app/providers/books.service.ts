@@ -45,7 +45,7 @@ export class BooksService extends BaseService {
 				MenuIndex: 0,
 				ItemInfo: {
 					title: "Tìm kiếm",
-					url: "/search-books",
+					url: "/books/search",
 					icon: "search"
 				}
 			});
@@ -66,7 +66,7 @@ export class BooksService extends BaseService {
 					items: this.categories.map((category, index) => {
 						return {
 							title: category.Name,
-							url: `/list-books/${index}`,
+							url: `/books/list/${index}`,
 							queryParams: {
 								"x-request": AppUtility.toBase64Url({
 									Category: category.Name,

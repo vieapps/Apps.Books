@@ -18,7 +18,7 @@ export class BookLinearControl {
 	@Input() hideCategory: boolean;
 
 	get routerLink() {
-		return `/read-books/${this.book.ID}`;
+		return `/books/read/${this.book.ID}`;
 	}
 
 	get queryParams() {
