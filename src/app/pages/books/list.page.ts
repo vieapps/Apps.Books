@@ -188,6 +188,10 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
 			this.search(() => this.scrollCtrl.complete());
 		}
+		else {
+			this.scrollCtrl.complete();
+			this.scrollCtrl.disabled = true;
+		}
 	}
 
 	search(onCompleted?: () => void) {
