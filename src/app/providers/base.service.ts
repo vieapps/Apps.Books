@@ -197,11 +197,10 @@ export class Base {
 export class AppReadyGuardService implements CanActivate {
 	constructor(public router: Router) { }
 	canActivate() {
-		const canActivate = AppConfig.isReady;
-		if (!canActivate) {
+		if (!AppConfig.isReady) {
 			this.router.navigateByUrl("/home");
 		}
-		return canActivate;
+		return AppConfig.isReady;
 	}
 }
 
@@ -209,11 +208,10 @@ export class AppReadyGuardService implements CanActivate {
 export class AuthenticatedGuardService implements CanActivate {
 	constructor(public router: Router) { }
 	canActivate() {
-		const canActivate = AppConfig.isAuthenticated;
-		if (!canActivate) {
+		if (!AppConfig.isAuthenticated) {
 			this.router.navigateByUrl("/home");
 		}
-		return canActivate;
+		return AppConfig.isAuthenticated;
 	}
 }
 
@@ -221,11 +219,10 @@ export class AuthenticatedGuardService implements CanActivate {
 export class NotAuthenticatedGuardService implements CanActivate {
 	constructor(public router: Router) { }
 	canActivate() {
-		const canActivate = !AppConfig.isAuthenticated;
-		if (!canActivate) {
+		if (AppConfig.isAuthenticated) {
 			this.router.navigateByUrl("/home");
 		}
-		return canActivate;
+		return !AppConfig.isAuthenticated;
 	}
 }
 

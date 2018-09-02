@@ -21,6 +21,12 @@ export class UsersService extends BaseService {
 	) {
 		super(http, "Users");
 		AppRTU.registerAsServiceScopeProcessor(this.Name, message => this.processUpdateMessageAsync(message));
+		if (this.configSvc.isDebug) {
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Session", message => {});
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Account", message => {});
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Profile", message => {});
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Status", message => {});
+		}
 	}
 
 	public get searchURI() {
@@ -68,7 +74,7 @@ export class UsersService extends BaseService {
 		body["Password"] = AppCrypto.rsaEncrypt(body["Password"]);
 		body["ReferID"] = this.configSvc.appConfig.refer.id;
 		body["ReferSection"] = this.configSvc.appConfig.refer.section;
-		await this.createAsync(
+		await super.createAsync(
 			`users/account?${this.configSvc.relatedQuery}&uri=${PlatformUtility.activateURIEncoded}`,
 			body,
 			onNext,
@@ -90,7 +96,7 @@ export class UsersService extends BaseService {
 		if (relatedInfo !== undefined) {
 			body["RelatedInfo"] = AppCrypto.rsaEncrypt(JSON.stringify(relatedInfo));
 		}
-		await this.createAsync(
+		await super.createAsync(
 			`users/account/invite?${this.configSvc.relatedQuery}&uri=${PlatformUtility.activateURIEncoded}`,
 			body,
 			onNext,
@@ -104,7 +110,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.readAsync(
+		await super.readAsync(
 			`users/activate?mode=${mode}&code=${code}&${this.configSvc.relatedQuery}`,
 			async data => {
 				await this.configSvc.updateSessionAsync(data, () => {
@@ -131,7 +137,7 @@ export class UsersService extends BaseService {
 			}
 		}
 		else {
-			await this.readAsync(
+			await super.readAsync(
 				`users/profile/${id}?${this.configSvc.relatedQuery}`,
 				data => {
 					UserProfile.update(data);
@@ -150,7 +156,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.updateAsync(
+		await super.updateAsync(
 			`users/profile/${body.ID || this.configSvc.getAccount().id}?${this.configSvc.relatedQuery}`,
 			body,
 			data => {
@@ -169,7 +175,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async updatePasswordAsync(oldPassword: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.updateAsync(
+		await super.updateAsync(
 			`users/account/password?${this.configSvc.relatedQuery}`,
 			{
 				OldPassword: AppCrypto.rsaEncrypt(oldPassword),
@@ -186,7 +192,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.updateAsync(
+		await super.updateAsync(
 			`users/account/email?${this.configSvc.relatedQuery}`,
 			{
 				OldPassword: AppCrypto.rsaEncrypt(oldPassword),
@@ -203,7 +209,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async prepare2FAMethodAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.readAsync(
+		await super.readAsync(
 			`users/otp?${this.configSvc.relatedQuery}`,
 			onNext,
 			error => {
@@ -216,7 +222,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async add2FAMethodAsync(provisioning: string, otp: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.updateAsync(
+		await super.updateAsync(
 			`users/otp?${this.configSvc.relatedQuery}`,
 			{
 				Provisioning: provisioning,
@@ -233,7 +239,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.deleteAsync(
+		await super.deleteAsync(
 			`users/otp?info=${info}&${this.configSvc.relatedQuery}`,
 			data => this.configSvc.updateAccount(data, onNext),
 			error => {
@@ -246,7 +252,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async getPrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.readAsync(
+		await super.readAsync(
 			`users/account/${id}?${this.configSvc.relatedQuery}`,
 			onNext,
 			error => {
@@ -259,7 +265,7 @@ export class UsersService extends BaseService {
 	}
 
 	public async updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.updateAsync(
+		await super.updateAsync(
 			`users/account/${id}?${this.configSvc.relatedQuery}`,
 			{
 				Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))

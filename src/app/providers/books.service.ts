@@ -24,17 +24,17 @@ export class BooksService extends BaseService {
 		public configSvc: ConfigurationService
 	) {
 		super(http, "Books");
-		AppRTU.registerAsServiceScopeProcessor(this.Name, message => {});
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Book", async message => await this.processUpdateBookMessageAsync(message));
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
 		AppRTU.registerAsServiceScopeProcessor("Scheduler", message => this.sendBookmarks());
+		if (this.configSvc.isDebug) {
+			AppRTU.registerAsServiceScopeProcessor(this.Name, message => {});
+		}
 
 		AppEvents.on("AppIsInitialized", async info => {
 			await Promise.all([
-				this.loadIntroductionsAsync(async () => {
-					await this.fetchIntroductionsAsync();
-				}),
+				this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
 				this.loadStatisticsAsync(),
 				this.loadReadingOptionsAsync()
 			]);
@@ -133,7 +133,7 @@ export class BooksService extends BaseService {
 			}
 		}
 		else {
-			await this.readAsync(
+			await super.readAsync(
 				`books/book/${id}`,
 				data => {
 					Book.update(data);
@@ -167,7 +167,7 @@ export class BooksService extends BaseService {
 			}
 		}
 		else {
-			await this.readAsync(
+			await super.readAsync(
 				`books/book/${id}?chapter=${chapter}`,
 				data => {
 					book.Chapters[chapter - 1] = data.Content;
@@ -192,7 +192,7 @@ export class BooksService extends BaseService {
 			chapter += 1;
 		}
 		if (book.Chapters[chapter - 1] === "") {
-			this.send({
+			super.send({
 				ServiceName: this.Name,
 				ObjectName: "book",
 				Verb: "GET",
@@ -223,7 +223,7 @@ export class BooksService extends BaseService {
 
 	public updateCounters(id: string, action?: string, onCompleted?: () => void) {
 		if (Book.instances.containsKey(id)) {
-			this.send({
+			super.send({
 				ServiceName: this.Name,
 				ObjectName: "book",
 				Verb: "GET",
@@ -258,7 +258,7 @@ export class BooksService extends BaseService {
 
 	public generateFiles(id: string) {
 		if (Book.instances.containsKey(id)) {
-			this.send({
+			super.send({
 				ServiceName: this.Name,
 				ObjectName: "book",
 				Verb: "GET",
@@ -374,7 +374,7 @@ export class BooksService extends BaseService {
 	}
 
 	private async fetchIntroductionsAsync(onCompleted?: () => void) {
-		await this.readAsync(
+		await super.readAsync(
 			"statics/services/books.json",
 			async data => {
 				this.configSvc.appConfig.extras["Book-Introductions"] = data;
@@ -483,6 +483,9 @@ export class BooksService extends BaseService {
 
 			case "Status":
 				this.configSvc.appConfig.extras["Book-Status"] = (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s));
+				break;
+
+			case "All":
 				break;
 
 			default:
@@ -651,7 +654,7 @@ export class BooksService extends BaseService {
 	}
 
 	public sendRequestToCrawl(url: string) {
-		this.send({
+		super.send({
 			ServiceName: "books",
 			ObjectName: "crawl",
 			Verb: "GET",

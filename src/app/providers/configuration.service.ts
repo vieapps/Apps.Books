@@ -33,9 +33,7 @@ export class ConfigurationService extends BaseService {
 		public browserTitle: Title
 	) {
 		super(http, "Configuration");
-		AppEvents.on("AppIsInitialized", async info => {
-			await this.loadGeoMetaAsync();
-		});
+		AppEvents.on("AppIsInitialized", async info => await this.loadGeoMetaAsync());
 	}
 
 	/** Gets the configuration of the app */
@@ -103,13 +101,12 @@ export class ConfigurationService extends BaseService {
 				this.appConfig.app.routes.splice(0, this.appConfig.app.routes.length - 30);
 			}
 		}
-		console.log("routes", this.appConfig.app.routes);
 	}
 
-	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUri?: string) {
+	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUrl?: string) {
 		return info !== undefined
 			? PlatformUtility.getURI(info.url, info.params)
-			: alternativeUri || "/home";
+			: alternativeUrl || "/home";
 	}
 
 	/** Gets the current url */
@@ -229,7 +226,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Registers the initialized session (anonymous) with REST API */
 	public async registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.readAsync(
+		await super.readAsync(
 			`users/session?register=${this.appConfig.session.id}`,
 			async () => {
 				this.appConfig.session.account = this.getAccount(true);
@@ -337,7 +334,7 @@ export class ConfigurationService extends BaseService {
 	/** Send request to patch the session */
 	public patchSession(onNext?: () => void, defer?: number): void {
 		PlatformUtility.setTimeout(() => {
-			this.send({
+			super.send({
 				ServiceName: "users",
 				ObjectName: "session",
 				Verb: "PATCH",
@@ -425,7 +422,7 @@ export class ConfigurationService extends BaseService {
 	/** Send request to patch information of the account */
 	public patchAccount(onNext?: () => void, defer?: number) {
 		PlatformUtility.setTimeout(() => {
-			this.send({
+			super.send({
 				ServiceName: "users",
 				ObjectName: "account",
 				Verb: "GET",
@@ -442,7 +439,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Sends the request to get profile information of current account via WebSocket connection */
 	public getProfile(onNext?: () => void) {
-		this.send({
+		super.send({
 			ServiceName: "users",
 			ObjectName: "profile",
 			Verb: "GET",
@@ -564,10 +561,10 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private async saveGeoMetaAsync(data: any, onCompleted?: (data?: any) => void) {
-		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces)) {
+		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces, true)) {
 			this.appConfig.meta.provinces[data.code] = data;
 		}
-		else if (AppUtility.isObject(data, true) && AppUtility.isArray(data.countries)) {
+		else if (AppUtility.isObject(data, true) && AppUtility.isArray(data.countries, true)) {
 			this.appConfig.meta.countries = data.countries;
 		}
 
@@ -584,7 +581,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private async loadGeoCountriesAsync(onCompleted?: (data?: any) => void) {
-		await this.readAsync(
+		await super.readAsync(
 			"statics/geo/countries.json",
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
 			error => this.showError("Error occurred while fetching the meta countries", error)
@@ -592,7 +589,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private async loadGeoProvincesAsync(country?: string, onCompleted?: () => void) {
-		await this.readAsync(
+		await super.readAsync(
 			`statics/geo/provinces/${country || this.appConfig.meta.country}.json`,
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
 			error => this.showError("Error occurred while fetching the meta provinces", error)
