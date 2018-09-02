@@ -33,17 +33,7 @@ export class AppConfig {
 		routes: new Array<{
 			url: string,
 			params: { [key: string]: any }
-		}>(),
-		url: {
-			previous: undefined as {
-				url: string,
-				params: { [key: string]: any }
-			},
-			current: undefined as {
-				url: string,
-				params: { [key: string]: any }
-			}
-		}
+		}>()
 	};
 
 	/** Session information */

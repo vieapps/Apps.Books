@@ -530,7 +530,7 @@ export class AppUtility {
 		result = result.replace(/\u0111/g, "d");
 
 		// double spaces
-		// result = result.replace(/\s\s+/g, " ");
+		result = result.replace(/\s\s+/g, " ");
 
 		return result.trim();
 	}

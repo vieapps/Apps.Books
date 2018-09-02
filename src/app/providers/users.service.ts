@@ -69,7 +69,7 @@ export class UsersService extends BaseService {
 		body["ReferID"] = this.configSvc.appConfig.refer.id;
 		body["ReferSection"] = this.configSvc.appConfig.refer.section;
 		await this.createAsync(
-			`users/account?${this.configSvc.relatedQuery}&uri=${AppCrypto.urlEncode(PlatformUtility.activateURI)}`,
+			`users/account?${this.configSvc.relatedQuery}&uri=${PlatformUtility.activateURIEncoded}`,
 			body,
 			onNext,
 			onError,
@@ -91,7 +91,7 @@ export class UsersService extends BaseService {
 			body["RelatedInfo"] = AppCrypto.rsaEncrypt(JSON.stringify(relatedInfo));
 		}
 		await this.createAsync(
-			`users/account/invite?${this.configSvc.relatedQuery}&uri=${AppCrypto.urlEncode(PlatformUtility.activateURI)}`,
+			`users/account/invite?${this.configSvc.relatedQuery}&uri=${PlatformUtility.activateURIEncoded}`,
 			body,
 			onNext,
 			error => {

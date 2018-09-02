@@ -327,6 +327,7 @@ export class AppFormsService {
 	private _actionsheet: any;
 	private _modal: any;
 	private _alert: any;
+	private _toast: any;
 	private _textControls = ["text", "password", "email", "search", "tel", "url"];
 	private _metaCounties: {
 		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
@@ -754,7 +755,10 @@ export class AppFormsService {
 
 	/** Shows the toast alert message */
 	public async showToastAsync(message: string, duration: number = 1000, showCloseButton: boolean = false, closeButtonText: string = "close", atBottom: boolean = false) {
-		const toast = !showCloseButton && duration < 1
+		if (this._toast !== undefined) {
+			await this._toast.dismiss();
+		}
+		this._toast = !showCloseButton && duration < 1
 			? await this.toastController.create({
 					message: message,
 					duration: 1000,
@@ -771,7 +775,7 @@ export class AppFormsService {
 					animated: true
 				}
 			);
-		await toast.present();
+		await this._toast.present();
 	}
 
 }

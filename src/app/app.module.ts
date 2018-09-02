@@ -12,10 +12,14 @@ import { Device } from "@ionic-native/device/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
+import { FileTransfer } from "@ionic-native/file-transfer/ngx";
+import { QRScanner } from "@ionic-native/qr-scanner/ngx";
+import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 
 import { IonicStorageModule } from "@ionic/storage";
 import { Ng2CompleterModule } from "ng2-completer";
 import { ImageCropperModule } from "ng2-img-cropper";
+import { QRCodeModule } from "angular2-qrcode";
 
 import { AppComponent } from "./app.component";
 import { AppRoutingModule } from "./app.routes";
@@ -42,6 +46,7 @@ import { BooksService } from "./providers/books.service";
 		IonicStorageModule.forRoot({ name: "vieappsDB" }),
 		Ng2CompleterModule,
 		ImageCropperModule,
+		QRCodeModule,
 		AppFormsModule,
 		AppRoutingModule
 	],
@@ -51,7 +56,10 @@ import { BooksService } from "./providers/books.service";
 		Device,
 		Keyboard,
 		AppVersion,
+		FileTransfer,
 		GoogleAnalytics,
+		QRScanner,
+		InAppBrowser,
 		AppReadyGuardService,
 		RegisterGuardService,
 		AuthenticatedGuardService,

@@ -125,7 +125,7 @@ export class BooksService extends BaseService {
 	public async getAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontUpdateCounter?: boolean) {
 		const book = Book.instances.getValue(id);
 		if (book !== undefined && (book.TOCs.length > 0 || book.Body !== "")) {
-			if (!AppUtility.isTrue(dontUpdateCounter)) {
+			if (AppUtility.isFalse(dontUpdateCounter)) {
 				this.updateCounters(id);
 			}
 			if (onNext !== undefined) {
@@ -137,7 +137,7 @@ export class BooksService extends BaseService {
 				`books/book/${id}`,
 				data => {
 					Book.update(data);
-					if (!AppUtility.isTrue(dontUpdateCounter)) {
+					if (AppUtility.isFalse(dontUpdateCounter)) {
 						this.updateCounters(id);
 					}
 					if (onNext !== undefined) {

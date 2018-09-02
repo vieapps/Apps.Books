@@ -80,13 +80,14 @@ export class AppComponent implements OnInit {
 		// initliaze app
 		this.platform.ready().then(() => {
 			if (this.platform.is("cordova")) {
-				// prepare status bar
-				this.statusBar.styleDefault();
-				if ("iOS" === this.device.platform && this.device.model.startsWith("iPhone1") && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
-					this.statusBar.backgroundColorByHexString("f8f8f8");
+				// prepare status bar (native app only)
+				if (this.device.platform !== "browser") {
+					this.statusBar.styleDefault();
+					if ("iOS" === this.device.platform && this.device.model.startsWith("iPhone1") && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
+						this.statusBar.backgroundColorByHexString("f8f8f8");
+					}
+					this.statusBar.overlaysWebView(false);
 				}
-				this.statusBar.overlaysWebView(false);
-
 				// hide the splash screen
 				this.splashScreen.hide();
 			}
@@ -233,10 +234,7 @@ export class AppComponent implements OnInit {
 		AppEvents.on("Navigate", info => this.navController.navigateForward(info.args.url || "/home", info.args.animated, info.args.extras));
 		AppEvents.on("NavigateForward", info => this.navController.navigateForward(info.args.url || "/home", info.args.animated, info.args.extras));
 		AppEvents.on("NavigateBack", info => this.navController.navigateBack(info.args.url || "/home", info.args.animated, info.args.extras));
-		AppEvents.on("NavigateHome", info => {
-			this.configSvc.resetUrl();
-			this.navController.navigateRoot("/home", info.args.animated, info.args.extras);
-		});
+		AppEvents.on("NavigateHome", info => this.navController.navigateRoot("/home", info.args.animated, info.args.extras));
 
 		AppEvents.on("UpdateSidebar", info => this.updateSidebar(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));

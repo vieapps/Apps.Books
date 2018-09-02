@@ -17,7 +17,7 @@ export class TrackingUtility {
 				promises.push(this._googleAnalytics.startTrackerWithId(googleID)
 					.then(() => {
 						this._googleAnalytics.setAppVersion(AppConfig.app.version);
-						console.log(`[Tracking]: Google Analytics [${googleID}] is ready now...`, AppConfig.isDebug ? this._googleAnalytics : "");
+						console.log(`[Tracking]: Google Analytics [${googleID}] is ready now...`);
 					})
 					.catch(error => {
 						console.error(`[Tracking]: Error occurred while initializing Google Analytics [${googleID}] => ${AppUtility.getErrorMessage(error)}`);
@@ -33,7 +33,7 @@ export class TrackingUtility {
 	public static async trackAsync(title?: string, path?: string) {
 		// Google Analytics
 		if (this._googleAnalytics !== undefined) {
-			await this._googleAnalytics.trackView(title || AppConfig.app.name, path || "/");
+			await this._googleAnalytics.trackView(title || AppConfig.app.name, path || (AppConfig.app.routes.length > 0 ? AppConfig.app.routes[AppConfig.app.routes.length - 1].url : "/"));
 		}
 	}
 

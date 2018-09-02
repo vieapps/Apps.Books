@@ -55,7 +55,7 @@
 		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value">{{select.Label}}</ion-select-option>
 	</ion-select>
 
-	<ion-datetime *ngIf="isControl('Date') || isControl('DateTime')" #elementRef
+	<ion-datetime *ngIf="isControl('DatePicker')" #elementRef
 		[displayFormat]="datetimeDisplayFormat"
 		[pickerFormat]="datetimePickerFormat"
 		[dayNames]="datetimeDayNames"

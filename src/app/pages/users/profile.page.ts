@@ -287,7 +287,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "BirthDay",
-				Type: "Date",
+				Type: "DatePicker",
 				Required: true,
 				Options: {
 					Type: "date",
@@ -341,7 +341,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 					Label: "Refer",
 					MinLength: 3,
 					CompleterOptions: {
-						DataSource: this.userSvc.completerDataSource,
+						DataSource: this.usersSvc.completerDataSource,
 						Handlers: {
 							OnItemSelected: (selectedItem, control) => {
 								console.log("Selected Item", selectedItem);
@@ -382,7 +382,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 						await this.configSvc.storeSessionAsync();
 					}
 					await TrackingUtility.trackAsync(this.title, "account/update");
-					await this.openProfileAsync();
+					await this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync("Hồ sơ đã được cập nhật..."));
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
@@ -606,6 +606,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			async () => await this.authSvc.logOutAsync(
 				async () => {
 					await TrackingUtility.trackAsync("Đăng xuất", "session/log-out");
+					await this.appFormsSvc.showToastAsync("Đã đăng xuất tài khoản khỏi hệ thống...");
 					if (this.configSvc.previousUrl.startsWith("/log-in") || this.configSvc.previousUrl.startsWith("/account-profile")) {
 						this.configSvc.navigateHome();
 					}

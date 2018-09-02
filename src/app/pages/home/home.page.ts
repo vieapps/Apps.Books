@@ -38,7 +38,6 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 
 	initialize() {
 		this.configSvc.appTitle = "Màn hình chính";
-		this.configSvc.resetUrl();
 	}
 
 }

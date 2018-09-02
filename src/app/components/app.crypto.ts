@@ -29,7 +29,7 @@ export class AppCrypto {
 				result += "=";
 				break;
 			default:
-				throw new Error("Illegal base64url string!");
+				throw new Error("Base64-url string is not well-form!");
 		}
 		return result;
 	}

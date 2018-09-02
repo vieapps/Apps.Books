@@ -169,7 +169,7 @@ export class Base {
 	}
 
 	/** Sends a request/info to remote API via WebSocket connection (of the real-time update component) */
-	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: any, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
+	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: { [key: string]: any }, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
 		AppRTU.send(request, whenNotReady);
 	}
 
@@ -195,11 +195,7 @@ export class Base {
 
 @Injectable()
 export class AppReadyGuardService implements CanActivate {
-	constructor(
-		public router: Router
-	) {
-	}
-
+	constructor(public router: Router) { }
 	canActivate() {
 		const canActivate = AppConfig.isReady;
 		if (!canActivate) {
@@ -211,11 +207,7 @@ export class AppReadyGuardService implements CanActivate {
 
 @Injectable()
 export class AuthenticatedGuardService implements CanActivate {
-	constructor(
-		public router: Router
-	) {
-	}
-
+	constructor(public router: Router) { }
 	canActivate() {
 		const canActivate = AppConfig.isAuthenticated;
 		if (!canActivate) {
@@ -227,11 +219,7 @@ export class AuthenticatedGuardService implements CanActivate {
 
 @Injectable()
 export class NotAuthenticatedGuardService implements CanActivate {
-	constructor(
-		public router: Router
-	) {
-	}
-
+	constructor(public router: Router) { }
 	canActivate() {
 		const canActivate = !AppConfig.isAuthenticated;
 		if (!canActivate) {
@@ -243,11 +231,7 @@ export class NotAuthenticatedGuardService implements CanActivate {
 
 @Injectable()
 export class RegisterGuardService implements CanActivate {
-	constructor(
-		public router: Router
-	) {
-	}
-
+	constructor(public router: Router) { }
 	canActivate() {
 		if (!AppConfig.accountRegistrations.registrable) {
 			this.router.navigateByUrl("/home");

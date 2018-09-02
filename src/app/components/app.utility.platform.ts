@@ -132,7 +132,7 @@ export class PlatformUtility {
 		parser.href = uri || window.location.href;
 
 		// convert query string to object
-		const searchParams = {};
+		const searchParams = {} as { [key: string]: any };
 		if (parser.search !== "") {
 			const queries = parser.search.replace(/^\?/, "").split("&");
 			for (let index = 0; index < queries.length; index++ ) {
@@ -142,7 +142,7 @@ export class PlatformUtility {
 		}
 
 		// convert hash string to object
-		const hashParams = {};
+		const hashParams = {} as { [key: string]: any };
 		let hash = parser.hash;
 		while (hash.indexOf("#") === 0 || hash.indexOf("?") === 0) {
 			hash = hash.substring(1);
@@ -167,6 +167,12 @@ export class PlatformUtility {
 		};
 	}
 
+	/** Gets the URI for navigating */
+	public static getURI(url: string, queryParams?: { [key: string]: any }) {
+		const query = AppUtility.getQueryOfJson(queryParams);
+		return url + (query !== "" ? "?" + query : "");
+	}
+
 	/** Gets the URI for activating */
 	public static get activateURI() {
 		let url = AppConfig.URIs.activations;
@@ -177,10 +183,9 @@ export class PlatformUtility {
 		return url + "home?prego=activate&mode={mode}&code={code}";
 	}
 
-	/** Gets the URI for navigating */
-	public static getURI(url: string, queryParams?: { [key: string]: any }) {
-		const query = AppUtility.getQueryOfJson(queryParams);
-		return url + (query !== "" ? "?" + query : "");
+	/** Gets the encoded URI for activating */
+	public static get activateURIEncoded() {
+		return AppCrypto.urlEncode(this.activateURI);
 	}
 
 	/** Opens Google Maps by address or location via query */

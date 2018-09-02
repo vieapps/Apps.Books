@@ -80,25 +80,30 @@ export class ConfigurationService extends BaseService {
 	/** Adds an url into stack of routes */
 	public addUrl(url: string, params: { [key: string]: any }) {
 		url = url.indexOf("?") > 0 ? url.substr(0, url.indexOf("?")) : url;
-		const previous = this.getPreviousUrl();
-		const current = this.getCurrentUrl();
-		if (previous !== undefined && previous.url.startsWith(url)) {
-			this.appConfig.app.routes.pop();
-		}
-		else if (current === undefined || !current.url.startsWith(url)) {
+		if (url === "/home") {
+			this.appConfig.app.routes = [];
 			this.appConfig.app.routes.push({
 				url: url,
 				params: params
 			});
 		}
-		if (this.appConfig.app.routes.length > 30) {
-			this.appConfig.app.routes.splice(0, this.appConfig.app.routes.length - 30);
+		else {
+			const previous = this.getPreviousUrl();
+			const current = this.getCurrentUrl();
+			if (previous !== undefined && previous.url.startsWith(url)) {
+				this.appConfig.app.routes.pop();
+			}
+			else if (current === undefined || !current.url.startsWith(url)) {
+				this.appConfig.app.routes.push({
+					url: url,
+					params: params
+				});
+			}
+			if (this.appConfig.app.routes.length > 30) {
+				this.appConfig.app.routes.splice(0, this.appConfig.app.routes.length - 30);
+			}
 		}
-	}
-
-	/** Resets the stack of routes */
-	public resetUrl() {
-		this.appConfig.app.routes = [];
+		console.log("routes", this.appConfig.app.routes);
 	}
 
 	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUri?: string) {
@@ -150,7 +155,7 @@ export class ConfigurationService extends BaseService {
 
 		if (this.appConfig.isNativeApp) {
 			this.appConfig.app.platform = this.device.platform;
-			this.appConfig.session.device = this.device.uuid + "@" + this.appConfig.app.name;
+			this.appConfig.session.device = this.device.uuid + "@" + this.appConfig.app.id;
 		}
 
 		else {
@@ -164,10 +169,12 @@ export class ConfigurationService extends BaseService {
 
 		if (this.platform.is("cordova")) {
 			await TrackingUtility.initializeAsync(this.googleAnalytics);
-			PlatformUtility.keyboard = this.keyboard;
-			this.appVer.getVersionCode()
-				.then(version => this.appConfig.app.version = version as string)
-				.catch(error => this.showError("Cannot get app version", error));
+			if (this.device.platform !== "browser") {
+				PlatformUtility.keyboard = this.keyboard;
+				this.appVer.getVersionCode()
+					.then(version => this.appConfig.app.version = version as string)
+					.catch(error => console.error(this.getErrorMessage("Cannot get app version", error)));
+			}
 		}
 
 		await this.storage.ready();

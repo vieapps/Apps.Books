@@ -1,5 +1,4 @@
 import * as Rx from "rxjs";
-import { map } from "rxjs/operators";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "./app.api";
 import { AppUtility } from "./app.utility";
@@ -334,7 +333,7 @@ export class AppRTU {
 	}
 
 	/** Sends a request to a service */
-	public static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: any, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
+	public static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: { [key: string]: any }, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
 		if (this.isReady) {
 			this._websocket.send(JSON.stringify(request));
 		}
