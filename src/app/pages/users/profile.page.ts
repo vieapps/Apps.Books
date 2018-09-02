@@ -213,7 +213,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	}
 
 	async showActionsAsync() {
-		await this.appFormsSvc.showActionSheetAsync(this.actions, true);
+		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
 	onFormInitialized($event) {

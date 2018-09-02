@@ -154,6 +154,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	onStartSearch($event) {
+		this.scrollCtrl.disabled = true;
 		if (AppUtility.isNotEmpty($event.detail.value)) {
 			this.filterBy.Query = $event.detail.value;
 			if (this.searching) {
@@ -161,7 +162,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				this.ratings = {};
 				this.pageNumber = 0;
 				this.pagination = AppPagination.getDefault();
-				this.search();
+				this.search(() => this.scrollCtrl.disabled = false);
 			}
 			else {
 				this.prepareResults();
@@ -174,6 +175,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	onCancelSearch($event) {
+		this.scrollCtrl.disabled = true;
 		this.filterBy.Query = undefined;
 		if (this.searching) {
 			this.books = [];
@@ -202,12 +204,12 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				this.pageNumber++;
 				this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
 				this.pagination.PageNumber = this.pageNumber;
-				this.prepareResults(data !== undefined ? data.Objects : undefined, onCompleted);
+				this.prepareResults(onCompleted, data !== undefined ? data.Objects : undefined);
 			}
 		);
 	}
 
-	prepareResults(results?: Array<any>, onCompleted?: () => void) {
+	prepareResults(onCompleted?: () => void, results?: Array<any>) {
 		if (this.searching) {
 			(results || []).forEach(o => {
 				const book = Book.instances.getValue(o.ID);
@@ -285,7 +287,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			this.actions.push(this.appFormsSvc.getActionSheetButton(`Hiển thị toàn bộ ${AppPagination.computeTotal(pagination.PageNumber, pagination)} kết quả`, "eye", () => {
 				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 				this.pageNumber = this.pagination.PageNumber;
-				this.prepareResults(undefined, () => this.prepareActions());
+				this.prepareResults(() => this.prepareActions());
 			}));
 		}
 
@@ -295,7 +297,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	async showActionsAsync() {
-		await this.appFormsSvc.showActionSheetAsync(this.actions, true);
+		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
 	async showSortsAsync() {
@@ -307,7 +309,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				if (this.sort !== data) {
 					this.sort = data;
 					await this.contentCtrl.scrollToTop(500);
-					this.prepareResults(undefined, async () => await this.appFormsSvc.showToastAsync("Đã thay đổi cách thức sắp xếp..."));
+					this.prepareResults(async () => await this.appFormsSvc.showToastAsync("Đã thay đổi cách thức sắp xếp..."));
 				}
 			},
 			"Đặt",
@@ -351,7 +353,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		if (this.filtering) {
 			this.filtering = false;
 			this.filterBy.Query = undefined;
-			this.prepareResults();
+			this.prepareResults(() => this.scrollCtrl.disabled = false);
 		}
 		else {
 			this.configSvc.navigateBack();
