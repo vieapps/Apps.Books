@@ -132,7 +132,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "BirthDay",
-				Type: "Date",
+				Type: "DatePicker",
 				Required: true,
 				Options: {
 					Type: "date",
@@ -212,9 +212,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	}
 
 	async refreshCaptchaAsync(control?: AppFormsControl) {
-		await this.authSvc.registerCaptchaAsync(() => {
-			(control || this.register.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
-		});
+		await this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 	async registerAsync() {
@@ -224,11 +222,13 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		}
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
-		await this.usersSvc.registerAsync(AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Addresses", "Captcha"]), this.register.value.Captcha,
-			async () => {
-				await TrackingUtility.trackAsync(this.title, "/user/register");
-				await this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.navigateBack());
-			},
+		await this.usersSvc.registerAsync(
+			AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Captcha"]),
+			this.register.value.Captcha,
+			async () => await Promise.all([
+				TrackingUtility.trackAsync(this.title, "/user/register"),
+				this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.navigateBack())
+			]),
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),
 				this.appFormsSvc.showErrorAsync(error)

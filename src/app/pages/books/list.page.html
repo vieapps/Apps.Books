@@ -12,6 +12,9 @@
 			<ion-button [disabled]="asGrid" (click)="asGrid = true">
 				<ion-icon name="grid" slot="icon-only"></ion-icon>
 			</ion-button>
+			<ion-button [hidden]="filtering" (click)="showFilter()">
+				<ion-icon name="search" slot="icon-only"></ion-icon>
+			</ion-button>
 		</ion-buttons>
 		<ion-title [hidden]="searching || filtering">
 			{{title}}

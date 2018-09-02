@@ -168,10 +168,6 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				this.prepareResults();
 			}
 		}
-		else if (this.filtering) {
-			this.filterBy.Query = undefined;
-			this.prepareResults();
-		}
 	}
 
 	onCancelSearch($event) {
@@ -276,10 +272,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	prepareActions() {
 		this.actions = [
 			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward(this.booksSvc.getSearchURI())),
-			this.appFormsSvc.getActionSheetButton("Lọc/Tìm nhanh", "funnel", () => {
-				this.filtering = true;
-				PlatformUtility.focus(this.searchCtrl);
-			}),
+			this.appFormsSvc.getActionSheetButton("Lọc/Tìm nhanh", "funnel", () => this.showFilter()),
 			this.appFormsSvc.getActionSheetButton("Thay đổi cách sắp xếp", "list-box", async () => await this.showSortsAsync())
 		];
 
@@ -295,6 +288,11 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		if (this.authSvc.isServiceModerator()) {
 			this.actions.push(this.appFormsSvc.getActionSheetButton("Lấy dữ liệu", "build", async () => await this.showCrawlAsync()));
 		}
+	}
+
+	showFilter() {
+		this.filtering = true;
+		PlatformUtility.focus(this.searchCtrl);
 	}
 
 	async showActionsAsync() {

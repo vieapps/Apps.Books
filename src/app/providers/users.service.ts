@@ -40,7 +40,7 @@ export class UsersService extends BaseService {
 				const profile = UserProfile.deserialize(o);
 				return {
 					title: profile.Name,
-					description: profile.Email,
+					description: profile.Email.substr(0, profile.Email.indexOf("@") + 1) + "...",
 					image: profile.avatarUri,
 					originalObject: profile
 				};

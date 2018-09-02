@@ -108,17 +108,20 @@ export class LogInPage implements OnInit, OnDestroy {
 		}
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
-		await this.authSvc.logInAsync(this.login.value.Email, this.login.value.Password,
-			async data => {
-				await TrackingUtility.trackAsync(this.title, "/session/login");
-				await this.appFormsSvc.hideLoadingAsync();
-				if (data.Require2FA) {
-					this.openLoginOTP(data);
-				}
-				else {
-					this.configSvc.navigateBack();
-				}
-			},
+		await this.authSvc.logInAsync(
+			this.login.value.Email,
+			this.login.value.Password,
+			async data => await Promise.all([
+				TrackingUtility.trackAsync(this.title, "/session/login"),
+				this.appFormsSvc.hideLoadingAsync(() => {
+					if (data.Require2FA) {
+						this.openLoginOTP(data);
+					}
+					else {
+						this.configSvc.navigateBack();
+					}
+				})
+			]),
 			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể đăng nhập", () => this.login.controls.find(c => c.Key === "Email").focus())
 		);
 	}
@@ -187,11 +190,14 @@ export class LogInPage implements OnInit, OnDestroy {
 		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
-			await this.authSvc.logInOTPAsync(this.otp.value.ID, this.otp.value.OTP, this.otp.value.Provider,
-				async () => {
-					await TrackingUtility.trackAsync(this.title, "/session/otp");
-					await this.appFormsSvc.hideLoadingAsync(() => this.configSvc.navigateBack());
-				},
+			await this.authSvc.logInOTPAsync(
+				this.otp.value.ID,
+				this.otp.value.OTP,
+				this.otp.value.Provider,
+				async () => await Promise.all([
+					TrackingUtility.trackAsync(this.title, "/session/otp"),
+					this.appFormsSvc.hideLoadingAsync(() => this.configSvc.navigateBack())
+				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
 					const control = this.otp.controls.find(c => c.Key === "OTP");
 					control.value = "";
@@ -247,11 +253,13 @@ export class LogInPage implements OnInit, OnDestroy {
 		}
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
-		await this.authSvc.resetPasswordAsync(this.reset.value.Email, this.reset.value.Captcha,
-			async () => {
-				await TrackingUtility.trackAsync(this.title, "/session/reset");
-				await this.appFormsSvc.showAlertAsync("Mật khẩu mới", undefined, `Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, () => this.configSvc.navigateBack());
-			},
+		await this.authSvc.resetPasswordAsync(
+			this.reset.value.Email,
+			this.reset.value.Captcha,
+			async () => await Promise.all([
+				TrackingUtility.trackAsync(this.title, "/session/reset"),
+				this.appFormsSvc.showAlertAsync("Mật khẩu mới", undefined, `Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, () => this.configSvc.navigateBack())
+			]),
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),
 				this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => c.Key === "Captcha").focus())
@@ -271,9 +279,7 @@ export class LogInPage implements OnInit, OnDestroy {
 	}
 
 	async refreshCaptchaAsync(control?: AppFormsControl) {
-		await this.authSvc.registerCaptchaAsync(() => {
-			(control || this.reset.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri;
-		});
+		await this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 }
