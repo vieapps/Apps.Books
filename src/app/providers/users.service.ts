@@ -24,7 +24,7 @@ export class UsersService extends BaseService {
 	}
 
 	public get searchURI() {
-		return "users/profile/search?" + this.configSvc.relatedQuery + "&x-request=";
+		return `users/profile/search?${this.configSvc.relatedQuery}&x-request=`;
 	}
 
 	public get completerDataSource() {
@@ -64,30 +64,34 @@ export class UsersService extends BaseService {
 	}
 
 	public async registerAsync(body: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
 		body["Email"] = AppCrypto.rsaEncrypt(body["Email"]);
 		body["Password"] = AppCrypto.rsaEncrypt(body["Password"]);
 		body["ReferID"] = this.configSvc.appConfig.refer.id;
 		body["ReferSection"] = this.configSvc.appConfig.refer.section;
-		await this.createAsync(path, body, onNext, onError, this.configSvc.appConfig.getCaptchaHeaders(captcha));
+		await this.createAsync(
+			`users/account?${this.configSvc.relatedQuery}&uri=${AppCrypto.urlEncode(PlatformUtility.activateURI)}`,
+			body,
+			onNext,
+			onError,
+			this.configSvc.appConfig.getCaptchaHeaders(captcha)
+		);
 	}
 
 	public async sendInvitationAsync(name: string, email: string, privileges?: Array<Privilege>, relatedInfo?: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/invite?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
 		const body = {
 			Name: name,
 			Email: AppCrypto.rsaEncrypt(email),
 			Campaign: "InApp-Invitation",
 			Medium: this.configSvc.appConfig.app.id
 		};
-		if (privileges) {
+		if (privileges !== undefined) {
 			body["Privileges"] = AppCrypto.rsaEncrypt(JSON.stringify(privileges));
 		}
-		if (relatedInfo) {
+		if (relatedInfo !== undefined) {
 			body["RelatedInfo"] = AppCrypto.rsaEncrypt(JSON.stringify(relatedInfo));
 		}
 		await this.createAsync(
-			path,
+			`users/account/invite?${this.configSvc.relatedQuery}&uri=${AppCrypto.urlEncode(PlatformUtility.activateURI)}`,
 			body,
 			onNext,
 			error => {
@@ -100,8 +104,8 @@ export class UsersService extends BaseService {
 	}
 
 	public async activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/activate?mode=" + mode + "&code=" + code + "&" + this.configSvc.relatedQuery;
-		await this.readAsync(path,
+		await this.readAsync(
+			`users/activate?mode=${mode}&code=${code}&${this.configSvc.relatedQuery}`,
 			async data => {
 				await this.configSvc.updateSessionAsync(data, () => {
 					console.log(this.getLogMessage("Activated..."), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
@@ -127,8 +131,8 @@ export class UsersService extends BaseService {
 			}
 		}
 		else {
-			const path = "users/profile/" + id + "?" + this.configSvc.relatedQuery;
-			await this.readAsync(path,
+			await this.readAsync(
+				`users/profile/${id}?${this.configSvc.relatedQuery}`,
 				data => {
 					UserProfile.update(data);
 					if (onNext !== undefined) {
@@ -146,8 +150,9 @@ export class UsersService extends BaseService {
 	}
 
 	public async updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/profile/" + (body.ID || this.configSvc.getAccount().id) + "?" + this.configSvc.relatedQuery;
-		await this.updateAsync(path, body,
+		await this.updateAsync(
+			`users/profile/${body.ID || this.configSvc.getAccount().id}?${this.configSvc.relatedQuery}`,
+			body,
 			data => {
 				UserProfile.update(data);
 				if (onNext !== undefined) {
@@ -164,14 +169,12 @@ export class UsersService extends BaseService {
 	}
 
 	public async updatePasswordAsync(oldPassword: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/password?" + this.configSvc.relatedQuery;
-		const body = {
-			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
-			Password: AppCrypto.rsaEncrypt(password)
-		};
 		await this.updateAsync(
-			path,
-			body,
+			`users/account/password?${this.configSvc.relatedQuery}`,
+			{
+				OldPassword: AppCrypto.rsaEncrypt(oldPassword),
+				Password: AppCrypto.rsaEncrypt(password)
+			},
 			onNext,
 			error => {
 				console.error(this.getErrorMessage("Error occurred while updating password", error));
@@ -183,14 +186,12 @@ export class UsersService extends BaseService {
 	}
 
 	public async updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/email?" + this.configSvc.relatedQuery;
-		const body = {
-			OldPassword: AppCrypto.rsaEncrypt(oldPassword),
-			Email: AppCrypto.rsaEncrypt(email)
-		};
 		await this.updateAsync(
-			path,
-			body,
+			`users/account/email?${this.configSvc.relatedQuery}`,
+			{
+				OldPassword: AppCrypto.rsaEncrypt(oldPassword),
+				Email: AppCrypto.rsaEncrypt(email)
+			},
 			onNext,
 			error => {
 				console.error(this.getErrorMessage("Error occurred while updating email", error));
@@ -202,9 +203,8 @@ export class UsersService extends BaseService {
 	}
 
 	public async prepare2FAMethodAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/otp?" + this.configSvc.relatedQuery;
 		await this.readAsync(
-			path,
+			`users/otp?${this.configSvc.relatedQuery}`,
 			onNext,
 			error => {
 				console.error(this.getErrorMessage("Error occurred while preparing an 2FA method", error));
@@ -216,14 +216,12 @@ export class UsersService extends BaseService {
 	}
 
 	public async add2FAMethodAsync(provisioning: string, otp: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/otp?" + this.configSvc.relatedQuery;
-		const body = {
-			Provisioning: provisioning,
-			OTP: otp
-		};
 		await this.updateAsync(
-			path,
-			body,
+			`users/otp?${this.configSvc.relatedQuery}`,
+			{
+				Provisioning: provisioning,
+				OTP: otp
+			},
 			data => this.configSvc.updateAccount(data, onNext),
 			error => {
 				console.error(this.getErrorMessage("Error occurred while adding an 2FA method", error));
@@ -235,9 +233,8 @@ export class UsersService extends BaseService {
 	}
 
 	public async delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/otp?info=" + info + "&" + this.configSvc.relatedQuery;
 		await this.deleteAsync(
-			path,
+			`users/otp?info=${info}&${this.configSvc.relatedQuery}`,
 			data => this.configSvc.updateAccount(data, onNext),
 			error => {
 				console.error(this.getErrorMessage("Error occurred while deleting an 2FA method", error));
@@ -249,9 +246,8 @@ export class UsersService extends BaseService {
 	}
 
 	public async getPrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/" + id + "?" + this.configSvc.relatedQuery;
 		await this.readAsync(
-			path,
+			`users/account/${id}?${this.configSvc.relatedQuery}`,
 			onNext,
 			error => {
 				console.error(this.getErrorMessage("Error occurred while reading privileges", error));
@@ -263,13 +259,11 @@ export class UsersService extends BaseService {
 	}
 
 	public async updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/" + id + "?" + this.configSvc.relatedQuery;
-		const body = {
-			Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
-		};
 		await this.updateAsync(
-			path,
-			body,
+			`users/account/${id}?${this.configSvc.relatedQuery}`,
+			{
+				Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
+			},
 			onNext,
 			error => {
 				console.error(this.getErrorMessage("Error occurred while updating privileges", error));

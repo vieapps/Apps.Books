@@ -9,10 +9,10 @@ export class Privilege {
 	Role = "";
 	Actions = new Array<string>();
 
-	public static deserialize(json: any, obj?: Privilege) {
-		obj = obj || new Privilege();
-		AppUtility.copy(json, obj);
-		return obj;
+	public static deserialize(json: any, privilege?: Privilege) {
+		privilege = privilege || new Privilege();
+		AppUtility.copy(json, privilege);
+		return privilege;
 	}
 }
 
@@ -31,16 +31,16 @@ export class Privileges {
 	AdministrativeRoles = new Collections.Set<string>();
 	AdministrativeUsers = new Collections.Set<string>();
 
-	public static deserialize(json: any, obj?: Privileges) {
-		obj = obj || new Privileges();
-		Object.getOwnPropertyNames(obj).forEach(property => {
+	public static deserialize(json: any, privileges?: Privileges) {
+		privileges = privileges || new Privileges();
+		Object.getOwnPropertyNames(privileges).forEach(property => {
 			const data = json[property];
 			if (AppUtility.isArray(data, true)) {
 				const set = new Collections.Set<string>();
 				(data as Array<string>).forEach(o => set.add(o));
-				obj[property] = set;
+				privileges[property] = set;
 			}
 		});
-		return obj;
+		return privileges;
 	}
 }

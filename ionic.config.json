@@ -1,7 +1,7 @@
 {
-  "name": "VIEApps Online Books",
-  "integrations": {
-    "cordova": {}
-  },
-  "type": "angular"
+	"name": "VIEApps Online Books",
+	"integrations": {
+		"cordova": {}
+	},
+	"type": "angular"
 }

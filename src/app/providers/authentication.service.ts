@@ -1,5 +1,4 @@
 import * as Collections from "typescript-collections";
-import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
 import { AppRTU } from "./../components/app.rtu";
@@ -26,7 +25,7 @@ export class AuthenticationService extends BaseService {
 		return !AppUtility.isNotEmpty(role)
 			? false
 			: AppUtility.isArray(roles, true)
-				? new List<string>(roles).FirstOrDefault(r => r === role) !== undefined
+				? (roles as Array<string>).find(r => r === role) !== undefined
 				: roles instanceof Collections.Set
 					? (roles as Collections.Set<string>).contains(role)
 					: false;
@@ -35,7 +34,7 @@ export class AuthenticationService extends BaseService {
 	private isGotServiceRole(serviceName: string, role: string, privileges: Array<Privilege>) {
 		return !AppUtility.isNotEmpty(serviceName) || !AppUtility.isNotEmpty(role) || privileges === undefined
 			? false
-			: new List(privileges).FirstOrDefault(p => p.ServiceName === serviceName && p.Role === role) !== undefined;
+			: privileges.find(p => p.ServiceName === serviceName && p.Role === role) !== undefined;
 	}
 
 	/** Checks to see the account is system administrator or not */
@@ -79,19 +78,20 @@ export class AuthenticationService extends BaseService {
 	}
 
 	/** Checks to see the user can set privileges or not */
-	public get canSetPrivilegs() {
+	public get canSetPrivileges() {
 		return this.canDo(this.configSvc.appConfig.accountRegistrations.setPrivilegsRole);
 	}
 
 	public async logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const body = {
-			Email: AppCrypto.rsaEncrypt(email),
-			Password: AppCrypto.rsaEncrypt(password)
-		};
-		await this.createAsync("users/session", body,
+		await this.createAsync(
+			"users/session",
+			{
+				Email: AppCrypto.rsaEncrypt(email),
+				Password: AppCrypto.rsaEncrypt(password)
+			},
 			async data => {
 				if (AppUtility.isTrue(data.Require2FA)) {
-					console.log(this.getLogMessage("Log in with static password successful, need to verify with 2FA"), this.configSvc.isDebug ? data : "");
+					console.warn(this.getLogMessage("Log in with static password successful, but need to verify with 2FA"), this.configSvc.isDebug ? data : "");
 					if (onNext !== undefined) {
 						onNext(data);
 					}
@@ -117,13 +117,13 @@ export class AuthenticationService extends BaseService {
 	}
 
 	public async logInOTPAsync(userID: string, otpCode: string, providerInfo: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/session?" + this.configSvc.relatedQuery;
-		const body = {
-			ID: AppCrypto.rsaEncrypt(userID),
-			OTP: AppCrypto.rsaEncrypt(otpCode),
-			Info: AppCrypto.rsaEncrypt(providerInfo)
-		};
-		await this.updateAsync(path, body,
+		await this.updateAsync(
+			`users/session?${this.configSvc.relatedQuery}`,
+			{
+				ID: AppCrypto.rsaEncrypt(userID),
+				OTP: AppCrypto.rsaEncrypt(otpCode),
+				Info: AppCrypto.rsaEncrypt(providerInfo)
+			},
 			async data => {
 				console.log(this.getLogMessage("Log in with OTP successful"));
 				await this.updateSessionAsync(data, onNext);
@@ -133,7 +133,8 @@ export class AuthenticationService extends BaseService {
 	}
 
 	public async logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.deleteAsync("users/session",
+		await this.deleteAsync(
+			"users/session",
 			async data => {
 				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
 				await this.configSvc.updateSessionAsync(data, async () => {
@@ -152,15 +153,20 @@ export class AuthenticationService extends BaseService {
 	}
 
 	public async resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = "users/account/reset?" + this.configSvc.relatedQuery + "&uri=" + AppCrypto.urlEncode(PlatformUtility.activateURI);
-		const body = {
-			Email: AppCrypto.rsaEncrypt(email)
-		};
-		await this.updateAsync(path, body, onNext, error => this.showError("Error occurred while requesting new password", error, onError), this.configSvc.appConfig.getCaptchaHeaders(captcha));
+		await this.updateAsync(
+			`users/account/reset?${this.configSvc.relatedQuery}&uri=${AppCrypto.urlEncode(PlatformUtility.activateURI)}`,
+			{
+				Email: AppCrypto.rsaEncrypt(email)
+			},
+			onNext,
+			error => this.showError("Error occurred while requesting new password", error, onError),
+			this.configSvc.appConfig.getCaptchaHeaders(captcha)
+		);
 	}
 
 	public async registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.readAsync("users/captcha?register=" + this.configSvc.appConfig.session.id,
+		await this.readAsync(
+			`users/captcha?register=${this.configSvc.appConfig.session.id}`,
 			data => {
 				this.configSvc.appConfig.session.captcha = {
 					code: data.Code,

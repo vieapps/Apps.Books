@@ -2,6 +2,7 @@ import { Component, Input } from "@angular/core";
 import { AppUtility } from "../../components/app.utility";
 import { PlatformUtility } from "../../components/app.utility.platform";
 import { ConfigurationService } from "../../providers/configuration.service";
+import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
 
 @Component({
@@ -12,7 +13,8 @@ import { Book } from "../../models/book";
 export class BookGridControl {
 
 	constructor (
-		public configSvc: ConfigurationService
+		public configSvc: ConfigurationService,
+		public booksSvc: BooksService
 	) {
 	}
 
@@ -21,15 +23,11 @@ export class BookGridControl {
 	@Input() hideCategory: boolean;
 
 	get routerLink() {
-		return `/books/read/${this.book.ID}`;
+		return this.booksSvc.getBookURI(this.book);
 	}
 
 	get queryParams() {
-		return {
-			"x-request": AppUtility.toBase64Url({
-				ID: this.book.ID
-			})
-		} as { [key: string]: any };
+		return this.booksSvc.getBookQueryParams(this.book);
 	}
 
 	open() {

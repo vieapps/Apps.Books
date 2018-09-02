@@ -199,7 +199,8 @@ export class ConfigurationService extends BaseService {
 
 	/** Initializes the session with REST API */
 	public async initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.readAsync("users/session",
+		await super.readAsync(
+			"users/session",
 			async data => {
 				await this.updateSessionAsync(data, () => {
 					this.appConfig.session.account = this.getAccount(!this.isAuthenticated);
@@ -221,7 +222,8 @@ export class ConfigurationService extends BaseService {
 
 	/** Registers the initialized session (anonymous) with REST API */
 	public async registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.readAsync("users/session?register=" + this.appConfig.session.id,
+		await this.readAsync(
+			`users/session?register=${this.appConfig.session.id}`,
 			async () => {
 				this.appConfig.session.account = this.getAccount(true);
 				if (this.isDebug) {
@@ -316,7 +318,7 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
-	/** Resets information and re-store into storage */
+	/** Resets session information and re-store into storage */
 	public async resetSessionAsync(onCompleted?: (data?: any) => void) {
 		this.appConfig.session.id = undefined;
 		this.appConfig.session.token = undefined;
@@ -459,7 +461,8 @@ export class ConfigurationService extends BaseService {
 
 	/** Watch the connection of Facebook */
 	public watchFacebookConnect() {
-		FB.Event.subscribe("auth.authResponseChange",
+		FB.Event.subscribe(
+			"auth.authResponseChange",
 			response => {
 				if (response.status === "connected") {
 					this.appConfig.facebook.token = response.authResponse.accessToken;
@@ -478,12 +481,13 @@ export class ConfigurationService extends BaseService {
 
 	/** Get the information of Facebook profile */
 	public getFacebookProfile() {
-		FB.api("/" + this.appConfig.facebook.version + "/me?fields=id,name,picture&access_token=" + this.appConfig.facebook.token,
+		FB.api(
+			`/${this.appConfig.facebook.version}/me?fields=id,name,picture&access_token=${this.appConfig.facebook.token}`,
 			response => {
 				this.appConfig.session.account.facebook = {
 					id: response.id,
 					name: response.name,
-					profileUrl: "https://www.facebook.com/app_scoped_user_id/" + response.id,
+					profileUrl: `https://www.facebook.com/app_scoped_user_id/${response.id}`,
 					pictureUrl: undefined
 				};
 				this.storeProfileAsync(() => {
@@ -498,7 +502,8 @@ export class ConfigurationService extends BaseService {
 	public getFacebookAvatar() {
 		if (this.appConfig.session.account.facebook && this.appConfig.session.account.facebook.id && this.appConfig.session.token && this.appConfig.session.token.oauths
 			&& this.appConfig.session.token.oauths["facebook"] && this.appConfig.session.token.oauths["facebook"] === this.appConfig.session.account.facebook.id) {
-			FB.api("/" + this.appConfig.facebook.version + "/" + this.appConfig.session.account.facebook.id + "/picture?type=large&redirect=false&access_token=" + this.appConfig.facebook.token,
+			FB.api(
+				`/${this.appConfig.facebook.version}/${this.appConfig.session.account.facebook.id}/picture?type=large&redirect=false&access_token=${this.appConfig.facebook.token}`,
 				response => {
 					this.appConfig.session.account.facebook.pictureUrl = response.data.url;
 					this.storeProfileAsync(() => {
@@ -509,7 +514,7 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
-	/** Sends a request to tell app component navigates to home screen as root */
+	/** Sends a request to tell app component navigates to home screen */
 	public navigateHome(animated: boolean = true, extras?: { [key: string]: any }) {
 		AppEvents.broadcast("NavigateHome", {
 			animated: AppUtility.isTrue(animated),
@@ -572,14 +577,16 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private async loadGeoCountriesAsync(onCompleted?: (data?: any) => void) {
-		await this.readAsync("statics/geo/countries.json",
+		await this.readAsync(
+			"statics/geo/countries.json",
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
 			error => this.showError("Error occurred while fetching the meta countries", error)
 		);
 	}
 
 	private async loadGeoProvincesAsync(country?: string, onCompleted?: () => void) {
-		await this.readAsync("statics/geo/provinces/" + (country || this.appConfig.meta.country) + ".json",
+		await this.readAsync(
+			`statics/geo/provinces/${country || this.appConfig.meta.country}.json`,
 			async data => await this.saveGeoMetaAsync(data, onCompleted),
 			error => this.showError("Error occurred while fetching the meta provinces", error)
 		);

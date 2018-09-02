@@ -14,9 +14,9 @@ export class ContactInfo {
 	Notes = "";
 	GPSLocation = "";
 
-	public static deserialize(json: any, obj?: ContactInfo) {
-		obj = obj || new ContactInfo();
-		AppUtility.copy(json, obj);
-		return obj;
+	public static deserialize(json: any, contactInfo?: ContactInfo) {
+		contactInfo = contactInfo || new ContactInfo();
+		AppUtility.copy(json, contactInfo);
+		return contactInfo;
 	}
 }

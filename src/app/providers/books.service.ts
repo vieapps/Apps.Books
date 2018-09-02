@@ -45,20 +45,20 @@ export class BooksService extends BaseService {
 				MenuIndex: 0,
 				ItemInfo: {
 					title: "Tìm kiếm",
-					url: "/books/search",
+					url: this.getSearchURI(),
 					icon: "search"
 				}
 			});
 		});
 
 		AppEvents.on("Session", info => {
-			if (this.configSvc.isAuthenticated && AppRTU.isReady && "Updated" === info.args["Type"]) {
+			if (this.configSvc.isAuthenticated && AppRTU.isReady && "Updated" === info.args.Type) {
 				this.getBookmarks();
 			}}
 		);
 
 		AppEvents.on("Books", info => {
-			if ("CategoriesUpdated" === info.args["Type"]) {
+			if ("CategoriesUpdated" === info.args.Type) {
 				const parent = this.configSvc.requestParams["parent"];
 				AppEvents.broadcast("UpdateSidebar", {
 					index: 1,
@@ -83,7 +83,7 @@ export class BooksService extends BaseService {
 	}
 
 	public get searchURI() {
-		return "books/book/search?" + this.configSvc.relatedQuery + "&x-request=";
+		return `books/book/search?${this.configSvc.relatedQuery}&x-request=`;
 	}
 
 	public get completerDataSource() {
@@ -133,9 +133,8 @@ export class BooksService extends BaseService {
 			}
 		}
 		else {
-			const path = `books/book/${id}`;
 			await this.readAsync(
-				path,
+				`books/book/${id}`,
 				data => {
 					Book.update(data);
 					if (!AppUtility.isTrue(dontUpdateCounter)) {
@@ -168,9 +167,8 @@ export class BooksService extends BaseService {
 			}
 		}
 		else {
-			const path = `books/book/${id}?chapter=${chapter}`;
 			await this.readAsync(
-				path,
+				`books/book/${id}?chapter=${chapter}`,
 				data => {
 					book.Chapters[chapter - 1] = data.Content;
 					this.updateCounters(id);
@@ -209,7 +207,7 @@ export class BooksService extends BaseService {
 			}, data => book.Chapters[chapter - 1] = data.Content);
 		}
 		if (chapter <= book.TotalChapters) {
-			this.updateCounters(id, "View", onCompleted);
+			this.updateCounters(id, "view", onCompleted);
 		}
 		if (onCompleted !== undefined) {
 			onCompleted();
@@ -286,9 +284,8 @@ export class BooksService extends BaseService {
 	}
 
 	public async requestUpdateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = `books/book/${body.ID}`;
 		await super.createAsync(
-			path,
+			`books/book/${body.ID}`,
 			body,
 			onNext,
 			error => {
@@ -301,9 +298,8 @@ export class BooksService extends BaseService {
 	}
 
 	public async updateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = `books/book/${body.ID}`;
 		await super.updateAsync(
-			path,
+			`books/book/${body.ID}`,
 			body,
 			onNext,
 			error => {
@@ -316,9 +312,8 @@ export class BooksService extends BaseService {
 	}
 
 	public async deleteAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const path = `books/book/${id}`;
 		await super.deleteAsync(
-			path,
+			`books/book/${id}`,
 			data => {
 				Book.instances.remove(id);
 				if (onNext !== undefined) {
@@ -379,9 +374,8 @@ export class BooksService extends BaseService {
 	}
 
 	private async fetchIntroductionsAsync(onCompleted?: () => void) {
-		const path = "statics/services/books.json";
 		await this.readAsync(
-			path,
+			"statics/services/books.json",
 			async data => {
 				this.configSvc.appConfig.extras["Book-Introductions"] = data;
 				await this.storeIntroductionsAsync(onCompleted);
@@ -593,14 +587,10 @@ export class BooksService extends BaseService {
 	}
 
 	private syncBookmarks(data: any, onCompleted?: () => void) {
-		if (this.configSvc.isAuthenticated) {
-			this.configSvc.getAccount().profile.LastSync = new Date();
-		}
-
+		this.configSvc.getAccount().profile.LastSync = new Date();
 		if (AppUtility.isTrue(data.Sync)) {
 			this.bookmarks.clear();
 		}
-
 		(data.Objects as Array<any>).forEach(b => {
 			const bookmark = Bookmark.deserialize(b);
 			if (!this.bookmarks.containsKey(bookmark.ID)) {
@@ -631,7 +621,7 @@ export class BooksService extends BaseService {
 
 		PlatformUtility.setTimeout(async () => {
 			AppEvents.broadcast("Book", { Type: "BookmarksUpdated" });
-			AppEvents.broadcast("BookmarksAreUpdated");
+			AppEvents.broadcast("BookmarksAreUpdated", this.bookmarks);
 			await this.storeBookmarksAsync(onCompleted);
 		});
 	}
@@ -672,6 +662,22 @@ export class BooksService extends BaseService {
 			Body: undefined,
 			Extra: undefined
 		});
+	}
+
+	public getBookURI(book: Book) {
+		return `/books/read/${book.ID}`;
+	}
+
+	public getBookQueryParams(book: Book) {
+		return {
+			"x-request": AppUtility.toBase64Url({
+				ID: book.ID
+			})
+		} as { [key: string]: any };
+	}
+
+	public getSearchURI() {
+		return "/books/search";
 	}
 
 }

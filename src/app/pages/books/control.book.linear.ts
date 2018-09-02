@@ -1,5 +1,6 @@
 import { Component, Input } from "@angular/core";
 import { AppUtility } from "../../components/app.utility";
+import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
 
 @Component({
@@ -10,6 +11,7 @@ import { Book } from "../../models/book";
 export class BookLinearControl {
 
 	constructor (
+		public booksSvc: BooksService
 	) {
 	}
 
@@ -18,15 +20,11 @@ export class BookLinearControl {
 	@Input() hideCategory: boolean;
 
 	get routerLink() {
-		return `/books/read/${this.book.ID}`;
+		return this.booksSvc.getBookURI(this.book);
 	}
 
 	get queryParams() {
-		return {
-			"x-request": AppUtility.toBase64Url({
-				ID: this.book.ID
-			})
-		} as { [key: string]: any };
+		return this.booksSvc.getBookQueryParams(this.book);
 	}
 
 }

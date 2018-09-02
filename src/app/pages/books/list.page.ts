@@ -136,7 +136,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		this.requestParams = this.configSvc.requestParams;
 		this.filterBy.And.Category.Equals = this.requestParams["Category"];
 		this.filterBy.And.Author.Equals = this.requestParams["Author"];
-		this.searching = this.configSvc.currentUrl.startsWith("/books/search");
+		this.searching = this.configSvc.currentUrl.startsWith(this.booksSvc.getSearchURI());
 
 		this.title = this.searching
 			? "Tìm kiếm"
@@ -200,11 +200,12 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		this.booksSvc.searchAsync(
 			this.request,
-			data => {
+			async data => {
 				this.pageNumber++;
 				this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
 				this.pagination.PageNumber = this.pageNumber;
 				this.prepareResults(onCompleted, data !== undefined ? data.Objects : undefined);
+				await TrackingUtility.trackAsync(this.title, "/books/list");
 			}
 		);
 	}
@@ -230,7 +231,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				const filterByAuthor = AppUtility.isNotEmpty(this.filterBy.And.Author.Equals);
 				if (query !== "" || filterByCategory || filterByAuthor) {
 					objects = objects.Where(o => {
-						return (query !== "" ? AppUtility.indexOf(o.ANSITitle, query) > -1 : true)
+						return (query !== "" ? o.ANSITitle.indexOf(query) > -1 : true)
 							&& (filterByCategory ? o.Category.startsWith(this.filterBy.And.Category.Equals) : true)
 							&& (filterByAuthor ? o.Author === this.filterBy.And.Author.Equals : true);
 					});
@@ -274,7 +275,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	prepareActions() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward("/search-books")),
+			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward(this.booksSvc.getSearchURI())),
 			this.appFormsSvc.getActionSheetButton("Lọc/Tìm nhanh", "funnel", () => {
 				this.filtering = true;
 				PlatformUtility.focus(this.searchCtrl);
@@ -360,7 +361,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	trackBook(index: number, book: Book) {
+	track(index: number, book: Book) {
 		return book.ID;
 	}
 

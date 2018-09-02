@@ -24,7 +24,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 
-	public ngOnInit() {
+	ngOnInit() {
 		if ((this.controls === undefined || this.controls.length < 1) && this.config !== undefined) {
 			this.controls = this.appFormsSvc.getControls(this.config, this.controls);
 		}
@@ -43,29 +43,29 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.initEvent.emit(this);
 	}
 
-	public ngAfterViewInit() {
+	ngAfterViewInit() {
 		this.appFormsSvc.focus(this.controls.find(control => control.Options.AutoFocus));
 	}
 
-	public ngOnDestroy() {
+	ngOnDestroy() {
 		this.initEvent.unsubscribe();
 		this.submitEvent.unsubscribe();
 		this.refreshCaptchaEvent.unsubscribe();
 	}
 
-	public onRefreshCaptcha($event) {
+	onRefreshCaptcha($event) {
 		this.refreshCaptchaEvent.emit($event);
 	}
 
-	public onLastFocus($event) {
+	onLastFocus($event) {
 		PlatformUtility.focus(this.lastFocus);
 	}
 
-	public onSubmit() {
+	onSubmit() {
 		this.submitEvent.next(this.form.value);
 	}
 
-	public trackControl(index: number, control: AppFormsControl) {
+	trackControl(index: number, control: AppFormsControl) {
 		return control.Key;
 	}
 

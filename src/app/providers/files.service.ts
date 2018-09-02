@@ -17,10 +17,16 @@ export class FilesService extends BaseService {
 
 	public async uploadAvatarAsync(base64Data: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		try {
-			const uri = this.configSvc.appConfig.URIs.files + "avatars";
-			const headers = { "x-as-base64": "yes" };
-			const body = { Data: base64Data };
-			const response = await AppAPI.send("POST", uri, headers, body).toPromise();
+			const response = await AppAPI.send(
+				"POST",
+				`${this.configSvc.appConfig.URIs.files}avatars`,
+				{
+					"x-as-base64": "yes"
+				},
+				{
+					Data: base64Data
+				}
+			).toPromise();
 			if (onNext !== undefined) {
 				onNext(response.json());
 			}

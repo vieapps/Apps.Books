@@ -44,10 +44,10 @@ export class UserProfileBase extends BaseModel {
 	FullAddress = "";
 	IsOnline = false;
 
-	public static deserialize(json: any, obj?: UserProfileBase) {
-		obj = obj || new UserProfileBase();
-		obj.copy(json);
-		return obj;
+	public static deserialize(json: any, profile?: UserProfileBase) {
+		profile = profile || new UserProfileBase();
+		profile.copy(json);
+		return profile;
 	}
 
 	public static get(id: string) {
@@ -95,10 +95,10 @@ export class UserProfile extends UserProfileBase {
 		return super.get(id) as UserProfile;
 	}
 
-	public static deserialize(json: any, obj?: UserProfile) {
-		obj = obj || new UserProfile();
-		obj.copy(json);
-		return obj;
+	public static deserialize(json: any, profile?: UserProfile) {
+		profile = profile || new UserProfile();
+		profile.copy(json);
+		return profile;
 	}
 
 	static update(data: any) {
@@ -113,7 +113,7 @@ export class UserProfile extends UserProfileBase {
 	public copy(source: any, onCompleted?: (data: any) => void) {
 		super.copy(source, data => {
 			this.RatingPoints = new Collections.Dictionary<string, RatingPoint>();
-			if (AppUtility.isArray(data.RatingPoints)) {
+			if (AppUtility.isArray(data.RatingPoints, true)) {
 				(data.RatingPoints as Array<any>).forEach(o => this.RatingPoints.setValue(o.Type, RatingPoint.deserialize(o)));
 			}
 			if (onCompleted !== undefined) {

@@ -16,7 +16,10 @@
 		<ion-title [hidden]="searching || filtering">
 			{{title}}
 		</ion-title>
-		<ion-searchbar [hidden]="!searching && !filtering" placeholder="tìm nhanh, không dấu cũng OK" (ionChange)="onStartSearch($event)" (ionCancel)="onCancelSearch($event)" (ionClear)="onCancelSearch($event)"></ion-searchbar>
+		<ion-searchbar [hidden]="!searching && !filtering" placeholder="tìm nhanh, không dấu cũng OK"
+			(ionChange)="onStartSearch($event)"
+			(ionCancel)="onCancelSearch($event)"
+			(ionClear)="onCancelSearch($event)"></ion-searchbar>
 	</ion-toolbar>
 </ion-header>
 
@@ -43,7 +46,7 @@
 <ion-content>
 
 	<ion-list *ngIf="!displayAsGrid">
-		<control-book-linear *ngFor="let book of books; trackBy: trackBook"
+		<control-book-linear *ngFor="let book of books; trackBy: track"
 			[book]="book"
 			[hideAuthor]="hideAuthor"
 			[hideCategory]="hideCategory"></control-book-linear>
@@ -51,14 +54,14 @@
 
 	<div *ngIf="displayAsGrid" ion-grid padding>
 		<div ion-row>
-			<control-book-grid *ngFor="let book of books; trackBy: trackBook" ion-col col-6 col-md-4 col-xl-3
+			<control-book-grid *ngFor="let book of books; trackBy: track" ion-col col-6 col-md-4 col-xl-3
 				[book]="book"
 				[hideAuthor]="hideAuthor"
 				[hideCategory]="hideCategory"></control-book-grid>
 		</div>
 	</div>
 
-	<ion-infinite-scroll threshold="288px" position="bottom" [hidden]="filtering" (ionInfinite)="onScroll($event)">
+	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onScroll($event)">
 		<ion-infinite-scroll-content></ion-infinite-scroll-content>
 	</ion-infinite-scroll>
 

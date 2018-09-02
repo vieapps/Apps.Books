@@ -155,7 +155,7 @@ export class AppConfig {
 	/** Gets the culture language for working with UI */
 	public static get language() {
 		return this.session.account !== undefined && this.session.account.profile !== undefined
-			? this.session.account.profile.Language
+			? this.session.account.profile.Language || "vi-VN"
 			: this.app.language;
 	}
 

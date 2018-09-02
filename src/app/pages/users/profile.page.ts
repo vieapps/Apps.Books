@@ -198,7 +198,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				].forEach(action => this.actions.push(action));
 			}
 
-			if (this.profile.ID !== this.configSvc.appConfig.session.account.id && this.authSvc.canSetPrivilegs) {
+			if (this.profile.ID !== this.configSvc.appConfig.session.account.id && this.authSvc.canSetPrivileges) {
 				this.actions.push(this.appFormsSvc.getActionSheetButton("Đặt quyền truy cập", "settings", () => this.updatePrivileges()));
 			}
 

@@ -28,18 +28,18 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	show = false;
 	private _style: string = undefined;
 
-	public ngOnInit() {
+	ngOnInit() {
 		if (this.isControl("Completer")) {
 			this.completerInit();
 		}
 	}
 
-	public ngAfterViewInit() {
+	ngAfterViewInit() {
 		this.control.elementRef = this.elementRef;
 		this.control.formRef = this.formControl;
 	}
 
-	public ngOnDestroy() {
+	ngOnDestroy() {
 		this.refreshCaptchaEvent.unsubscribe();
 		this.lastFocusEvent.unsubscribe();
 		if (this.control.Options.CompleterOptions.DataSource !== undefined) {
@@ -47,68 +47,68 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 	}
 
-	public get formControl() {
+	get formControl() {
 		return this.formGroup.controls[this.control.Key];
 	}
 
-	public get formControlName() {
+	get formControlName() {
 		return this.formArrayIndex !== undefined ? this.formArrayIndex : this.control.Key;
 	}
 
-	public get visible() {
+	get visible() {
 		return !this.control.Excluded;
 	}
 
-	public get invalid() {
+	get invalid() {
 		const formControl = this.formControl;
 		return formControl !== undefined && formControl.invalid && formControl.dirty;
 	}
 
-	public get isFormControl() {
+	get isFormControl() {
 		return this.control.SubControls === undefined;
 	}
 
-	public get isFormGroup() {
+	get isFormGroup() {
 		return this.control.SubControls !== undefined && !this.control.SubControls.AsArray;
 	}
 
-	public get isFormArray() {
+	get isFormArray() {
 		return this.control.SubControls !== undefined && this.control.SubControls.AsArray;
 	}
 
-	public get isSimpleFormArray() {
+	get isSimpleFormArray() {
 		return this.isFormArray && this.control.SubControls.Controls.find(subcontrol => subcontrol.SubControls !== undefined) === undefined;
 	}
 
-	public get isComplexFormArray() {
+	get isComplexFormArray() {
 		return this.isFormArray && this.control.SubControls.Controls.find(subcontrol => subcontrol.SubControls !== undefined) !== undefined;
 	}
 
-	public isControl(type: string) {
+	isControl(type: string) {
 		return this.control.Type === type || this.control.Type.toLowerCase() === type.toLowerCase();
 	}
 
-	public get isPasswordControl() {
+	get isPasswordControl() {
 		return this.isControl("TextBox") && this.control.Options.Type === "password";
 	}
 
-	public get label() {
+	get label() {
 		return this.control.Options.Label;
 	}
 
-	public get color() {
+	get color() {
 		return this.control.Options.LabelOptions.Color;
 	}
 
-	public get position() {
+	get position() {
 		return this.control.Options.LabelOptions.Position;
 	}
 
-	public get description() {
+	get description() {
 		return this.control.Options.Description;
 	}
 
-	public get css() {
+	get css() {
 		return {
 			label: this.control.Options.LabelOptions.Css,
 			control: this.control.Options.Css,
@@ -116,51 +116,51 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		};
 	}
 
-	public get type() {
+	get type() {
 		return this.isPasswordControl && this.show ? "text" : this.control.Options.Type;
 	}
 
-	public get required() {
+	get required() {
 		return this.control.Required ? true : undefined;
 	}
 
-	public get disabled() {
+	get disabled() {
 		return this.control.Options.Disabled ? true : undefined;
 	}
 
-	public get readonly() {
+	get readonly() {
 		return this.control.Options.ReadOnly ? true : undefined;
 	}
 
-	public get autofocus() {
+	get autofocus() {
 		return this.control.Options.AutoFocus ? true : undefined;
 	}
 
-	public get placeholder() {
+	get placeholder() {
 		return this.control.Options.PlaceHolder;
 	}
 
-	public get min() {
+	get min() {
 		return this.control.Options.Min;
 	}
 
-	public get max() {
+	get max() {
 		return this.control.Options.Max;
 	}
 
-	public get minLength() {
+	get minLength() {
 		return this.control.Options.MinLength;
 	}
 
-	public get maxLength() {
+	get maxLength() {
 		return this.control.Options.MaxLength;
 	}
 
-	public get clearOnEdit() {
+	get clearOnEdit() {
 		return this.control.Options.Type.toLowerCase() === "password" ? false : undefined;
 	}
 
-	public get style() {
+	get style() {
 		if (this._style === undefined) {
 			this._style = "";
 			if (this.control.Options.Width) {
@@ -191,19 +191,19 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		};
 	}
 
-	public get name() {
+	get name() {
 		return this.control.Options.Name;
 	}
 
-	public get value() {
+	get value() {
 		return this.formControl.value;
 	}
 
-	public get datetimeValue() {
+	get datetimeValue() {
 		return this.value !== undefined ? new Date(this.value).toJSON() : undefined;
 	}
 
-	public datetimeValueChange($event) {
+	datetimeValueChange($event) {
 		try {
 			const year = $event.detail.value.year;
 			const month = $event.detail.value.month;
@@ -230,7 +230,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		this.focusNext();
 	}
 
-	public get datetimeDisplayFormat() {
+	get datetimeDisplayFormat() {
 		return this.control.Options.DateOptions.DisplayFormat !== undefined
 			? this.control.Options.DateOptions.DisplayFormat
 			: this.control.Options.DateOptions.AllowTimes
@@ -238,64 +238,64 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				: "DD/MM/YYYY";
 	}
 
-	public get datetimePickerFormat() {
+	get datetimePickerFormat() {
 		return this.control.Options.DateOptions.PickerFormat;
 	}
 
-	public get datetimeDayNames() {
+	get datetimeDayNames() {
 		return this.control.Options.DateOptions.DayNames;
 	}
 
-	public get datetimeDayShortNames() {
+	get datetimeDayShortNames() {
 		return this.control.Options.DateOptions.DayShortNames;
 	}
 
-	public get datetimeMonthNames() {
+	get datetimeMonthNames() {
 		return this.control.Options.DateOptions.MonthNames;
 	}
 
-	public get datetimeMonthShortNames() {
+	get datetimeMonthShortNames() {
 		return this.control.Options.DateOptions.MonthShortNames;
 	}
 
-	public get datetimeCancelText() {
+	get datetimeCancelText() {
 		return this.control.Options.DateOptions.CancelText;
 	}
 
-	public get datetimeDoneText() {
+	get datetimeDoneText() {
 		return this.control.Options.DateOptions.DoneText;
 	}
 
-	public get selectValues() {
+	get selectValues() {
 		return this.control.Options.SelectOptions.Values;
 	}
 
-	public selectValuesChange($event) {
+	selectValuesChange($event) {
 		this.formControl.setValue($event.detail.value);
 		this.focusNext();
 	}
 
-	public get selectAsRadioBoxes() {
+	get selectAsRadioBoxes() {
 		return this.isControl("Select") && !this.control.Options.SelectOptions.Multiple && this.control.Options.SelectOptions.AsBoxes;
 	}
 
-	public get selectMultiple() {
+	get selectMultiple() {
 		return this.control.Options.SelectOptions.Multiple;
 	}
 
-	public get selectInterface() {
+	get selectInterface() {
 		return this.control.Options.SelectOptions.Interface;
 	}
 
-	public get selectInterfaceOptions() {
+	get selectInterfaceOptions() {
 		return this.control.Options.SelectOptions.InterfaceOptions;
 	}
 
-	public get selectCancelText() {
+	get selectCancelText() {
 		return this.control.Options.SelectOptions.CancelText;
 	}
 
-	public get selectOKText() {
+	get selectOKText() {
 		return this.control.Options.SelectOptions.OKText;
 	}
 
@@ -308,39 +308,39 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 	}
 
-	public get completerPlaceHolder() {
+	get completerPlaceHolder() {
 		return this.placeholder || "";
 	}
 
-	public get completerMinLength() {
+	get completerMinLength() {
 		return this.minLength || 3;
 	}
 
-	public get completerMaxLength() {
+	get completerMaxLength() {
 		return this.maxLength || 150;
 	}
 
-	public get completerSearchingText() {
+	get completerSearchingText() {
 		return this.control.Options.CompleterOptions.SearchingText || "Searching...";
 	}
 
-	public get completerNoResultsText() {
+	get completerNoResultsText() {
 		return this.control.Options.CompleterOptions.NoResultsText || "Not found";
 	}
 
-	public get completerPauseMiliseconds() {
+	get completerPauseMiliseconds() {
 		return this.control.Options.CompleterOptions.PauseMiliseconds || 123;
 	}
 
-	public get completerClearSelected() {
+	get completerClearSelected() {
 		return this.control.Options.CompleterOptions.ClearSelected;
 	}
 
-	public get completerDataSource() {
+	get completerDataSource() {
 		return this.control.Options.CompleterOptions.DataSource;
 	}
 
-	public get completerInitialValue() {
+	get completerInitialValue() {
 		if (this.control.Options.Type === "Address") {
 			const value = {
 				County: "",
@@ -375,49 +375,49 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 	}
 
-	public get captchaUri() {
+	get captchaUri() {
 		return this.control.captchaUri;
 	}
 
-	public refreshCaptcha() {
+	refreshCaptcha() {
 		this.control.value = "";
 		this.control.focus();
 		this.refreshCaptchaEvent.emit(this.control);
 	}
 
-	public get subControls() {
+	get subControls() {
 		return this.control.SubControls.Controls;
 	}
 
-	public get subFormGroup() {
+	get subFormGroup() {
 		return this.formControl;
 	}
 
-	public getSubFormGroup(index: number) {
+	getSubFormGroup(index: number) {
 		return (this.subFormGroup as FormArray).controls[index];
 	}
 
-	public getSubControls(control: AppFormsControl) {
+	getSubControls(control: AppFormsControl) {
 		return control.SubControls.Controls;
 	}
 
-	public getSubLabel(control: AppFormsControl) {
+	getSubLabel(control: AppFormsControl) {
 		return control.Options.Label;
 	}
 
-	public getSubColor(control: AppFormsControl) {
+	getSubColor(control: AppFormsControl) {
 		return control.Options.LabelOptions.Color;
 	}
 
-	public getSubCss(control: AppFormsControl) {
+	getSubCss(control: AppFormsControl) {
 		return control.Options.LabelOptions.Css;
 	}
 
-	public trackControl(index: number, control: AppFormsControl) {
+	trackControl(index: number, control: AppFormsControl) {
 		return control.Key;
 	}
 
-	public onKeyUp($event: KeyboardEvent) {
+	onKeyUp($event: KeyboardEvent) {
 		if ($event.code === "Enter") {
 			this.focusNext();
 		}

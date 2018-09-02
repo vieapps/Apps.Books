@@ -52,7 +52,11 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 				// {
 				// 	path: "info/:data",
 				// 	loadChildren: "./pages/books/info.module#ViewBookInfoPageModule"
-				// }
+				// },
+				// {
+				// 	path: "update/:data",
+				// 	loadChildren: "./pages/books/update.module#UpdateBookPageModule"
+				// },
 			]
 		},
 	])],

@@ -1,9 +1,9 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { AppFormsService, AppFormsControl } from "../../components/forms.service";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
+import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { UsersService } from "../../providers/users.service";
