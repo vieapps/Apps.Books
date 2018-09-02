@@ -195,7 +195,8 @@ export class Base {
 
 @Injectable()
 export class AppReadyGuardService implements CanActivate {
-	constructor(public router: Router) { }
+	constructor(public router: Router) {
+	}
 	canActivate() {
 		if (!AppConfig.isReady) {
 			this.router.navigateByUrl("/home");
@@ -206,7 +207,8 @@ export class AppReadyGuardService implements CanActivate {
 
 @Injectable()
 export class AuthenticatedGuardService implements CanActivate {
-	constructor(public router: Router) { }
+	constructor(public router: Router) {
+	}
 	canActivate() {
 		if (!AppConfig.isAuthenticated) {
 			this.router.navigateByUrl("/home");
@@ -217,7 +219,8 @@ export class AuthenticatedGuardService implements CanActivate {
 
 @Injectable()
 export class NotAuthenticatedGuardService implements CanActivate {
-	constructor(public router: Router) { }
+	constructor(public router: Router) {
+	}
 	canActivate() {
 		if (AppConfig.isAuthenticated) {
 			this.router.navigateByUrl("/home");
@@ -228,7 +231,8 @@ export class NotAuthenticatedGuardService implements CanActivate {
 
 @Injectable()
 export class RegisterGuardService implements CanActivate {
-	constructor(public router: Router) { }
+	constructor(public router: Router) {
+	}
 	canActivate() {
 		if (!AppConfig.accountRegistrations.registrable) {
 			this.router.navigateByUrl("/home");

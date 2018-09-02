@@ -206,15 +206,15 @@ export class ConfigurationService extends BaseService {
 		await super.readAsync(
 			"users/session",
 			async data => {
+				if (this.isDebug) {
+					console.log(this.getLogMessage("The session is initialized by APIs"));
+				}
 				await this.updateSessionAsync(data, () => {
 					this.appConfig.session.account = this.getAccount(!this.isAuthenticated);
 					if (this.isAuthenticated) {
 						this.appConfig.session.account.id = this.appConfig.session.token.uid;
 					}
-					if (this.isDebug) {
-						console.log(this.getLogMessage("The session is initialized by APIs"));
-					}
-					AppEvents.broadcast("Session", { Type: this.isAuthenticated ? "Register" : "Initialize", Info: this.appConfig.session });
+					AppEvents.broadcast("Session", { Type: this.isAuthenticated ? "Registered" : "Initialized", Info: this.appConfig.session });
 					if (onNext !== undefined) {
 						onNext(data);
 					}
@@ -233,7 +233,7 @@ export class ConfigurationService extends BaseService {
 				if (this.isDebug) {
 					console.log(this.getLogMessage("The session is registered by APIs"));
 				}
-				AppEvents.broadcast("Session", { Type: "Register", Info: this.appConfig.session });
+				AppEvents.broadcast("Session", { Type: "Registered", Info: this.appConfig.session });
 				await this.storeSessionAsync(onNext);
 			},
 			error => this.showError("Error occurred while registering the session", error, onError)
@@ -411,7 +411,6 @@ export class ConfigurationService extends BaseService {
 				required: account.TwoFactorsAuthentication.Required,
 				providers: account.TwoFactorsAuthentication.Providers
 			};
-			AppEvents.broadcast("Account", { Type: "Updated", Info: this.appConfig.session.account });
 			this.storeSessionAsync(onCompleted);
 		}
 		else if (onCompleted !== undefined) {

@@ -7,8 +7,8 @@ import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
 import { Device } from "@ionic-native/device/ngx";
 
-import { AppEvents } from "./components/app.events";
 import { AppRTU } from "./components/app.rtu";
+import { AppEvents } from "./components/app.events";
 import { AppUtility } from "./components/app.utility";
 import { PlatformUtility } from "./components/app.utility.platform";
 import { TrackingUtility } from "./components/app.utility.trackings";
@@ -67,7 +67,7 @@ export class AppComponent implements OnInit {
 	};
 
 	ngOnInit() {
-		console.log("<AppComponent>: Initializing the app", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
+		console.log("<AppComponent>: Initializing", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 
 		// capture router info
 		this.configSvc.addUrl("/home", {});
@@ -123,7 +123,7 @@ export class AppComponent implements OnInit {
 				queryParams: undefined as { [key: string]: any },
 				direction: "root",
 				icon: "home",
-				thumbnail: undefined,
+				thumbnail: undefined as string,
 				detail: false
 			},
 			login: {
@@ -132,7 +132,7 @@ export class AppComponent implements OnInit {
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "log-in",
-				thumbnail: undefined,
+				thumbnail: undefined as string,
 				detail: false
 			},
 			register: {
@@ -141,7 +141,7 @@ export class AppComponent implements OnInit {
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person-add",
-				thumbnail: undefined,
+				thumbnail: undefined as string,
 				detail: false
 			},
 			profile: {
@@ -150,7 +150,7 @@ export class AppComponent implements OnInit {
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person",
-				thumbnail: undefined,
+				thumbnail: undefined as string,
 				detail: false
 			}
 		};
@@ -247,8 +247,7 @@ export class AppComponent implements OnInit {
 		});
 
 		AppEvents.on("Session", info => {
-			const type = info.args.Type || "Unknown";
-			if (type === "Loaded" || type === "Updated") {
+			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
 				const profile = this.configSvc.getAccount().profile;
 				this.sidebar.left.title = profile ? profile.Name : this.configSvc.appConfig.app.name;
 				this.sidebar.left.avatar = profile ? profile.avatarUri : undefined;
