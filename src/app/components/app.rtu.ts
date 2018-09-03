@@ -339,7 +339,7 @@ export class AppRTU {
 		}
 		else {
 			let path = `${request.ServiceName.toLowerCase()}/${request.ObjectName.toLowerCase()}`;
-			let query = PlatformUtility.getRelatedQuery(AppConfig.app.service);
+			let query = AppConfig.getRelatedQuery();
 			if (AppUtility.isObject(request.Query, true)) {
 				if (request.Query["object-identity"]) {
 					path += "/" + request.Query["object-identity"];
@@ -347,14 +347,14 @@ export class AppRTU {
 				}
 				query += "&" + AppUtility.getQueryOfJson(request.Query);
 			}
-			AppAPI.send(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body).toPromise().then(
-				data => {
+			AppAPI.send(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body)
+				.toPromise()
+				.then(response => {
 					if (whenNotReady !== undefined) {
-						whenNotReady(data);
+						whenNotReady(response.json());
 					}
-				},
-				error => console.error("[RTU]: Error occurred while sending request => " + AppUtility.getErrorMessage(error), error)
-			);
+				})
+				.catch(error => console.error("[RTU]: Error occurred while sending request => " + AppUtility.getErrorMessage(error), error));
 		}
 	}
 

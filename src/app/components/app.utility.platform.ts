@@ -11,8 +11,8 @@ export class PlatformUtility {
 	private static _keyboard: Keyboard;
 
 	/** Sets the instance of device keyboard */
-	public static set keyboard(value: Keyboard) {
-		this._keyboard = value;
+	public static setKeyboard(keyboard: Keyboard) {
+		this._keyboard = keyboard;
 	}
 
 	/**
@@ -84,7 +84,7 @@ export class PlatformUtility {
 		if (avatar === "" && AppUtility.isObject(data, true)) {
 			noAvatar = AppUtility.isNotEmpty(noAvatar)
 				? noAvatar
-				: AppConfig.URIs.files + "avatars/" + AppConfig.app.host + "-no-avatar.png";
+				: AppConfig.URIs.files + "avatars/" + AppConfig.app.url.host + "-no-avatar.png";
 			const email = AppUtility.isObject(data.Contact, true)
 				? data.Contact.Email
 				: data.Email;
@@ -95,13 +95,14 @@ export class PlatformUtility {
 		return avatar;
 	}
 
-	/** Gets the current host name */
-	public static get host() {
-		if (AppUtility.indexOf(window.location.hostname, ".") < 0) {
-			return window.location.hostname;
+	/** Gets the host name from an uri */
+	public static getHost(uri?: string) {
+		let host = uri || window.location.hostname;
+		if (host.indexOf(".") < 0) {
+			return host;
 		}
-		const info = AppUtility.toArray(window.location.hostname, ".");
-		let host = info[info.length - 2] + "." + info[info.length - 1];
+		const info = AppUtility.toArray(host, ".");
+		host = info[info.length - 2] + "." + info[info.length - 1];
 		if (info.length > 2 && info[info.length - 3] !== "www") {
 			host = info[info.length - 3] + "." + host;
 		}
@@ -109,14 +110,6 @@ export class PlatformUtility {
 			host = info[info.length - 4] + "." + host;
 		}
 		return host;
-	}
-
-	/** Gets the query with related service, language and host */
-	public static getRelatedQuery(relatedService?: string) {
-		return (relatedService !== undefined && relatedService !== AppConfig.app.service
-			? "related-service=" + AppConfig.app.service + "&"
-			: "")
-			+ "language=" + AppConfig.language + "&host=" + this.host;
 	}
 
 	/** Opens an uri by OS/In-App browser */
@@ -168,19 +161,24 @@ export class PlatformUtility {
 	}
 
 	/** Gets the URI for navigating */
-	public static getURI(url: string, queryParams?: { [key: string]: any }) {
+	public static getURI(path: string, queryParams?: { [key: string]: any }) {
 		const query = AppUtility.getQueryOfJson(queryParams);
-		return url + (query !== "" ? "?" + query : "");
+		return path + (query !== "" ? "?" + query : "");
+	}
+
+	/** Gets the redirect URI for working with external */
+	public static getRedirectURI(path: string, addAsRedirectParam: boolean = true) {
+		let url = AppConfig.URIs.activations;
+		if (AppConfig.isWebApp && AppUtility.indexOf(window.location.href, "file://") < 0) {
+			const uri = this.parseURI();
+			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + AppConfig.app.url.base;
+		}
+		return url + "home?" + AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path;
 	}
 
 	/** Gets the URI for activating */
 	public static get activateURI() {
-		let url = AppConfig.URIs.activations;
-		if (AppConfig.isWebApp && AppUtility.indexOf(window.location.href, "file://") < 0) {
-			const uri = this.parseURI();
-			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + "/";
-		}
-		return url + "home?prego=activate&mode={mode}&code={code}";
+		return this.getRedirectURI("prego=activate&mode={mode}&code={code}", false);
 	}
 
 	/** Gets the encoded URI for activating */

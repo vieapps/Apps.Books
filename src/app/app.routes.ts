@@ -14,19 +14,30 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 			loadChildren: "./pages/home/home.module#HomePageModule"
 		},
 		{
-			path: "log-in",
-			loadChildren: "./pages/users/login.module#LogInPageModule",
-			canActivate: [AppReadyGuardService, NotAuthenticatedGuardService]
-		},
-		{
-			path: "register-account",
-			loadChildren: "./pages/users/register.module#RegisterAccountPageModule",
-			canActivate: [AppReadyGuardService, RegisterGuardService, NotAuthenticatedGuardService]
-		},
-		{
-			path: "account-profile/:data",
-			loadChildren: "./pages/users/profile.module#AccountProfilePageModule",
-			canActivate: [AppReadyGuardService, AuthenticatedGuardService]
+			path: "users",
+			canActivate: [AppReadyGuardService],
+			children: [
+				{
+					path: "",
+					redirectTo: "/home",
+					pathMatch: "full"
+				},
+				{
+					path: "login",
+					loadChildren: "./pages/users/login.module#LogInPageModule",
+					canActivate: [NotAuthenticatedGuardService]
+				},
+				{
+					path: "register",
+					loadChildren: "./pages/users/register.module#RegisterAccountPageModule",
+					canActivate: [RegisterGuardService, NotAuthenticatedGuardService]
+				},
+				{
+					path: "profile/:data",
+					loadChildren: "./pages/users/profile.module#AccountProfilePageModule",
+					canActivate: [AuthenticatedGuardService]
+				},
+			]
 		},
 		{
 			path: "books",

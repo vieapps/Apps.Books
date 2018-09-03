@@ -226,7 +226,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Captcha"]),
 			this.register.value.Captcha,
 			async () => await Promise.all([
-				TrackingUtility.trackAsync(this.title, "/user/register"),
+				TrackingUtility.trackAsync(this.title, "/users/register"),
 				this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.navigateBack())
 			]),
 			async error => await Promise.all([

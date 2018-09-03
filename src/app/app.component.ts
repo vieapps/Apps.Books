@@ -9,6 +9,7 @@ import { Device } from "@ionic-native/device/ngx";
 
 import { AppRTU } from "./components/app.rtu";
 import { AppEvents } from "./components/app.events";
+import { AppCrypto } from "./components/app.crypto";
 import { AppUtility } from "./components/app.utility";
 import { PlatformUtility } from "./components/app.utility.platform";
 import { TrackingUtility } from "./components/app.utility.trackings";
@@ -128,7 +129,7 @@ export class AppComponent implements OnInit {
 			},
 			login: {
 				title: "Đăng nhập",
-				url: "/log-in",
+				url: "/users/login",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "log-in",
@@ -137,7 +138,7 @@ export class AppComponent implements OnInit {
 			},
 			register: {
 				title: "Đăng ký tài khoản",
-				url: "/register-account",
+				url: "/users/register",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person-add",
@@ -146,7 +147,7 @@ export class AppComponent implements OnInit {
 			},
 			profile: {
 				title: "Thông tin tài khoản",
-				url: "/account-profile/0",
+				url: "/users/profile/my",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person",
@@ -231,10 +232,9 @@ export class AppComponent implements OnInit {
 	}
 
 	setupEventHandlers() {
-		AppEvents.on("Navigate", info => this.navController.navigateForward(info.args.url || "/home", info.args.animated, info.args.extras));
-		AppEvents.on("NavigateForward", info => this.navController.navigateForward(info.args.url || "/home", info.args.animated, info.args.extras));
-		AppEvents.on("NavigateBack", info => this.navController.navigateBack(info.args.url || "/home", info.args.animated, info.args.extras));
-		AppEvents.on("NavigateHome", info => this.navController.navigateRoot("/home", info.args.animated, info.args.extras));
+		AppEvents.on("NavigateHome", info => this.navController.navigateRoot(this.configSvc.appConfig.app.url.home, true, info.args));
+		AppEvents.on("NavigateBack", info => this.navController.navigateBack(this.configSvc.previousUrl, true, info.args));
+		AppEvents.on("NavigateForward", info => this.navController.navigateForward(info.args.url || this.configSvc.appConfig.app.url.home, true, info.args.extras));
 
 		AppEvents.on("UpdateSidebar", info => this.updateSidebar(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
@@ -290,7 +290,7 @@ export class AppComponent implements OnInit {
 				async () => {
 					await this.initializeAsync(async () => {
 						await Promise.all([
-							TrackingUtility.trackAsync("Kích hoạt", `activate/${mode}`),
+							TrackingUtility.trackAsync("Kích hoạt", `users/activate/${mode}`),
 							this.showActivationResultAsync({
 								Status: "OK",
 								Mode: mode
@@ -334,7 +334,7 @@ export class AppComponent implements OnInit {
 				? "Tài khoản đã được kích hoạt thành công"
 				: "Mật khẩu đã được kích hoạt thành công"
 			: "Đã xảy ra lỗi, không thể kích hoạt" + (data.Error ? ` (${data.Error.Message})` : "");
-		await this.appFormsSvc.showAlertAsync(header, subHeader, message);
+		await this.appFormsSvc.showAlertAsync(header, subHeader, message, () => this.configSvc.navigateHome());
 	}
 
 	async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
@@ -342,14 +342,14 @@ export class AppComponent implements OnInit {
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-					this.onInitialized(onCompleted);
+					this.startRTU(onCompleted);
 				}
 				else {
 					console.log("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.configSvc.registerSessionAsync(
 						() => {
 							console.log("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-							this.onInitialized(onCompleted);
+							this.startRTU(onCompleted);
 						},
 						async error => {
 							if (AppUtility.isGotSecurityException(error)) {
@@ -386,8 +386,8 @@ export class AppComponent implements OnInit {
 		);
 	}
 
-	onInitialized(onCompleted?: () => void) {
-		AppRTU.start(async () => {
+	startRTU(onCompleted?: () => void) {
+		AppRTU.start(() => {
 			if (this.configSvc.isWebApp) {
 				PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());
 			}
@@ -396,7 +396,25 @@ export class AppComponent implements OnInit {
 			}
 			console.log("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 			AppEvents.broadcast("AppIsInitialized", this.configSvc.appConfig.app);
-			await this.appFormsSvc.hideLoadingAsync(onCompleted);
+			this.appFormsSvc.hideLoadingAsync(() => {
+				if (onCompleted !== undefined) {
+					onCompleted();
+				}
+				else {
+					let redirect = this.configSvc.queryParams["redirect"] || this.configSvc.appConfig.app.url.redirectToWhenReady;
+					if (redirect !== undefined) {
+						this.configSvc.appConfig.app.url.redirectToWhenReady = undefined;
+						try {
+							redirect = AppCrypto.urlDecode(redirect);
+							console.log(`<AppComponent>: Redirect to the request url\n[${redirect}]`);
+							this.configSvc.navigateForward(redirect);
+						}
+						catch (error) {
+							console.error(`<AppComponent>: Redirect url is not well-form\n[${redirect}]`, error);
+						}
+					}
+				}
+			});
 		});
 	}
 

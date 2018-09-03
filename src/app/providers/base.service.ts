@@ -1,9 +1,11 @@
 import { Injectable } from "@angular/core";
+import { Location } from "@angular/common";
 import { Router, CanActivate } from "@angular/router";
 import { Http } from "@angular/http";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "../components/app.api";
 import { AppRTU } from "../components/app.rtu";
+import { AppCrypto } from "../components/app.crypto";
 import { AppPagination } from "../components/app.pagination";
 import { AppUtility } from "../components/app.utility";
 
@@ -195,11 +197,15 @@ export class Base {
 
 @Injectable()
 export class AppReadyGuardService implements CanActivate {
-	constructor(public router: Router) {
+	constructor(
+		public location: Location,
+		public router: Router
+	) {
 	}
 	canActivate() {
 		if (!AppConfig.isReady) {
-			this.router.navigateByUrl("/home");
+			AppConfig.app.url.redirectToWhenReady = AppCrypto.urlEncode(this.location.path());
+			this.router.navigateByUrl(AppConfig.app.url.home);
 		}
 		return AppConfig.isReady;
 	}
@@ -211,7 +217,7 @@ export class AuthenticatedGuardService implements CanActivate {
 	}
 	canActivate() {
 		if (!AppConfig.isAuthenticated) {
-			this.router.navigateByUrl("/home");
+			this.router.navigateByUrl(AppConfig.app.url.home);
 		}
 		return AppConfig.isAuthenticated;
 	}
@@ -223,7 +229,7 @@ export class NotAuthenticatedGuardService implements CanActivate {
 	}
 	canActivate() {
 		if (AppConfig.isAuthenticated) {
-			this.router.navigateByUrl("/home");
+			this.router.navigateByUrl(AppConfig.app.url.home);
 		}
 		return !AppConfig.isAuthenticated;
 	}
@@ -235,7 +241,7 @@ export class RegisterGuardService implements CanActivate {
 	}
 	canActivate() {
 		if (!AppConfig.accountRegistrations.registrable) {
-			this.router.navigateByUrl("/home");
+			this.router.navigateByUrl(AppConfig.app.url.home);
 		}
 		return AppConfig.accountRegistrations.registrable;
 	}

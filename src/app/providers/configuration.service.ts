@@ -1,5 +1,6 @@
 declare var FB: any;
 import { Injectable } from "@angular/core";
+import { PlatformLocation } from "@angular/common";
 import { Http } from "@angular/http";
 import { Title } from "@angular/platform-browser";
 import { Platform } from "@ionic/angular";
@@ -25,6 +26,7 @@ export class ConfigurationService extends BaseService {
 	constructor (
 		public http: Http,
 		public platform: Platform,
+		public platformLocation: PlatformLocation,
 		public device: Device,
 		public keyboard: Keyboard,
 		public appVer: AppVersion,
@@ -33,7 +35,7 @@ export class ConfigurationService extends BaseService {
 		public browserTitle: Title
 	) {
 		super(http, "Configuration");
-		AppEvents.on("AppIsInitialized", async info => await this.loadGeoMetaAsync());
+		AppEvents.on("AppIsInitialized", async () => await this.loadGeoMetaAsync());
 	}
 
 	/** Gets the configuration of the app */
@@ -67,46 +69,38 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private getCurrentUrl() {
-		return this.appConfig.app.routes.length > 0 ? this.appConfig.app.routes[this.appConfig.app.routes.length - 1] : undefined;
+		return this.appConfig.app.url.stack.length > 0 ? this.appConfig.app.url.stack[this.appConfig.app.url.stack.length - 1] : undefined;
 	}
 
 	/** Gets the previous url */
 	private getPreviousUrl() {
-		return this.appConfig.app.routes.length > 1 ? this.appConfig.app.routes[this.appConfig.app.routes.length - 2] : undefined;
+		return this.appConfig.app.url.stack.length > 1 ? this.appConfig.app.url.stack[this.appConfig.app.url.stack.length - 2] : undefined;
 	}
 
 	/** Adds an url into stack of routes */
 	public addUrl(url: string, params: { [key: string]: any }) {
 		url = url.indexOf("?") > 0 ? url.substr(0, url.indexOf("?")) : url;
-		if (url === "/home") {
-			this.appConfig.app.routes = [];
-			this.appConfig.app.routes.push({
+		this.appConfig.app.url.stack = url !== this.appConfig.app.url.home ? this.appConfig.app.url.stack : [];
+		const previous = this.getPreviousUrl();
+		const current = this.getCurrentUrl();
+		if (previous !== undefined && previous.url.startsWith(url)) {
+			this.appConfig.app.url.stack.pop();
+		}
+		else if (current === undefined || !current.url.startsWith(url)) {
+			this.appConfig.app.url.stack.push({
 				url: url,
 				params: params
 			});
 		}
-		else {
-			const previous = this.getPreviousUrl();
-			const current = this.getCurrentUrl();
-			if (previous !== undefined && previous.url.startsWith(url)) {
-				this.appConfig.app.routes.pop();
-			}
-			else if (current === undefined || !current.url.startsWith(url)) {
-				this.appConfig.app.routes.push({
-					url: url,
-					params: params
-				});
-			}
-			if (this.appConfig.app.routes.length > 30) {
-				this.appConfig.app.routes.splice(0, this.appConfig.app.routes.length - 30);
-			}
+		if (this.appConfig.app.url.stack.length > 30) {
+			this.appConfig.app.url.stack.splice(0, this.appConfig.app.url.stack.length - 30);
 		}
 	}
 
 	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUrl?: string) {
 		return info !== undefined
 			? PlatformUtility.getURI(info.url, info.params)
-			: alternativeUrl || "/home";
+			: alternativeUrl || this.appConfig.app.url.home;
 	}
 
 	/** Gets the current url */
@@ -131,7 +125,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets the query with related service, language and host */
 	public get relatedQuery() {
-		return PlatformUtility.getRelatedQuery(this.appConfig.app.service);
+		return this.appConfig.getRelatedQuery();
 	}
 
 	/** Gets the query params of the current page/view */
@@ -156,7 +150,8 @@ export class ConfigurationService extends BaseService {
 		}
 
 		else {
-			this.appConfig.app.host = PlatformUtility.host;
+			this.appConfig.app.url.host = PlatformUtility.getHost();
+			this.appConfig.app.url.base = this.platformLocation.getBaseHrefFromDOM();
 			this.appConfig.app.platform = this.platform.is("cordova") ? this.device.platform : undefined;
 			if (!AppUtility.isNotEmpty(this.appConfig.app.platform) || this.appConfig.app.platform === "browser") {
 				this.appConfig.app.platform = PlatformUtility.getAppPlatform();
@@ -167,7 +162,7 @@ export class ConfigurationService extends BaseService {
 		if (this.platform.is("cordova")) {
 			await TrackingUtility.initializeAsync(this.googleAnalytics);
 			if (this.device.platform !== "browser") {
-				PlatformUtility.keyboard = this.keyboard;
+				PlatformUtility.setKeyboard(this.keyboard);
 				this.appVer.getVersionCode()
 					.then(version => this.appConfig.app.version = version as string)
 					.catch(error => console.error(this.getErrorMessage("Cannot get app version", error)));
@@ -333,22 +328,20 @@ export class ConfigurationService extends BaseService {
 
 	/** Send request to patch the session */
 	public patchSession(onNext?: () => void, defer?: number): void {
-		PlatformUtility.setTimeout(() => {
-			super.send({
-				ServiceName: "users",
-				ObjectName: "session",
-				Verb: "PATCH",
-				Query: undefined,
-				Header: this.appConfig.getAuthenticatedHeaders(),
-				Body: undefined,
-				Extra: {
-					"x-session": this.appConfig.session.id
-				}
-			});
-			if (onNext !== undefined) {
-				onNext();
+		super.send({
+			ServiceName: "users",
+			ObjectName: "session",
+			Verb: "PATCH",
+			Query: undefined,
+			Header: this.appConfig.getAuthenticatedHeaders(),
+			Body: undefined,
+			Extra: {
+				"x-session": this.appConfig.session.id
 			}
-		}, defer || 456);
+		});
+		if (onNext !== undefined) {
+			PlatformUtility.setTimeout(onNext, defer || 234);
+		}
 	}
 
 	/** Gets the information of the current/default account */
@@ -420,24 +413,24 @@ export class ConfigurationService extends BaseService {
 
 	/** Send request to patch information of the account */
 	public patchAccount(onNext?: () => void, defer?: number) {
-		PlatformUtility.setTimeout(() => {
-			super.send({
-				ServiceName: "users",
-				ObjectName: "account",
-				Verb: "GET",
-				Query: { "x-status": "" },
-				Header: undefined,
-				Body: undefined,
-				Extra: undefined
-			});
-			if (onNext !== undefined) {
-				onNext();
-			}
-		}, defer || 345);
+		super.send({
+			ServiceName: "users",
+			ObjectName: "account",
+			Verb: "GET",
+			Query: {
+				"x-status": ""
+			},
+			Header: undefined,
+			Body: undefined,
+			Extra: undefined
+		});
+		if (onNext !== undefined) {
+			PlatformUtility.setTimeout(onNext, defer || 234);
+		}
 	}
 
 	/** Sends the request to get profile information of current account via WebSocket connection */
-	public getProfile(onNext?: () => void) {
+	public getProfile(onNext?: () => void, defer?: number) {
 		super.send({
 			ServiceName: "users",
 			ObjectName: "profile",
@@ -446,14 +439,14 @@ export class ConfigurationService extends BaseService {
 				"object-identity": this.getAccount().id,
 				"related-service": this.appConfig.app.service,
 				"language": this.appConfig.language,
-				"host": PlatformUtility.host
+				"host": this.appConfig.app.url.host
 			},
 			Header: undefined,
 			Body: undefined,
 			Extra: undefined
 		});
 		if (onNext !== undefined) {
-			onNext();
+			PlatformUtility.setTimeout(onNext, defer || 234);
 		}
 	}
 
@@ -518,27 +511,19 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Sends a request to tell app component navigates to home screen */
-	public navigateHome(animated: boolean = true, extras?: { [key: string]: any }) {
-		AppEvents.broadcast("NavigateHome", {
-			animated: AppUtility.isTrue(animated),
-			extras: extras
-		});
+	public navigateHome(extras?: { [key: string]: any }) {
+		AppEvents.broadcast("NavigateHome", extras);
 	}
 
 	/** Sends a request to tell app component navigates back one step */
-	public navigateBack(animated: boolean = true, extras?: { [key: string]: any }) {
-		AppEvents.broadcast("NavigateBack", {
-			url: this.previousUrl,
-			animated: AppUtility.isTrue(animated),
-			extras: extras
-		});
+	public navigateBack(extras?: { [key: string]: any }) {
+		AppEvents.broadcast("NavigateBack", extras);
 	}
 
 	/** Sends a request to tell app component navigates forward one step */
-	public navigateForward(url: string, animated: boolean = true, extras?: { [key: string]: any }) {
+	public navigateForward(url: string, extras?: { [key: string]: any }) {
 		AppEvents.broadcast("NavigateForward", {
 			url: url,
-			animated: AppUtility.isTrue(animated),
 			extras: extras
 		});
 	}

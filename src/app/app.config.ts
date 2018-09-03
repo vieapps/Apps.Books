@@ -18,22 +18,27 @@ export class AppConfig {
 
 	/** Settings of the app */
 	public static app = {
-		id: "online-books",
-		name: "VIEApps Online Books",
+		id: "ngx-books",
+		name: "VIEApps NGX Books",
 		version: "1.0.0-beta",
 		mode: "",
 		platform: "",
 		os: "",
-		host: "",
 		language: "vi-VN",
 		service: "books",
 		services: "system,users,books,libraries,marketplaces",
 		debug: true,
 		offline: false,
-		routes: new Array<{
-			url: string,
-			params: { [key: string]: any }
-		}>()
+		url: {
+			stack: new Array<{
+				url: string,
+				params: { [key: string]: any }
+			}>(),
+			home: "/home",
+			base: undefined as string,
+			host: undefined as string,
+			redirectToWhenReady: undefined as string
+		}
 	};
 
 	/** Session information */
@@ -147,6 +152,12 @@ export class AppConfig {
 		return this.session.account !== undefined && this.session.account.profile !== undefined
 			? this.session.account.profile.Language || "vi-VN"
 			: this.app.language;
+	}
+
+	/** Gets the query with related service, language and host */
+	public static getRelatedQuery(service?: string) {
+		service = service || this.app.service;
+		return (AppUtility.isNotEmpty(service) ? "related-service=" + service + "&" : "") + "language=" + this.language + "&host=" + this.app.url.host;
 	}
 
 	/** Gets the authenticated headers (JSON) for making requests to APIs */

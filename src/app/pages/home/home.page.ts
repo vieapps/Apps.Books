@@ -24,7 +24,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 			this.initialize();
 		}
 		else {
-			AppEvents.on("AppIsInitialized", info => this.initialize(), "AppReadyEventHandlerOfHomePage");
+			AppEvents.on("AppIsInitialized", () => this.initialize(), "AppReadyEventHandlerOfHomePage");
 		}
 	}
 

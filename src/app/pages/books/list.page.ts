@@ -277,7 +277,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		];
 
 		const pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
-		if (this.pageNumber < pagination.PageNumber) {
+		if (pagination !== undefined && this.pageNumber < pagination.PageNumber) {
 			this.actions.push(this.appFormsSvc.getActionSheetButton(`Hiển thị toàn bộ ${AppPagination.computeTotal(pagination.PageNumber, pagination)} kết quả`, "eye", () => {
 				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 				this.pageNumber = this.pagination.PageNumber;

@@ -27,12 +27,12 @@ export class BooksService extends BaseService {
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Book", async message => await this.processUpdateBookMessageAsync(message));
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
-		AppRTU.registerAsServiceScopeProcessor("Scheduler", message => this.sendBookmarks());
+		AppRTU.registerAsServiceScopeProcessor("Scheduler", () => this.sendBookmarks());
 		if (this.configSvc.isDebug) {
-			AppRTU.registerAsServiceScopeProcessor(this.Name, message => {});
+			AppRTU.registerAsServiceScopeProcessor(this.Name, () => {});
 		}
 
-		AppEvents.on("AppIsInitialized", async info => {
+		AppEvents.on("AppIsInitialized", async () => {
 			await Promise.all([
 				this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
 				this.loadStatisticsAsync(),

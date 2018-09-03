@@ -235,7 +235,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		await this.usersSvc.getProfileAsync(id,
 			async () => {
 				if (this.profile === undefined) {
-					await TrackingUtility.trackAsync(this.title, "/user/profile");
+					await TrackingUtility.trackAsync(this.title, "/users/profile");
 				}
 				this.profile = UserProfile.get(id);
 				this.setMode("profile", "Thông tin tài khoản");
@@ -383,7 +383,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 						await this.configSvc.storeSessionAsync();
 					}
 					await Promise.all([
-						TrackingUtility.trackAsync(this.title, "account/update"),
+						TrackingUtility.trackAsync(this.title, "users/update/profile"),
 						this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync("Hồ sơ đã được cập nhật..."))
 					]);
 				},
@@ -440,7 +440,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				this.password.value.OldPassword,
 				this.password.value.Password,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "account/password"),
+					TrackingUtility.trackAsync(this.title, "users/update/password"),
 					this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync("Mật khẩu đăng nhập đã được thay đổi thành công..."))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
@@ -496,7 +496,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				this.email.value.OldPassword,
 				this.email.value.Email,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "account/email"),
+					TrackingUtility.trackAsync(this.title, "users/update/email"),
 					this.openProfileAsync(async () => this.appFormsSvc.showToastAsync("Email đăng nhập đã được thay đổi thành công..."))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
@@ -534,7 +534,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		await this.usersSvc.add2FAMethodAsync(
 			this.otp.provisioning,
 			this.otp.value,
-			() => this.updateOTP(async () => await this.appFormsSvc.hideLoadingAsync()),
+			() => this.updateOTP(async () => await Promise.all([
+				TrackingUtility.trackAsync(this.title, "users/update/otp"),
+				this.appFormsSvc.hideLoadingAsync()
+			])),
 			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.otp.value = "")
 		);
 	}
@@ -547,7 +550,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			async () => await this.usersSvc.delete2FAMethodAsync(
 				provider.Info,
 				() => this.updateOTP(async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "session/otp"),
+					TrackingUtility.trackAsync(this.title, "users/update/otp"),
 					this.appFormsSvc.showToastAsync(`Phương thức xác thực lần hai [${provider.Label}] đã được xoá bỏ...`)
 				])),
 				error => this.appFormsSvc.showErrorAsync(error)
@@ -604,7 +607,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				privileges,
 				relatedInfo,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "account/invitation"),
+					TrackingUtility.trackAsync(this.title, "users/invitation"),
 					this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync("Lời mời tham gia hệ thống đã được gửi..."))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
@@ -623,7 +626,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 						TrackingUtility.trackAsync("Đăng xuất", "session/log-out"),
 						this.appFormsSvc.showToastAsync("Đã đăng xuất tài khoản khỏi hệ thống...")
 					]);
-					if (this.configSvc.previousUrl.startsWith("/account-profile")) {
+					if (this.configSvc.previousUrl.startsWith("/users/profile")) {
 						this.configSvc.navigateHome();
 					}
 					else {

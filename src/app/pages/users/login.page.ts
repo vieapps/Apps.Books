@@ -112,7 +112,7 @@ export class LogInPage implements OnInit, OnDestroy {
 			this.login.value.Email,
 			this.login.value.Password,
 			async data => await Promise.all([
-				TrackingUtility.trackAsync(this.title, "/session/login"),
+				TrackingUtility.trackAsync(this.title, "/users/login"),
 				this.appFormsSvc.hideLoadingAsync(() => {
 					if (data.Require2FA) {
 						this.openLoginOTP(data);
@@ -195,7 +195,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				this.otp.value.OTP,
 				this.otp.value.Provider,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "/session/otp"),
+					TrackingUtility.trackAsync(this.title, "/users/otp"),
 					this.appFormsSvc.hideLoadingAsync(() => this.configSvc.navigateBack())
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
@@ -257,7 +257,7 @@ export class LogInPage implements OnInit, OnDestroy {
 			this.reset.value.Email,
 			this.reset.value.Captcha,
 			async () => await Promise.all([
-				TrackingUtility.trackAsync(this.title, "/session/reset"),
+				TrackingUtility.trackAsync(this.title, "/users/reset"),
 				this.appFormsSvc.showAlertAsync("Mật khẩu mới", undefined, `Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, () => this.configSvc.navigateBack())
 			]),
 			async error => await Promise.all([

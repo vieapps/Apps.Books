@@ -22,10 +22,10 @@ export class UsersService extends BaseService {
 		super(http, "Users");
 		AppRTU.registerAsServiceScopeProcessor(this.Name, message => this.processUpdateMessageAsync(message));
 		if (this.configSvc.isDebug) {
-			AppRTU.registerAsObjectScopeProcessor(this.Name, "Session", message => {});
-			AppRTU.registerAsObjectScopeProcessor(this.Name, "Account", message => {});
-			AppRTU.registerAsObjectScopeProcessor(this.Name, "Profile", message => {});
-			AppRTU.registerAsObjectScopeProcessor(this.Name, "Status", message => {});
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Session", () => {});
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Account", () => {});
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Profile", () => {});
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Status", () => {});
 		}
 	}
 
