@@ -1,7 +1,6 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
 import { AppCrypto } from "../../components/app.crypto";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -32,8 +31,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	mode = "profile";
 	id: string;
 	profile: UserProfile;
-	private rxSubscriptions = new Array<Rx.Subscription>();
-	private rxSubject = new Rx.Subject<{ mode: string, title: string }>();
+	rxSubscriptions = new Array<Rx.Subscription>();
+	rxSubject = new Rx.Subject<{ mode: string, title: string }>();
 	buttons: {
 		ok: {
 			text: string,
@@ -109,34 +108,22 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.rxSubscriptions.push(this.invitation.form.valueChanges.subscribe(value => this.invitation.value = value));
 		this.rxSubscriptions.push(this.rxSubject.subscribe(({ mode, title }) => {
 			this.mode = mode;
-			this.title = title;
-			this.configSvc.appTitle = this.title;
+			this.title = this.configSvc.appTitle = title;
 			this.prepareButtons();
 			this.prepareActions();
 		}));
-
-		AppEvents.on("Session", async info => {
-			if (this.mode === "profile" && "Updated" === info.args.Type) {
-				const id = this.configSvc.getAccount().id;
-				if (this.profile.ID === id) {
-					this.profile = UserProfile.get(id);
-				}
-			}
-		}, "UserProfilePage");
-
 		this.openProfileAsync();
 	}
 
 	ngOnDestroy() {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
-		AppEvents.off("Session", "UserProfilePage");
 	}
 
 	setMode(mode: string = "profile", title: string = "Thông tin tài khoản") {
 		this.rxSubject.next({ mode: mode, title: title});
 	}
 
-	private prepareButtons() {
+	prepareButtons() {
 		this.buttons.cancel = { text: "Huỷ", icon: undefined, handler: async () => await this.openProfileAsync() };
 		this.buttons.ok = { text: "Cập nhật", icon: undefined, handler: undefined };
 
@@ -181,14 +168,14 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			: undefined;
 	}
 
-	private prepareActions() {
+	prepareActions() {
 		if (this.mode !== "profile") {
 			this.actions = undefined;
 		}
 		else {
 			this.actions = [];
 
-			if (this.profile.ID === this.configSvc.appConfig.session.account.id) {
+			if (this.profile.ID === this.configSvc.getAccount().id) {
 				[
 					this.appFormsSvc.getActionSheetButton("Cập nhật ảnh đại diện", "camera", async () => await this.appFormsSvc.showModalAsync(AccountAvatarPage)),
 					this.appFormsSvc.getActionSheetButton("Cập nhật hồ sơ", "create", () => this.updateProfile()),
@@ -198,11 +185,11 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				].forEach(action => this.actions.push(action));
 			}
 
-			if (this.profile.ID !== this.configSvc.appConfig.session.account.id && this.authSvc.canSetPrivileges) {
+			else if (this.authSvc.canSetPrivileges) {
 				this.actions.push(this.appFormsSvc.getActionSheetButton("Đặt quyền truy cập", "settings", () => this.updatePrivileges()));
 			}
 
-			if (this.id === undefined || this.id === this.configSvc.appConfig.session.account.id) {
+			if (this.id === undefined || this.id === this.configSvc.getAccount().id) {
 				this.actions.push(this.appFormsSvc.getActionSheetButton("Đăng xuất", "log-out", async () => await this.logoutAsync()));
 			}
 
@@ -226,7 +213,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private async openProfileAsync(onNext?: () => void) {
+	async openProfileAsync(onNext?: () => void) {
 		this.id = this.configSvc.requestParams["ID"];
 		if (this.profile === undefined && this.id !== undefined && !UserProfile.instances.containsKey(this.id)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
@@ -245,7 +232,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		);
 	}
 
-	private updateProfile() {
+	updateProfile() {
 		this.update.config = [
 			{
 				Key: "Name",
@@ -334,6 +321,17 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			/**
 			{
+				Key: "Age",
+				Type: "Range",
+				Required: true,
+				Options: {
+					Type: "number",
+					Label: "Your age",
+					Min: 16,
+					Max: 120
+				}
+			},
+			{
 				Key: "Refer",
 				Type: "Completer",
 				Options: {
@@ -348,6 +346,18 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 								console.log("Control", control);
 							}
 						}
+					}
+				}
+			},
+			{
+				Key: "Agree",
+				Type: "YesNo",
+				Required: true,
+				Options: {
+					Type: "toggle",
+					Label: "I agreed with end-user agreements",
+					LabelOptions: {
+						Position: "inline"
 					}
 				}
 			},
@@ -392,7 +402,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private updatePassword() {
+	updatePassword() {
 		this.password.config = [
 			{
 				Key: "OldPassword",
@@ -448,7 +458,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private updateEmail() {
+	updateEmail() {
 		this.email.config = [
 			{
 				Key: "OldPassword",
@@ -504,7 +514,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private updateOTP(onNext?: () => void) {
+	updateOTP(onNext?: () => void) {
 		const account = this.configSvc.getAccount();
 		this.otp.required = account.twoFactors.required;
 		this.otp.providers = account.twoFactors.providers;
@@ -560,14 +570,14 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		);
 	}
 
-	private updatePrivileges() {
+	updatePrivileges() {
 		this.setMode("privileges", "Đặt quyền truy cập");
 	}
 
 	async updatePrivilegesAsync() {
 	}
 
-	private sendInvitation() {
+	sendInvitation() {
 		this.invitation.config = [
 			{
 				Key: "Name",
@@ -615,7 +625,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	private async logoutAsync() {
+	async logoutAsync() {
 		await this.appFormsSvc.showAlertAsync(
 			"Đăng xuất",
 			undefined,
@@ -626,7 +636,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 						TrackingUtility.trackAsync("Đăng xuất", "session/log-out"),
 						this.appFormsSvc.showToastAsync("Đã đăng xuất tài khoản khỏi hệ thống...")
 					]);
-					if (this.configSvc.previousUrl.startsWith("/users/profile")) {
+					if (this.configSvc.previousUrl.startsWith("/users")) {
 						this.configSvc.navigateHome();
 					}
 					else {

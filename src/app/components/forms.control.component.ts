@@ -97,7 +97,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get color() {
-		return this.control.Options.LabelOptions.Color;
+		return {
+			label: this.control.Options.LabelOptions.Color,
+			control: this.control.Options.Color
+		};
 	}
 
 	get position() {
@@ -199,6 +202,13 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.formControl.value;
 	}
 
+	valueChanged($event) {
+		this.formControl.setValue($event.detail.value);
+		if (!this.isControl("Range")) {
+			this.focusNext();
+		}
+	}
+
 	get datetimeValue() {
 		return this.value !== undefined ? new Date(this.value).toJSON() : undefined;
 	}
@@ -209,7 +219,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			const month = $event.detail.value.month;
 			const day = $event.detail.value.day;
 			let value = `${year.text}-${month.text}-${day.text}`;
-			if (this.control.Options.DateOptions.AllowTimes) {
+			if (this.control.Options.DatePickerOptions.AllowTimes) {
 				const hour = $event.detail.value.hour;
 				const minute = $event.detail.value.minute;
 				const second = $event.detail.value.second;
@@ -231,48 +241,43 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get datetimeDisplayFormat() {
-		return this.control.Options.DateOptions.DisplayFormat !== undefined
-			? this.control.Options.DateOptions.DisplayFormat
-			: this.control.Options.DateOptions.AllowTimes
+		return this.control.Options.DatePickerOptions.DisplayFormat !== undefined
+			? this.control.Options.DatePickerOptions.DisplayFormat
+			: this.control.Options.DatePickerOptions.AllowTimes
 				? "DD/MM/YYYY HH:mm"
 				: "DD/MM/YYYY";
 	}
 
 	get datetimePickerFormat() {
-		return this.control.Options.DateOptions.PickerFormat;
+		return this.control.Options.DatePickerOptions.PickerFormat;
 	}
 
 	get datetimeDayNames() {
-		return this.control.Options.DateOptions.DayNames;
+		return this.control.Options.DatePickerOptions.DayNames;
 	}
 
 	get datetimeDayShortNames() {
-		return this.control.Options.DateOptions.DayShortNames;
+		return this.control.Options.DatePickerOptions.DayShortNames;
 	}
 
 	get datetimeMonthNames() {
-		return this.control.Options.DateOptions.MonthNames;
+		return this.control.Options.DatePickerOptions.MonthNames;
 	}
 
 	get datetimeMonthShortNames() {
-		return this.control.Options.DateOptions.MonthShortNames;
+		return this.control.Options.DatePickerOptions.MonthShortNames;
 	}
 
 	get datetimeCancelText() {
-		return this.control.Options.DateOptions.CancelText;
+		return this.control.Options.DatePickerOptions.CancelText;
 	}
 
 	get datetimeDoneText() {
-		return this.control.Options.DateOptions.DoneText;
+		return this.control.Options.DatePickerOptions.DoneText;
 	}
 
 	get selectValues() {
 		return this.control.Options.SelectOptions.Values;
-	}
-
-	selectValuesChange($event) {
-		this.formControl.setValue($event.detail.value);
-		this.focusNext();
 	}
 
 	get selectAsRadioBoxes() {
@@ -297,6 +302,21 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	get selectOKText() {
 		return this.control.Options.SelectOptions.OKText;
+	}
+
+	get yesnoChecked() {
+		return this.control.formRef !== undefined && this.control.value !== undefined
+			? this.min === undefined || this.max === undefined
+				? AppUtility.isTrue(this.control.value)
+				: +this.control.value !== 0
+			: false;
+	}
+
+	yesnoValueChange($event) {
+		this.control.value = this.min === undefined || this.max === undefined
+			? $event.detail.checked
+			: $event.detail.checked ? 1 : 0;
+		this.focusNext();
 	}
 
 	completerInit() {

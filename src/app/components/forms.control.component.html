@@ -4,7 +4,7 @@
 	[class.completer-container]="isControl('Completer')">
 
 	<ion-label *ngIf="label"
-		[color]="color"
+		[color]="color.label"
 		[position]="position"
 		[class]="css.label">{{label}}</ion-label>
 
@@ -51,7 +51,7 @@
 		[value]="value"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
-		(ionChange)="selectValuesChange($event)">
+		(ionChange)="valueChanged($event)">
 		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value">{{select.Label}}</ion-select-option>
 	</ion-select>
 
@@ -71,6 +71,30 @@
 		[placeholder]="placeholder"
 		(ionChange)="datetimeValueChange($event)"></ion-datetime>
 
+	<ion-checkbox *ngIf="isControl('YesNo') && type !== 'toggle'" slot="end" #elementRef
+		[name]="name"
+		[disabled]="disabled"
+		[color]="color.control"
+		[checked]="yesnoChecked"
+		(ionChange)="yesnoValueChange($event)"></ion-checkbox>
+
+	<ion-toggle *ngIf="isControl('YesNo') && type === 'toggle'" slot="end" #elementRef
+		[name]="name"
+		[disabled]="disabled"
+		[color]="color.control"
+		[checked]="yesnoChecked"
+		(ionChange)="yesnoValueChange($event)"></ion-toggle>
+
+	<ion-range *ngIf="isControl('Range')" #elementRef
+		[name]="name"
+		[color]="color.control"
+		[disabled]="disabled"
+		[pin]="true"
+		[min]="min"
+		[max]="max"
+		[value]="value"
+		(ionChange)="valueChanged($event)"></ion-range>
+
 	<ng2-completer *ngIf="isControl('Completer')" #elementRef
 		[inputName]="name"
 		[disableInput]="!!disabled"
@@ -89,14 +113,13 @@
 </ion-item>
 
 <ion-radio-group *ngIf="visible && selectAsRadioBoxes" #elementRef
-	[formGroup]="formGroup"
 	[name]="name"
 	[class.invalid]="invalid"
 	[disabled]="disabled"
 	[value]="value"
-	(ionChange)="selectValuesChange($event)">
+	(ionChange)="valueChanged($event)">
 	<ion-list-header *ngIf="label"
-		[color]="color"
+		[color]="color.label"
 		[class]="css.label">{{label}}</ion-list-header>
 	<ion-item *ngFor="let select of selectValues">
 		<ion-label>{{select.Label}}</ion-label>
@@ -114,7 +137,7 @@
 
 	<ion-item [formGroup]="formGroup" [class.invalid]="invalid">
 		<ion-label *ngIf="label"
-			[color]="color"
+			[color]="color.label"
 			[position]="position"
 			[class]="css.label">{{label}}</ion-label>
 		<ion-input type="text" style="text-transform:uppercase" #elementRef
@@ -147,7 +170,7 @@
 </div>
 
 <ion-list-header *ngIf="visible && label && (isFormGroup || isFormArray)"
-	[color]="color"
+	[color]="color.label"
 	[class]="css.label">{{label}}</ion-list-header>
 
 <div *ngIf="visible && isFormGroup">

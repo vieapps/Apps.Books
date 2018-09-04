@@ -44,7 +44,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			}
 		}
 	};
-	private sorts = [
+	sorts = [
 		{
 			label: "Tiêu đề (A - Z)",
 			value: "Title"
@@ -58,11 +58,11 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			value: "Chapters"
 		}
 	];
-	private sort = this.sorts[1].value;
-	private pageNumber = 0;
-	private pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number };
-	private requestParams: { [key: string]: any };
-	private request: {
+	sort = this.sorts[1].value;
+	pageNumber = 0;
+	pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number };
+	requestParams: { [key: string]: any };
+	request: {
 		FilterBy: { [key: string]: any },
 		SortBy: { [key: string]: any },
 		Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }
@@ -72,9 +72,9 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	ratings: { [key: string]: RatingPoint };
 
 	title = "";
-	private rxSubscriptions = new Array<Rx.Subscription>();
+	rxSubscriptions = new Array<Rx.Subscription>();
 
-	private asGrid = false;
+	asGrid = false;
 	filtering = false;
 	searching = false;
 	actions: Array<{
@@ -134,11 +134,11 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		return this.pagination === undefined ? 0 : this.pageNumber * this.pagination.PageSize;
 	}
 
-	private get eventIdentity() {
+	get eventIdentity() {
 		return "AccountPrivileges@Books:" + (this.filterBy.And.Category.Equals !== undefined ? this.filterBy.And.Category.Equals : this.filterBy.And.Author.Equals);
 	}
 
-	private initialize() {
+	initialize() {
 		this.requestParams = this.configSvc.requestParams;
 		this.filterBy.And.Category.Equals = this.requestParams["Category"];
 		this.filterBy.And.Author.Equals = this.requestParams["Author"];
@@ -198,7 +198,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	private search(onCompleted?: () => void) {
+	search(onCompleted?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		this.booksSvc.searchAsync(
 			this.request,
@@ -212,7 +212,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		);
 	}
 
-	private prepareResults(onCompleted?: () => void, results?: Array<any>) {
+	prepareResults(onCompleted?: () => void, results?: Array<any>) {
 		if (this.searching) {
 			(results || []).forEach(o => {
 				const book = Book.instances.getValue(o.ID);
@@ -275,7 +275,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	private prepareActions() {
+	prepareActions() {
 		this.actions = [
 			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward(this.booksSvc.getSearchURI())),
 			this.appFormsSvc.getActionSheetButton("Lọc/Tìm nhanh", "funnel", () => this.showFilter()),
@@ -305,7 +305,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
-	private async showSortsAsync() {
+	async showSortsAsync() {
 		await this.appFormsSvc.showAlertAsync(
 			"Sắp xếp theo",
 			undefined,
@@ -330,7 +330,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		);
 	}
 
-	private async showCrawlAsync() {
+	async showCrawlAsync() {
 		await this.appFormsSvc.showAlertAsync(
 			"Crawl",
 			undefined,

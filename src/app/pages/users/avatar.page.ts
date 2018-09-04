@@ -66,7 +66,7 @@ export class AccountAvatarPage implements OnInit {
 		return this.mode === "Gravatar" ? this.profile.Gravatar : this.cropper.data.image;
 	}
 
-	private async updateProfileAsync() {
+	async updateProfileAsync() {
 		await this.usersSvc.updateProfileAsync({
 				ID: this.profile.ID,
 				Avatar: this.profile.Avatar

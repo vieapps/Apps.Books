@@ -43,6 +43,7 @@ export class AppFormsControl {
 		Icon: "",
 		Name: "",
 		Css: "",
+		Color: "",
 		PlaceHolder: undefined as string,
 		ValidatePattern: undefined as string,
 		Disabled: false,
@@ -67,7 +68,7 @@ export class AppFormsControl {
 			CancelText: undefined as string,
 			OKText: undefined as string,
 		},
-		DateOptions: {
+		DatePickerOptions: {
 			AllowTimes: false,
 			DisplayFormat: undefined as string,
 			PickerFormat: undefined as string,
@@ -191,6 +192,7 @@ export class AppFormsControl {
 
 			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeholder;
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
+			control.Options.Color = controlOptions.Color || controlOptions.color || "";
 			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
 			control.Options.Name = alternativeKey !== undefined ? `${alternativeKey}-${control.Key}` : `${control.Key}`;
 			control.Options.ValidatePattern = controlOptions.ValidatePattern || controlOptions.validatepattern;
@@ -231,18 +233,18 @@ export class AppFormsControl {
 				};
 			}
 
-			const dateOptions = controlOptions.DateOptions || controlOptions.dateoptions;
-			if (dateOptions !== undefined) {
-				control.Options.DateOptions = {
-					AllowTimes: !!(dateOptions.AllowTimes || dateOptions.allowtimes),
-					DisplayFormat: dateOptions.DisplayFormat || dateOptions.displayformat,
-					PickerFormat: dateOptions.PickerFormat || dateOptions.pickerformat,
-					DayNames: dateOptions.DayNames || dateOptions.daynames,
-					DayShortNames: dateOptions.DayShortNames || dateOptions.dayshortnames,
-					MonthNames: dateOptions.MonthNames || dateOptions.monthnames,
-					MonthShortNames: dateOptions.MonthShortNames || dateOptions.monthshortnames,
-					CancelText: dateOptions.CancelText || dateOptions.canceltext,
-					DoneText: dateOptions.DoneText || dateOptions.donetext
+			const datepickerOptions = controlOptions.DatePickerOptions || controlOptions.datepickeroptions;
+			if (datepickerOptions !== undefined) {
+				control.Options.DatePickerOptions = {
+					AllowTimes: !!(datepickerOptions.AllowTimes || datepickerOptions.allowtimes),
+					DisplayFormat: datepickerOptions.DisplayFormat || datepickerOptions.displayformat,
+					PickerFormat: datepickerOptions.PickerFormat || datepickerOptions.pickerformat,
+					DayNames: datepickerOptions.DayNames || datepickerOptions.daynames,
+					DayShortNames: datepickerOptions.DayShortNames || datepickerOptions.dayshortnames,
+					MonthNames: datepickerOptions.MonthNames || datepickerOptions.monthnames,
+					MonthShortNames: datepickerOptions.MonthShortNames || datepickerOptions.monthshortnames,
+					CancelText: datepickerOptions.CancelText || datepickerOptions.canceltext,
+					DoneText: datepickerOptions.DoneText || datepickerOptions.donetext
 				};
 			}
 
