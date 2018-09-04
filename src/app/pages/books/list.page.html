@@ -36,11 +36,11 @@
 		<div>
 			<label [hidden]="!pagination">
 				<ion-icon name="book" color="primary" slot="start"></ion-icon>
-				{{ totalRecords }} / {{ pagination ? pagination.TotalRecords : '?' }}	
+				{{ totalRecords | number:'':'vi' }} / {{ pagination ? (pagination.TotalRecords | number:'':'vi') : '?' }}	
 			</label>
 			<span [hidden]="!pagination || pagination.TotalPages < 2">
 				<ion-icon name="code" color="primary" slot="start"></ion-icon>
-				{{ pageNumber }} / {{ pagination ? pagination.TotalPages : '?' }}
+				{{ pageNumber | number:'':'vi' }} / {{ pagination ? (pagination.TotalPages | number:'':'vi') : '?' }}
 			</span>
 		</div>
 	</ion-toolbar>

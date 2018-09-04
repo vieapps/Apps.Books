@@ -24,7 +24,6 @@ import { QRCodeModule } from "angular2-qrcode";
 import { AppComponent } from "./app.component";
 import { AppRoutingModule } from "./app.routes";
 import { AppFormsModule } from "./components/forms.module";
-import { VinumberPipe } from "./components/app.vinumber.pipe";
 import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "./providers/base.service";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
@@ -33,10 +32,7 @@ import { FilesService } from "./providers/files.service";
 import { BooksService } from "./providers/books.service";
 
 @NgModule({
-	declarations: [
-		AppComponent,
-		VinumberPipe
-	],
+	declarations: [AppComponent],
 	imports: [
 		BrowserModule,
 		HttpModule,

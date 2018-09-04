@@ -22,7 +22,7 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	title = "Đăng nhập";
 	mode = "log-in";
-	rxSubscriptions = new Array<Rx.Subscription>();
+	private rxSubscriptions = new Array<Rx.Subscription>();
 	login = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
@@ -72,7 +72,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
-	openLogin() {
+	private openLogin() {
 		this.login.config = [
 			{
 				Key: "Email",
@@ -126,7 +126,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		);
 	}
 
-	openLoginOTP(data: any) {
+	private openLoginOTP(data: any) {
 		this.otp.providers = data.Providers;
 		this.otp.config = [
 			{
@@ -278,7 +278,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.refreshCaptchaAsync($event as AppFormsControl);
 	}
 
-	async refreshCaptchaAsync(control?: AppFormsControl) {
+	private async refreshCaptchaAsync(control?: AppFormsControl) {
 		await this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri);
 	}
 

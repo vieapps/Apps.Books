@@ -24,7 +24,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	}
 
 	title = "Đăng ký tài khoản";
-	rxSubscriptions = new Array<Rx.Subscription>();
+	private rxSubscriptions = new Array<Rx.Subscription>();
 	register = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Email", "ConfirmEmail"), this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
 		config: undefined as Array<any>,
@@ -47,7 +47,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
-	initializeForm() {
+	private initializeForm() {
 		this.register.config = [
 			{
 				Key: "Email",
@@ -211,7 +211,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		this.refreshCaptchaAsync($event as AppFormsControl);
 	}
 
-	async refreshCaptchaAsync(control?: AppFormsControl) {
+	private async refreshCaptchaAsync(control?: AppFormsControl) {
 		await this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Key === "Captcha")).captchaUri = this.configSvc.appConfig.session.captcha.uri);
 	}
 

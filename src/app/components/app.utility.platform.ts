@@ -95,23 +95,6 @@ export class PlatformUtility {
 		return avatar;
 	}
 
-	/** Gets the host name from an uri */
-	public static getHost(uri?: string) {
-		let host = uri || window.location.hostname;
-		if (host.indexOf(".") < 0) {
-			return host;
-		}
-		const info = AppUtility.toArray(host, ".");
-		host = info[info.length - 2] + "." + info[info.length - 1];
-		if (info.length > 2 && info[info.length - 3] !== "www") {
-			host = info[info.length - 3] + "." + host;
-		}
-		if (info.length > 3 && info[info.length - 4] !== "www") {
-			host = info[info.length - 4] + "." + host;
-		}
-		return host;
-	}
-
 	/** Opens an uri by OS/In-App browser */
 	public static openURI(uri?: string) {
 		if (AppUtility.isNotEmpty(uri) && (uri.startsWith("http://") || uri.startsWith("https://"))) {
@@ -173,7 +156,7 @@ export class PlatformUtility {
 			const uri = this.parseURI();
 			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + AppConfig.app.url.base;
 		}
-		return url + "home?" + AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path;
+		return url + AppConfig.app.url.home + "?" + AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path;
 	}
 
 	/** Gets the URI for activating */
@@ -184,6 +167,23 @@ export class PlatformUtility {
 	/** Gets the encoded URI for activating */
 	public static get activateURIEncoded() {
 		return AppCrypto.urlEncode(this.activateURI);
+	}
+
+	/** Gets the host name from an uri */
+	public static getHost(uri?: string) {
+		let host = this.parseURI(uri).host;
+		if (host.indexOf(".") < 0) {
+			return host;
+		}
+		const info = AppUtility.toArray(host, ".");
+		host = info[info.length - 2] + "." + info[info.length - 1];
+		if (info.length > 2 && info[info.length - 3] !== "www") {
+			host = info[info.length - 3] + "." + host;
+		}
+		if (info.length > 3 && info[info.length - 4] !== "www") {
+			host = info[info.length - 4] + "." + host;
+		}
+		return host;
 	}
 
 	/** Opens Google Maps by address or location via query */

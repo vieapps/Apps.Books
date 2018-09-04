@@ -116,7 +116,7 @@ export class AppComponent implements OnInit {
 		});
 	}
 
-	get sidebarItems() {
+	private get sidebarItems() {
 		return {
 			home: {
 				title: "Màn hình chính",
@@ -161,7 +161,7 @@ export class AppComponent implements OnInit {
 		return item.title;
 	}
 
-	updateSidebarItem(menuIndex: number = -1, itemIndex: number = -1, itemInfo: any = {}) {
+	private updateSidebarItem(menuIndex: number = -1, itemIndex: number = -1, itemInfo: any = {}) {
 		if (menuIndex > -1 && menuIndex < this.sidebar.left.menu.length) {
 			const item = {
 				title: itemInfo.title,
@@ -176,7 +176,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	updateSidebar(info: any = {}) {
+	private updateSidebar(info: any = {}) {
 		const index = info.index || 0;
 		while (this.sidebar.left.menu.length < index + 1) {
 			this.sidebar.left.menu.push({
@@ -231,7 +231,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	setupEventHandlers() {
+	private setupEventHandlers() {
 		AppEvents.on("NavigateHome", info => this.navController.navigateRoot(this.configSvc.appConfig.app.url.home, true, info.args));
 		AppEvents.on("NavigateBack", info => this.navController.navigateBack(this.configSvc.previousUrl, true, info.args));
 		AppEvents.on("NavigateForward", info => this.navController.navigateForward(info.args.url || this.configSvc.appConfig.app.url.home, true, info.args.extras));
@@ -282,7 +282,7 @@ export class AppComponent implements OnInit {
 		});
 	}
 
-	async activateAsync() {
+	private async activateAsync() {
 		const mode = this.configSvc.queryParams["mode"];
 		const code = this.configSvc.queryParams["code"];
 		if (AppUtility.isNotEmpty(mode) && AppUtility.isNotEmpty(code)) {
@@ -322,7 +322,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	async showActivationResultAsync(data: any) {
+	private async showActivationResultAsync(data: any) {
 		const header = "password" === data.Mode
 			? "Mật khẩu mới"
 			: "Tài khoản mới";
@@ -337,7 +337,7 @@ export class AppComponent implements OnInit {
 		await this.appFormsSvc.showAlertAsync(header, subHeader, message, () => this.configSvc.navigateHome());
 	}
 
-	async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
+	private async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
 		await this.configSvc.initializeAsync(
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
@@ -386,7 +386,7 @@ export class AppComponent implements OnInit {
 		);
 	}
 
-	startRTU(onCompleted?: () => void) {
+	private startRTU(onCompleted?: () => void) {
 		AppRTU.start(() => {
 			if (this.configSvc.isWebApp) {
 				PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());

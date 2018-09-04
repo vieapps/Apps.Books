@@ -1,6 +1,8 @@
 import * as Rx from "rxjs";
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
+import { registerLocaleData } from "@angular/common";
+import vi from "@angular/common/locales/vi";
 import { Searchbar, InfiniteScroll, Content } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppPagination } from "../../components/app.pagination";
@@ -42,7 +44,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			}
 		}
 	};
-	sorts = [
+	private sorts = [
 		{
 			label: "Tiêu đề (A - Z)",
 			value: "Title"
@@ -56,11 +58,11 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			value: "Chapters"
 		}
 	];
-	sort = this.sorts[1].value;
-	pageNumber = 0;
-	pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number };
-	requestParams: { [key: string]: any };
-	request: {
+	private sort = this.sorts[1].value;
+	private pageNumber = 0;
+	private pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number };
+	private requestParams: { [key: string]: any };
+	private request: {
 		FilterBy: { [key: string]: any },
 		SortBy: { [key: string]: any },
 		Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }
@@ -70,12 +72,11 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	ratings: { [key: string]: RatingPoint };
 
 	title = "";
-	rxSubscriptions = new Array<Rx.Subscription>();
+	private rxSubscriptions = new Array<Rx.Subscription>();
 
-	asGrid = false;
+	private asGrid = false;
 	filtering = false;
 	searching = false;
-	processing = false;
 	actions: Array<{
 		text: string,
 		role: string,
@@ -88,20 +89,21 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	@ViewChild(Content) contentCtrl: Content;
 
 	ngOnInit() {
+		registerLocaleData(vi);
 		this.initialize();
 		if (!this.searching) {
 			AppEvents.on("Session", info => {
 				if ("Updated" === info.args.Type) {
 					this.prepareActions();
 				}
-			}, "AccountEventHandlerOfListBooksPage");
+			}, this.eventIdentity);
 		}
 	}
 
 	ngOnDestroy() {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 		if (!this.searching) {
-			AppEvents.off("Session", "AccountEventHandlerOfListBooksPage");
+			AppEvents.off("Session", this.eventIdentity);
 		}
 	}
 
@@ -117,11 +119,11 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	get hideCategory() {
-		return this.searching ? true : this.filterBy.And.Category.Equals === undefined;
+		return this.searching ? true : this.filterBy.And.Category.Equals !== undefined;
 	}
 
 	get hideAuthor() {
-		return this.searching ? false : this.filterBy.And.Author.Equals === undefined;
+		return this.searching ? false : this.filterBy.And.Author.Equals !== undefined;
 	}
 
 	get displayAsGrid() {
@@ -132,7 +134,11 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		return this.pagination === undefined ? 0 : this.pageNumber * this.pagination.PageSize;
 	}
 
-	initialize() {
+	private get eventIdentity() {
+		return "AccountPrivileges@Books:" + (this.filterBy.And.Category.Equals !== undefined ? this.filterBy.And.Category.Equals : this.filterBy.And.Author.Equals);
+	}
+
+	private initialize() {
 		this.requestParams = this.configSvc.requestParams;
 		this.filterBy.And.Category.Equals = this.requestParams["Category"];
 		this.filterBy.And.Author.Equals = this.requestParams["Author"];
@@ -192,7 +198,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	search(onCompleted?: () => void) {
+	private search(onCompleted?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		this.booksSvc.searchAsync(
 			this.request,
@@ -206,7 +212,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		);
 	}
 
-	prepareResults(onCompleted?: () => void, results?: Array<any>) {
+	private prepareResults(onCompleted?: () => void, results?: Array<any>) {
 		if (this.searching) {
 			(results || []).forEach(o => {
 				const book = Book.instances.getValue(o.ID);
@@ -269,7 +275,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	prepareActions() {
+	private prepareActions() {
 		this.actions = [
 			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward(this.booksSvc.getSearchURI())),
 			this.appFormsSvc.getActionSheetButton("Lọc/Tìm nhanh", "funnel", () => this.showFilter()),
@@ -299,7 +305,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
-	async showSortsAsync() {
+	private async showSortsAsync() {
 		await this.appFormsSvc.showAlertAsync(
 			"Sắp xếp theo",
 			undefined,
@@ -324,7 +330,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		);
 	}
 
-	async showCrawlAsync() {
+	private async showCrawlAsync() {
 		await this.appFormsSvc.showAlertAsync(
 			"Crawl",
 			undefined,

@@ -12,7 +12,7 @@ export class AppUtility {
 	];
 
 	/** Checks to see the object is boolean and equals to true */
-	public static isTrue(obj?: any): boolean {
+	public static isTrue(obj?: any) {
 		return obj !== undefined && typeof obj === "boolean" && obj === true;
 	}
 

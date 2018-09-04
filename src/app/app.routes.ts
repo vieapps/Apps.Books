@@ -56,10 +56,10 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 					path: "list/:data",
 					loadChildren: "./pages/books/list.module#ListBooksPageModule"
 				},
-				// {
-				// 	path: "read/:data",
-				// 	loadChildren: "./pages/books/read.module#ReadBookPageModule"
-				// },
+				{
+					path: "read/:data",
+					loadChildren: "./pages/books/read.module#ReadBookPageModule"
+				},
 				// {
 				// 	path: "info/:data",
 				// 	loadChildren: "./pages/books/info.module#ViewBookInfoPageModule"

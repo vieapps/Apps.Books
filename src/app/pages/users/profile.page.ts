@@ -32,8 +32,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	mode = "profile";
 	id: string;
 	profile: UserProfile;
-	rxSubscriptions = new Array<Rx.Subscription>();
-	rxSubject = new Rx.Subject<{ mode: string, title: string }>();
+	private rxSubscriptions = new Array<Rx.Subscription>();
+	private rxSubject = new Rx.Subject<{ mode: string, title: string }>();
 	buttons: {
 		ok: {
 			text: string,
@@ -136,7 +136,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.rxSubject.next({ mode: mode, title: title});
 	}
 
-	prepareButtons() {
+	private prepareButtons() {
 		this.buttons.cancel = { text: "Huỷ", icon: undefined, handler: async () => await this.openProfileAsync() };
 		this.buttons.ok = { text: "Cập nhật", icon: undefined, handler: undefined };
 
@@ -181,7 +181,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			: undefined;
 	}
 
-	prepareActions() {
+	private prepareActions() {
 		if (this.mode !== "profile") {
 			this.actions = undefined;
 		}
@@ -226,7 +226,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	async openProfileAsync(onNext?: () => void) {
+	private async openProfileAsync(onNext?: () => void) {
 		this.id = this.configSvc.requestParams["ID"];
 		if (this.profile === undefined && this.id !== undefined && !UserProfile.instances.containsKey(this.id)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
@@ -245,7 +245,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		);
 	}
 
-	updateProfile() {
+	private updateProfile() {
 		this.update.config = [
 			{
 				Key: "Name",
@@ -392,7 +392,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	updatePassword() {
+	private updatePassword() {
 		this.password.config = [
 			{
 				Key: "OldPassword",
@@ -448,7 +448,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	updateEmail() {
+	private updateEmail() {
 		this.email.config = [
 			{
 				Key: "OldPassword",
@@ -504,7 +504,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	updateOTP(onNext?: () => void) {
+	private updateOTP(onNext?: () => void) {
 		const account = this.configSvc.getAccount();
 		this.otp.required = account.twoFactors.required;
 		this.otp.providers = account.twoFactors.providers;
@@ -560,14 +560,14 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		);
 	}
 
-	updatePrivileges() {
+	private updatePrivileges() {
 		this.setMode("privileges", "Đặt quyền truy cập");
 	}
 
 	async updatePrivilegesAsync() {
 	}
 
-	sendInvitation() {
+	private sendInvitation() {
 		this.invitation.config = [
 			{
 				Key: "Name",
@@ -615,7 +615,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	async logoutAsync() {
+	private async logoutAsync() {
 		await this.appFormsSvc.showAlertAsync(
 			"Đăng xuất",
 			undefined,
