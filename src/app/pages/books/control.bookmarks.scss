@@ -1,0 +1,25 @@
+ion-list > ion-item-sliding > ion-item {
+	cursor: pointer;
+}
+ion-list > ion-item-sliding > ion-item > div {
+	padding: 5px 0;
+}
+ion-list > ion-item-sliding > ion-item > div > h2 {
+	margin: 7px 0;
+	font-size: 1.1em;
+	font-weight: normal;
+}
+ion-list > ion-item-sliding > ion-item > div > div > label {
+	text-align: right;
+	font-size: 80%;
+}
+ion-list > ion-item-sliding > ion-item > div > div > span {
+	margin-left: 30px;
+	font-size: 80%;
+}
+div, h2 {
+	width: 100%;
+}
+ion-icon {
+	margin-right: 8px;
+}

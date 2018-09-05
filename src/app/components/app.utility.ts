@@ -367,7 +367,7 @@ export class AppUtility {
 	}
 
 	/** Converts the Vietnamese string to ANSI string */
-	public static toANSI(input?: string): string {
+	public static toANSI(input?: string, asURI?: boolean): string {
 		if (!this.isNotEmpty(input) || input.trim() === "") {
 			return "";
 		}
@@ -529,8 +529,22 @@ export class AppUtility {
 		result = result.replace(/\u0110/g, "D");
 		result = result.replace(/\u0111/g, "d");
 
-		// double spaces
+		// spaces
 		result = result.replace(/\s\s+/g, " ");
+
+		// as URI
+		if (this.isTrue(asURI)) {
+			result = result.replace(/\s/g, "-").replace(/\&/g, "").replace(/\?/g, "");
+			result = result.replace(/\+/g, "").replace(/\//g, "-").replace(/\'/g, "");
+			result = result.replace(/\\/g, "-").replace(/\=/g, "").replace(/\,/g, "").replace(/\./g, "-");
+			result = result.replace(/\(/g, "").replace(/\)/g, "").replace(/\#/g, "").replace(/\%/g, "");
+			result = result.replace(/\`/g, "").replace(/\!/g, "").replace(/\@/g, "").replace(/\$/g, "");
+			result = result.replace(/\>/g, "").replace(/\</g, "").replace(/\{/g, "").replace(/\}/g, "");
+			result = result.replace(/\[/g, "").replace(/\]/g, "").replace(/\*/g, "").replace(/\^/g, "");
+			result = result.replace(/\:/g, "").replace(/\;/g, "").replace(/\|/g, "").replace(/\"/g, "");
+			result = result.replace(/\_\-\_/g, "-").replace(/\-\_\-/g, "-").replace(/\-\-\-/g, "-").replace(/\-\-/g, "-");
+			result = result.toLowerCase();
+		}
 
 		return result.trim();
 	}

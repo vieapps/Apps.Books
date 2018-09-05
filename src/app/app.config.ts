@@ -24,21 +24,10 @@ export class AppConfig {
 		mode: "",
 		platform: "",
 		os: "",
-		language: "vi-VN",
 		service: "books",
 		services: "system,users,books,libraries,marketplaces",
 		debug: true,
-		offline: false,
-		url: {
-			stack: new Array<{
-				url: string,
-				params: { [key: string]: any }
-			}>(),
-			home: "/home",
-			base: undefined as string,
-			host: undefined as string,
-			redirectToWhenReady: undefined as string
-		}
+		offline: false
 	};
 
 	/** Session information */
@@ -57,14 +46,14 @@ export class AppConfig {
 	/** Settings for working with user accounts */
 	public static accountRegistrations = {
 		registrable: true,
-		excluded: [/*"Gender", "BirthDay", "Mobile", "Address", "Addresses"*/],
-		required: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
+		excluded: ["Gender", "BirthDay", "Mobile", "Address"],
+		required: ["Gender", "BirthDay", "Mobile", "Address"],
 		sendInvitationRole: "All",
 		setPrivilegsRole: "ServiceAdministrator"
 	};
 
-	/** Common meta data */
-	public static meta = {
+	/** Geographic meta */
+	public static geoMeta = {
 		country: "VN",
 		countries: new Array<{ name: string, code: string, code3: string }>(),
 		provinces: {} as {
@@ -85,6 +74,25 @@ export class AppConfig {
 				}>
 			}
 		}
+	};
+
+	/** App options */
+	public static options = {
+		language: "vi-VN",
+		locale: "vi_VN",
+		extras: {} as { [key: string]: any }
+	};
+
+	/** Gets the related information of url (stack, host, ...) */
+	public static url = {
+		stack: new Array<{
+			url: string,
+			params: { [key: string]: any }
+		}>(),
+		home: "/home",
+		base: undefined as string,
+		host: undefined as string,
+		redirectToWhenReady: undefined as string
 	};
 
 	/** Tracking information */
@@ -150,14 +158,14 @@ export class AppConfig {
 	/** Gets the culture language for working with UI */
 	public static get language() {
 		return this.session.account !== undefined && this.session.account.profile !== undefined
-			? this.session.account.profile.Language || "vi-VN"
-			: this.app.language;
+			? this.session.account.profile.Language || this.options.language
+			: this.options.language;
 	}
 
 	/** Gets the query with related service, language and host */
 	public static getRelatedQuery(service?: string) {
 		service = service || this.app.service;
-		return (AppUtility.isNotEmpty(service) ? "related-service=" + service + "&" : "") + "language=" + this.language + "&host=" + this.app.url.host;
+		return (AppUtility.isNotEmpty(service) ? "related-service=" + service + "&" : "") + "language=" + this.language + "&host=" + this.url.host;
 	}
 
 	/** Gets the authenticated headers (JSON) for making requests to APIs */

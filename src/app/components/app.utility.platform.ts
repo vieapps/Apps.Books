@@ -84,7 +84,7 @@ export class PlatformUtility {
 		if (avatar === "" && AppUtility.isObject(data, true)) {
 			noAvatar = AppUtility.isNotEmpty(noAvatar)
 				? noAvatar
-				: AppConfig.URIs.files + "avatars/" + AppConfig.app.url.host + "-no-avatar.png";
+				: AppConfig.URIs.files + "avatars/" + AppConfig.url.host + "-no-avatar.png";
 			const email = AppUtility.isObject(data.Contact, true)
 				? data.Contact.Email
 				: data.Email;
@@ -154,9 +154,9 @@ export class PlatformUtility {
 		let url = AppConfig.URIs.activations;
 		if (AppConfig.isWebApp && AppUtility.indexOf(window.location.href, "file://") < 0) {
 			const uri = this.parseURI();
-			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + AppConfig.app.url.base;
+			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + AppConfig.url.base;
 		}
-		return url + AppConfig.app.url.home + "?" + AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path;
+		return url + AppConfig.url.home + "?" + AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path;
 	}
 
 	/** Gets the URI for activating */

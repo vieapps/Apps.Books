@@ -2,13 +2,17 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
-import { BookLinearControl } from "./control.book.linear";
-import { BookGridControl } from "./control.book.grid";
+import { BookLinearItemControl } from "./control.item.linear";
+import { BookGridItemControl } from "./control.item.grid";
+import { BookHomeScreenControl } from "./control.home";
+import { BookmarksControl } from "./control.bookmarks";
 
 @NgModule({
 	declarations: [
-		BookLinearControl,
-		BookGridControl
+		BookLinearItemControl,
+		BookGridItemControl,
+		BookHomeScreenControl,
+		BookmarksControl
 	],
 	imports: [
 		CommonModule,
@@ -16,8 +20,10 @@ import { BookGridControl } from "./control.book.grid";
 		RouterModule
 	],
 	exports: [
-		BookLinearControl,
-		BookGridControl
+		BookLinearItemControl,
+		BookGridItemControl,
+		BookHomeScreenControl,
+		BookmarksControl
 	]
 })
 export class BookControlsModule {}

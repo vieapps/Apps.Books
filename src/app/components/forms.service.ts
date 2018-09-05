@@ -98,12 +98,12 @@ export class AppFormsControl {
 	} = undefined;
 
 	/** Gets uri of the captcha image */
-	public get captchaUri() {
+	public get captchaURI() {
 		return this.Extras["_data:CaptchaUri"];
 	}
 
 	/** Sets uri of the captcha image */
-	public set captchaUri(value: string) {
+	public set captchaURI(value: string) {
 		this.Extras["_data:CaptchaUri"] = value;
 	}
 
@@ -596,8 +596,8 @@ export class AppFormsService {
 
 	/** Gets the listing of meta counties of a specified country */
 	public getMetaCounties(country?: string) {
-		country = country || AppConfig.meta.country;
-		if (this._metaCounties[country] === undefined && AppConfig.meta.provinces[country] !== undefined) {
+		country = country || AppConfig.geoMeta.country;
+		if (this._metaCounties[country] === undefined && AppConfig.geoMeta.provinces[country] !== undefined) {
 			const counties = new Array<{
 				County: string,
 				Province: string,
@@ -605,7 +605,7 @@ export class AppFormsService {
 				Title: string,
 				TitleANSI: string
 			}>();
-			const provinces = AppConfig.meta.provinces[country].provinces || [];
+			const provinces = AppConfig.geoMeta.provinces[country].provinces || [];
 			provinces.forEach(province => province.counties.forEach(county => counties.push({
 				County: county.title,
 				Province: province.title,

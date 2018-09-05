@@ -1,1 +1,14 @@
-
+ion-footer > ion-toolbar > div {
+	text-align: center;
+}
+ion-footer > ion-toolbar > div > span,
+ion-footer > ion-toolbar > div > span > ion-icon,
+ion-footer > ion-toolbar > div > span > span {
+	display: inline-block;
+	vertical-align: middle;
+	top: -1px;
+}
+ion-footer > ion-toolbar > div > span > ion-icon {
+	margin-top: 3px;
+	margin-right: 8px;
+}

@@ -6,6 +6,7 @@ import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../components/forms.module";
 import { AccountAvatarPageModule } from "./avatar.module";
 import { AccountProfilePage } from "./profile.page";
+import { BookControlsModule } from "../books/controls.module";
 
 @NgModule({
 	declarations: [AccountProfilePage],
@@ -15,6 +16,7 @@ import { AccountProfilePage } from "./profile.page";
 		IonicModule,
 		AppFormsModule,
 		AccountAvatarPageModule,
+		BookControlsModule,
 		RouterModule.forChild([
 			{
 				path: "",

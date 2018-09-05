@@ -39,10 +39,20 @@ export class UserProfileBase extends BaseModel {
 	Status = "Activated";
 	Joined = new Date();
 	LastAccess = new Date();
-
-	Title = "";
-	FullAddress = "";
 	IsOnline = false;
+
+	ansiTitle = "";
+	fullAddress = "";
+	routerLink = "";
+	routerParams = {} as { [key: string]: any };
+
+	public get routerURI() {
+		return this.routerLink + "?x-request=" + this.routerParams["x-request"];
+	}
+
+	public get avatarURI() {
+		return AppUtility.isNotEmpty(this.Avatar) ? this.Avatar : this.Gravatar;
+	}
 
 	public static deserialize(json: any, profile?: UserProfileBase) {
 		profile = profile || new UserProfileBase();
@@ -59,18 +69,21 @@ export class UserProfileBase extends BaseModel {
 			if (AppUtility.isNotEmpty(this.BirthDay)) {
 				this.BirthDay = this.BirthDay.replace(/--/g, "01").replace(/\//g, "-");
 			}
-			this.FullAddress = this.Address
+			this.fullAddress = this.Address
 				+ (AppUtility.isNotEmpty(this.Province) ? (AppUtility.isNotEmpty(this.Address) ? ", " : "")
 				+ this.County + ", " + this.Province + ", " + this.Country : "");
-			this.Title = AppUtility.toANSI(this.Name + " " + this.FullAddress + " " + this.Email + " " + this.Mobile).toLowerCase();
+			this.ansiTitle = AppUtility.toANSI(this.Name + " " + this.fullAddress + " " + this.Email + " " + this.Mobile).toLowerCase();
+			this.routerLink = `/users/profile/${AppUtility.toANSI(this.Name, true)}`;
+			this.routerParams = {
+				"x-request": AppUtility.toBase64Url({
+					ID: this.ID
+				})
+			};
+
 			if (onCompleted !== undefined) {
 				onCompleted(data);
 			}
 		});
-	}
-
-	public get avatarUri() {
-		return AppUtility.isNotEmpty(this.Avatar) ? this.Avatar : this.Gravatar;
 	}
 
 }

@@ -6,7 +6,7 @@
 			</ion-button>
 		</ion-buttons>
 		<ion-title>
-			{{title}}
+			{{ title }}
 		</ion-title>
 	</ion-toolbar>
 </ion-header>
@@ -21,11 +21,11 @@
 		<ion-buttons>
 			<ion-button [fill]="login.button.fill" [color]="login.button.color" (click)="logInAsync()">
 				<ion-icon *ngIf="login.button.icon" [icon]="login.button.icon" slot="start"></ion-icon>
-				{{login.button.label}}
+				{{ login.button.label }}
 			</ion-button>
 			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="openResetPassword()">
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
-				{{reset.button.label}}
+				{{ reset.button.label }}
 			</ion-button>
 		</ion-buttons>
 	</div>
@@ -39,7 +39,7 @@
 		<ion-buttons>
 			<ion-button [fill]="otp.button.fill" [color]="otp.button.color" (click)="logInOTPAsync()">
 				<ion-icon *ngIf="otp.button.icon" [icon]="otp.button.icon" slot="start"></ion-icon>
-				{{otp.button.label}}
+				{{ otp.button.label }}
 			</ion-button>
 		</ion-buttons>
 	</div>
@@ -54,7 +54,7 @@
 		<ion-buttons>
 			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="resetPasswordAsync()">
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
-				{{reset.button.label}}
+				{{ reset.button.label }}
 			</ion-button>
 		</ion-buttons>
 	</div>

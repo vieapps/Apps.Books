@@ -6,17 +6,17 @@
 			</ion-button>
 			<ion-button *ngIf="buttons.cancel" color="secondary" (click)="buttons.cancel.handler()">
 				<ion-icon *ngIf="buttons.cancel.icon" [name]="buttons.cancel.icon" slot="start"></ion-icon>
-				{{buttons.cancel.text}}
+				{{ buttons.cancel.text }}
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons *ngIf="buttons.ok" slot="end">
 			<ion-button color="primary" (click)="buttons.ok.handler()">
 				<ion-icon *ngIf="buttons.ok.icon" [name]="buttons.ok.icon" slot="start"></ion-icon>
-				{{buttons.ok.text}}
+				{{ buttons.ok.text }}
 			</ion-button>
 		</ion-buttons>
 		<ion-title>
-			{{title}}
+			{{ title }}
 		</ion-title>
 	</ion-toolbar>
 </ion-header>
@@ -26,7 +26,7 @@
 		<ion-buttons *ngIf="buttons.invite" slot="start">
 			<ion-button (click)="buttons.invite.handler()">
 				<ion-icon *ngIf="buttons.invite.icon" [name]="buttons.invite.icon" slot="start"></ion-icon>
-				{{buttons.invite.text}}
+				{{ buttons.invite.text }}
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons *ngIf="actions" slot="end">
@@ -42,7 +42,7 @@
 
 	<div *ngIf="mode === 'profile' && profile" [class]="mode">
 		<figure>
-			<img [src]="profile.avatarUri" />
+			<img [src]="profile.avatarURI" />
 		</figure>
 		<h1>
 			{{ profile.Name }}
@@ -59,9 +59,9 @@
 				<ion-icon icon="phone-portrait" slot="start"></ion-icon>
 				{{ profile.Mobile }}
 			</ion-item>
-			<ion-item *ngIf="profile.FullAddress !== ''">
+			<ion-item *ngIf="profile.fullAddress !== ''">
 				<ion-icon icon="pin" slot="start"></ion-icon>
-				{{ profile.FullAddress }}
+				{{ profile.fullAddress }}
 			</ion-item>
 			<ion-item>
 				<ion-icon icon="time" slot="start"></ion-icon>
@@ -69,6 +69,8 @@
 			</ion-item>
 		</ion-list>
 	</div>
+
+	<control-book-bookmarks *ngIf="mode === 'profile' && profile && !id"></control-book-bookmarks>
 
 	<div *ngIf="mode !== 'profile' && mode !== 'otp'" [class]="mode">
 		<app-form *ngIf="mode === 'update'"

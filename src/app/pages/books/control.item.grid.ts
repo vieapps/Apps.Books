@@ -6,11 +6,11 @@ import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
 
 @Component({
-	selector: "control-book-grid",
-	templateUrl: "./control.book.grid.html",
-	styleUrls: ["./control.book.grid.scss"]
+	selector: "control-book-grid-item",
+	templateUrl: "./control.item.grid.html",
+	styleUrls: ["./control.item.grid.scss"]
 })
-export class BookGridControl {
+export class BookGridItemControl {
 
 	constructor (
 		public configSvc: ConfigurationService,
@@ -22,15 +22,7 @@ export class BookGridControl {
 	@Input() hideAuthor: boolean;
 	@Input() hideCategory: boolean;
 
-	get routerLink() {
-		return this.booksSvc.getBookURI(this.book);
-	}
-
-	get queryParams() {
-		return this.booksSvc.getBookQueryParams(this.book);
-	}
-
 	open() {
-		this.configSvc.navigateForward(PlatformUtility.getURI(this.routerLink, this.queryParams));
+		this.configSvc.navigateForward(this.book.routerURI);
 	}
 }

@@ -395,8 +395,8 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 	}
 
-	get captchaUri() {
-		return this.control.captchaUri;
+	get captchaURI() {
+		return this.control.captchaURI;
 	}
 
 	refreshCaptcha() {

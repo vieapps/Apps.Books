@@ -53,7 +53,11 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 					loadChildren: "./pages/books/list.module#ListBooksPageModule"
 				},
 				{
-					path: "list/:data",
+					path: "list-by-category/:data",
+					loadChildren: "./pages/books/list.module#ListBooksPageModule"
+				},
+				{
+					path: "list-by-author/:data",
 					loadChildren: "./pages/books/list.module#ListBooksPageModule"
 				},
 				{

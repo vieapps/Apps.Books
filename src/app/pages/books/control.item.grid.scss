@@ -1,0 +1,52 @@
+div {
+	position: relative;
+	overflow: hidden;
+	height: 200px;
+	background-color: transparent;
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	border-radius: 5px;
+	cursor: pointer;
+}
+div > section {
+	display: block;
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	overflow: hidden;
+	height: 80px;
+	width: 100%;
+	color: var(--ion-color-light);
+	background-color: var(--ion-color-dark);
+	opacity: 0.8;
+	text-align: center;
+}
+div > section > span {
+	display: block;
+	width: 100%;
+	margin: 6px 0;
+	font-size: 0.95em;
+}
+div > section > h2 {
+	font-size: 1.2em;
+	margin: 0;
+	padding: 0 5px;
+}
+@media only screen and (min-width: 480px) {
+	div {
+		height: 260px;
+	}
+}
+
+@media only screen and (min-width: 576px) {
+	div {
+		height: 300px;
+	}
+}
+
+@media only screen and (min-width: 1200px) {
+	div {
+		height: 400px;
+	}
+}

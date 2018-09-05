@@ -48,7 +48,13 @@ export class Book extends BaseModel {
 		}
 	};
 
-	ANSITitle = "";
+	ansiTitle = "";
+	routerLink = "";
+	routerParams = {} as { [key: string]: any };
+
+	public get routerURI() {
+		return this.routerLink + "?x-request=" + this.routerParams["x-request"];
+	}
 
 	public static deserialize(json: any, book?: Book) {
 		book = book || new Book();
@@ -63,7 +69,13 @@ export class Book extends BaseModel {
 				? book.TOCs.map(o => "")
 				: book.Chapters;
 
-			book.ANSITitle = AppUtility.toANSI(book.Title + " " + book.Author).toLowerCase();
+			book.ansiTitle = AppUtility.toANSI(book.Title + " " + book.Author).toLowerCase();
+			book.routerLink = `/books/read/${AppUtility.toANSI(book.Title + "-" + book.Author, true)}`;
+			book.routerParams = {
+				"x-request": AppUtility.toBase64Url({
+					ID: book.ID
+				})
+			};
 		});
 		return book;
 	}

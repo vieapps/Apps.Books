@@ -1,8 +1,6 @@
 import * as Rx from "rxjs";
-import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
 import { AppEvents } from "../../components/app.events";
-import { AppUtility } from "../../components/app.utility";
 import { ConfigurationService } from "../../providers/configuration.service";
 
 @Component({
@@ -17,27 +15,28 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 	) {
 	}
 
+	title = "Màn hình chính";
 	rxSubscriptions = new Array<Rx.Subscription>();
 
 	ngOnInit() {
-		if (this.configSvc.isReady) {
-			this.initialize();
-		}
-		else {
-			AppEvents.on("AppIsInitialized", () => this.initialize(), "AppReadyEventHandlerOfHomePage");
-		}
+		this.setTitle();
+		AppEvents.on("Navigate", info => {
+			if (this.configSvc.appConfig.url.home === info.args.url || ("Back" === info.args.direction && this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.home))) {
+				this.setTitle();
+			}
+		}, "NavigateEventHandlersOfHomePage");
 	}
 
 	ngOnDestroy() {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
-		AppEvents.off("AppIsInitialized", "AppReadyEventHandlerOfHomePage");
+		AppEvents.off("Navigate", "NavigateEventHandlersOfHomePage");
 	}
 
 	ngAfterViewInit() {
 	}
 
-	initialize() {
-		this.configSvc.appTitle = "Màn hình chính";
+	setTitle() {
+		this.configSvc.appTitle = this.title;
 	}
 
 }

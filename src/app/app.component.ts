@@ -232,25 +232,31 @@ export class AppComponent implements OnInit {
 	}
 
 	private setupEventHandlers() {
-		AppEvents.on("NavigateHome", info => this.navController.navigateRoot(this.configSvc.appConfig.app.url.home, true, info.args));
-		AppEvents.on("NavigateBack", info => this.navController.navigateBack(this.configSvc.previousUrl, true, info.args));
-		AppEvents.on("NavigateForward", info => this.navController.navigateForward(info.args.url || this.configSvc.appConfig.app.url.home, true, info.args.extras));
+		AppEvents.on("Navigate", info => {
+			const direction = (info.args.direction || "forward") + "";
+			switch (direction.toLowerCase()) {
+				case "forward":
+					this.navController.navigateForward(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
+					break;
+				case "back":
+					this.navController.navigateBack(info.args.url || this.configSvc.previousUrl, true, info.args.extras);
+					break;
+				default:
+					this.navController.navigateRoot(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
+					break;
+				}
+		});
 
 		AppEvents.on("UpdateSidebar", info => this.updateSidebar(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
-
-		AppEvents.on("UpdateSidebarTitle", info => {
-			if (AppUtility.isNotEmpty(info.args.title)) {
-				this.sidebar.left.title = info.args.title;
-			}
-		});
+		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.title) ? info.args.title : this.configSvc.appConfig.app.name);
 
 		AppEvents.on("Session", info => {
 			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
 				const profile = this.configSvc.getAccount().profile;
 				this.sidebar.left.title = profile ? profile.Name : this.configSvc.appConfig.app.name;
-				this.sidebar.left.avatar = profile ? profile.avatarUri : undefined;
+				this.sidebar.left.avatar = profile ? profile.avatarURI : undefined;
 
 				const items = this.sidebar.left.menu[0].items;
 				if (this.configSvc.isAuthenticated) {
@@ -395,15 +401,15 @@ export class AppComponent implements OnInit {
 				this.configSvc.patchAccount(() => this.configSvc.getProfile());
 			}
 			console.log("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
-			AppEvents.broadcast("AppIsInitialized", this.configSvc.appConfig.app);
+			AppEvents.broadcast("App", { Type: "Initialized", Data: this.configSvc.appConfig.app });
 			this.appFormsSvc.hideLoadingAsync(() => {
 				if (onCompleted !== undefined) {
 					onCompleted();
 				}
 				else {
-					let redirect = this.configSvc.queryParams["redirect"] || this.configSvc.appConfig.app.url.redirectToWhenReady;
+					let redirect = this.configSvc.queryParams["redirect"] || this.configSvc.appConfig.url.redirectToWhenReady;
 					if (redirect !== undefined) {
-						this.configSvc.appConfig.app.url.redirectToWhenReady = undefined;
+						this.configSvc.appConfig.url.redirectToWhenReady = undefined;
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
 							console.log(`<AppComponent>: Redirect to the request url\n[${redirect}]`);

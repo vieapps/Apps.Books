@@ -35,7 +35,14 @@ export class ConfigurationService extends BaseService {
 		public browserTitle: Title
 	) {
 		super(http, "Configuration");
-		AppEvents.on("AppIsInitialized", async () => await this.loadGeoMetaAsync());
+		AppEvents.on("App", async info => {
+			if ("Initialized" === info.args.type) {
+				await Promise.all([
+					this.loadGeoMetaAsync(),
+					this.loadOptionsAsync()
+				]);
+			}
+		});
 	}
 
 	/** Gets the configuration of the app */
@@ -69,38 +76,38 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private getCurrentUrl() {
-		return this.appConfig.app.url.stack.length > 0 ? this.appConfig.app.url.stack[this.appConfig.app.url.stack.length - 1] : undefined;
+		return this.appConfig.url.stack.length > 0 ? this.appConfig.url.stack[this.appConfig.url.stack.length - 1] : undefined;
 	}
 
 	/** Gets the previous url */
 	private getPreviousUrl() {
-		return this.appConfig.app.url.stack.length > 1 ? this.appConfig.app.url.stack[this.appConfig.app.url.stack.length - 2] : undefined;
+		return this.appConfig.url.stack.length > 1 ? this.appConfig.url.stack[this.appConfig.url.stack.length - 2] : undefined;
 	}
 
 	/** Adds an url into stack of routes */
 	public addUrl(url: string, params: { [key: string]: any }) {
 		url = url.indexOf("?") > 0 ? url.substr(0, url.indexOf("?")) : url;
-		this.appConfig.app.url.stack = url !== this.appConfig.app.url.home ? this.appConfig.app.url.stack : [];
+		this.appConfig.url.stack = url !== this.appConfig.url.home ? this.appConfig.url.stack : [];
 		const previous = this.getPreviousUrl();
 		const current = this.getCurrentUrl();
 		if (previous !== undefined && previous.url.startsWith(url)) {
-			this.appConfig.app.url.stack.pop();
+			this.appConfig.url.stack.pop();
 		}
 		else if (current === undefined || !current.url.startsWith(url)) {
-			this.appConfig.app.url.stack.push({
+			this.appConfig.url.stack.push({
 				url: url,
 				params: params
 			});
 		}
-		if (this.appConfig.app.url.stack.length > 30) {
-			this.appConfig.app.url.stack.splice(0, this.appConfig.app.url.stack.length - 30);
+		if (this.appConfig.url.stack.length > 30) {
+			this.appConfig.url.stack.splice(0, this.appConfig.url.stack.length - 30);
 		}
 	}
 
 	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUrl?: string) {
 		return info !== undefined
 			? PlatformUtility.getURI(info.url, info.params)
-			: alternativeUrl || this.appConfig.app.url.home;
+			: alternativeUrl || this.appConfig.url.home;
 	}
 
 	/** Gets the current url */
@@ -139,29 +146,38 @@ export class ConfigurationService extends BaseService {
 		return AppUtility.getJsonOfQuery(this.queryParams["x-request"]);
 	}
 
+	/** Gets the width (pixels) of the screen */
+	public get screenWidth() {
+		return this.platform.width();
+	}
+
+	/** Gets the width (pixels) of the screen */
+	public get screenHeight() {
+		return this.platform.height();
+	}
+
 	/** Prepare the working environments of the app */
 	public async prepareAsync(onCompleted?: () => void) {
-		this.appConfig.app.mode = this.platform.is("cordova") && this.device.platform !== "browser" ? "NTA" : "PWA";
+		const isCordova = this.platform.is("cordova");
+		const isNativeApp = isCordova && this.device.platform !== "browser";
+
+		this.appConfig.app.mode = isNativeApp ? "NTA" : "PWA";
 		this.appConfig.app.os = PlatformUtility.getOSPlatform();
 
-		if (this.appConfig.isNativeApp) {
+		if (isNativeApp) {
 			this.appConfig.app.platform = this.device.platform;
 			this.appConfig.session.device = this.device.uuid + "@" + this.appConfig.app.id;
 		}
 
 		else {
-			this.appConfig.app.url.host = PlatformUtility.getHost();
-			this.appConfig.app.url.base = this.platformLocation.getBaseHrefFromDOM();
-			this.appConfig.app.platform = this.platform.is("cordova") ? this.device.platform : undefined;
-			if (!AppUtility.isNotEmpty(this.appConfig.app.platform) || this.appConfig.app.platform === "browser") {
-				this.appConfig.app.platform = PlatformUtility.getAppPlatform();
-			}
-			this.appConfig.app.platform += " " + this.appConfig.app.mode;
+			this.appConfig.url.host = PlatformUtility.getHost();
+			this.appConfig.url.base = this.platformLocation.getBaseHrefFromDOM();
+			this.appConfig.app.platform = PlatformUtility.getAppPlatform() + " " + this.appConfig.app.mode;
 		}
 
-		if (this.platform.is("cordova")) {
+		if (isCordova) {
 			await TrackingUtility.initializeAsync(this.googleAnalytics);
-			if (this.device.platform !== "browser") {
+			if (isNativeApp) {
 				PlatformUtility.setKeyboard(this.keyboard);
 				this.appVer.getVersionCode()
 					.then(version => this.appConfig.app.version = version as string)
@@ -169,7 +185,7 @@ export class ConfigurationService extends BaseService {
 			}
 		}
 
-		await this.storage.ready();
+		await this.storage.ready().then(() => console.log(this.getLogMessage("Storage is ready")));
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
@@ -439,7 +455,7 @@ export class ConfigurationService extends BaseService {
 				"object-identity": this.getAccount().id,
 				"related-service": this.appConfig.app.service,
 				"language": this.appConfig.language,
-				"host": this.appConfig.app.url.host
+				"host": this.appConfig.url.host
 			},
 			Header: undefined,
 			Body: undefined,
@@ -511,73 +527,93 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Sends a request to tell app component navigates to home screen */
-	public navigateHome(extras?: { [key: string]: any }) {
-		AppEvents.broadcast("NavigateHome", extras);
+	public navigateHome(url?: string, extras?: { [key: string]: any }) {
+		AppEvents.broadcast("Navigate", {
+			url: url,
+			extras: extras
+		});
 	}
 
 	/** Sends a request to tell app component navigates back one step */
-	public navigateBack(extras?: { [key: string]: any }) {
-		AppEvents.broadcast("NavigateBack", extras);
+	public navigateBack(url?: string, extras?: { [key: string]: any }) {
+		AppEvents.broadcast("Navigate", {
+			direction: "Back",
+			url: url,
+			extras: extras
+		});
 	}
 
 	/** Sends a request to tell app component navigates forward one step */
 	public navigateForward(url: string, extras?: { [key: string]: any }) {
-		AppEvents.broadcast("NavigateForward", {
+		AppEvents.broadcast("Navigate", {
+			direction: "Forward",
 			url: url,
 			extras: extras
 		});
 	}
 
 	private async loadGeoMetaAsync() {
-		this.appConfig.meta.country = await this.storage.get("VIEApps-GeoMeta-Country") || "VN";
-		this.appConfig.meta.countries = await this.storage.get("VIEApps-GeoMeta-Countries") || [];
-		this.appConfig.meta.provinces = await this.storage.get("VIEApps-GeoMeta-Provinces") || {};
+		this.appConfig.geoMeta.country = await this.storage.get("VIEApps-GeoMeta-Country") || "VN";
+		this.appConfig.geoMeta.countries = await this.storage.get("VIEApps-GeoMeta-Countries") || [];
+		this.appConfig.geoMeta.provinces = await this.storage.get("VIEApps-GeoMeta-Provinces") || {};
 
-		if (this.appConfig.meta.provinces[this.appConfig.meta.country] !== undefined) {
-			AppEvents.broadcast("GeoMeta", { Type: "Loaded", Data: this.appConfig.meta });
+		if (this.appConfig.geoMeta.provinces[this.appConfig.geoMeta.country] !== undefined) {
+			AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
 		}
 
-		await this.loadGeoProvincesAsync(this.appConfig.meta.country, async () => {
-			if (this.appConfig.meta.countries.length < 1) {
-				await this.loadGeoCountriesAsync();
-			}
-		});
+		await super.readAsync(
+			`statics/geo/provinces/${this.appConfig.geoMeta.country}.json`,
+			async countries => await this.saveGeoMetaAsync(countries, async () => {
+				if (this.appConfig.geoMeta.countries.length < 1) {
+					await super.readAsync(
+						"statics/geo/countries.json",
+						async provinces => await this.saveGeoMetaAsync(provinces),
+						error => this.showError("Error occurred while fetching the meta countries", error)
+					);
+				}
+			}),
+			error => this.showError("Error occurred while fetching the meta provinces", error)
+		);
 	}
 
 	private async saveGeoMetaAsync(data: any, onCompleted?: (data?: any) => void) {
 		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces, true)) {
-			this.appConfig.meta.provinces[data.code] = data;
+			this.appConfig.geoMeta.provinces[data.code] = data;
 		}
 		else if (AppUtility.isObject(data, true) && AppUtility.isArray(data.countries, true)) {
-			this.appConfig.meta.countries = data.countries;
+			this.appConfig.geoMeta.countries = data.countries;
 		}
 
 		await Promise.all([
-			this.storage.set("VIEApps-GeoMeta-Country", this.appConfig.meta.country),
-			this.storage.set("VIEApps-GeoMeta-Countries", this.appConfig.meta.countries),
-			this.storage.set("VIEApps-GeoMeta-Provinces", this.appConfig.meta.provinces)
+			this.storage.set("VIEApps-GeoMeta-Country", this.appConfig.geoMeta.country),
+			this.storage.set("VIEApps-GeoMeta-Countries", this.appConfig.geoMeta.countries),
+			this.storage.set("VIEApps-GeoMeta-Provinces", this.appConfig.geoMeta.provinces)
 		]);
 
-		AppEvents.broadcast("GeoMeta", { Type: "Loaded", Data: this.appConfig.meta });
+		AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
 		if (onCompleted !== undefined) {
 			onCompleted(data);
 		}
 	}
 
-	private async loadGeoCountriesAsync(onCompleted?: (data?: any) => void) {
-		await super.readAsync(
-			"statics/geo/countries.json",
-			async data => await this.saveGeoMetaAsync(data, onCompleted),
-			error => this.showError("Error occurred while fetching the meta countries", error)
-		);
+	private async loadOptionsAsync(onCompleted?: () => void) {
+		this.appConfig.options = await this.storage.get("VIEApps-Options") || {
+			language: "vi-VN",
+			locale: "vi_VN",
+			extras: {}
+		};
+		AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
+		if (onCompleted !== undefined) {
+			onCompleted();
+		}
 	}
 
-	private async loadGeoProvincesAsync(country?: string, onCompleted?: () => void) {
-		await super.readAsync(
-			`statics/geo/provinces/${country || this.appConfig.meta.country}.json`,
-			async data => await this.saveGeoMetaAsync(data, onCompleted),
-			error => this.showError("Error occurred while fetching the meta provinces", error)
-		);
+	public async storeOptionsAsync(onCompleted?: () => void) {
+		await this.storage.set("VIEApps-Options", this.appConfig.options);
+		AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
+		if (onCompleted !== undefined) {
+			onCompleted();
+		}
 	}
 
 }

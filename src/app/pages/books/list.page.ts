@@ -2,7 +2,8 @@ import * as Rx from "rxjs";
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import vi from "@angular/common/locales/vi";
+import vi_VN from "@angular/common/locales/vi";
+import en_US from "@angular/common/locales/en";
 import { Searchbar, InfiniteScroll, Content } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppPagination } from "../../components/app.pagination";
@@ -28,6 +29,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		public authSvc: AuthenticationService,
 		public booksSvc: BooksService
 	) {
+		registerLocaleData("vi_VN" === this.locale ? vi_VN : en_US);
 	}
 
 	filterBy = {
@@ -72,6 +74,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	ratings: { [key: string]: RatingPoint };
 
 	title = "";
+	uri = "";
 	rxSubscriptions = new Array<Rx.Subscription>();
 
 	asGrid = false;
@@ -89,22 +92,27 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	@ViewChild(Content) contentCtrl: Content;
 
 	ngOnInit() {
-		registerLocaleData(vi);
 		this.initialize();
 		if (!this.searching) {
 			AppEvents.on("Session", info => {
 				if ("Updated" === info.args.Type) {
 					this.prepareActions();
 				}
-			}, this.eventIdentity);
+			}, `AccountEvents${this.eventIdentity}`);
 		}
+		AppEvents.on("Navigate", info => {
+			if (this.uri === info.args.url || ("Back" === info.args.direction && this.configSvc.previousUrl.startsWith(this.uri))) {
+				this.configSvc.appTitle = this.title;
+			}
+		}, `NavigateEvents${this.eventIdentity}`);
 	}
 
 	ngOnDestroy() {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 		if (!this.searching) {
-			AppEvents.off("Session", this.eventIdentity);
+			AppEvents.off("Session", `AccountEvents${this.eventIdentity}`);
 		}
+		AppEvents.off("Navigate", `NavigateEvents${this.eventIdentity}`);
 	}
 
 	ngAfterViewInit() {
@@ -116,6 +124,10 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	get sortBy() {
 		return { LastUpdated: "Descending" };
+	}
+
+	get showBackButton() {
+		return this.searching || this.filtering || this.filterBy.And.Author.Equals !== undefined;
 	}
 
 	get hideCategory() {
@@ -131,27 +143,36 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	get totalRecords() {
-		return this.pagination === undefined ? 0 : this.pageNumber * this.pagination.PageSize;
+		return AppPagination.computeTotal(this.pageNumber, this.pagination);
 	}
 
 	get eventIdentity() {
-		return "AccountPrivileges@Books:" + (this.filterBy.And.Category.Equals !== undefined ? this.filterBy.And.Category.Equals : this.filterBy.And.Author.Equals);
+		return "@Books:" + (this.filterBy.And.Category.Equals !== undefined ? this.filterBy.And.Category.Equals : this.filterBy.And.Author.Equals !== undefined ? this.filterBy.And.Author.Equals : "Search");
+	}
+
+	get locale() {
+		return this.configSvc.appConfig.options.locale;
 	}
 
 	initialize() {
 		this.requestParams = this.configSvc.requestParams;
 		this.filterBy.And.Category.Equals = this.requestParams["Category"];
 		this.filterBy.And.Author.Equals = this.requestParams["Author"];
-		this.searching = this.configSvc.currentUrl.startsWith(this.booksSvc.getSearchURI());
+		this.searching = this.configSvc.currentUrl.startsWith("/books/search");
 
-		this.title = this.searching
+		this.configSvc.appTitle = this.title = this.searching
 			? "Tìm kiếm"
 			: this.filterBy.And.Category.Equals !== undefined
 				? "Thể loại: " + this.filterBy.And.Category.Equals
 				: "Tác giả: " + this.filterBy.And.Author.Equals;
-		this.configSvc.appTitle = this.title;
+		this.uri = this.searching
+				? "/books/search"
+				: this.filterBy.And.Category.Equals !== undefined
+					? "/books/list-by-category/" + AppUtility.toANSI(this.filterBy.And.Category.Equals, true) + "?x-request="
+					: "/books/list-by-author/" + AppUtility.toANSI(this.filterBy.And.Author.Equals, true) + "?x-request=";
 
 		if (!this.searching) {
+			this.asGrid = this.configSvc.screenWidth > 480;
 			this.ratings = {};
 			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName) || AppPagination.getDefault();
 			this.pagination.PageNumber = this.pageNumber;
@@ -233,7 +254,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				const filterByAuthor = AppUtility.isNotEmpty(this.filterBy.And.Author.Equals);
 				if (query !== "" || filterByCategory || filterByAuthor) {
 					objects = objects.Where(o => {
-						return (query !== "" ? o.ANSITitle.indexOf(query) > -1 : true)
+						return (query !== "" ? o.ansiTitle.indexOf(query) > -1 : true)
 							&& (filterByCategory ? o.Category.startsWith(this.filterBy.And.Category.Equals) : true)
 							&& (filterByAuthor ? o.Author === this.filterBy.And.Author.Equals : true);
 					});
@@ -277,7 +298,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	prepareActions() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward(this.booksSvc.getSearchURI())),
+			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward("/books/search")),
 			this.appFormsSvc.getActionSheetButton("Lọc/Tìm nhanh", "funnel", () => this.showFilter()),
 			this.appFormsSvc.getActionSheetButton("Thay đổi cách sắp xếp", "list-box", async () => await this.showSortsAsync())
 		];

@@ -41,7 +41,7 @@ export class UsersService extends BaseService {
 				return {
 					title: profile.Name,
 					description: profile.Email.substr(0, profile.Email.indexOf("@") + 1) + "...",
-					image: profile.avatarUri,
+					image: profile.avatarURI,
 					originalObject: profile
 				};
 			})

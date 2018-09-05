@@ -1,9 +1,10 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-button (click)="cancel()">
+			<ion-button *ngIf="showBackButton" (click)="cancel()">
 				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
 			</ion-button>
+			<ion-menu-button *ngIf="!showBackButton"></ion-menu-button>
 		</ion-buttons>
 		<ion-buttons *ngIf="!searching" slot="end">
 			<ion-button [disabled]="!asGrid" (click)="asGrid = false">
@@ -17,7 +18,7 @@
 			</ion-button>
 		</ion-buttons>
 		<ion-title [hidden]="searching || filtering">
-			{{title}}
+			{{ title }}
 		</ion-title>
 		<ion-searchbar [hidden]="!searching && !filtering" placeholder="tìm nhanh, không dấu cũng OK"
 			(ionChange)="onStartSearch($event)"
@@ -34,13 +35,17 @@
 			</ion-button>
 		</ion-buttons>
 		<div>
-			<label [hidden]="!pagination">
+			<span [hidden]="!pagination" float-start>
 				<ion-icon name="book" color="primary" slot="start"></ion-icon>
-				{{ totalRecords | number:'':'vi' }} / {{ pagination ? (pagination.TotalRecords | number:'':'vi') : '?' }}	
-			</label>
+				<span>
+					{{ totalRecords | number:'':locale }} / {{ pagination ? (pagination.TotalRecords | number:'':locale) : '?' }}	
+				</span>
+			</span>
 			<span [hidden]="!pagination || pagination.TotalPages < 2">
 				<ion-icon name="code" color="primary" slot="start"></ion-icon>
-				{{ pageNumber | number:'':'vi' }} / {{ pagination ? (pagination.TotalPages | number:'':'vi') : '?' }}
+				<span>
+					{{ pageNumber | number:'':locale }} / {{ pagination ? (pagination.TotalPages | number:'':locale) : '?' }}
+				</span>
 			</span>
 		</div>
 	</ion-toolbar>
@@ -48,21 +53,23 @@
 
 <ion-content>
 
-	<ion-list *ngIf="!displayAsGrid">
-		<control-book-linear *ngFor="let book of books; trackBy: track"
+	<ion-list *ngIf="!displayAsGrid" padding-end>
+		<control-book-linear-item *ngFor="let book of books; trackBy: track"
 			[book]="book"
 			[hideAuthor]="hideAuthor"
-			[hideCategory]="hideCategory"></control-book-linear>
+			[hideCategory]="hideCategory"></control-book-linear-item>
 	</ion-list>
 
-	<div *ngIf="displayAsGrid" ion-grid padding>
-		<div ion-row>
-			<control-book-grid *ngFor="let book of books; trackBy: track" ion-col col-6 col-md-4 col-xl-3
-				[book]="book"
-				[hideAuthor]="hideAuthor"
-				[hideCategory]="hideCategory"></control-book-grid>
-		</div>
-	</div>
+	<ion-grid *ngIf="displayAsGrid" padding-horizontal>
+		<ion-row>
+			<ion-col *ngFor="let book of books; trackBy: track" size="6" size-md="4" size-xl="3">
+				<control-book-grid-item
+					[book]="book"
+					[hideAuthor]="hideAuthor"
+					[hideCategory]="hideCategory"></control-book-grid-item>
+			</ion-col>
+		</ion-row>
+	</ion-grid>
 
 	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onScroll($event)">
 		<ion-infinite-scroll-content></ion-infinite-scroll-content>

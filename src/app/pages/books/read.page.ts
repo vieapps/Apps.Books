@@ -73,8 +73,8 @@ export class ReadBookPage implements OnInit, OnDestroy, AfterViewInit {
 
 	prepareActions() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward(this.booksSvc.getSearchURI())),
-			// this.appFormsSvc.getActionSheetButton("Lọc/Tìm nhanh", "funnel", () => this.showFilter()),
+			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward("/books/search")),
+			this.appFormsSvc.getActionSheetButton("Cùng tác giả", "bookmarks", () => this.configSvc.navigateForward("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author }))),
 			// this.appFormsSvc.getActionSheetButton("Thay đổi cách sắp xếp", "list-box", async () => await this.showSortsAsync())
 		];
 

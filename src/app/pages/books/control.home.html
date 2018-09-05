@@ -1,0 +1,23 @@
+<div *ngIf="books.length > 0">
+	<h1>
+		{{title}}
+	</h1>
+	<ion-grid>
+		<ion-row>
+			<ion-col *ngFor="let book of books; trackBy: trackBook" size="6" size-md="4" size-xl="3">
+				<control-book-grid-item
+					[book]="book"
+					[hideAuthor]="false"
+					[hideCategory]="true"></control-book-grid-item>
+			</ion-col>
+		</ion-row>
+	</ion-grid>
+</div>
+<section [innerHtml]="introduction"></section>
+<section>
+	<h2>Thống kê:</h2>
+	<ul>
+		<li>Tổng số tác giả: <b>{{ status.Authors | number:'':locale }}</b></li>
+		<li>Tổng số bài viết &amp; sách: <b>{{ status.Books | number:'':locale }}</b></li>
+	</ul>
+</section>

@@ -1,14 +1,14 @@
 <ion-header>
 	<ion-toolbar>
+		<ion-buttons slot="start">
+			<ion-menu-button></ion-menu-button>
+		</ion-buttons>
 		<ion-title>
-			Home
+			{{title}}
 		</ion-title>
 	</ion-toolbar>
 </ion-header>
 
 <ion-content padding>
-	The world is your oyster.
-	<p>
-		If you get lost, the <a target="_blank" href="https://viebooks.net">app</a> will be your guide.
-	</p>
+	<control-book-home-screen></control-book-home-screen>
 </ion-content>

@@ -4,11 +4,11 @@ import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
 
 @Component({
-	selector: "control-book-linear",
-	templateUrl: "./control.book.linear.html",
-	styleUrls: ["./control.book.linear.scss"]
+	selector: "control-book-linear-item",
+	templateUrl: "./control.item.linear.html",
+	styleUrls: ["./control.item.linear.scss"]
 })
-export class BookLinearControl {
+export class BookLinearItemControl {
 
 	constructor (
 		public booksSvc: BooksService
@@ -20,11 +20,11 @@ export class BookLinearControl {
 	@Input() hideCategory: boolean;
 
 	get routerLink() {
-		return this.booksSvc.getBookURI(this.book);
+		return this.book.routerLink;
 	}
 
 	get queryParams() {
-		return this.booksSvc.getBookQueryParams(this.book);
+		return this.book.routerParams;
 	}
 
 }
