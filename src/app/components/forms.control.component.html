@@ -6,7 +6,7 @@
 	<ion-label *ngIf="label"
 		[color]="color.label"
 		[position]="position"
-		[class]="css.label">{{label}}</ion-label>
+		[class]="css.label">{{ label }}</ion-label>
 
 	<ion-input *ngIf="isControl('TextBox')" #elementRef
 		[formControlName]="formControlName"
@@ -120,9 +120,9 @@
 	(ionChange)="valueChanged($event)">
 	<ion-list-header *ngIf="label"
 		[color]="color.label"
-		[class]="css.label">{{label}}</ion-list-header>
+		[class]="css.label">{{ label }}</ion-list-header>
 	<ion-item *ngFor="let select of selectValues">
-		<ion-label>{{select.Label}}</ion-label>
+		<ion-label>{{ select.Label }}</ion-label>
 		<ion-radio [value]="select.Value"></ion-radio>
 	</ion-item>
 </ion-radio-group>
@@ -130,7 +130,7 @@
 <ion-item *ngIf="visible && description && isFormControl && !isControl('Captcha')">
 	<label
 		[class]="css.description"
-		[style]="style.description">{{description}}</label>
+		[style]="style.description">{{ description }}</label>
 </ion-item>
 	
 <div *ngIf="visible && isFormControl && isControl('Captcha')">
@@ -139,7 +139,7 @@
 		<ion-label *ngIf="label"
 			[color]="color.label"
 			[position]="position"
-			[class]="css.label">{{label}}</ion-label>
+			[class]="css.label">{{ label }}</ion-label>
 		<ion-input type="text" style="text-transform:uppercase" #elementRef
 			[formControlName]="formControlName"
 			[name]="name"
@@ -157,13 +157,13 @@
 	<ion-item *ngIf="description">
 		<label
 			[class]="css.description"
-			[style]="style.description">{{description}}</label>
+			[style]="style.description">{{ description }}</label>
 	</ion-item>
 
 	<ion-item>
 		<img *ngIf="captchaURI" [src]="captchaURI" slot="start" />
 		<ion-button fill="clear" (click)="refreshCaptcha()">
-			<ion-icon icon="refresh" slot="start"></ion-icon>
+			<ion-icon icon="refresh" slot="icon-only"></ion-icon>
 		</ion-button>
 	</ion-item>
 
@@ -171,7 +171,7 @@
 
 <ion-list-header *ngIf="visible && label && (isFormGroup || isFormArray)"
 	[color]="color.label"
-	[class]="css.label">{{label}}</ion-list-header>
+	[class]="css.label">{{ label }}</ion-list-header>
 
 <div *ngIf="visible && isFormGroup">
 	<app-form-control *ngFor="let ctrl of subControls; trackBy: trackControl"
@@ -190,7 +190,7 @@
 	<div *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl">
 		<ion-list-header *ngIf="getSubLabel(ctrl)"
 			[color]="getSubColor(ctrl)"
-			[class]="getSubCss(ctrl)">{{getSubLabel(ctrl)}}</ion-list-header>
+			[class]="getSubCss(ctrl)">{{ getSubLabel(ctrl) }}</ion-list-header>
 		<app-form-control *ngFor="let subctrl of getSubControls(ctrl); trackBy: trackControl"
 			[formGroup]="getSubFormGroup(idx)"
 			[control]="subctrl"></app-form-control>
