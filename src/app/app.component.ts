@@ -40,8 +40,8 @@ export class AppComponent implements OnInit {
 		public usersSvc: UsersService,
 		public booksSvc: BooksService
 	) {
-		this.translateSvc.setDefaultLang(this.configSvc.appConfig.globalization.language);
-		this.translateSvc.use(this.configSvc.appConfig.globalization.language);
+		this.translateSvc.setDefaultLang(this.configSvc.appConfig.options.i18n);
+		this.translateSvc.use(this.configSvc.appConfig.language);
 	}
 
 	sidebar = {
@@ -73,6 +73,7 @@ export class AppComponent implements OnInit {
 
 	ngOnInit() {
 		console.log("<AppComponent>: Initializing", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
+		console.log("<AppComponent>: i18n Globalization\n- Default: " + this.configSvc.appConfig.options.i18n + "\n- User: " + this.configSvc.appConfig.language);
 
 		// capture router info
 		this.configSvc.addUrl("/home", {});

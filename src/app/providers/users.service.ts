@@ -334,14 +334,18 @@ export class UsersService extends BaseService {
 				UserProfile.update(message.Data);
 				if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
 					this.configSvc.getAccount().profile = UserProfile.get(message.Data.ID);
-					await this.configSvc.storeProfileAsync(() => {
-						if (this.configSvc.isDebug) {
-							console.log(this.getLogMessage("User profile is updated"), this.configSvc.getAccount().profile);
-						}
-						if (this.configSvc.appConfig.facebook.token !== undefined && this.configSvc.appConfig.facebook.id !== undefined) {
-							this.configSvc.getFacebookProfile();
-						}
-					});
+					this.configSvc.appConfig.options.i18n = this.configSvc.getAccount().profile.Language;
+					await Promise.all([
+						this.configSvc.storeOptionsAsync(),
+						this.configSvc.storeProfileAsync(() => {
+							if (this.configSvc.isDebug) {
+								console.log(this.getLogMessage("User profile is updated"), this.configSvc.getAccount().profile);
+							}
+							if (this.configSvc.appConfig.facebook.token !== undefined && this.configSvc.appConfig.facebook.id !== undefined) {
+								this.configSvc.getFacebookProfile();
+							}
+						})
+					]);
 				}
 				break;
 

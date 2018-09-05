@@ -154,20 +154,22 @@ export class AppConfig {
 		return this.app.offline;
 	}
 
-	/** Gets the globalization for working with the app */
-	public static get globalization() {
-		const lang = (this.session.account !== undefined && this.session.account.profile !== undefined ? this.session.account.profile.Language : undefined) || this.options.i18n;
-		return {
-			culture: lang,
-			language: lang.substr(0, 2),
-			locale: lang.replace("-", "_")
-		};
+	/** Gets the language for working with the app */
+	public static get language() {
+		return this.session.account !== undefined && this.session.account.profile !== undefined
+			? this.session.account.profile.Language || this.options.i18n
+			: this.options.i18n;
+	}
+
+	/** Gets the locale for working with the app */
+	public static get locale() {
+		return this.language.replace("-", "_");
 	}
 
 	/** Gets the query with related service, culture language and host */
 	public static getRelatedQuery(service?: string) {
 		service = service || this.app.service;
-		return (AppUtility.isNotEmpty(service) ? "related-service=" + service + "&" : "") + "language=" + this.globalization.culture + "&host=" + this.url.host;
+		return (AppUtility.isNotEmpty(service) ? "related-service=" + service + "&" : "") + "language=" + this.language + "&host=" + this.url.host;
 	}
 
 	/** Gets the authenticated headers (JSON) for making requests to APIs */

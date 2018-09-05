@@ -456,7 +456,7 @@ export class ConfigurationService extends BaseService {
 			Query: {
 				"object-identity": this.getAccount().id,
 				"related-service": this.appConfig.app.service,
-				"language": this.appConfig.globalization.culture,
+				"language": this.appConfig.language,
 				"host": this.appConfig.url.host
 			},
 			Header: undefined,
