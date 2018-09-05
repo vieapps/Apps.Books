@@ -1,0 +1,14 @@
+{
+	"app": {
+		"sidebar": {
+			"home": "Home",
+			"login": "Login",
+			"register": "Register",
+			"profile": "Profile"
+		},
+		"loading": {
+			"activate": "Activating",
+			"initialize": "Loading"
+		}
+	}
+}

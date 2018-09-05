@@ -32,7 +32,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy {
 	}
 
 	get locale() {
-		return this.configSvc.appConfig.options.locale;
+		return this.configSvc.appConfig.globalization.locale;
 	}
 
 	ngOnInit() {

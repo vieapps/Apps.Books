@@ -6,6 +6,7 @@ import { Platform, NavController } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
 import { Device } from "@ionic-native/device/ngx";
+import { TranslateService } from "@ngx-translate/core";
 
 import { AppRTU } from "./components/app.rtu";
 import { AppEvents } from "./components/app.events";
@@ -32,12 +33,15 @@ export class AppComponent implements OnInit {
 		public statusBar: StatusBar,
 		public device: Device,
 		public navController: NavController,
+		public translateSvc: TranslateService,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
 		public usersSvc: UsersService,
 		public booksSvc: BooksService
 	) {
+		this.translateSvc.setDefaultLang(this.configSvc.appConfig.globalization.language);
+		this.translateSvc.use(this.configSvc.appConfig.globalization.language);
 	}
 
 	sidebar = {
@@ -79,7 +83,7 @@ export class AppComponent implements OnInit {
 		});
 
 		// initliaze app
-		this.platform.ready().then(() => {
+		this.platform.ready().then(async () => {
 			if (this.platform.is("cordova")) {
 				// prepare status bar (native app only)
 				if (this.device.platform !== "browser") {
@@ -95,17 +99,17 @@ export class AppComponent implements OnInit {
 
 			// show loading
 			const isActivate = "activate" === this.configSvc.queryParams["prego"];
-			this.appFormsSvc.showLoadingAsync(isActivate ? "Kích hoạt..." : "Tải dữ liệu...");
+			await this.appFormsSvc.showLoadingAsync((isActivate ? await this.configSvc.getResourceAsync("app.loading.activate") : await this.configSvc.getResourceAsync("app.loading.initialize")) + "...");
 
 			// prepare sidebars
 			this.sidebar.left.title = this.configSvc.appConfig.app.name;
-			this.updateSidebar();
+			this.updateSidebarAsync();
 
 			// setup event handlers
 			this.setupEventHandlers();
 
 			// prepare the app
-			this.configSvc.prepareAsync(async () => {
+			await this.configSvc.prepareAsync(async () => {
 				if (this.configSvc.isWebApp && isActivate) {
 					await this.activateAsync();
 				}
@@ -116,10 +120,10 @@ export class AppComponent implements OnInit {
 		});
 	}
 
-	private get sidebarItems() {
+	private async getSidebarItemsAsync() {
 		return {
 			home: {
-				title: "Màn hình chính",
+				title: await this.configSvc.getResourceAsync("app.sidebar.home"),
 				url: "/home",
 				queryParams: undefined as { [key: string]: any },
 				direction: "root",
@@ -128,7 +132,7 @@ export class AppComponent implements OnInit {
 				detail: false
 			},
 			login: {
-				title: "Đăng nhập",
+				title: await this.configSvc.getResourceAsync("app.sidebar.login"),
 				url: "/users/login",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
@@ -137,7 +141,7 @@ export class AppComponent implements OnInit {
 				detail: false
 			},
 			register: {
-				title: "Đăng ký tài khoản",
+				title: await this.configSvc.getResourceAsync("app.sidebar.register"),
 				url: "/users/register",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
@@ -146,7 +150,7 @@ export class AppComponent implements OnInit {
 				detail: false
 			},
 			profile: {
-				title: "Thông tin tài khoản",
+				title: await this.configSvc.getResourceAsync("app.sidebar.profile"),
 				url: "/users/profile/my",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
@@ -176,7 +180,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	private updateSidebar(info: any = {}) {
+	private async updateSidebarAsync(info: any = {}) {
 		const index = info.index || 0;
 		while (this.sidebar.left.menu.length < index + 1) {
 			this.sidebar.left.menu.push({
@@ -194,17 +198,18 @@ export class AppComponent implements OnInit {
 		}
 
 		if (index === 0) {
-			this.updateSidebarItem(index, -1, this.sidebarItems.home);
+			const sidebarItems = await this.getSidebarItemsAsync();
+			this.updateSidebarItem(index, -1, sidebarItems.home);
 
 			if (this.configSvc.isAuthenticated) {
-				this.updateSidebarItem(index, -1, this.sidebarItems.profile);
+				this.updateSidebarItem(index, -1, sidebarItems.profile);
 			}
 			else {
-				this.updateSidebarItem(index, -1, this.sidebarItems.login);
+				this.updateSidebarItem(index, -1, sidebarItems.login);
 			}
 
 			if (this.authSvc.canRegisterNewAccounts) {
-				this.updateSidebarItem(index, -1, this.sidebarItems.register);
+				this.updateSidebarItem(index, -1, sidebarItems.register);
 			}
 		}
 		else {
@@ -247,41 +252,42 @@ export class AppComponent implements OnInit {
 				}
 		});
 
-		AppEvents.on("UpdateSidebar", info => this.updateSidebar(info.args));
+		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.title) ? info.args.title : this.configSvc.appConfig.app.name);
 
-		AppEvents.on("Session", info => {
+		AppEvents.on("Session", async info => {
 			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
 				const profile = this.configSvc.getAccount().profile;
 				this.sidebar.left.title = profile ? profile.Name : this.configSvc.appConfig.app.name;
 				this.sidebar.left.avatar = profile ? profile.avatarURI : undefined;
 
 				const items = this.sidebar.left.menu[0].items;
+				const sidebarItems = await this.getSidebarItemsAsync();
 				if (this.configSvc.isAuthenticated) {
-					AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith(this.sidebarItems.register.url)));
-					const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url));
+					AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith(sidebarItems.register.url)));
+					const index = items.findIndex(item => item.url.startsWith(sidebarItems.login.url));
 					if (index > -1) {
-						items[index] = this.sidebarItems.profile;
+						items[index] = sidebarItems.profile;
 					}
-					else if (items.findIndex(item => item.url.startsWith(this.sidebarItems.profile.url)) < 0) {
-						AppUtility.insertAt(items, this.sidebarItems.profile);
+					else if (items.findIndex(item => item.url.startsWith(sidebarItems.profile.url)) < 0) {
+						AppUtility.insertAt(items, sidebarItems.profile);
 					}
 				}
 				else {
-					if (items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url)) < 0) {
-						const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.profile.url));
+					if (items.findIndex(item => item.url.startsWith(sidebarItems.login.url)) < 0) {
+						const index = items.findIndex(item => item.url.startsWith(sidebarItems.profile.url));
 						if (index > -1) {
-							items[index] = this.sidebarItems.login;
+							items[index] = sidebarItems.login;
 						}
 						else {
-							AppUtility.insertAt(items, this.sidebarItems.login);
+							AppUtility.insertAt(items, sidebarItems.login);
 						}
 					}
-					if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith(this.sidebarItems.register.url)) < 0) {
-						const index = items.findIndex(item => item.url.startsWith(this.sidebarItems.login.url));
-						AppUtility.insertAt(items, this.sidebarItems.register, index > -1 ? index + 1 : -1);
+					if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith(sidebarItems.register.url)) < 0) {
+						const index = items.findIndex(item => item.url.startsWith(sidebarItems.login.url));
+						AppUtility.insertAt(items, sidebarItems.register, index > -1 ? index + 1 : -1);
 					}
 				}
 			}
@@ -295,8 +301,9 @@ export class AppComponent implements OnInit {
 			await this.usersSvc.activateAsync(mode, code,
 				async () => {
 					await this.initializeAsync(async () => {
+						const title = await this.configSvc.getResourceAsync("app.loading.activate");
 						await Promise.all([
-							TrackingUtility.trackAsync("Kích hoạt", `users/activate/${mode}`),
+							TrackingUtility.trackAsync(title, `users/activate/${mode}`),
 							this.showActivationResultAsync({
 								Status: "OK",
 								Mode: mode
@@ -321,7 +328,7 @@ export class AppComponent implements OnInit {
 					Status: "Error",
 					Mode: mode,
 					Error: {
-						Message: `Thông tin kích hoạt không hợp lệ [${mode} - ${code}]`
+						Message: await this.configSvc.getResourceAsync("users.activate.errorMessages.invalid", { mode: mode, code: code })
 					}
 				});
 			});
@@ -329,17 +336,11 @@ export class AppComponent implements OnInit {
 	}
 
 	private async showActivationResultAsync(data: any) {
-		const header = "password" === data.Mode
-			? "Mật khẩu mới"
-			: "Tài khoản mới";
-		const subHeader = "OK" === data.Status
-			? "Kích hoạt thành công"
-			: "Không thể kích hoạt";
+		const header = await this.configSvc.getResourceAsync("password" === data.Mode ? "users.activate.password" : "users.activate.account");
+		const subHeader = await this.configSvc.getResourceAsync("OK" === data.Status ? "users.activate.result.success.subHeader" : "users.activate.result.error.subHeader");
 		const message = "OK" === data.Status
-			? "account" === data.Mode
-				? "Tài khoản đã được kích hoạt thành công"
-				: "Mật khẩu đã được kích hoạt thành công"
-			: "Đã xảy ra lỗi, không thể kích hoạt" + (data.Error ? ` (${data.Error.Message})` : "");
+			? await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.result.success.message" : "users.activate.result.error.message")
+			: await this.configSvc.getResourceAsync("users.activate.errorMessages.general", { error: (data.Error ? ` (${data.Error.Message})` : "") });
 		await this.appFormsSvc.showAlertAsync(header, subHeader, message, () => this.configSvc.navigateHome());
 	}
 

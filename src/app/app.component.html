@@ -11,7 +11,7 @@
 						</ion-menu-toggle>
 					</ion-thumbnail>
 					<ion-title>
-						{{sidebar.left.title}}
+						{{ sidebar.left.title }}
 					</ion-title>
 				</ion-toolbar>
 			</ion-header>
@@ -24,13 +24,13 @@
 								<img [src]="menu.thumbnail"/>
 							</ion-thumbnail>
 							<ion-label>
-								{{menu.title}}
+								{{ menu.title }}
 							</ion-label>	
 						</ion-list-header>
 						<ion-item *ngIf="menu.parent" [routerLink]="[menu.parent.url]" [queryParams]="menu.parent.queryParams" [routerDirection]="menu.parent.direction">
 							<ion-icon name="arrow-back" slot="start"></ion-icon>
 							<ion-label>
-								{{menu.parent.title}}
+								{{ menu.parent.title }}
 							</ion-label>	
 						</ion-item>
 						<ion-item *ngFor="let item of menu.items; trackBy: trackSidebarItem" [routerLink]="[item.url]" [queryParams]="item.queryParams" [routerDirection]="item.direction" [detail]="item.detail">
@@ -39,7 +39,7 @@
 								<img [src]="item.thumbnail"/>
 							</ion-thumbnail>
 							<ion-label>
-								{{item.title}}
+								{{ item.title }}
 							</ion-label>
 						</ion-item>
 					</ion-menu-toggle>

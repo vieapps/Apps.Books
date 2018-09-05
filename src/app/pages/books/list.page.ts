@@ -151,7 +151,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	get locale() {
-		return this.configSvc.appConfig.options.locale;
+		return this.configSvc.appConfig.globalization.locale;
 	}
 
 	initialize() {

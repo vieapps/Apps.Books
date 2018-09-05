@@ -25,7 +25,7 @@ export class BookmarksControl implements OnInit {
 	bookmarks = new Array<Bookmark>();
 
 	get locale() {
-		return this.configSvc.appConfig.options.locale;
+		return this.configSvc.appConfig.globalization.locale;
 	}
 
 	ngOnInit() {

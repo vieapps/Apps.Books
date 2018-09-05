@@ -1,0 +1,24 @@
+{
+	"users": {
+		"activate": {
+			"header": {
+				"account": "Tài khoản mới",
+				"password": "Mật khẩu mới"
+			},
+			"result": {
+				"success": {
+					"subHeader": "Kích hoạt thành công",
+					"message": "Tài khoản đã được kích hoạt thành công"
+				},
+				"error": {
+					"subHeader": "Không thể kích hoạt",
+					"message": "Mật khẩu đã được kích hoạt thành công"
+				}
+			},
+			"errorMessages": {
+				"general": "Đã xảy ra lỗi, không thể kích hoạt{{error})",
+				"invalid": "Thông tin kích hoạt không hợp lệ {{mode} - {{code}}]"
+			}
+		}
+	}
+}

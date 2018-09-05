@@ -1,0 +1,14 @@
+{
+	"app": {
+		"sidebar": {
+			"home": "Màn hình chính",
+			"login": "Đăng nhập",
+			"register": "Đăng ký tài khoản",
+			"profile": "Thông tin tài khoản"
+		},
+		"loading": {
+			"activate": "Kích hoạt",
+			"initialize": "Tải dữ liệu"
+		}
+	}
+}

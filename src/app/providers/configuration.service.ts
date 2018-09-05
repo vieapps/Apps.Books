@@ -1,4 +1,5 @@
 declare var FB: any;
+import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { PlatformLocation } from "@angular/common";
 import { Http } from "@angular/http";
@@ -9,7 +10,7 @@ import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { Storage } from "@ionic/storage";
-import { List } from "linqts";
+import { TranslateService } from "@ngx-translate/core";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
@@ -32,7 +33,8 @@ export class ConfigurationService extends BaseService {
 		public appVer: AppVersion,
 		public googleAnalytics: GoogleAnalytics,
 		public storage: Storage,
-		public browserTitle: Title
+		public browserTitle: Title,
+		public translateSvc: TranslateService
 	) {
 		super(http, "Configuration");
 		AppEvents.on("App", async info => {
@@ -454,7 +456,7 @@ export class ConfigurationService extends BaseService {
 			Query: {
 				"object-identity": this.getAccount().id,
 				"related-service": this.appConfig.app.service,
-				"language": this.appConfig.language,
+				"language": this.appConfig.globalization.culture,
 				"host": this.appConfig.url.host
 			},
 			Header: undefined,
@@ -614,6 +616,11 @@ export class ConfigurationService extends BaseService {
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
+	}
+
+	/** Gets the resource of current language by a key */
+	public async getResourceAsync(key: string, interpolateParams?: Object) {
+		return (await this.translateSvc.get(key, interpolateParams).toPromise()) as string;
 	}
 
 }
