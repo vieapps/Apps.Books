@@ -328,7 +328,7 @@ export class AppComponent implements OnInit {
 					Status: "Error",
 					Mode: mode,
 					Error: {
-						Message: await this.configSvc.getResourceAsync("users.activate.errorMessages.invalid", { mode: mode, code: code })
+						Message: await this.configSvc.getResourceAsync("users.activate.messages.error.invalid", { mode: mode, code: code })
 					}
 				});
 			});
@@ -336,11 +336,11 @@ export class AppComponent implements OnInit {
 	}
 
 	private async showActivationResultAsync(data: any) {
-		const header = await this.configSvc.getResourceAsync("password" === data.Mode ? "users.activate.password" : "users.activate.account");
-		const subHeader = await this.configSvc.getResourceAsync("OK" === data.Status ? "users.activate.result.success.subHeader" : "users.activate.result.error.subHeader");
+		const header = await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.header.account" : "users.activate.header.password");
+		const subHeader = await this.configSvc.getResourceAsync("OK" === data.Status ? "users.activate.subHeader.success" : "users.activate.subHeader.error");
 		const message = "OK" === data.Status
-			? await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.result.success.message" : "users.activate.result.error.message")
-			: await this.configSvc.getResourceAsync("users.activate.errorMessages.general", { error: (data.Error ? ` (${data.Error.Message})` : "") });
+			? await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.messages.success.account" : "users.activate.messages.success.password")
+			: await this.configSvc.getResourceAsync("users.activate.messages.error.general", { error: (data.Error ? ` (${data.Error.Message})` : "") });
 		await this.appFormsSvc.showAlertAsync(header, subHeader, message, () => this.configSvc.navigateHome());
 	}
 

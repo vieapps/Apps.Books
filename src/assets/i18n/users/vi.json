@@ -5,19 +5,19 @@
 				"account": "Tài khoản mới",
 				"password": "Mật khẩu mới"
 			},
-			"result": {
+			"subHeader": {
+				"success": "Kích hoạt thành công",
+				"error": "Không thể kích hoạt"
+			},
+			"messages": {
 				"success": {
-					"subHeader": "Kích hoạt thành công",
-					"message": "Tài khoản đã được kích hoạt thành công"
+					"account": "Tài khoản đã được kích hoạt thành công",
+					"password": "Mật khẩu đã được kích hoạt thành công"
 				},
 				"error": {
-					"subHeader": "Không thể kích hoạt",
-					"message": "Mật khẩu đã được kích hoạt thành công"
+					"general": "Đã xảy ra lỗi, không thể kích hoạt{{error})",
+					"invalid": "Thông tin kích hoạt không hợp lệ {{mode} - {{code}}]"
 				}
-			},
-			"errorMessages": {
-				"general": "Đã xảy ra lỗi, không thể kích hoạt{{error})",
-				"invalid": "Thông tin kích hoạt không hợp lệ {{mode} - {{code}}]"
 			}
 		}
 	}
