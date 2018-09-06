@@ -67,7 +67,7 @@ export class AppFormsControl {
 			Interface: "alert",
 			InterfaceOptions: undefined as any,
 			CancelText: undefined as string,
-			OKText: undefined as string,
+			OkText: undefined as string
 		},
 		DatePickerOptions: {
 			AllowTimes: false,
@@ -78,7 +78,7 @@ export class AppFormsControl {
 			MonthNames: undefined as string,
 			MonthShortNames: undefined as string,
 			CancelText: undefined as string,
-			DoneText: undefined as string,
+			DoneText: undefined as string
 		},
 		CompleterOptions: {
 			SearchingText: "Searching...",
@@ -230,7 +230,7 @@ export class AppFormsControl {
 					Interface: selectOptions.Interface || selectOptions.interface || "alert",
 					InterfaceOptions: selectOptions.InterfaceOptions || selectOptions.interfaceoptions,
 					CancelText: selectOptions.CancelText || selectOptions.canceltext,
-					OKText: selectOptions.OKText || selectOptions.oktext
+					OkText: selectOptions.OkText || selectOptions.oktext
 				};
 			}
 
@@ -338,7 +338,36 @@ export class AppFormsService {
 	} = {};
 
 	private prepareControls(controls: Array<AppFormsControl>) {
-		controls.forEach((control, index) => {
+		controls.forEach(async (control, index) => {
+			if (!control.Excluded) {
+				if (AppUtility.isNotEmpty(control.Options.Label) && control.Options.Label.startsWith("{{") && control.Options.Label.endsWith("}}")) {
+					control.Options.Label = await this.getResourceAsync(control.Options.Label.substr(2, control.Options.Label.length - 4).trim());
+				}
+				if (AppUtility.isNotEmpty(control.Options.Description) && control.Options.Description.startsWith("{{") && control.Options.Description.endsWith("}}")) {
+					control.Options.Description = await this.getResourceAsync(control.Options.Description.substr(2, control.Options.Description.length - 4).trim());
+				}
+				if (AppUtility.isNotEmpty(control.Options.PlaceHolder) && control.Options.PlaceHolder.startsWith("{{") && control.Options.PlaceHolder.endsWith("}}")) {
+					control.Options.PlaceHolder = await this.getResourceAsync(control.Options.PlaceHolder.substr(2, control.Options.PlaceHolder.length - 4).trim());
+				}
+				if (AppUtility.isNotEmpty(control.Options.SelectOptions.OkText) && control.Options.SelectOptions.OkText.startsWith("{{") && control.Options.SelectOptions.OkText.endsWith("}}")) {
+					control.Options.SelectOptions.OkText = await this.getResourceAsync(control.Options.SelectOptions.OkText.substr(2, control.Options.SelectOptions.OkText.length - 4).trim());
+				}
+				if (AppUtility.isNotEmpty(control.Options.SelectOptions.CancelText) && control.Options.SelectOptions.CancelText.startsWith("{{") && control.Options.SelectOptions.CancelText.endsWith("}}")) {
+					control.Options.SelectOptions.CancelText = await this.getResourceAsync(control.Options.SelectOptions.CancelText.substr(2, control.Options.SelectOptions.CancelText.length - 4).trim());
+				}
+				if (AppUtility.isNotEmpty(control.Options.DatePickerOptions.DoneText) && control.Options.DatePickerOptions.DoneText.startsWith("{{") && control.Options.DatePickerOptions.DoneText.endsWith("}}")) {
+					control.Options.DatePickerOptions.DoneText = await this.getResourceAsync(control.Options.DatePickerOptions.DoneText.substr(2, control.Options.DatePickerOptions.DoneText.length - 4).trim());
+				}
+				if (AppUtility.isNotEmpty(control.Options.DatePickerOptions.CancelText) && control.Options.DatePickerOptions.CancelText.startsWith("{{") && control.Options.DatePickerOptions.CancelText.endsWith("}}")) {
+					control.Options.DatePickerOptions.CancelText = await this.getResourceAsync(control.Options.DatePickerOptions.CancelText.substr(2, control.Options.DatePickerOptions.CancelText.length - 4).trim());
+				}
+				if (AppUtility.isNotEmpty(control.Options.CompleterOptions.SearchingText) && control.Options.CompleterOptions.SearchingText.startsWith("{{") && control.Options.CompleterOptions.SearchingText.endsWith("}}")) {
+					control.Options.CompleterOptions.SearchingText = await this.getResourceAsync(control.Options.CompleterOptions.SearchingText.substr(2, control.Options.CompleterOptions.SearchingText.length - 4).trim());
+				}
+				if (AppUtility.isNotEmpty(control.Options.CompleterOptions.NoResultsText) && control.Options.CompleterOptions.NoResultsText.startsWith("{{") && control.Options.CompleterOptions.NoResultsText.endsWith("}}")) {
+					control.Options.CompleterOptions.NoResultsText = await this.getResourceAsync(control.Options.CompleterOptions.NoResultsText.substr(2, control.Options.CompleterOptions.NoResultsText.length - 4).trim());
+				}
+			}
 			if (index < controls.length - 1) {
 				control.next = controls[index + 1];
 			}
@@ -629,7 +658,7 @@ export class AppFormsService {
 	public async showLoadingAsync(message?: string) {
 		if (this._loading === undefined) {
 			this._loading = await this.loadingController.create({
-				message: message || await this.getResourceAsync("app.messages.loading")
+				message: message || await this.getResourceAsync("common.messages.loading")
 			});
 			await this._loading.present();
 		}
@@ -668,7 +697,7 @@ export class AppFormsService {
 			};
 		});
 		if (AppUtility.isFalse(dontAddCancelButton)) {
-			actions.push(this.getActionSheetButton(await this.getResourceAsync("app.alert.buttons.cancel"), "close", async () => await this.hideActionSheetAsync(), "cancel"));
+			actions.push(this.getActionSheetButton(await this.getResourceAsync("common.buttons.cancel"), "close", async () => await this.hideActionSheetAsync(), "cancel"));
 		}
 		this._actionsheet = await this.actionsheetController.create({
 			buttons: actions,
@@ -700,10 +729,10 @@ export class AppFormsService {
 		}
 
 		const buttons = AppUtility.isNotEmpty(cancelButtonText)
-			? [{ text: cancelButtonText || await this.getResourceAsync("app.alert.buttons.cancel"), role: "cancel", handler: undefined as (data?: any) => void }]
+			? [{ text: cancelButtonText || await this.getResourceAsync("common.buttons.cancel"), role: "cancel", handler: undefined as (data?: any) => void }]
 			: [];
 		buttons.push({
-			text: okButtonText || await this.getResourceAsync("app.alert.buttons.ok"),
+			text: okButtonText || await this.getResourceAsync("common.buttons.ok"),
 			role: undefined as string,
 			handler: async (data?: any) => {
 				postProcess(data);
@@ -714,7 +743,7 @@ export class AppFormsService {
 
 		this._alert = AppUtility.isArray(inputs, true)
 			? await this.alertController.create({
-					header: header || await this.getResourceAsync("app.alert.header.general"),
+					header: header || await this.getResourceAsync("common.alert.header.general"),
 					subHeader: subHeader,
 					backdropDismiss: false,
 					message: message,
@@ -722,7 +751,7 @@ export class AppFormsService {
 					buttons: buttons
 				})
 			: await this.alertController.create({
-					header: header || await this.getResourceAsync("app.alert.header.general"),
+					header: header || await this.getResourceAsync("common.alert.header.general"),
 					subHeader: subHeader,
 					backdropDismiss: false,
 					message: message,
@@ -734,11 +763,11 @@ export class AppFormsService {
 	/** Shows the error message (by the alert confirmation box) */
 	public async showErrorAsync(error: any, subHeader?: string, postProcess?: (data?: any) => void) {
 		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
-			? await this.getResourceAsync("app.messages.errors.wrongAccountOrPassword")
+			? await this.getResourceAsync("common.messages.errors.wrongAccountOrPassword")
 			: AppUtility.isGotCaptchaException(error) || AppUtility.isGotOTPException(error)
-				? await this.getResourceAsync("app.messages.errors.wrongCaptcha")
-				: AppUtility.isNotEmpty(error.Message) ? error.Message : await this.getResourceAsync("app.messages.errors.general");
-		await this.showAlertAsync(await this.getResourceAsync("app.alert.header.error"), subHeader, message, postProcess);
+				? await this.getResourceAsync("common.messages.errors.wrongCaptcha")
+				: AppUtility.isNotEmpty(error.Message) ? error.Message : await this.getResourceAsync("common.messages.errors.general");
+		await this.showAlertAsync(await this.getResourceAsync("common.alert.header.error"), subHeader, message, postProcess);
 	}
 
 	/** Shows the modal box */

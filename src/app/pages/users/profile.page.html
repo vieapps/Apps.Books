@@ -118,7 +118,7 @@
 			</ion-button>
 		</ion-item>
 		<ion-list-header *ngIf="otp.required && otp.providers.length > 0">
-				{{ otp.resources.providers }}
+			{{ otp.resources.providers }}
 		</ion-list-header>
 		<ion-item *ngFor="let provider of otp.providers">
 			<ion-label>
@@ -132,7 +132,7 @@
 		<ion-item *ngIf="otp.uri !== ''">
 			<div text-wrap>
 				<div>
-						{{ otp.resources.qrcode.image }}
+					{{ otp.resources.qrcode.image }}
 				</div>
 				<div>
 					<img [src]="otp.uri" />
@@ -147,7 +147,7 @@
 		</ion-item>
 		<ion-item *ngIf="otp.uri !== ''" [class.invalid]="!otp.value || otp.value.length < 5 || otp.value.length > 10">
 			<ion-label position="stacked">
-					{{ otp.resources.qrcode.control }}
+				{{ otp.resources.qrcode.control }}
 			</ion-label>
 			<ion-input minlength="5" maxlength="10" [(ngModel)]="otp.value"></ion-input>
 			<ion-button fill="solid" color="primary" [disabled]="!otp.value || otp.value.length < 5 || otp.value.length > 10" slot="end" (click)="addOTPAsync()">

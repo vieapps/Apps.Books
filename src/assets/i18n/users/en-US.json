@@ -101,11 +101,6 @@
 				"lastAccess": "Last access:"
 			},
 			"buttons": {
-				"done": "Done",
-				"yes": "Yes",
-				"no": "No",
-				"update": "Update",
-				"cancel": "Cancel",
 				"password": "Change password",
 				"email": "Change email",
 				"invite": "Invite",

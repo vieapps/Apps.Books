@@ -167,8 +167,8 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 					MinLength: 2,
 					MaxLength: 250,
 					CompleterOptions: {
-						SearchingText: await this.configSvc.getResourceAsync("app.messages.completer.searching"),
-						NoResultsText: await this.configSvc.getResourceAsync("app.messages.completer.noresults")
+						SearchingText: await this.configSvc.getResourceAsync("common.messages.completer.searching"),
+						NoResultsText: await this.configSvc.getResourceAsync("common.messages.completer.noresults")
 					}
 				}
 			},

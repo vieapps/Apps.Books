@@ -81,7 +81,6 @@ export class AppComponent implements OnInit {
 		this.platform.ready().then(async () => {
 			await this.configSvc.prepareAsync();
 			await this.configSvc.loadOptionsAsync();
-			console.log("OPTIONS", this.configSvc.appConfig.options);
 
 			if (this.platform.is("cordova")) {
 				this.splashScreen.hide();
@@ -99,7 +98,7 @@ export class AppComponent implements OnInit {
 			await this.configSvc.setResourceLanguageAsync(this.configSvc.appConfig.language);
 
 			const isActivate = this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"];
-			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(isActivate ? "app.messages.activating" : "app.messages.loading"));
+			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(isActivate ? "common.messages.activating" : "common.messages.loading"));
 
 			await this.updateSidebarAsync();
 			this.sidebar.left.title = this.configSvc.appConfig.app.name;
@@ -121,7 +120,7 @@ export class AppComponent implements OnInit {
 	private async getSidebarItemsAsync() {
 		return {
 			home: {
-				title: await this.configSvc.getResourceAsync("app.sidebar.home"),
+				title: await this.configSvc.getResourceAsync("common.sidebar.home"),
 				url: "/home",
 				queryParams: undefined as { [key: string]: any },
 				direction: "root",
@@ -130,7 +129,7 @@ export class AppComponent implements OnInit {
 				detail: false
 			},
 			login: {
-				title: await this.configSvc.getResourceAsync("app.sidebar.login"),
+				title: await this.configSvc.getResourceAsync("common.sidebar.login"),
 				url: "/users/login",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
@@ -139,7 +138,7 @@ export class AppComponent implements OnInit {
 				detail: false
 			},
 			register: {
-				title: await this.configSvc.getResourceAsync("app.sidebar.register"),
+				title: await this.configSvc.getResourceAsync("common.sidebar.register"),
 				url: "/users/register",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
@@ -148,7 +147,7 @@ export class AppComponent implements OnInit {
 				detail: false
 			},
 			profile: {
-				title: await this.configSvc.getResourceAsync("app.sidebar.profile"),
+				title: await this.configSvc.getResourceAsync("common.sidebar.profile"),
 				url: "/users/profile/my",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
@@ -230,7 +229,7 @@ export class AppComponent implements OnInit {
 		}
 	}
 
-	private async normalizeSidebarAsync() {
+	private async normalizeSidebarMenuAsync() {
 		const items = this.sidebar.left.menu[0].items;
 		const sidebarItems = await this.getSidebarItemsAsync();
 		if (this.configSvc.isAuthenticated) {
@@ -285,14 +284,14 @@ export class AppComponent implements OnInit {
 				const profile = this.configSvc.getAccount().profile;
 				this.sidebar.left.title = profile ? profile.Name : this.configSvc.appConfig.app.name;
 				this.sidebar.left.avatar = profile ? profile.avatarURI : undefined;
-				await this.normalizeSidebarAsync();
+				await this.normalizeSidebarMenuAsync();
 			}
 		});
 
 		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
 				await this.updateSidebarAsync();
-				await this.normalizeSidebarAsync();
+				await this.normalizeSidebarMenuAsync();
 			}
 		});
 	}
@@ -304,9 +303,8 @@ export class AppComponent implements OnInit {
 			await this.usersSvc.activateAsync(mode, code,
 				async () => {
 					await this.initializeAsync(async () => {
-						const title = await this.configSvc.getResourceAsync("app.loading.activate");
 						await Promise.all([
-							TrackingUtility.trackAsync(title, `users/activate/${mode}`),
+							TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("common.loading.activate"), `users/activate/${mode}`),
 							this.showActivationResultAsync({
 								Status: "OK",
 								Mode: mode

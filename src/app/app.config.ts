@@ -1,8 +1,8 @@
-import vi_VN from "@angular/common/locales/vi";
-import en_US from "@angular/common/locales/en";
 import { AppCrypto } from "./components/app.crypto";
 import { AppUtility } from "./components/app.utility";
 import { Account } from "./models/account";
+import vi_VN from "@angular/common/locales/vi";
+import en_US from "@angular/common/locales/en";
 
 /** Configuration of the app */
 export class AppConfig {
@@ -80,7 +80,7 @@ export class AppConfig {
 
 	/** Options of the app */
 	public static options = {
-		i18n: "en-US",
+		i18n: "vi-VN",
 		timezone: +7.00,
 		extras: {} as { [key: string]: any }
 	};
@@ -186,16 +186,16 @@ export class AppConfig {
 
 	/** Gets the available locales for working with the app */
 	public static get locales() {
-		return this.languages.map(l => l.Value.replace("-", "_"));
+		return this.languages.map(language => language.Value.replace("-", "_"));
 	}
 
 	/** Gets the locale data for working with i18n globalization */
 	public static getLocaleData(locale: string) {
 		switch (locale) {
-			case "en_US":
-				return en_US;
-			default:
+			case "vi_VN":
 				return vi_VN;
+			default:
+				return en_US;
 		}
 	}
 

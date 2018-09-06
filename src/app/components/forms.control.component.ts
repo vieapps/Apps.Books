@@ -301,7 +301,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get selectOkText() {
-		return this.control.Options.SelectOptions.OKText;
+		return this.control.Options.SelectOptions.OkText;
 	}
 
 	get yesnoChecked() {

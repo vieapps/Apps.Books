@@ -101,11 +101,6 @@
 				"lastAccess": "Truy cập:"
 			},
 			"buttons": {
-				"done": "Hoàn thành",
-				"yes": "Đồng ý",
-				"no": "Không",
-				"update": "Cập nhật",
-				"cancel": "Huỷ",
 				"password": "Đổi mật khẩu",
 				"email": "Đổi email",
 				"invite": "Gửi lời mời",

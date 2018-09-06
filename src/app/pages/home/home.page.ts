@@ -53,7 +53,7 @@ export class HomePage implements OnInit, OnDestroy {
 	}
 
 	async initializeAsync() {
-		this.title = await this.configSvc.getResourceAsync("app.homepage.title");
+		this.title = await this.configSvc.getResourceAsync("homepage.title");
 		this.setTitle();
 	}
 

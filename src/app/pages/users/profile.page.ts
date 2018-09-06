@@ -1,6 +1,5 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { registerLocaleData } from "@angular/common";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { AppCrypto } from "../../components/app.crypto";
@@ -27,7 +26,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		public authSvc: AuthenticationService,
 		public usersSvc: UsersService
 	) {
-		registerLocaleData(this.configSvc.localeData);
 	}
 
 	title = "Profile";
@@ -128,10 +126,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		value: undefined as any
 	};
 
-	get locale() {
-		return this.configSvc.locale;
-	}
-
 	ngOnInit() {
 		this.rxSubscriptions.push(this.update.form.valueChanges.subscribe(value => this.update.value = value));
 		this.rxSubscriptions.push(this.password.form.valueChanges.subscribe(value => this.password.value = value));
@@ -156,8 +150,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	}
 
 	async prepareButtonsAsync() {
-		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("users.profile.buttons.cancel"), icon: undefined, handler: async () => await this.openProfileAsync() };
-		this.buttons.ok = { text: await this.configSvc.getResourceAsync("users.profile.buttons.update"), icon: undefined, handler: undefined };
+		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), icon: undefined, handler: async () => await this.openProfileAsync() };
+		this.buttons.ok = { text: await this.configSvc.getResourceAsync("common.buttons.update"), icon: undefined, handler: undefined };
 
 		if (this.mode === "update") {
 			this.buttons.cancel.handler = async () => await this.appFormsSvc.showAlertAsync(
@@ -165,8 +159,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				undefined,
 				await this.configSvc.getResourceAsync("users.profile.update.messages.confirm"),
 				async () => await this.openProfileAsync(),
-				await this.configSvc.getResourceAsync("users.profile.buttons.yes"),
-				await this.configSvc.getResourceAsync("users.profile.buttons.no")
+				await this.configSvc.getResourceAsync("common.buttons.ok"),
+				await this.configSvc.getResourceAsync("common.buttons.cancel")
 			);
 			this.buttons.ok.handler = async () => await this.updateProfileAsync();
 		}
@@ -180,7 +174,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 		else if (this.mode === "otp") {
 			this.buttons.cancel = undefined;
-			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.done");
+			this.buttons.ok.text = await this.configSvc.getResourceAsync("common.buttons.done");
 			this.buttons.ok.handler = async () => await this.openProfileAsync();
 		}
 		else if (this.mode === "privileges") {
@@ -333,8 +327,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
 					MinLength: 2,
 					CompleterOptions: {
-						SearchingText: await this.configSvc.getResourceAsync("app.messages.completer.searching"),
-						NoResultsText: await this.configSvc.getResourceAsync("app.messages.completer.noresults")
+						SearchingText: await this.configSvc.getResourceAsync("common.messages.completer.searching"),
+						NoResultsText: await this.configSvc.getResourceAsync("common.messages.completer.noresults")
 					}
 				}
 			},
@@ -608,8 +602,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				])),
 				error => this.appFormsSvc.showErrorAsync(error)
 			),
-			await this.configSvc.getResourceAsync("users.profile.buttons.yes"),
-			await this.configSvc.getResourceAsync("users.profile.buttons.no")
+			await this.configSvc.getResourceAsync("common.buttons.yes"),
+			await this.configSvc.getResourceAsync("common.buttons.no")
 		);
 	}
 
@@ -689,7 +683,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				error => this.appFormsSvc.showErrorAsync(error)
 			),
 			await this.configSvc.getResourceAsync("users.profile.buttons.logout"),
-			await this.configSvc.getResourceAsync("users.profile.buttons.cancel")
+			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);
 	}
 

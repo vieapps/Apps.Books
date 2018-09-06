@@ -1,5 +1,5 @@
 {
-	"app": {
+	"common": {
 		"sidebar": {
 			"home": "Home",
 			"login": "Login",
@@ -10,11 +10,17 @@
 			"header": {
 				"general": "Attention",
 				"error": "Error"
-			},
-			"buttons": {
-				"cancel": "Cancel",
-				"ok": "Close"
 			}
+		},
+		"buttons": {
+			"yes": "Yes",
+			"no": "No",
+			"done": "Done",
+			"ok": "OK",
+			"update": "Update",
+			"save": "Save",
+			"cancel": "Cancel",
+			"close": "Close"
 		},
 		"messages": {
 			"loading": "Loading...",
@@ -28,9 +34,9 @@
 				"searching": "searching...",
 				"noresults": "no matched result is found"
 			}
-		},
-		"homepage": {
-			"title": "Home"
 		}
+	},
+	"homepage": {
+		"title": "Home"
 	}
 }

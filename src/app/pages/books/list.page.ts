@@ -346,7 +346,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 			},
 			await this.configSvc.getResourceAsync("books.list.sort.button"),
-			await this.configSvc.getResourceAsync("app.alert.buttons.cancel"),
+			await this.configSvc.getResourceAsync("common.buttons.cancel"),
 			this.sorts.map(s => {
 				return {
 					type: "radio",
@@ -370,7 +370,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 			},
 			await this.configSvc.getResourceAsync("books.list.crawl.button"),
-			await this.configSvc.getResourceAsync("app.alert.buttons.cancel"),
+			await this.configSvc.getResourceAsync("common.buttons.cancel"),
 			[
 				{
 					type: "text",

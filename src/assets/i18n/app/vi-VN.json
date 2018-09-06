@@ -1,5 +1,5 @@
 {
-	"app": {
+	"common": {
 		"sidebar": {
 			"home": "Màn hình chính",
 			"login": "Đăng nhập",
@@ -10,11 +10,17 @@
 			"header": {
 				"general": "Chú ý",
 				"error": "Lỗi"
-			},
-			"buttons": {
-				"cancel": "Huỷ",
-				"ok": "Đóng"
 			}
+		},
+		"buttons": {
+			"yes": "Có",
+			"no": "Không",
+			"done": "Hoàn thành",
+			"ok": "Đồng ý",
+			"update": "Cập nhật",
+			"save": "Lưu",
+			"cancel": "Huỷ",
+			"close": "Đóng"
 		},
 		"messages": {
 			"loading": "Tải dữ liệu...",
@@ -28,9 +34,9 @@
 				"searching": "tìm kiếm...",
 				"noresults": "không có kết quả phù hợp"
 			}
-		},
-		"homepage": {
-			"title": "Màn hình chính"
 		}
+	},
+	"homepage": {
+		"title": "Màn hình chính"
 	}
 }
