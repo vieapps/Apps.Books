@@ -337,36 +337,24 @@ export class AppFormsService {
 		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
 	} = {};
 
+	private async normalizeResourceAsync(value: string) {
+		return AppUtility.isNotEmpty(value) && value.startsWith("{{") && value.endsWith("}}")
+			? await this.getResourceAsync(value.substr(2, value.length - 4).trim())
+			: value;
+	}
+
 	private prepareControls(controls: Array<AppFormsControl>) {
 		controls.forEach(async (control, index) => {
 			if (!control.Excluded) {
-				if (AppUtility.isNotEmpty(control.Options.Label) && control.Options.Label.startsWith("{{") && control.Options.Label.endsWith("}}")) {
-					control.Options.Label = await this.getResourceAsync(control.Options.Label.substr(2, control.Options.Label.length - 4).trim());
-				}
-				if (AppUtility.isNotEmpty(control.Options.Description) && control.Options.Description.startsWith("{{") && control.Options.Description.endsWith("}}")) {
-					control.Options.Description = await this.getResourceAsync(control.Options.Description.substr(2, control.Options.Description.length - 4).trim());
-				}
-				if (AppUtility.isNotEmpty(control.Options.PlaceHolder) && control.Options.PlaceHolder.startsWith("{{") && control.Options.PlaceHolder.endsWith("}}")) {
-					control.Options.PlaceHolder = await this.getResourceAsync(control.Options.PlaceHolder.substr(2, control.Options.PlaceHolder.length - 4).trim());
-				}
-				if (AppUtility.isNotEmpty(control.Options.SelectOptions.OkText) && control.Options.SelectOptions.OkText.startsWith("{{") && control.Options.SelectOptions.OkText.endsWith("}}")) {
-					control.Options.SelectOptions.OkText = await this.getResourceAsync(control.Options.SelectOptions.OkText.substr(2, control.Options.SelectOptions.OkText.length - 4).trim());
-				}
-				if (AppUtility.isNotEmpty(control.Options.SelectOptions.CancelText) && control.Options.SelectOptions.CancelText.startsWith("{{") && control.Options.SelectOptions.CancelText.endsWith("}}")) {
-					control.Options.SelectOptions.CancelText = await this.getResourceAsync(control.Options.SelectOptions.CancelText.substr(2, control.Options.SelectOptions.CancelText.length - 4).trim());
-				}
-				if (AppUtility.isNotEmpty(control.Options.DatePickerOptions.DoneText) && control.Options.DatePickerOptions.DoneText.startsWith("{{") && control.Options.DatePickerOptions.DoneText.endsWith("}}")) {
-					control.Options.DatePickerOptions.DoneText = await this.getResourceAsync(control.Options.DatePickerOptions.DoneText.substr(2, control.Options.DatePickerOptions.DoneText.length - 4).trim());
-				}
-				if (AppUtility.isNotEmpty(control.Options.DatePickerOptions.CancelText) && control.Options.DatePickerOptions.CancelText.startsWith("{{") && control.Options.DatePickerOptions.CancelText.endsWith("}}")) {
-					control.Options.DatePickerOptions.CancelText = await this.getResourceAsync(control.Options.DatePickerOptions.CancelText.substr(2, control.Options.DatePickerOptions.CancelText.length - 4).trim());
-				}
-				if (AppUtility.isNotEmpty(control.Options.CompleterOptions.SearchingText) && control.Options.CompleterOptions.SearchingText.startsWith("{{") && control.Options.CompleterOptions.SearchingText.endsWith("}}")) {
-					control.Options.CompleterOptions.SearchingText = await this.getResourceAsync(control.Options.CompleterOptions.SearchingText.substr(2, control.Options.CompleterOptions.SearchingText.length - 4).trim());
-				}
-				if (AppUtility.isNotEmpty(control.Options.CompleterOptions.NoResultsText) && control.Options.CompleterOptions.NoResultsText.startsWith("{{") && control.Options.CompleterOptions.NoResultsText.endsWith("}}")) {
-					control.Options.CompleterOptions.NoResultsText = await this.getResourceAsync(control.Options.CompleterOptions.NoResultsText.substr(2, control.Options.CompleterOptions.NoResultsText.length - 4).trim());
-				}
+				control.Options.Label = await this.normalizeResourceAsync(control.Options.Label);
+				control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
+				control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
+				control.Options.SelectOptions.OkText = await this.normalizeResourceAsync(control.Options.SelectOptions.OkText);
+				control.Options.SelectOptions.CancelText = await this.normalizeResourceAsync(control.Options.SelectOptions.CancelText);
+				control.Options.DatePickerOptions.DoneText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DoneText);
+				control.Options.DatePickerOptions.CancelText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.CancelText);
+				control.Options.CompleterOptions.SearchingText = await this.normalizeResourceAsync(control.Options.CompleterOptions.SearchingText);
+				control.Options.CompleterOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.CompleterOptions.NoResultsText);
 			}
 			if (index < controls.length - 1) {
 				control.next = controls[index + 1];
