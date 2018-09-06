@@ -94,9 +94,9 @@ export class AppComponent implements OnInit {
 				}
 			}
 
-			this.translateSvc.addLangs(["vi-VN", "en-US"]);
-			this.translateSvc.setDefaultLang(this.configSvc.appConfig.options.i18n);
-			await this.configSvc.setLanguageAsync(this.configSvc.appConfig.language);
+			this.translateSvc.addLangs(this.configSvc.languages.map(language => language.Value));
+			this.translateSvc.setDefaultLang(this.configSvc.appConfig.language);
+			await this.configSvc.setResourceLanguageAsync(this.configSvc.appConfig.language);
 
 			const isActivate = this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"];
 			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(isActivate ? "app.messages.activating" : "app.messages.loading"));

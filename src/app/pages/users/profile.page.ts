@@ -406,7 +406,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 							this.configSvc.appConfig.options.i18n = this.update.value.Language;
 							await Promise.all([
 								this.configSvc.storeOptionsAsync(),
-								this.configSvc.setLanguageAsync(this.configSvc.appConfig.options.i18n)
+								this.configSvc.setResourceLanguageAsync(this.configSvc.appConfig.options.i18n)
 							]);
 							AppEvents.broadcast("App", { Type: "LanguageChanged", Data: this.configSvc.appConfig.options });
 						}
