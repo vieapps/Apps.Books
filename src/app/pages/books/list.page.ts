@@ -2,8 +2,6 @@ import * as Rx from "rxjs";
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import vi_VN from "@angular/common/locales/vi";
-import en_US from "@angular/common/locales/en";
 import { Searchbar, InfiniteScroll, Content } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppPagination } from "../../components/app.pagination";
@@ -29,7 +27,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		public authSvc: AuthenticationService,
 		public booksSvc: BooksService
 	) {
-		registerLocaleData("vi_VN" === this.locale ? vi_VN : en_US);
+		registerLocaleData(this.configSvc.locale);
 	}
 
 	filterBy = {

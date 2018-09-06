@@ -424,7 +424,7 @@ export class BooksService extends BaseService {
 		});
 		this.configSvc.appConfig.extras["Books-Authors"] = authors;
 		if (this.authors.size() > 0) {
-			AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: this.authors });
+			AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: authors });
 		}
 		if (onCompleted !== undefined) {
 			onCompleted(this.authors);
@@ -434,7 +434,7 @@ export class BooksService extends BaseService {
 	private async storeAuthorsAsync(onCompleted?: (authors?: Collections.Dictionary<string, Array<StatisticBase>>) => void) {
 		const authors = this.authors;
 		await Promise.all(AppUtility.getChars().map(char => this.storage.set(`VIEApps-Books-Authors-${char}`, authors.getValue(char) || [])));
-		AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: this.authors });
+		AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: authors });
 		if (onCompleted !== undefined) {
 			onCompleted(this.authors);
 		}
@@ -539,9 +539,6 @@ export class BooksService extends BaseService {
 		bookmark.Position = offset;
 		this.bookmarks.setValue(bookmark.ID, bookmark);
 		await this.storeBookmarksAsync(onCompleted);
-		if (onCompleted !== undefined) {
-			onCompleted();
-		}
 	}
 
 	private getBookmarks(onCompleted?: () => void) {

@@ -1,5 +1,6 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
+import { registerLocaleData } from "@angular/common";
 import { AppEvents } from "../../components/app.events";
 import { ConfigurationService } from "../../providers/configuration.service";
 
@@ -13,6 +14,7 @@ export class HomePage implements OnInit, OnDestroy, AfterViewInit {
 	constructor(
 		public configSvc: ConfigurationService
 	) {
+		registerLocaleData(this.configSvc.locale);
 	}
 
 	title = "Màn hình chính";

@@ -1,5 +1,6 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { registerLocaleData } from "@angular/common";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { AppCrypto } from "../../components/app.crypto";
@@ -25,6 +26,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		public authSvc: AuthenticationService,
 		public usersSvc: UsersService
 	) {
+		registerLocaleData(this.configSvc.locale);
 	}
 
 	title = "Thông tin tài khoản";

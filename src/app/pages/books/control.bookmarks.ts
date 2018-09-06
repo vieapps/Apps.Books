@@ -1,7 +1,5 @@
 import { Component, OnInit } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import vi_VN from "@angular/common/locales/vi";
-import en_US from "@angular/common/locales/en";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { BooksService } from "../../providers/books.service";
 import { UserProfile } from "../../models/user";
@@ -18,14 +16,14 @@ export class BookmarksControl implements OnInit {
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {
-		registerLocaleData("vi_VN" === this.locale ? vi_VN : en_US);
+		registerLocaleData(this.configSvc.locale);
 	}
 
 	profile = new UserProfile();
 	bookmarks = new Array<Bookmark>();
 
 	get locale() {
-		return this.configSvc.appConfig.globalization.locale;
+		return this.configSvc.appConfig.locale;
 	}
 
 	ngOnInit() {

@@ -2,11 +2,11 @@ import { Component, OnInit } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 
 import { Platform, NavController } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
 
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
 import { Device } from "@ionic-native/device/ngx";
-import { TranslateService } from "@ngx-translate/core";
 
 import { AppRTU } from "./components/app.rtu";
 import { AppEvents } from "./components/app.events";
@@ -40,8 +40,7 @@ export class AppComponent implements OnInit {
 		public usersSvc: UsersService,
 		public booksSvc: BooksService
 	) {
-		this.translateSvc.setDefaultLang(this.configSvc.appConfig.options.i18n);
-		this.translateSvc.use(this.configSvc.appConfig.language);
+		console.log("<AppComponent>: Initializing", this.configSvc.appConfig.app);
 	}
 
 	sidebar = {
@@ -72,10 +71,6 @@ export class AppComponent implements OnInit {
 	};
 
 	ngOnInit() {
-		console.log("<AppComponent>: Initializing", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
-		console.log("<AppComponent>: i18n Globalization\n- Default: " + this.configSvc.appConfig.options.i18n + "\n- User: " + this.configSvc.appConfig.language);
-
-		// capture router info
 		this.configSvc.addUrl("/home", {});
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
@@ -83,10 +78,12 @@ export class AppComponent implements OnInit {
 			}
 		});
 
-		// initliaze app
 		this.platform.ready().then(async () => {
+			await this.configSvc.prepareAsync();
+			await this.configSvc.loadOptionsAsync();
+
 			if (this.platform.is("cordova")) {
-				// prepare status bar (native app only)
+				this.splashScreen.hide();
 				if (this.device.platform !== "browser") {
 					this.statusBar.styleDefault();
 					if ("iOS" === this.device.platform && this.device.model.startsWith("iPhone1") && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
@@ -94,31 +91,29 @@ export class AppComponent implements OnInit {
 					}
 					this.statusBar.overlaysWebView(false);
 				}
-				// hide the splash screen
-				this.splashScreen.hide();
 			}
 
-			// show loading
-			const isActivate = "activate" === this.configSvc.queryParams["prego"];
-			await this.appFormsSvc.showLoadingAsync((isActivate ? await this.configSvc.getResourceAsync("app.loading.activate") : await this.configSvc.getResourceAsync("app.loading.initialize")) + "...");
+			this.translateSvc.setDefaultLang(this.configSvc.appConfig.options.i18n);
+			this.translateSvc.use(this.configSvc.appConfig.language);
 
-			// prepare sidebars
+			const isActivate = this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"];
+			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(isActivate ? "app.loading.activate" : "app.loading.initialize"));
+
 			this.sidebar.left.title = this.configSvc.appConfig.app.name;
 			this.updateSidebarAsync();
-
-			// setup event handlers
 			this.setupEventHandlers();
 
-			// prepare the app
-			await this.configSvc.prepareAsync(async () => {
-				if (this.configSvc.isWebApp && isActivate) {
-					await this.activateAsync();
-				}
-				else {
-					await this.initializeAsync();
-				}
-			});
+			if (isActivate) {
+				await this.activateAsync();
+			}
+			else {
+				await this.initializeAsync();
+			}
 		});
+	}
+
+	trackSidebarItem(index: number, item: any) {
+		return item.title;
 	}
 
 	private async getSidebarItemsAsync() {
@@ -160,10 +155,6 @@ export class AppComponent implements OnInit {
 				detail: false
 			}
 		};
-	}
-
-	trackSidebarItem(index: number, item: any) {
-		return item.title;
 	}
 
 	private updateSidebarItem(menuIndex: number = -1, itemIndex: number = -1, itemInfo: any = {}) {
@@ -239,13 +230,12 @@ export class AppComponent implements OnInit {
 
 	private setupEventHandlers() {
 		AppEvents.on("Navigate", info => {
-			const direction = (info.args.direction || "forward") + "";
-			switch (direction.toLowerCase()) {
-				case "forward":
-					this.navController.navigateForward(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
-					break;
+			switch ((info.args.direction || "forward").toLowerCase()) {
 				case "back":
 					this.navController.navigateBack(info.args.url || this.configSvc.previousUrl, true, info.args.extras);
+					break;
+				case "forward":
+					this.navController.navigateForward(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
 					break;
 				default:
 					this.navController.navigateRoot(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
@@ -256,7 +246,7 @@ export class AppComponent implements OnInit {
 		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
-		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.title) ? info.args.title : this.configSvc.appConfig.app.name);
+		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.title) ? info.args.title : this.sidebar.left.title);
 
 		AppEvents.on("Session", async info => {
 			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
@@ -342,7 +332,7 @@ export class AppComponent implements OnInit {
 		const message = "OK" === data.Status
 			? await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.messages.success.account" : "users.activate.messages.success.password")
 			: await this.configSvc.getResourceAsync("users.activate.messages.error.general", { error: (data.Error ? ` (${data.Error.Message})` : "") });
-		await this.appFormsSvc.showAlertAsync(header, subHeader, message, () => this.configSvc.navigateHome());
+		await this.appFormsSvc.showAlertAsync(header, subHeader, message, () => this.router.navigateByUrl("/home"));
 	}
 
 	private async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {

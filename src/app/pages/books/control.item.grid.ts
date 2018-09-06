@@ -1,8 +1,5 @@
 import { Component, Input } from "@angular/core";
-import { AppUtility } from "../../components/app.utility";
-import { PlatformUtility } from "../../components/app.utility.platform";
 import { ConfigurationService } from "../../providers/configuration.service";
-import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
 
 @Component({
@@ -13,8 +10,7 @@ import { Book } from "../../models/book";
 export class BookGridItemControl {
 
 	constructor (
-		public configSvc: ConfigurationService,
-		public booksSvc: BooksService
+		public configSvc: ConfigurationService
 	) {
 	}
 

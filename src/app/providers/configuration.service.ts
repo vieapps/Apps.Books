@@ -2,14 +2,16 @@ declare var FB: any;
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { PlatformLocation } from "@angular/common";
+import vi_VN from "@angular/common/locales/vi";
+import en_US from "@angular/common/locales/en";
 import { Http } from "@angular/http";
 import { Title } from "@angular/platform-browser";
 import { Platform } from "@ionic/angular";
+import { Storage } from "@ionic/storage";
 import { Device } from "@ionic-native/device/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
-import { Storage } from "@ionic/storage";
 import { TranslateService } from "@ngx-translate/core";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "../components/app.crypto";
@@ -38,11 +40,8 @@ export class ConfigurationService extends BaseService {
 	) {
 		super(http, "Configuration");
 		AppEvents.on("App", async info => {
-			if ("Initialized" === info.args.type) {
-				await Promise.all([
-					this.loadGeoMetaAsync(),
-					this.loadOptionsAsync()
-				]);
+			if ("Initialized" === info.args.Type) {
+				await this.loadGeoMetaAsync();
 			}
 		});
 	}
@@ -75,6 +74,16 @@ export class ConfigurationService extends BaseService {
 	/** Gets the state that determines the app is running on iOS (native or web browser) */
 	public get isRunningOnIOS() {
 		return this.appConfig.isRunningOnIOS;
+	}
+
+	/** Gets the locale data for working with i18n globalization */
+	public get locale() {
+		switch (this.appConfig.locale) {
+			case "en_US":
+				return en_US;
+			default:
+				return vi_VN;
+		}
 	}
 
 	private getCurrentUrl() {
@@ -158,8 +167,8 @@ export class ConfigurationService extends BaseService {
 		return this.platform.height();
 	}
 
-	/** Prepare the working environments of the app */
-	public async prepareAsync(onCompleted?: () => void) {
+	/** Prepare the configuration of the app */
+	public async prepareAsync() {
 		const isCordova = this.platform.is("cordova");
 		const isNativeApp = isCordova && this.device.platform !== "browser";
 
@@ -188,9 +197,6 @@ export class ConfigurationService extends BaseService {
 		}
 
 		await this.storage.ready().then(() => console.log(this.getLogMessage("Storage is ready")));
-		if (onCompleted !== undefined) {
-			onCompleted();
-		}
 	}
 
 	/** Initializes the configuration settings of the app */
@@ -598,15 +604,21 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
-	private async loadOptionsAsync(onCompleted?: () => void) {
-		this.appConfig.options = await this.storage.get("VIEApps-Options") || {
-			language: "vi-VN",
-			locale: "vi_VN",
-			extras: {}
-		};
-		AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
-		if (onCompleted !== undefined) {
-			onCompleted();
+	public async loadOptionsAsync(onCompleted?: () => void) {
+		this.appConfig.options = await this.storage.get("VIEApps-Options") || {};
+		if (this.appConfig.options === undefined || this.appConfig.options.i18n === undefined || this.appConfig.options.timezone === undefined || this.appConfig.options.extras === undefined) {
+			this.appConfig.options = {
+				i18n: "vi-VN",
+				timezone: +7.00,
+				extras: {}
+			};
+			await this.storeOptionsAsync(onCompleted);
+		}
+		else {
+			AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
+			if (onCompleted !== undefined) {
+				onCompleted();
+			}
 		}
 	}
 

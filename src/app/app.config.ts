@@ -16,7 +16,7 @@ export class AppConfig {
 		activations: "https://books.vieapps.net/"
 	};
 
-	/** Settings of the app */
+	/** Information of the app */
 	public static app = {
 		id: "ngx-books",
 		name: "VIEApps NGX Books",
@@ -43,7 +43,7 @@ export class AppConfig {
 		}
 	};
 
-	/** Settings for working with user accounts */
+	/** User account registrations */
 	public static accountRegistrations = {
 		registrable: true,
 		excluded: ["Gender", "BirthDay", "Mobile", "Address"],
@@ -76,13 +76,14 @@ export class AppConfig {
 		}
 	};
 
-	/** App options */
+	/** Options of the app */
 	public static options = {
 		i18n: "vi-VN",
+		timezone: +7.00,
 		extras: {} as { [key: string]: any }
 	};
 
-	/** Gets the related information of url (stack, host, ...) */
+	/** Information for working with url (stack, host, ...) */
 	public static url = {
 		stack: new Array<{
 			url: string,
@@ -109,12 +110,13 @@ export class AppConfig {
 		version: "v3.1",
 	};
 
+	/** Refer informaion */
 	public static refer = {
 		id: undefined as string,
 		section: undefined as string
 	};
 
-	/** Gets the extra configuration */
+	/** Extra configuration */
 	public static extras: {
 		[key: string]: any
 	} = {};
@@ -158,7 +160,7 @@ export class AppConfig {
 	public static get language() {
 		return this.session.account !== undefined && this.session.account.profile !== undefined
 			? this.session.account.profile.Language || this.options.i18n
-			: this.options.i18n;
+			: this.options !== undefined ? this.options.i18n : undefined;
 	}
 
 	/** Gets the locale for working with the app */

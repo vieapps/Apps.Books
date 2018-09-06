@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
+import { registerLocaleData } from "@angular/common";
 import { ImageCropperComponent, CropperSettings } from "ng2-img-cropper";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -21,6 +22,7 @@ export class AccountAvatarPage implements OnInit {
 		public filesSvc: FilesService,
 		public usersSvc: UsersService
 	) {
+		registerLocaleData(this.configSvc.locale);
 	}
 
 	title = "Cập nhật ảnh đại diện";

@@ -16,7 +16,7 @@
 				},
 				"error": {
 					"general": "Đã xảy ra lỗi, không thể kích hoạt{{error})",
-					"invalid": "Thông tin kích hoạt không hợp lệ {{mode} - {{code}}]"
+					"invalid": "Thông tin kích hoạt không hợp lệ {{mode}} - {{code}}]"
 				}
 			}
 		}

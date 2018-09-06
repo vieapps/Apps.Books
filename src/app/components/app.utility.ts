@@ -307,6 +307,14 @@ export class AppUtility {
 		return chars;
 	}
 
+	/** Parses the mustache-style (double braces) template to get the params */
+	public static parseTemplate(template: string, onlyNames?: boolean) {
+		const params = template.match(/{{\s*[\w\.]+\s*}}/g);
+		return this.isTrue(onlyNames)
+			? params.map(param => param.match(/[\w\.]+/)[0])
+			: params;
+	}
+
 	/** Stringifys the JSON and encode as base64-url */
 	public static toBase64Url(json: any) {
 		return this.isObject(json, true)

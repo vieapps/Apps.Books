@@ -1,8 +1,6 @@
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import vi_VN from "@angular/common/locales/vi";
-import en_US from "@angular/common/locales/en";
 import { AppUtility } from "../../components/app.utility";
 import { AppEvents } from "../../components/app.events";
 import { ConfigurationService } from "../../providers/configuration.service";
@@ -20,7 +18,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy {
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {
-		registerLocaleData("vi_VN" === this.locale ? vi_VN : en_US);
+		registerLocaleData(this.configSvc.locale);
 	}
 
 	introduction = "";
