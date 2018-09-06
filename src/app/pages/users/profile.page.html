@@ -49,7 +49,7 @@
 		</h1>
 		<ion-list>
 			<ion-list-header>
-				Thông tin
+				{{ labels.header }}
 			</ion-list-header>
 			<ion-item>
 				<ion-icon icon="mail" slot="start"></ion-icon>
@@ -65,7 +65,7 @@
 			</ion-item>
 			<ion-item>
 				<ion-icon icon="time" slot="start"></ion-icon>
-				Truy cập: {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
+				{{ labels.lastAccess }} {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
 			</ion-item>
 		</ion-list>
 	</div>
@@ -107,18 +107,18 @@
 	<div *ngIf="mode === 'otp'" [class]="mode">
 		<ion-item>
 			<ion-label>
-				Trạng thái xác thực lần hai:
+				{{ otp.resources.status.label }}
 				<span>
-					{{ otp.required ? 'Bật' : otp.uri === '' ? 'Tắt' : 'Đang thiết đặt' }}
+					{{ otp.resources.status.value }}
 				</span>
 			</ion-label>
 			<ion-button *ngIf="!otp.required && otp.uri === ''" fill="solid" color="primary" (click)="prepareOTPAsync()" item-right>
 				<ion-icon name="power" slot="start"></ion-icon>
-				Bật
+				{{ otp.resources.buttons.on }}
 			</ion-button>
 		</ion-item>
 		<ion-list-header *ngIf="otp.required && otp.providers.length > 0">
-			Các phương thức xác thực hiện tại
+				{{ otp.resources.providers }}
 		</ion-list-header>
 		<ion-item *ngFor="let provider of otp.providers">
 			<ion-label>
@@ -126,31 +126,33 @@
 			</ion-label>
 			<ion-button fill="clear" (click)="deleteOTPAsync(provider)" item-right>
 				<ion-icon name="trash" slot="start"></ion-icon>
-				Xoá bỏ
+				{{ otp.resources.buttons.delete }}
 			</ion-button>
 		</ion-item>
 		<ion-item *ngIf="otp.uri !== ''">
 			<div text-wrap>
 				<div>
-					Mã QR cho ứng dụng Authenticator
+						{{ otp.resources.qrcode.image }}
 				</div>
 				<div>
 					<img [src]="otp.uri" />
 				</div>
 				<div>
-					Mở ứng dụng Authenticator trên điện thoại, thêm một tài khoản bằng cách quét mã QR ở trên và nhập mã được sinh trong ứng dụng để xác thực đã hoàn thành quá trình cài đặt.
+					{{ otp.resources.instruction.main }}
 				</div>
 				<div>
-					Có thể sử dụng ứng dụng Google Authenticator hoặc Microsoft Authenticator có sẵn trên App Store (iOS) hoặc Play Store (Android).
+					{{ otp.resources.instruction.app }}
 				</div>
 			</div>
 		</ion-item>
 		<ion-item *ngIf="otp.uri !== ''" [class.invalid]="!otp.value || otp.value.length < 5 || otp.value.length > 10">
-			<ion-label position="stacked">Mã OTP của ứng dụng Authenticator</ion-label>
+			<ion-label position="stacked">
+					{{ otp.resources.qrcode.control }}
+			</ion-label>
 			<ion-input minlength="5" maxlength="10" [(ngModel)]="otp.value"></ion-input>
 			<ion-button fill="solid" color="primary" [disabled]="!otp.value || otp.value.length < 5 || otp.value.length > 10" slot="end" (click)="addOTPAsync()">
 				<ion-icon name="done-all" slot="start"></ion-icon>
-				Xác thực
+				{{ otp.resources.buttons.verify }}
 			</ion-button>
 		</ion-item>
 	</div>

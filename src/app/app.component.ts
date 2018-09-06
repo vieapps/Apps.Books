@@ -81,6 +81,7 @@ export class AppComponent implements OnInit {
 		this.platform.ready().then(async () => {
 			await this.configSvc.prepareAsync();
 			await this.configSvc.loadOptionsAsync();
+			console.log("OPTIONS", this.configSvc.appConfig.options);
 
 			if (this.platform.is("cordova")) {
 				this.splashScreen.hide();
@@ -93,14 +94,15 @@ export class AppComponent implements OnInit {
 				}
 			}
 
+			this.translateSvc.addLangs(["vi-VN", "en-US"]);
 			this.translateSvc.setDefaultLang(this.configSvc.appConfig.options.i18n);
-			this.translateSvc.use(this.configSvc.appConfig.language);
+			await this.configSvc.setLanguageAsync(this.configSvc.appConfig.language);
 
 			const isActivate = this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"];
-			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(isActivate ? "app.loading.activate" : "app.loading.initialize"));
+			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(isActivate ? "app.messages.activating" : "app.messages.loading"));
 
+			await this.updateSidebarAsync();
 			this.sidebar.left.title = this.configSvc.appConfig.app.name;
-			this.updateSidebarAsync();
 			this.setupEventHandlers();
 
 			if (isActivate) {
@@ -228,6 +230,36 @@ export class AppComponent implements OnInit {
 		}
 	}
 
+	private async normalizeSidebarAsync() {
+		const items = this.sidebar.left.menu[0].items;
+		const sidebarItems = await this.getSidebarItemsAsync();
+		if (this.configSvc.isAuthenticated) {
+			AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith(sidebarItems.register.url)));
+			const index = items.findIndex(item => item.url.startsWith(sidebarItems.login.url));
+			if (index > -1) {
+				items[index] = sidebarItems.profile;
+			}
+			else if (items.findIndex(item => item.url.startsWith(sidebarItems.profile.url)) < 0) {
+				AppUtility.insertAt(items, sidebarItems.profile);
+			}
+		}
+		else {
+			if (items.findIndex(item => item.url.startsWith(sidebarItems.login.url)) < 0) {
+				const index = items.findIndex(item => item.url.startsWith(sidebarItems.profile.url));
+				if (index > -1) {
+					items[index] = sidebarItems.login;
+				}
+				else {
+					AppUtility.insertAt(items, sidebarItems.login);
+				}
+			}
+			if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith(sidebarItems.register.url)) < 0) {
+				const index = items.findIndex(item => item.url.startsWith(sidebarItems.login.url));
+				AppUtility.insertAt(items, sidebarItems.register, index > -1 ? index + 1 : -1);
+			}
+		}
+	}
+
 	private setupEventHandlers() {
 		AppEvents.on("Navigate", info => {
 			switch ((info.args.direction || "forward").toLowerCase()) {
@@ -253,34 +285,14 @@ export class AppComponent implements OnInit {
 				const profile = this.configSvc.getAccount().profile;
 				this.sidebar.left.title = profile ? profile.Name : this.configSvc.appConfig.app.name;
 				this.sidebar.left.avatar = profile ? profile.avatarURI : undefined;
+				await this.normalizeSidebarAsync();
+			}
+		});
 
-				const items = this.sidebar.left.menu[0].items;
-				const sidebarItems = await this.getSidebarItemsAsync();
-				if (this.configSvc.isAuthenticated) {
-					AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith(sidebarItems.register.url)));
-					const index = items.findIndex(item => item.url.startsWith(sidebarItems.login.url));
-					if (index > -1) {
-						items[index] = sidebarItems.profile;
-					}
-					else if (items.findIndex(item => item.url.startsWith(sidebarItems.profile.url)) < 0) {
-						AppUtility.insertAt(items, sidebarItems.profile);
-					}
-				}
-				else {
-					if (items.findIndex(item => item.url.startsWith(sidebarItems.login.url)) < 0) {
-						const index = items.findIndex(item => item.url.startsWith(sidebarItems.profile.url));
-						if (index > -1) {
-							items[index] = sidebarItems.login;
-						}
-						else {
-							AppUtility.insertAt(items, sidebarItems.login);
-						}
-					}
-					if (this.authSvc.canRegisterNewAccounts && items.findIndex(item => item.url.startsWith(sidebarItems.register.url)) < 0) {
-						const index = items.findIndex(item => item.url.startsWith(sidebarItems.login.url));
-						AppUtility.insertAt(items, sidebarItems.register, index > -1 ? index + 1 : -1);
-					}
-				}
+		AppEvents.on("App", async info => {
+			if ("LanguageChanged" === info.args.Type) {
+				await this.updateSidebarAsync();
+				await this.normalizeSidebarAsync();
 			}
 		});
 	}

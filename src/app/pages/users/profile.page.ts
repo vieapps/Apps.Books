@@ -4,6 +4,7 @@ import { registerLocaleData } from "@angular/common";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { AppCrypto } from "../../components/app.crypto";
+import { AppEvents } from "../../components/app.events";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
@@ -26,10 +27,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		public authSvc: AuthenticationService,
 		public usersSvc: UsersService
 	) {
-		registerLocaleData(this.configSvc.locale);
+		registerLocaleData(this.configSvc.localeData);
 	}
 
-	title = "Thông tin tài khoản";
+	title = "Profile";
 	mode = "profile";
 	id: string;
 	profile: UserProfile;
@@ -62,12 +63,17 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		icon: string,
 		handler: () => void
 	}>;
+	labels = {
+		header: "",
+		lastAccess: ""
+	};
 	update = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any,
-		hash: undefined as string
+		hash: undefined as string,
+		language: this.configSvc.appConfig.language
 	};
 	password = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
@@ -86,7 +92,27 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		uri: "",
 		value: "",
 		provisioning: "",
-		providers: new Array<{ Type: string, Label: string, Time: Date, Info: string }>()
+		providers: new Array<{ Type: string, Label: string, Time: Date, Info: string }>(),
+		resources: {
+			status: {
+				label: "status",
+				value: "off"
+			},
+			providers: "providers",
+			buttons: {
+				on: "Power on",
+				delete: "Delete",
+				verify: "Verify"
+			},
+			qrcode: {
+				image: "QR code",
+				control: "QR code"
+			},
+			instruction: {
+				main: "Open authenticator app",
+				app: "Google Authenticator/Microsoft Authenticator"
+			}
+		}
 	};
 	privileges = {
 		form: new FormGroup({}),
@@ -102,6 +128,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		value: undefined as any
 	};
 
+	get locale() {
+		return this.configSvc.locale;
+	}
+
 	ngOnInit() {
 		this.rxSubscriptions.push(this.update.form.valueChanges.subscribe(value => this.update.value = value));
 		this.rxSubscriptions.push(this.password.form.valueChanges.subscribe(value => this.password.value = value));
@@ -111,8 +141,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.rxSubscriptions.push(this.rxSubject.subscribe(({ mode, title }) => {
 			this.mode = mode;
 			this.title = this.configSvc.appTitle = title;
-			this.prepareButtons();
-			this.prepareActions();
+			this.prepareButtonsAsync();
+			this.prepareActionsAsync();
 		}));
 		this.openProfileAsync();
 	}
@@ -121,43 +151,43 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
-	setMode(mode: string = "profile", title: string = "Thông tin tài khoản") {
+	setMode(mode: string = "profile", title: string = "Profile") {
 		this.rxSubject.next({ mode: mode, title: title});
 	}
 
-	prepareButtons() {
-		this.buttons.cancel = { text: "Huỷ", icon: undefined, handler: async () => await this.openProfileAsync() };
-		this.buttons.ok = { text: "Cập nhật", icon: undefined, handler: undefined };
+	async prepareButtonsAsync() {
+		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("users.profile.buttons.cancel"), icon: undefined, handler: async () => await this.openProfileAsync() };
+		this.buttons.ok = { text: await this.configSvc.getResourceAsync("users.profile.buttons.update"), icon: undefined, handler: undefined };
 
 		if (this.mode === "update") {
 			this.buttons.cancel.handler = async () => await this.appFormsSvc.showAlertAsync(
-				"Huỷ cập nhật",
+				await this.configSvc.getResourceAsync("users.profile.update.messages.alert"),
 				undefined,
-				"Chắc chắn muốn huỷ bỏ quá trình cập nhật?",
+				await this.configSvc.getResourceAsync("users.profile.update.messages.confirm"),
 				async () => await this.openProfileAsync(),
-				"Đồng ý",
-				"Không"
+				await this.configSvc.getResourceAsync("users.profile.buttons.yes"),
+				await this.configSvc.getResourceAsync("users.profile.buttons.no")
 			);
 			this.buttons.ok.handler = async () => await this.updateProfileAsync();
 		}
 		else if (this.mode === "password") {
-			this.buttons.ok.text = "Đổi mật khẩu";
+			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.password");
 			this.buttons.ok.handler = async () => await this.updatePasswordAsync();
 		}
 		else if (this.mode === "email") {
-			this.buttons.ok.text = "Đổi email";
+			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.email");
 			this.buttons.ok.handler = async () => await this.updateEmailAsync();
 		}
 		else if (this.mode === "otp") {
 			this.buttons.cancel = undefined;
-			this.buttons.ok.text = "Hoàn thành";
+			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.done");
 			this.buttons.ok.handler = async () => await this.openProfileAsync();
 		}
 		else if (this.mode === "privileges") {
 			this.buttons.ok.handler = async () => await this.updatePrivilegesAsync();
 		}
 		else if (this.mode === "invitation") {
-			this.buttons.ok.text = "Gửi lời mời";
+			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.invite");
 			this.buttons.ok.handler = async () => await this.sendInvitationAsync();
 		}
 		else {
@@ -166,11 +196,11 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 
 		this.buttons.invite = this.mode === "profile" && this.authSvc.canSendInvitations
-			? { text: "Mời tham gia", icon: "people", handler: () => this.sendInvitation() }
+			? { text: await this.configSvc.getResourceAsync("users.profile.buttons.invitation"), icon: "people", handler: async () => await this.openSendInvitationAsync() }
 			: undefined;
 	}
 
-	prepareActions() {
+	async prepareActionsAsync() {
 		if (this.mode !== "profile") {
 			this.actions = undefined;
 		}
@@ -179,20 +209,20 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 
 			if (this.profile.ID === this.configSvc.getAccount().id) {
 				[
-					this.appFormsSvc.getActionSheetButton("Cập nhật ảnh đại diện", "camera", async () => await this.appFormsSvc.showModalAsync(AccountAvatarPage)),
-					this.appFormsSvc.getActionSheetButton("Cập nhật hồ sơ", "create", () => this.updateProfile()),
-					this.appFormsSvc.getActionSheetButton("Đổi mật khẩu", "key", () => this.updatePassword()),
-					this.appFormsSvc.getActionSheetButton("Đổi email đăng nhập", "mail", () => this.updateEmail()),
-					this.appFormsSvc.getActionSheetButton("Thiết đặt bảo mật", "unlock", () => this.updateOTP())
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.avatar"), "camera", async () => await this.appFormsSvc.showModalAsync(AccountAvatarPage)),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", async () => await this.openUpdateProfileAsync()),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", async () => await this.openUpdatePasswordAsync()),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "mail", async () => await this.openUpdateEmailAsync()),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "unlock", async () => await this.openUpdateOTPAsync())
 				].forEach(action => this.actions.push(action));
 			}
 
 			else if (this.authSvc.canSetPrivileges) {
-				this.actions.push(this.appFormsSvc.getActionSheetButton("Đặt quyền truy cập", "settings", () => this.updatePrivileges()));
+				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privilegs"), "settings", async () => await this.openUpdatePrivilegesAsync()));
 			}
 
 			if (this.id === undefined || this.id === this.configSvc.getAccount().id) {
-				this.actions.push(this.appFormsSvc.getActionSheetButton("Đăng xuất", "log-out", async () => await this.logoutAsync()));
+				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.logout"), "log-out", async () => await this.logoutAsync()));
 			}
 
 			if (this.actions.length < 1) {
@@ -224,24 +254,26 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		await this.usersSvc.getProfileAsync(id,
 			async () => {
 				if (this.profile === undefined) {
-					await TrackingUtility.trackAsync(this.title, "/users/profile");
+					await TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.title"), "/users/profile");
 				}
 				this.profile = UserProfile.get(id);
-				this.setMode("profile", "Thông tin tài khoản");
+				this.labels.header = await this.configSvc.getResourceAsync("users.profile.labels.header");
+				this.labels.lastAccess = await this.configSvc.getResourceAsync("users.profile.labels.lastAccess");
+				this.setMode("profile", await this.configSvc.getResourceAsync("users.profile.title"));
 				await this.appFormsSvc.hideLoadingAsync(onNext);
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error)
 		);
 	}
 
-	updateProfile() {
+	async openUpdateProfileAsync() {
 		this.update.config = [
 			{
 				Key: "Name",
 				Required: true,
 				Options: {
-					Label: "Tên",
-					Description: "Sử dụng để hiển thị trong hệ thống",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Name.label"),
+					Description: await this.configSvc.getResourceAsync("users.register.controls.Name.description"),
 					DescriptionOptions: {
 						Css: "--description-label-css"
 					},
@@ -255,20 +287,20 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Type: "Select",
 				Required: true,
 				Options: {
-					Label: "Giới tính",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.label"),
 					SelectOptions: {
 						Values: [
 							{
 								Value: "NotProvided",
-								Label: "Không cung cấp"
+								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.NotProvided")
 							},
 							{
 								Value: "Male",
-								Label: "Nam"
+								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.Male")
 							},
 							{
 								Value: "Female",
-								Label: "Nữ"
+								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.Female")
 							}
 						]
 					},
@@ -280,7 +312,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "date",
-					Label: "Ngày sinh",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.BirthDay"),
 					Min: new Date().getFullYear() - 100,
 					Max: (new Date().getFullYear() - 16) + "-12-31",
 				}
@@ -288,7 +320,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			{
 				Key: "Address",
 				Options: {
-					Label: "Địa chỉ",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Address.label"),
 					MinLength: 1,
 					MaxLength: 250,
 				}
@@ -298,8 +330,12 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Type: "Completer",
 				Options: {
 					Type: "Address",
-					PlaceHolder: "Quận/Huyện, Thành phố/Tỉnh",
-					MinLength: 2
+					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
+					MinLength: 2,
+					CompleterOptions: {
+						SearchingText: await this.configSvc.getResourceAsync("app.messages.completer.searching"),
+						NoResultsText: await this.configSvc.getResourceAsync("app.messages.completer.noresults")
+					}
 				}
 			},
 			{
@@ -307,7 +343,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "tel",
-					Label: "Mobile",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Mobile"),
 					MinLength: 10,
 					MaxLength: 15,
 				}
@@ -317,53 +353,25 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "email",
-					Label: "Email",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Email"),
 					ReadOnly: true
 				}
 			},
-			/**
 			{
-				Key: "Age",
-				Type: "Range",
+				Key: "Language",
+				Type: "Select",
 				Required: true,
 				Options: {
-					Type: "number",
-					Label: "Your age",
-					Min: 16,
-					Max: 120
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Language.label"),
+					Description: await this.configSvc.getResourceAsync("users.register.controls.Language.description"),
+					DescriptionOptions: {
+						Css: "--description-label-css"
+					},
+					SelectOptions: {
+						Values: this.configSvc.appConfig.languages
+					},
 				}
 			},
-			{
-				Key: "Refer",
-				Type: "Completer",
-				Options: {
-					Type: "Account",
-					Label: "Refer",
-					MinLength: 3,
-					CompleterOptions: {
-						DataSource: this.usersSvc.completerDataSource,
-						Handlers: {
-							OnItemSelected: (selectedItem, control) => {
-								console.log("Selected Item", selectedItem);
-								console.log("Control", control);
-							}
-						}
-					}
-				}
-			},
-			{
-				Key: "Agree",
-				Type: "YesNo",
-				Required: true,
-				Options: {
-					Type: "toggle",
-					Label: "I agreed with end-user agreements",
-					LabelOptions: {
-						Position: "inline"
-					}
-				}
-			},
-			/**/
 			{
 				Key: "ID",
 				Excluded: true
@@ -375,7 +383,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				options.Required = true;
 			}
 		});
-		this.setMode("update", "Cập nhật hồ sơ");
+		this.update.language = this.profile.Language;
+		this.setMode("update", await this.configSvc.getResourceAsync("users.profile.update.title"));
 	}
 
 	async updateProfileAsync() {
@@ -393,10 +402,18 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 					if (this.profile.ID === this.configSvc.getAccount().id) {
 						this.configSvc.getAccount().profile = UserProfile.get(this.profile.ID);
 						await this.configSvc.storeSessionAsync();
+						if (this.update.language !== this.update.value.Language) {
+							this.configSvc.appConfig.options.i18n = this.update.value.Language;
+							await Promise.all([
+								this.configSvc.storeOptionsAsync(),
+								this.configSvc.setLanguageAsync(this.configSvc.appConfig.options.i18n)
+							]);
+							AppEvents.broadcast("App", { Type: "LanguageChanged", Data: this.configSvc.appConfig.options });
+						}
 					}
 					await Promise.all([
 						TrackingUtility.trackAsync(this.title, "users/update/profile"),
-						this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync("Hồ sơ đã được cập nhật..."))
+						this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.update.messages.success")))
 					]);
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error)
@@ -404,14 +421,14 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		}
 	}
 
-	updatePassword() {
+	async openUpdatePasswordAsync() {
 		this.password.config = [
 			{
 				Key: "OldPassword",
 				Required: true,
 				Options: {
 					Type: "password",
-					Label: "Mật khẩu hiện tại",
+					Label: await this.configSvc.getResourceAsync("users.profile.password.controls.OldPassword"),
 					MinLength: 1,
 					MaxLength: 150,
 					AutoFocus: true
@@ -422,7 +439,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "password",
-					Label: "Mật khẩu mới",
+					Label: await this.configSvc.getResourceAsync("users.profile.password.controls.Password"),
 					MinLength: 1,
 					MaxLength: 150
 				}
@@ -433,13 +450,13 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Validators: [this.appFormsSvc.isEquals("Password")],
 				Options: {
 					Type: "password",
-					Label: "Nhập lại mật khẩu mới",
+					Label: await this.configSvc.getResourceAsync("users.profile.password.controls.ConfirmPassword"),
 					MinLength: 1,
 					MaxLength: 150
 				}
 			},
 		];
-		this.setMode("password", "Đổi mật khẩu đăng nhập");
+		this.setMode("password", await this.configSvc.getResourceAsync("users.profile.password.title"));
 	}
 
 	async updatePasswordAsync() {
@@ -453,21 +470,21 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				this.password.value.Password,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/update/password"),
-					this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync("Mật khẩu đăng nhập đã được thay đổi thành công..."))
+					this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.password.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
 		}
 	}
 
-	updateEmail() {
+	async openUpdateEmailAsync() {
 		this.email.config = [
 			{
 				Key: "OldPassword",
 				Required: true,
 				Options: {
 					Type: "password",
-					Label: "Mật khẩu hiện tại",
+					Label: await this.configSvc.getResourceAsync("users.profile.password.controls.OldPassword"),
 					MinLength: 1,
 					MaxLength: 150,
 					AutoFocus: true
@@ -478,7 +495,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "email",
-					Label: "Email đăng nhập mới",
+					Label: await this.configSvc.getResourceAsync("users.profile.email.controls.Email"),
 					MinLength: 1,
 					MaxLength: 150
 				}
@@ -489,13 +506,13 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Validators: [this.appFormsSvc.isEquals("Email")],
 				Options: {
 					Type: "email",
-					Label: "Nhập lại email đăng nhập mới",
+					Label: await this.configSvc.getResourceAsync("users.profile.email.controls.ConfirmEmail"),
 					MinLength: 1,
 					MaxLength: 150
 				}
 			},
 		];
-		this.setMode("email", "Đổi email đăng nhập");
+		this.setMode("email", await this.configSvc.getResourceAsync("users.profile.email.title"));
 	}
 
 	async updateEmailAsync() {
@@ -509,21 +526,45 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				this.email.value.Email,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/update/email"),
-					this.openProfileAsync(async () => this.appFormsSvc.showToastAsync("Email đăng nhập đã được thay đổi thành công..."))
+					this.openProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.email.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
 		}
 	}
 
-	updateOTP(onNext?: () => void) {
+	async openUpdateOTPAsync(onNext?: () => void) {
 		const account = this.configSvc.getAccount();
 		this.otp.required = account.twoFactors.required;
 		this.otp.providers = account.twoFactors.providers;
 		this.otp.provisioning = "";
 		this.otp.uri = "";
 		this.otp.value = "";
-		this.setMode("otp", "Thiết lập xác thực lần hai");
+		this.otp.resources = {
+			status: {
+				label: await this.configSvc.getResourceAsync("users.profile.otp.status.label"),
+				value: this.otp.required
+					? await this.configSvc.getResourceAsync("users.profile.otp.status.on")
+					: this.otp.uri === ""
+						? await this.configSvc.getResourceAsync("users.profile.otp.status.off")
+						: await this.configSvc.getResourceAsync("users.profile.otp.status.provisioning")
+			},
+			providers: await this.configSvc.getResourceAsync("users.profile.otp.labels.providers"),
+			buttons: {
+				on: await this.configSvc.getResourceAsync("users.profile.otp.buttons.on"),
+				delete: await this.configSvc.getResourceAsync("users.profile.otp.buttons.delete"),
+				verify: await this.configSvc.getResourceAsync("users.profile.otp.buttons.verify")
+			},
+			qrcode: {
+				image: await this.configSvc.getResourceAsync("users.profile.otp.labels.qrcode.image"),
+				control: await this.configSvc.getResourceAsync("users.profile.otp.labels.qrcode.control")
+			},
+			instruction: {
+				main: await this.configSvc.getResourceAsync("users.profile.otp.instruction.main"),
+				app: await this.configSvc.getResourceAsync("users.profile.otp.instruction.app")
+			}
+		};
+		this.setMode("otp", await this.configSvc.getResourceAsync("users.profile.otp.title"));
 		if (onNext !== undefined) {
 			onNext();
 		}
@@ -546,7 +587,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		await this.usersSvc.add2FAMethodAsync(
 			this.otp.provisioning,
 			this.otp.value,
-			() => this.updateOTP(async () => await Promise.all([
+			() => this.openUpdateOTPAsync(async () => await Promise.all([
 				TrackingUtility.trackAsync(this.title, "users/update/otp"),
 				this.appFormsSvc.hideLoadingAsync()
 			])),
@@ -556,36 +597,36 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 
 	async deleteOTPAsync(provider: { Type: string, Label: string, Time: Date, Info: string }) {
 		await this.appFormsSvc.showAlertAsync(
-			"Xoá",
+			await this.configSvc.getResourceAsync("users.profile.otp.buttons.delete"),
 			undefined,
-			`Chắc chắn muốn xoá bỏ phương thức xác thực lần hai [${provider.Label}] này?`,
+			await this.configSvc.getResourceAsync("users.profile.otp.messages.confirm", { label: provider.Label }),
 			async () => await this.usersSvc.delete2FAMethodAsync(
 				provider.Info,
-				() => this.updateOTP(async () => await Promise.all([
+				() => this.openUpdateOTPAsync(async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/update/otp"),
-					this.appFormsSvc.showToastAsync(`Phương thức xác thực lần hai [${provider.Label}] đã được xoá bỏ...`)
+					this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.otp.messages.success", { label: provider.Label }))
 				])),
 				error => this.appFormsSvc.showErrorAsync(error)
 			),
-			"Đồng ý xoá",
-			"Không"
+			await this.configSvc.getResourceAsync("users.profile.buttons.yes"),
+			await this.configSvc.getResourceAsync("users.profile.buttons.no")
 		);
 	}
 
-	updatePrivileges() {
-		this.setMode("privileges", "Đặt quyền truy cập");
+	async openUpdatePrivilegesAsync() {
+		this.setMode("privileges", await this.configSvc.getResourceAsync("users.profile.privileges.title"));
 	}
 
 	async updatePrivilegesAsync() {
 	}
 
-	sendInvitation() {
+	async openSendInvitationAsync() {
 		this.invitation.config = [
 			{
 				Key: "Name",
 				Required: true,
 				Options: {
-					Label: "Tên",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Name.label"),
 					MinLength: 1,
 					MaxLength: 150,
 					AutoFocus: true
@@ -596,13 +637,13 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "email",
-					Label: "Email",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Email"),
 					MinLength: 1,
 					MaxLength: 150
 				}
 			}
 		];
-		this.setMode("invitation", "Gửi lời mời tham gia hệ thống");
+		this.setMode("invitation", await this.configSvc.getResourceAsync("users.profile.invitation.title"));
 	}
 
 	async sendInvitationAsync() {
@@ -620,7 +661,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				relatedInfo,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/invitation"),
-					this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync("Lời mời tham gia hệ thống đã được gửi..."))
+					this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.invitation.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
@@ -629,14 +670,14 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 
 	async logoutAsync() {
 		await this.appFormsSvc.showAlertAsync(
-			"Đăng xuất",
+			await this.configSvc.getResourceAsync("users.profile.buttons.logout"),
 			undefined,
-			"Đăng xuất khỏi hệ thống?",
+			await this.configSvc.getResourceAsync("users.profile.logout.confirm"),
 			async () => await this.authSvc.logOutAsync(
 				async () => {
 					await Promise.all([
-						TrackingUtility.trackAsync("Đăng xuất", "session/log-out"),
-						this.appFormsSvc.showToastAsync("Đã đăng xuất tài khoản khỏi hệ thống...")
+						TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), "session/log-out"),
+						this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.logout.success"))
 					]);
 					if (this.configSvc.previousUrl.startsWith("/users")) {
 						this.configSvc.navigateHome();
@@ -647,8 +688,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				},
 				error => this.appFormsSvc.showErrorAsync(error)
 			),
-			"Đăng xuất",
-			"Huỷ bỏ"
+			await this.configSvc.getResourceAsync("users.profile.buttons.logout"),
+			await this.configSvc.getResourceAsync("users.profile.buttons.cancel")
 		);
 	}
 

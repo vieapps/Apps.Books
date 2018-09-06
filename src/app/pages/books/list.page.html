@@ -20,7 +20,7 @@
 		<ion-title [hidden]="searching || filtering">
 			{{ title }}
 		</ion-title>
-		<ion-searchbar [hidden]="!searching && !filtering" placeholder="tìm nhanh, không dấu cũng OK"
+		<ion-searchbar [hidden]="!searching && !filtering"
 			(ionChange)="onStartSearch($event)"
 			(ionCancel)="onCancelSearch($event)"
 			(ionClear)="onCancelSearch($event)"></ion-searchbar>

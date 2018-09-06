@@ -18,11 +18,16 @@ export class BookHomeScreenControl implements OnInit, OnDestroy {
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {
-		registerLocaleData(this.configSvc.locale);
+		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
 
 	introduction = "";
-	title = "Mới cập nhật";
+	latest = "Latest";
+	statistics = {
+		label: "Statistics:",
+		authors: "Authors: ",
+		books: "Articles & Books: "
+	};
 	books = new Array<Book>();
 
 	get status() {
@@ -30,35 +35,55 @@ export class BookHomeScreenControl implements OnInit, OnDestroy {
 	}
 
 	get locale() {
-		return this.configSvc.appConfig.locale;
+		return this.configSvc.locale;
 	}
 
 	ngOnInit() {
 		if (this.configSvc.isReady) {
-			this.initialize();
+			this.initializeAsync();
 		}
 		else {
 			AppEvents.on("App", info => {
 				if ("Initialized" === info.args.Type) {
-					this.initialize();
+					this.initializeAsync();
 				}
 			}, "AppReadyEventHandlerOfBookHomeScreen");
 		}
+
+		AppEvents.on("App", async info => {
+			if ("LanguageChanged" === info.args.Type) {
+				await this.prepareResourcesAsync();
+			}
+		}, "LanguageChangedEventHandlerOfBookHomeScreen");
+
 		AppEvents.on("Navigate", () => this.updateBooks(), "NavigateEventsOfBookHomeScreen");
 	}
 
 	ngOnDestroy() {
 		AppEvents.off("App", "AppReadyEventHandlerOfBookHomeScreen");
+		AppEvents.off("App", "LanguageChangedEventHandlerOfBookHomeScreen");
 		AppEvents.off("Navigate", "NavigateEventsOfBookHomeScreen");
 	}
 
-	initialize() {
+	private async prepareResourcesAsync() {
+		this.latest = await this.configSvc.getResourceAsync("books.home.latest");
+		this.statistics = {
+			label: await this.configSvc.getResourceAsync("books.home.statistics.label"),
+			authors: await this.configSvc.getResourceAsync("books.home.statistics.authors"),
+			books: await this.configSvc.getResourceAsync("books.home.statistics.books")
+		};
+	}
+
+	async initializeAsync() {
+		await this.prepareResourcesAsync();
+
 		if (this.booksSvc.introductions === undefined) {
 			this.booksSvc.fetchIntroductionsAsync(() => {
 				this.updateBooks();
 				this.updateIntroduction();
 			});
 		}
+
 		if (this.books.length > 0) {
 			this.updateBooks();
 			this.updateIntroduction();

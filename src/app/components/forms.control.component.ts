@@ -300,7 +300,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.control.Options.SelectOptions.CancelText;
 	}
 
-	get selectOKText() {
+	get selectOkText() {
 		return this.control.Options.SelectOptions.OKText;
 	}
 

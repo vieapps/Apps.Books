@@ -12,7 +12,7 @@
 </ion-header>
 
 <ion-content padding>
-	<app-form
+	<app-form *ngIf="register.config"
 		[form]="register.form"
 		[config]="register.config"
 		[controls]="register.controls"

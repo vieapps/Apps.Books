@@ -19,11 +19,11 @@ export class LogInPage implements OnInit, OnDestroy {
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService
 	) {
-		registerLocaleData(this.configSvc.locale);
+		registerLocaleData(this.configSvc.localeData);
 	}
 
-	title = "Đăng nhập";
-	mode = "log-in";
+	title = "Login";
+	mode = "";
 	rxSubscriptions = new Array<Rx.Subscription>();
 	login = {
 		form: new FormGroup({}),
@@ -31,7 +31,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any,
 		button: {
-			label: "Đăng nhập",
+			label: "Login",
 			icon: undefined as string,
 			color: "primary",
 			fill: "solid"
@@ -44,7 +44,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any,
 		button: {
-			label: "Xác thực",
+			label: "Verify",
 			icon: undefined as string,
 			color: "primary",
 			fill: "solid"
@@ -56,32 +56,40 @@ export class LogInPage implements OnInit, OnDestroy {
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any,
 		button: {
-			label: "Quên mật khẩu",
+			label: "Forgot password",
 			icon: "key",
 			color: "primary",
 			fill: "clear"
 		}
 	};
 
+	get locale() {
+		return this.configSvc.locale;
+	}
+
 	ngOnInit() {
 		this.rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
 		this.rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => this.otp.value = value));
 		this.rxSubscriptions.push(this.reset.form.valueChanges.subscribe(value => this.reset.value = value));
-		this.openLogin();
+		this.openLoginAsync();
 	}
 
 	ngOnDestroy() {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
-	openLogin() {
+	private setTitle() {
+		this.configSvc.appTitle = this.title;
+	}
+
+	async openLoginAsync() {
 		this.login.config = [
 			{
 				Key: "Email",
 				Required: true,
 				Options: {
 					Type: "email",
-					Label: "Email",
+					Label: await this.configSvc.getResourceAsync("users.login.login.controls.Email"),
 					MinLength: 1,
 					MaxLength: 150,
 					AutoFocus: true
@@ -92,15 +100,17 @@ export class LogInPage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "password",
-					Label: "Mật khẩu",
+					Label: await this.configSvc.getResourceAsync("users.login.login.controls.Password"),
 					MinLength: 1,
 					MaxLength: 150,
 				}
 			}
 		];
+		this.login.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.login");
+		this.reset.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.forgot");
+		this.title = await this.configSvc.getResourceAsync("users.login.login.title");
 		this.mode = "log-in";
-		this.title = "Đăng nhập";
-		this.configSvc.appTitle = this.title;
+		this.setTitle();
 	}
 
 	async logInAsync() {
@@ -117,18 +127,18 @@ export class LogInPage implements OnInit, OnDestroy {
 				TrackingUtility.trackAsync(this.title, "/users/login"),
 				this.appFormsSvc.hideLoadingAsync(() => {
 					if (data.Require2FA) {
-						this.openLoginOTP(data);
+						this.openLoginOTPAsync(data);
 					}
 					else {
 						this.configSvc.navigateBack();
 					}
 				})
 			]),
-			async error => await this.appFormsSvc.showErrorAsync(error, "Không thể đăng nhập", () => this.login.controls.find(c => c.Key === "Email").focus())
+			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.login.controls.find(c => c.Key === "Email").focus())
 		);
 	}
 
-	openLoginOTP(data: any) {
+	async openLoginOTPAsync(data: any) {
 		this.otp.providers = data.Providers;
 		this.otp.config = [
 			{
@@ -139,7 +149,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				Key: "Provider",
 				Type: "Select",
 				Options: {
-					Label: "Kiểu xác thực lần hai",
+					Label: await this.configSvc.getResourceAsync("users.login.otp.controls.Provider"),
 					SelectOptions: {
 						Values: this.otp.providers.map(provider => {
 							return {
@@ -154,7 +164,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				Key: "OTP",
 				Required: true,
 				Options: {
-					Label: `Mã xác thực lần hai`,
+					Label: await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.label"),
 					Description: "",
 					DescriptionOptions: {
 						Css: "--description-label-css"
@@ -174,16 +184,16 @@ export class LogInPage implements OnInit, OnDestroy {
 			Provider: this.otp.providers[0].Info,
 			OTP: ""
 		};
-		this.rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => {
+		this.rxSubscriptions.push(this.otp.form.valueChanges.subscribe(async value => {
 			const provider = this.otp.providers.find(p => p.Info === value.Provider) || this.otp.providers[0];
 			this.otp.controls.find(c => c.Key === "OTP").Options.Description = "SMS" === provider.Type
-				? "Nhập mã OTP trong SMS được gửi tới số trên điện thoại đã đăng ký"
-				: `Nhập mã OTP được sinh bởi ứng dụng ${provider.Label} trên điện thoại`;
+				? await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.sms")
+				: await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.app", { label: provider.Label });
 		}));
-
+		this.otp.button.label = await this.configSvc.getResourceAsync("users.login.otp.button");
+		this.title = await this.configSvc.getResourceAsync("users.login.otp.title");
 		this.mode = "otp";
-		this.title = "Xác thực lần hai";
-		this.configSvc.appTitle = this.title;
+		this.setTitle();
 	}
 
 	async logInOTPAsync() {
@@ -209,14 +219,14 @@ export class LogInPage implements OnInit, OnDestroy {
 		}
 	}
 
-	openResetPassword() {
+	async openResetPasswordAsync() {
 		this.reset.config = [
 			{
 				Key: "Email",
 				Required: true,
 				Options: {
 					Type: "email",
-					Label: "Email",
+					Label: await this.configSvc.getResourceAsync("users.login.login.controls.Email"),
 					MinLength: 1,
 					MaxLength: 150,
 					AutoFocus: true
@@ -227,8 +237,8 @@ export class LogInPage implements OnInit, OnDestroy {
 				Required: true,
 				Type: "Captcha",
 				Options: {
-					Label: "Mã xác thực",
-					Description: "Nhập mã xác thực trong ảnh ở dưới",
+					Label: await this.configSvc.getResourceAsync("users.login.reset.controls.Captcha.label"),
+					Description: await this.configSvc.getResourceAsync("users.login.reset.controls.Captcha.description"),
 					DescriptionOptions: {
 						Css: "--description-label-css"
 					},
@@ -237,15 +247,15 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		this.mode = "reset";
-		this.title = "Lấy mật khẩu mới";
 		this.reset.button = {
-			label: "Lấy mật khẩu",
+			label: await this.configSvc.getResourceAsync("users.login.reset.button"),
 			icon: undefined,
 			color: "primary",
 			fill: "solid"
 		};
-		this.configSvc.appTitle = this.title;
+		this.title = await this.configSvc.getResourceAsync("users.login.reset.title");
+		this.mode = "reset";
+		this.setTitle();
 	}
 
 	async resetPasswordAsync() {
@@ -260,13 +270,22 @@ export class LogInPage implements OnInit, OnDestroy {
 			this.reset.value.Captcha,
 			async () => await Promise.all([
 				TrackingUtility.trackAsync(this.title, "/users/reset"),
-				this.appFormsSvc.showAlertAsync("Mật khẩu mới", undefined, `Vui lòng kiểm tra email (${this.reset.value.Email}) và làm theo hướng dẫn để lấy mật khẩu mới!`, () => this.configSvc.navigateBack())
+				this.appFormsSvc.showAlertAsync(
+					await this.configSvc.getResourceAsync("users.login.reset.title"),
+					undefined,
+					await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.value.Email }),
+					() => this.configSvc.navigateBack()
+				)
 			]),
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),
 				this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => c.Key === "Captcha").focus())
 			])
 		);
+	}
+
+	async refreshCaptchaAsync(control?: AppFormsControl) {
+		await this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Key === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 	onResetPasswordFormInitialized($event) {
@@ -278,10 +297,6 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	onRefreshCaptcha($event) {
 		this.refreshCaptchaAsync($event as AppFormsControl);
-	}
-
-	async refreshCaptchaAsync(control?: AppFormsControl) {
-		await this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Key === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 }

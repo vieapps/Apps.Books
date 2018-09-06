@@ -1,6 +1,6 @@
-<ion-list>
+<ion-list *ngIf="bookmarks.length > 0">
 	<ion-list-header>
-		Sách đang đọc
+		{{ resources.header }}
 	</ion-list-header>
 	<ion-item-sliding *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
 		<ion-item (click)="open(bookmark)">
@@ -21,18 +21,18 @@
 		<ion-item-options>
 			<ion-item-option color="primary" (click)="open(bookmark)">
 				<ion-icon name="book"></ion-icon>
-				Đọc
+				{{ resources.buttons.read }}
 			</ion-item-option>
 			<ion-item-option color="danger" (click)="delete(bookmark)">
 				<ion-icon name="trash"></ion-icon>
-				Xoá
+				{{ resources.buttons.delete }}
 			</ion-item-option>
 		</ion-item-options>
 	</ion-item-sliding>
 	<ion-item>
 		<div>
 			<span float-end>
-				Đồng bộ lúc: {{ profile.LastSync | date: 'h:mm a @ d/M/y' }}
+				{{ resources.footer }} {{ profile.LastSync | date: 'h:mm a @ d/M/y' }}
 			</span>
 		</div>
 	</ion-item>

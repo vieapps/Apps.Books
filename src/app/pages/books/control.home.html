@@ -1,6 +1,6 @@
-<div *ngIf="books.length > 0">
+<div>
 	<h1>
-		{{title}}
+		{{ latest }}
 	</h1>
 	<ion-grid>
 		<ion-row>
@@ -15,9 +15,15 @@
 </div>
 <section [innerHtml]="introduction"></section>
 <section>
-	<h2>Thống kê:</h2>
+	<h1>
+		{{ statistics.label }}
+	</h1>
 	<ul>
-		<li>Tổng số tác giả: <b>{{ status.Authors | number:'':locale }}</b></li>
-		<li>Tổng số bài viết &amp; sách: <b>{{ status.Books | number:'':locale }}</b></li>
+		<li>
+			{{ statistics.authors }}: <b>{{ status.Authors | number:'':locale }}</b>
+		</li>
+		<li>
+			{{ statistics.books }}: <b>{{ status.Books | number:'':locale }}</b>
+		</li>
 	</ul>
 </section>

@@ -2,12 +2,12 @@
 	<ion-toolbar>
 		<ion-buttons slot="start">
 			<ion-button color="secondary" [disabled]="processing" (click)="cancelAsync()">
-				Huỷ
+				{{ resources.cancel }}
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons slot="end">
 			<ion-button color="primary" [disabled]="processing" (click)="updateAsync()">
-				Cập nhật
+				{{ resources.update }}
 			</ion-button>
 		</ion-buttons>
 		<ion-title>
@@ -19,13 +19,19 @@
 <ion-content padding>
 	<ion-list>
 		<ion-radio-group [value]="mode" (ionChange)="mode = $event.detail.value">
-			<ion-list-header>Kiểu ảnh đại diện</ion-list-header>
+			<ion-list-header>
+				{{ resources.header }}
+			</ion-list-header>
 			<ion-item>
-				<ion-label>Ảnh tải lên</ion-label>
+				<ion-label>
+					{{ resources.avatar }}
+				</ion-label>
 				<ion-radio value="Avatar"></ion-radio>
 			</ion-item>
 			<ion-item>
-				<ion-label>Ảnh của Gravatar</ion-label>
+				<ion-label>
+					{{ resources.gravatar }}
+				</ion-label>
 				<ion-radio value="Gravatar"></ion-radio>
 			</ion-item>
 		</ion-radio-group>

@@ -6,9 +6,31 @@
 			"register": "Register",
 			"profile": "Profile"
 		},
-		"loading": {
-			"activate": "Activating",
-			"initialize": "Loading"
+		"alert": {
+			"header": {
+				"general": "Attention",
+				"error": "Error"
+			},
+			"buttons": {
+				"cancel": "Cancel",
+				"ok": "Close"
+			}
+		},
+		"messages": {
+			"loading": "Loading...",
+			"activating": "Activating...",
+			"errors": {
+				"general": "Unexpected error!",
+				"wrongAccountOrPassword": "Wrong account or password!",
+				"wrongCaptcha": "Verification code is invalid"
+			},
+			"completer": {
+				"searching": "searching...",
+				"noresults": "no matched result is found"
+			}
+		},
+		"homepage": {
+			"title": "Home"
 		}
 	}
 }

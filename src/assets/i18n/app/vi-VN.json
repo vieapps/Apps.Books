@@ -6,9 +6,31 @@
 			"register": "Đăng ký tài khoản",
 			"profile": "Thông tin tài khoản"
 		},
-		"loading": {
-			"activate": "Kích hoạt...",
-			"initialize": "Tải dữ liệu..."
+		"alert": {
+			"header": {
+				"general": "Chú ý",
+				"error": "Lỗi"
+			},
+			"buttons": {
+				"cancel": "Huỷ",
+				"ok": "Đóng"
+			}
+		},
+		"messages": {
+			"loading": "Tải dữ liệu...",
+			"activating": "Kích hoạt...",
+			"errors": {
+				"general": "Đã xảy ra lỗi!",
+				"wrongAccountOrPassword": "Tài khoản hoặc mật khẩu không đúng!",
+				"wrongCaptcha": "Mã xác thực không đúng"
+			},
+			"completer": {
+				"searching": "tìm kiếm...",
+				"noresults": "không có kết quả phù hợp"
+			}
+		},
+		"homepage": {
+			"title": "Màn hình chính"
 		}
 	}
 }

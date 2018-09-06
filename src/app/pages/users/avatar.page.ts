@@ -22,12 +22,19 @@ export class AccountAvatarPage implements OnInit {
 		public filesSvc: FilesService,
 		public usersSvc: UsersService
 	) {
-		registerLocaleData(this.configSvc.locale);
+		registerLocaleData(this.configSvc.localeData);
 	}
 
-	title = "Cập nhật ảnh đại diện";
+	title = "Avatar";
 	mode = "Avatar";
 	profile: UserProfile;
+	resources = {
+		cancel: "Cancel",
+		update: "Update",
+		header: "Avatar type",
+		avatar: "Uploaded avatar",
+		gravatar: "Gravatar picture",
+	};
 	cropper = {
 		settings: new CropperSettings(),
 		data: {
@@ -38,7 +45,19 @@ export class AccountAvatarPage implements OnInit {
 	processing = false;
 	@ViewChild("imgcropper") cropperComponent: ImageCropperComponent;
 
+	get locale() {
+		return this.configSvc.locale;
+	}
+
+	get imageUri() {
+		return this.mode === "Gravatar" ? this.profile.Gravatar : this.cropper.data.image;
+	}
+
 	ngOnInit() {
+		this.initializeAsync();
+	}
+
+	async initializeAsync() {
 		this.profile = this.configSvc.getAccount().profile;
 		this.mode = this.profile.Avatar === "" || this.profile.Avatar === this.profile.Gravatar
 			? "Gravatar"
@@ -52,6 +71,15 @@ export class AccountAvatarPage implements OnInit {
 		this.cropper.settings.canvasWidth = 242;
 		this.cropper.settings.canvasHeight = 242;
 		this.cropper.settings.noFileInput = true;
+
+		this.title = await this.configSvc.getResourceAsync("users.profile.avatar.title");
+		this.resources = {
+			cancel: await this.configSvc.getResourceAsync("users.profile.buttons.cancel"),
+			update: await this.configSvc.getResourceAsync("users.profile.buttons.update"),
+			header: await this.configSvc.getResourceAsync("users.profile.avatar.header"),
+			avatar: await this.configSvc.getResourceAsync("users.profile.avatar.mode.avatar"),
+			gravatar: await this.configSvc.getResourceAsync("users.profile.avatar.mode.gravatar")
+		};
 	}
 
 	prepareImage($event) {
@@ -64,10 +92,6 @@ export class AccountAvatarPage implements OnInit {
 		fileReader.readAsDataURL($event.target.files[0]);
 	}
 
-	get imageUri() {
-		return this.mode === "Gravatar" ? this.profile.Gravatar : this.cropper.data.image;
-	}
-
 	async updateProfileAsync() {
 		await this.usersSvc.updateProfileAsync({
 				ID: this.profile.ID,
@@ -76,7 +100,7 @@ export class AccountAvatarPage implements OnInit {
 			async () => {
 				await this.configSvc.storeProfileAsync(async () => {
 					await TrackingUtility.trackAsync(this.title, "account/avatar");
-					await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync("Ảnh đại diện đã được cập nhật..."));
+					await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.avatar.message")));
 				});
 			},
 			async error => {

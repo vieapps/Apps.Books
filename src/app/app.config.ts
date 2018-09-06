@@ -1,3 +1,5 @@
+import vi_VN from "@angular/common/locales/vi";
+import en_US from "@angular/common/locales/en";
 import { AppCrypto } from "./components/app.crypto";
 import { AppUtility } from "./components/app.utility";
 import { Account } from "./models/account";
@@ -46,7 +48,7 @@ export class AppConfig {
 	/** User account registrations */
 	public static accountRegistrations = {
 		registrable: true,
-		excluded: ["Gender", "BirthDay", "Mobile", "Address"],
+		excluded: [/*"Gender", "BirthDay", "Mobile", "Address"*/],
 		required: ["Gender", "BirthDay", "Mobile", "Address"],
 		sendInvitationRole: "All",
 		setPrivilegsRole: "ServiceAdministrator"
@@ -78,7 +80,7 @@ export class AppConfig {
 
 	/** Options of the app */
 	public static options = {
-		i18n: "vi-VN",
+		i18n: "en-US",
 		timezone: +7.00,
 		extras: {} as { [key: string]: any }
 	};
@@ -160,12 +162,46 @@ export class AppConfig {
 	public static get language() {
 		return this.session.account !== undefined && this.session.account.profile !== undefined
 			? this.session.account.profile.Language || this.options.i18n
-			: this.options !== undefined ? this.options.i18n : undefined;
+			: this.options.i18n;
 	}
 
-	/** Gets the locale for working with the app */
+	/** Gets the available languages for working with the app */
+	public static get languages() {
+		return [
+			{
+				Value: "en-US",
+				Label: "English"
+			},
+			{
+				Value: "vi-VN",
+				Label: "Tiếng Việt"
+			}
+		];
+	}
+
+	/** Gets the locale code for working with i18n globalization */
 	public static get locale() {
 		return this.language.replace("-", "_");
+	}
+
+	/** Gets the available locales for working with the app */
+	public static get locales() {
+		return this.languages.map(l => l.Value.replace("-", "_"));
+	}
+
+	/** Gets the locale data for working with i18n globalization */
+	public static getLocaleData(locale: string) {
+		switch (locale) {
+			case "en_US":
+				return en_US;
+			default:
+				return vi_VN;
+		}
+	}
+
+	/** Gets the locale data for working with i18n globalization */
+	public static get localeData() {
+		return this.getLocaleData(this.locale);
 	}
 
 	/** Gets the query with related service, culture language and host */

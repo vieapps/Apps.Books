@@ -48,18 +48,16 @@ export function HttpLoaderFactory(http: HttpClient) {
 	imports: [
 		BrowserModule,
 		HttpModule,
-		ReactiveFormsModule,
-		FormsModule,
 		HttpClientModule,
-		TranslateModule.forRoot({
-			loader: {
-				provide: TranslateLoader,
-				useFactory: HttpLoaderFactory,
-				deps: [HttpClient]
-			}
-		}),
+		FormsModule,
+		ReactiveFormsModule,
 		IonicModule.forRoot(),
 		IonicStorageModule.forRoot({ name: "vieappsDB" }),
+		TranslateModule.forRoot({ loader: {
+			provide: TranslateLoader,
+			useFactory: HttpLoaderFactory,
+			deps: [HttpClient]
+		}}),
 		Ng2CompleterModule,
 		ImageCropperModule,
 		QRCodeModule,

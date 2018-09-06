@@ -22,10 +22,10 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		public authSvc: AuthenticationService,
 		public usersSvc: UsersService
 	) {
-		registerLocaleData(this.configSvc.locale);
+		registerLocaleData(this.configSvc.localeData);
 	}
 
-	title = "Đăng ký tài khoản";
+	title = "Register new account";
 	rxSubscriptions = new Array<Rx.Subscription>();
 	register = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Email", "ConfirmEmail"), this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
@@ -33,30 +33,34 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any,
 		button: {
-			label: "Đăng ký",
+			label: "Register",
 			icon: undefined as string,
 			color: "primary",
 			fill: "solid"
 		}
 	};
 
+	get locale() {
+		return this.configSvc.locale;
+	}
+
 	ngOnInit() {
 		this.rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
-		this.initializeForm();
+		this.initializeFormAsync();
 	}
 
 	ngOnDestroy() {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
-	initializeForm() {
+	async initializeFormAsync() {
 		this.register.config = [
 			{
 				Key: "Email",
 				Required: true,
 				Options: {
 					Type: "email",
-					Label: "Email",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Email"),
 					MinLength: 1,
 					MaxLength: 250,
 					AutoFocus: true
@@ -68,7 +72,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Validators: [this.appFormsSvc.isEquals("Email")],
 				Options: {
 					Type: "email",
-					Label: "Nhập lại email",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.ConfirmEmail"),
 					MinLength: 1,
 					MaxLength: 250
 				}
@@ -78,7 +82,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "password",
-					Label: "Mật khẩu",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Password"),
 					MinLength: 1,
 					MaxLength: 150
 				}
@@ -89,7 +93,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Validators: [this.appFormsSvc.isEquals("Password")],
 				Options: {
 					Type: "password",
-					Label: "Nhập lại mật khẩu",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.ConfirmPassword"),
 					MinLength: 1,
 					MaxLength: 150
 				}
@@ -99,8 +103,8 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "text",
-					Label: "Tên",
-					Description: "Sử dụng để hiển thị trong hệ thống",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Name.label"),
+					Description: await this.configSvc.getResourceAsync("users.register.controls.Name.description"),
 					DescriptionOptions: {
 						Css: "--description-label-css"
 					},
@@ -113,20 +117,20 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Type: "Select",
 				Required: true,
 				Options: {
-					Label: "Giới tính",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.label"),
 					SelectOptions: {
 						Values: [
 							{
 								Value: "NotProvided",
-								Label: "Không cung cấp"
+								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.NotProvided")
 							},
 							{
 								Value: "Male",
-								Label: "Nam"
+								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.Male")
 							},
 							{
 								Value: "Female",
-								Label: "Nữ"
+								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.Female")
 							}
 						]
 					},
@@ -138,7 +142,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "date",
-					Label: "Ngày sinh",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.BirthDay"),
 					Min: new Date().getFullYear() - 100,
 					Max: (new Date().getFullYear() - 16) + "-12-31",
 				}
@@ -148,7 +152,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "text",
-					Label: "Địa chỉ",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Address.label"),
 					MinLength: 1,
 					MaxLength: 250
 				}
@@ -159,9 +163,13 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "Address",
-					PlaceHolder: "Quận/Huyện, Thành phố/Tỉnh",
+					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
 					MinLength: 2,
-					MaxLength: 250
+					MaxLength: 250,
+					CompleterOptions: {
+						SearchingText: await this.configSvc.getResourceAsync("app.messages.completer.searching"),
+						NoResultsText: await this.configSvc.getResourceAsync("app.messages.completer.noresults")
+					}
 				}
 			},
 			{
@@ -169,7 +177,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Required: true,
 				Options: {
 					Type: "tel",
-					Label: "Mobile",
+					Label: await this.configSvc.getResourceAsync("users.register.controls.Mobile"),
 					MinLength: 10,
 					MaxLength: 15
 				}
@@ -179,8 +187,8 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Type: "Captcha",
 				Required: true,
 				Options: {
-					Label: "Mã xác thực",
-					Description: "Nhập mã xác thực trong ảnh ở dưới",
+					Label: await this.configSvc.getResourceAsync("users.login.reset.controls.Captcha.label"),
+					Description: await this.configSvc.getResourceAsync("users.login.reset.controls.Captcha.description"),
 					DescriptionOptions: {
 						Css: "--description-label-css"
 					},
@@ -195,26 +203,16 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		this.register.config.forEach(options => {
 			if (excluded[options.Key]) {
 				options.Excluded = true;
+				options.Required = false;
 			}
 			if (required[options.Key] && !options.Excluded) {
 				options.Required = true;
 			}
 		});
 
+		this.register.button.label = await this.configSvc.getResourceAsync("users.register.button");
+		this.title = await this.configSvc.getResourceAsync("users.register.title");
 		this.configSvc.appTitle = this.title;
-	}
-
-	onFormInitialized($event) {
-		this.refreshCaptchaAsync();
-		this.register.form.patchValue({ Gender: "NotProvided" });
-	}
-
-	onRefreshCaptcha($event) {
-		this.refreshCaptchaAsync($event as AppFormsControl);
-	}
-
-	async refreshCaptchaAsync(control?: AppFormsControl) {
-		await this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Key === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 	async registerAsync() {
@@ -229,13 +227,31 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			this.register.value.Captcha,
 			async () => await Promise.all([
 				TrackingUtility.trackAsync(this.title, "/users/register"),
-				this.appFormsSvc.showAlertAsync("Đăng ký thành công", undefined, `Vui lòng kiểm tra địa chỉ email (${this.register.value.Email}) để kích hoạt tài khoản trước khi đăng nhập`, () => this.configSvc.navigateBack())
+				this.appFormsSvc.showAlertAsync(
+					await this.configSvc.getResourceAsync("users.register.alert.header"),
+					undefined,
+					await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.value.Email }),
+					() => this.configSvc.navigateBack()
+				)
 			]),
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),
 				this.appFormsSvc.showErrorAsync(error)
 			])
 		);
+	}
+
+	onFormInitialized($event) {
+		this.refreshCaptchaAsync();
+		this.register.form.patchValue({ Gender: "NotProvided" });
+	}
+
+	onRefreshCaptcha($event) {
+		this.refreshCaptchaAsync($event as AppFormsControl);
+	}
+
+	async refreshCaptchaAsync(control?: AppFormsControl) {
+		await this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Key === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 }

@@ -27,7 +27,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		public authSvc: AuthenticationService,
 		public booksSvc: BooksService
 	) {
-		registerLocaleData(this.configSvc.locale);
+		registerLocaleData(this.configSvc.localeData);
 	}
 
 	filterBy = {
@@ -46,19 +46,19 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	};
 	sorts = [
 		{
-			label: "Tiêu đề (A - Z)",
-			value: "Title"
-		},
-		{
-			label: "Mới cập nhật",
+			label: "Last updated",
 			value: "LastUpdated"
 		},
 		{
-			label: "Nhiều chương/phần",
+			label: "Title (A - Z)",
+			value: "Title"
+		},
+		{
+			label: "Chapters",
 			value: "Chapters"
 		}
 	];
-	sort = this.sorts[1].value;
+	sort = this.sorts[0].value;
 	pageNumber = 0;
 	pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number };
 	requestParams: { [key: string]: any };
@@ -90,16 +90,16 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	@ViewChild(Content) contentCtrl: Content;
 
 	ngOnInit() {
-		this.initialize();
+		this.initializeAsync();
 		if (!this.searching) {
 			AppEvents.on("Session", info => {
 				if ("Updated" === info.args.Type) {
-					this.prepareActions();
+					this.prepareActionsAsync();
 				}
 			}, `AccountEvents${this.eventIdentity}`);
 		}
 		AppEvents.on("Navigate", info => {
-			if (this.uri === info.args.url || ("Back" === info.args.direction && this.configSvc.previousUrl.startsWith(this.uri))) {
+			if (this.configSvc.isNavigateTo(this.uri, info.args.url, info.args.direction)) {
 				this.configSvc.appTitle = this.title;
 			}
 		}, `NavigateEvents${this.eventIdentity}`);
@@ -114,10 +114,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	ngAfterViewInit() {
-		if (this.searching) {
-			this.searchCtrl.placeholder = "Đặt từ khoá trong \"..\" để tìm chính xác (không dấu cũng OK), ví dụ: \"nhóc nicolas\"";
-			PlatformUtility.focus(this.searchCtrl);
-		}
+		this.initializeSearchbarAsync();
 	}
 
 	get sortBy() {
@@ -149,20 +146,23 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	get locale() {
-		return this.configSvc.appConfig.locale;
+		return this.configSvc.locale;
 	}
 
-	initialize() {
+	async initializeAsync() {
 		this.requestParams = this.configSvc.requestParams;
 		this.filterBy.And.Category.Equals = this.requestParams["Category"];
 		this.filterBy.And.Author.Equals = this.requestParams["Author"];
 		this.searching = this.configSvc.currentUrl.startsWith("/books/search");
 
 		this.configSvc.appTitle = this.title = this.searching
-			? "Tìm kiếm"
+			? await this.configSvc.getResourceAsync("books.list.title.search")
 			: this.filterBy.And.Category.Equals !== undefined
-				? "Thể loại: " + this.filterBy.And.Category.Equals
-				: "Tác giả: " + this.filterBy.And.Author.Equals;
+				? await this.configSvc.getResourceAsync("books.list.title.category", { category: this.filterBy.And.Category.Equals })
+				: await this.configSvc.getResourceAsync("books.list.title.author", { author: this.filterBy.And.Author.Equals });
+
+		this.sorts.forEach(async sort => sort.label = await this.configSvc.getResourceAsync("books.list.sort.labels." + sort.value));
+
 		this.uri = this.searching
 				? "/books/search"
 				: this.filterBy.And.Category.Equals !== undefined
@@ -174,7 +174,14 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			this.ratings = {};
 			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName) || AppPagination.getDefault();
 			this.pagination.PageNumber = this.pageNumber;
-			this.search(() => this.prepareActions());
+			this.search(() => this.prepareActionsAsync());
+		}
+	}
+
+	async initializeSearchbarAsync() {
+		this.searchCtrl.placeholder = await this.configSvc.getResourceAsync("books.list.searchbar." + (this.searching ? "search" : "filter"));
+		if (this.searching) {
+			PlatformUtility.focus(this.searchCtrl);
 		}
 	}
 
@@ -226,7 +233,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
 				this.pagination.PageNumber = this.pageNumber;
 				this.prepareResults(onCompleted, data !== undefined ? data.Objects : undefined);
-				await TrackingUtility.trackAsync(this.title, "/books/list");
+				await TrackingUtility.trackAsync(this.title, this.uri);
 			}
 		);
 	}
@@ -294,24 +301,24 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	prepareActions() {
+	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton("Mở tìm kiếm", "search", () => this.configSvc.navigateForward("/books/search")),
-			this.appFormsSvc.getActionSheetButton("Lọc/Tìm nhanh", "funnel", () => this.showFilter()),
-			this.appFormsSvc.getActionSheetButton("Thay đổi cách sắp xếp", "list-box", async () => await this.showSortsAsync())
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", () => this.configSvc.navigateForward("/books/search")),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.filter"), "funnel", () => this.showFilter()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.sort"), "list-box", async () => await this.showSortsAsync())
 		];
 
 		const pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 		if (pagination !== undefined && this.pageNumber < pagination.PageNumber) {
-			this.actions.push(this.appFormsSvc.getActionSheetButton(`Hiển thị toàn bộ ${AppPagination.computeTotal(pagination.PageNumber, pagination)} kết quả`, "eye", () => {
+			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.show", { totalRecords: AppPagination.computeTotal(pagination.PageNumber, pagination) }), "eye", () => {
 				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 				this.pageNumber = this.pagination.PageNumber;
-				this.prepareResults(() => this.prepareActions());
+				this.prepareResults(() => this.prepareActionsAsync());
 			}));
 		}
 
 		if (this.authSvc.isServiceModerator()) {
-			this.actions.push(this.appFormsSvc.getActionSheetButton("Lấy dữ liệu", "build", async () => await this.showCrawlAsync()));
+			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.crawl"), "build", async () => await this.showCrawlAsync()));
 		}
 	}
 
@@ -326,18 +333,20 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	async showSortsAsync() {
 		await this.appFormsSvc.showAlertAsync(
-			"Sắp xếp theo",
+			await this.configSvc.getResourceAsync("books.list.sort.header"),
 			undefined,
 			undefined,
 			async data => {
 				if (this.sort !== data) {
 					this.sort = data;
-					await this.contentCtrl.scrollToTop(500);
-					this.prepareResults(async () => await this.appFormsSvc.showToastAsync("Đã thay đổi cách thức sắp xếp..."));
+					this.prepareResults(async () => {
+						await this.contentCtrl.scrollToTop(500);
+						await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.list.sort.message"));
+					});
 				}
 			},
-			"Đặt",
-			"Huỷ bỏ",
+			await this.configSvc.getResourceAsync("books.list.sort.button"),
+			await this.configSvc.getResourceAsync("app.alert.buttons.cancel"),
 			this.sorts.map(s => {
 				return {
 					type: "radio",
@@ -353,20 +362,20 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		await this.appFormsSvc.showAlertAsync(
 			"Crawl",
 			undefined,
-			"Crawl dữ liệu từ nguồn chỉ định",
+			await this.configSvc.getResourceAsync("books.list.crawl.label"),
 			async data => {
 				if (AppUtility.isNotEmpty(data.SourceUrl)) {
 					this.booksSvc.sendRequestToCrawl(data.SourceUrl);
-					await this.appFormsSvc.showToastAsync("Đã gửi yêu cầu lấy dữ liệu...", 2000);
+					await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.list.crawl.message"), 2000);
 				}
 			},
-			"Lấy dữ liệu",
-			"Huỷ bỏ",
+			await this.configSvc.getResourceAsync("books.list.crawl.button"),
+			await this.configSvc.getResourceAsync("app.alert.buttons.cancel"),
 			[
 				{
 					type: "text",
 					name: "SourceUrl",
-					placeholder: "Url nguồn dữ liệu",
+					placeholder: await this.configSvc.getResourceAsync("books.list.crawl.placeholder"),
 					value: ""
 				}
 			]

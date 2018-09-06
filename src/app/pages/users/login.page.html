@@ -23,7 +23,7 @@
 				<ion-icon *ngIf="login.button.icon" [icon]="login.button.icon" slot="start"></ion-icon>
 				{{ login.button.label }}
 			</ion-button>
-			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="openResetPassword()">
+			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="openResetPasswordAsync()">
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{ reset.button.label }}
 			</ion-button>

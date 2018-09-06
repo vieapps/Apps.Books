@@ -1,2 +1,57 @@
 {
+	"books": {
+		"home": {
+			"latest": "Mới cập nhật",
+			"statistics": {
+				"label": "Thống kê:",
+				"authors": "Tổng số tác giả",
+				"books": "Tổng số bài viết & sách",
+				"categories": "Thể loại"
+			}
+		},
+		"bookmarks": {
+			"header": "Sách đang đọc",
+			"footer": "Đồng bộ lúc:",
+			"chapter": "Chương: ",
+			"position": "Vị trí: ",
+			"buttons": {
+				"read": "Đọc",
+				"delete": "Xoá"
+			}
+		},
+		"list": {
+			"title": {
+				"search": "Tìm kiếm",
+				"category": "Thể loại: {{category}}",
+				"author": "Tác giả: {{author}}"
+			},
+			"searchbar": {
+				"search": "Đặt từ khoá trong \"..\" để tìm chính xác (không dấu cũng OK), ví dụ: \"nhóc nicolas\"",
+				"filter": "tìm nhanh, không dấu cũng OK"
+			},
+			"actions": {
+				"search": "Mở tìm kiếm",
+				"filter": "Lọc/Tìm nhanh",
+				"sort": "Thay đổi cách sắp xếp",
+				"show": "Hiển thị toàn bộ {{totalRecords}} kết quả",
+				"crawl": "Lấy dữ liệu"
+			},
+			"sort": {
+				"labels": {
+					"Title": "Tiêu đề (A - Z)",
+					"LastUpdated": "Mới cập nhật",
+					"Chapters": "Nhiều chương/phần"
+				},
+				"header": "Sắp xếp theo",
+				"button": "Đặt",
+				"message": "Đã thay đổi cách thức sắp xếp..."		
+			},
+			"crawl": {
+				"label": "Crawl dữ liệu từ nguồn chỉ định",
+				"button": "Lấy dữ liệu",
+				"message": "Đã gửi yêu cầu lấy dữ liệu...",
+				"placeholder": "Url nguồn dữ liệu"
+			}
+		}
+	}
 }

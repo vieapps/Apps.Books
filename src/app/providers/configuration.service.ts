@@ -2,8 +2,6 @@ declare var FB: any;
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { PlatformLocation } from "@angular/common";
-import vi_VN from "@angular/common/locales/vi";
-import en_US from "@angular/common/locales/en";
 import { Http } from "@angular/http";
 import { Title } from "@angular/platform-browser";
 import { Platform } from "@ionic/angular";
@@ -76,14 +74,29 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.isRunningOnIOS;
 	}
 
-	/** Gets the locale data for working with i18n globalization */
+	/** Gets the available languages for working with the app */
+	public get languages() {
+		return this.appConfig.languages;
+	}
+
+	/** Gets the current locale code for working with i18n globalization */
 	public get locale() {
-		switch (this.appConfig.locale) {
-			case "en_US":
-				return en_US;
-			default:
-				return vi_VN;
-		}
+		return this.appConfig.locale;
+	}
+
+	/** Gets the available locales for working with the app */
+	public get locales() {
+		return this.appConfig.locales;
+	}
+
+	/** Gets the current locale data for working with i18n globalization */
+	public get localeData() {
+		return this.appConfig.localeData;
+	}
+
+	/** Gets the locale data for working with i18n globalization */
+	public getLocaleData(locale: string) {
+		return this.appConfig.getLocaleData(locale);
 	}
 
 	private getCurrentUrl() {
@@ -560,6 +573,11 @@ export class ConfigurationService extends BaseService {
 		});
 	}
 
+	/** Gets the state to determines that navigate to an url */
+	public isNavigateTo(url: string, navigateToUrl: string, direction: string) {
+		return url === navigateToUrl || ("Back" === direction && this.previousUrl.startsWith(url));
+	}
+
 	private async loadGeoMetaAsync() {
 		this.appConfig.geoMeta.country = await this.storage.get("VIEApps-GeoMeta-Country") || "VN";
 		this.appConfig.geoMeta.countries = await this.storage.get("VIEApps-GeoMeta-Countries") || [];
@@ -604,6 +622,7 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
+	/** Loads the options of the app */
 	public async loadOptionsAsync(onCompleted?: () => void) {
 		this.appConfig.options = await this.storage.get("VIEApps-Options") || {};
 		if (this.appConfig.options === undefined || this.appConfig.options.i18n === undefined || this.appConfig.options.timezone === undefined || this.appConfig.options.extras === undefined) {
@@ -622,16 +641,25 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
+	/** Stores the options of the app */
 	public async storeOptionsAsync(onCompleted?: () => void) {
 		await this.storage.set("VIEApps-Options", this.appConfig.options);
 		AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
+		if (this.isDebug) {
+			console.log(this.getLogMessage("Options are updated"), this.appConfig.options);
+		}
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
 	}
 
+	/** Sets the language & locale to use in the app */
+	public async setLanguageAsync(language: string) {
+		await this.translateSvc.use(language).toPromise();
+	}
+
 	/** Gets the resource of current language by a key */
-	public async getResourceAsync(key: string, interpolateParams?: Object) {
+	public async getResourceAsync(key: string, interpolateParams?: object) {
 		return (await this.translateSvc.get(key, interpolateParams).toPromise()) as string;
 	}
 

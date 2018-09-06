@@ -1,2 +1,57 @@
 {
+	"books": {
+		"home": {
+			"latest": "Latest",
+			"statistics": {
+				"label": "Statistics:",
+				"authors": "Number of authors",
+				"books": "Number of articles & books",
+				"categories": "Categories"
+			}
+		},
+		"bookmarks": {
+			"header": "Readings",
+			"footer": "Sync time:",
+			"chapter": "Chapter: ",
+			"position": "Position: ",
+			"buttons": {
+				"read": "Read",
+				"delete": "Delete"
+			}
+		},
+		"list": {
+			"title": {
+				"search": "Search",
+				"category": "Category: {{category}}",
+				"author": "Author: {{author}}"
+			},
+			"searchbar": {
+				"search": "Place search term by quotes (\"..\") as required",
+				"filter": "Quick filter"
+			},
+			"actions": {
+				"search": "Open search screen",
+				"filter": "Quick filter",
+				"sort": "Change sort-by",
+				"show": "Show all {{totalRecords}} results",
+				"crawl": "Crawl data"
+			},
+			"sort": {
+				"labels": {
+					"Title": "Title (A - Z)",
+					"LastUpdated": "Last updated",
+					"Chapters": "More chapters first"
+				},
+				"header": "Sort by",
+				"button": "Update",
+				"message": "Sort-by has been changed..."		
+			},
+			"crawl": {
+				"label": "Crawl data from a specific source",
+				"button": "Crawl",
+				"message": "Crawl request has been sent...",
+				"placeholder": "Source url for crawling"
+			}
+		}
+	}
 }

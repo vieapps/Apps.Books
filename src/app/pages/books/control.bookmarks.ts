@@ -16,21 +16,45 @@ export class BookmarksControl implements OnInit {
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {
-		registerLocaleData(this.configSvc.locale);
+		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
 
 	profile = new UserProfile();
 	bookmarks = new Array<Bookmark>();
+	resources = {
+		header: "Readings",
+		footer: "Sync time:",
+		chapter: "Chapter: ",
+		position: "Position: ",
+		buttons: {
+			read: "Read",
+			delete: "Delete"
+		}
+	};
 
 	get locale() {
-		return this.configSvc.appConfig.locale;
+		return this.configSvc.locale;
 	}
 
 	ngOnInit() {
 		if (this.configSvc.isAuthenticated) {
-			this.profile = this.configSvc.getAccount().profile;
-			this.bookmarks = this.booksSvc.bookmarks.values();
+			this.initializeAsync();
 		}
+	}
+
+	async initializeAsync() {
+		this.resources = {
+			header: await this.configSvc.getResourceAsync("books.bookmarks.header"),
+			footer: await this.configSvc.getResourceAsync("books.bookmarks.footer"),
+			chapter: await this.configSvc.getResourceAsync("books.bookmarks.chapter"),
+			position: await this.configSvc.getResourceAsync("books.bookmarks.position"),
+			buttons: {
+				read: await this.configSvc.getResourceAsync("books.bookmarks.buttons.read"),
+				delete: await this.configSvc.getResourceAsync("books.bookmarks.buttons.delete")
+			}
+		};
+		this.profile = this.configSvc.getAccount().profile;
+		this.bookmarks = this.booksSvc.bookmarks.values();
 	}
 
 	trackBookmark(index: number, bookmark: Bookmark) {
@@ -47,7 +71,7 @@ export class BookmarksControl implements OnInit {
 	getPosition(bookmark: Bookmark) {
 		const book = Book.instances.getValue(bookmark.ID);
 		return book !== undefined
-			? (bookmark.Chapter > 0 ? "Chương: " + bookmark.Chapter + " - " : "") + "Vị trí: " + bookmark.Position
+			? (bookmark.Chapter > 0 ? this.resources.chapter + bookmark.Chapter + " - " : "") + this.resources.position + bookmark.Position
 			: `${bookmark.Chapter}#${bookmark.Position}`;
 	}
 

@@ -37,18 +37,11 @@ export class BooksService extends BaseService {
 				await Promise.all([
 					this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
 					this.loadStatisticsAsync(),
+					this.updateSearchIntoSidebarAsync()
 				]);
 				if (this.configSvc.isAuthenticated) {
 					await this.loadBookmarksAsync();
 				}
-				AppEvents.broadcast("AddSidebarItem", {
-					MenuIndex: 0,
-					ItemInfo: {
-						title: "Tìm kiếm",
-						url: "/books/search",
-						icon: "search"
-					}
-				});
 			}
 		});
 
@@ -58,28 +51,52 @@ export class BooksService extends BaseService {
 			}}
 		);
 
-		AppEvents.on("Books", info => {
+		AppEvents.on("Books", async info => {
 			if ("CategoriesUpdated" === info.args.Type) {
-				const parent = this.configSvc.requestParams["parent"];
-				AppEvents.broadcast("UpdateSidebar", {
-					index: 1,
-					title: "Thể loại",
-					items: this.categories.map((category, index) => {
-						return {
-							title: category.Name,
-							url: `/books/list-by-category/${AppUtility.toANSI(category.Name, true)}`,
-							queryParams: {
-								"x-request": AppUtility.toBase64Url({
-									Category: category.Name,
-									Index: index,
-									Parent: parent
-								})
-							},
-							detail: category.Children !== undefined && category.Children.length > 0
-						};
-					})
-				});
+				await this.updateCategoriesIntoSidebarAsync();
 			}
+		});
+
+		AppEvents.on("App", info => {
+			if ("LanguageChanged" === info.args.Type) {
+				PlatformUtility.setTimeout(async () => {
+					await this.updateSearchIntoSidebarAsync();
+					await this.updateCategoriesIntoSidebarAsync();
+				}, 234);
+			}
+		});
+	}
+
+	private async updateSearchIntoSidebarAsync() {
+		AppEvents.broadcast("AddSidebarItem", {
+			MenuIndex: 0,
+			ItemInfo: {
+				title: await this.configSvc.getResourceAsync("books.list.title.search"),
+				url: "/books/search",
+				icon: "search"
+			}
+		});
+	}
+
+	private async updateCategoriesIntoSidebarAsync() {
+		const parent = this.configSvc.requestParams["parent"];
+		AppEvents.broadcast("UpdateSidebar", {
+			index: 1,
+			title: await this.configSvc.getResourceAsync("books.home.statistics.categories"),
+			items: this.categories.map((category, index) => {
+				return {
+					title: category.Name,
+					url: `/books/list-by-category/${AppUtility.toANSI(category.Name, true)}`,
+					queryParams: {
+						"x-request": AppUtility.toBase64Url({
+							Category: category.Name,
+							Index: index,
+							Parent: parent
+						})
+					},
+					detail: category.Children !== undefined && category.Children.length > 0
+				};
+			})
 		});
 	}
 

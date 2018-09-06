@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/forms";
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
 import { LoadingController, AlertController, ActionSheetController, ModalController, ToastController } from "@ionic/angular";
+import { TranslateService } from "@ngx-translate/core";
 import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
@@ -317,6 +318,7 @@ export class AppFormsControl {
 export class AppFormsService {
 
 	constructor (
+		public translateSvc: TranslateService,
 		public loadingController: LoadingController,
 		public alertController: AlertController,
 		public actionsheetController: ActionSheetController,
@@ -618,11 +620,16 @@ export class AppFormsService {
 		return this._metaCounties[country] || [];
 	}
 
+	/** Gets the resource of current language by a key */
+	public async getResourceAsync(key: string, interpolateParams?: object) {
+		return (await this.translateSvc.get(key, interpolateParams).toPromise()) as string;
+	}
+
 	/** Shows the loading */
 	public async showLoadingAsync(message?: string) {
 		if (this._loading === undefined) {
 			this._loading = await this.loadingController.create({
-				message: message || "Loading..."
+				message: message || await this.getResourceAsync("app.messages.loading")
 			});
 			await this._loading.present();
 		}
@@ -661,7 +668,7 @@ export class AppFormsService {
 			};
 		});
 		if (AppUtility.isFalse(dontAddCancelButton)) {
-			actions.push(this.getActionSheetButton("Huỷ", "close", async () => await this.hideActionSheetAsync(), "cancel"));
+			actions.push(this.getActionSheetButton(await this.getResourceAsync("app.alert.buttons.cancel"), "close", async () => await this.hideActionSheetAsync(), "cancel"));
 		}
 		this._actionsheet = await this.actionsheetController.create({
 			buttons: actions,
@@ -693,10 +700,10 @@ export class AppFormsService {
 		}
 
 		const buttons = AppUtility.isNotEmpty(cancelButtonText)
-			? [{ text: cancelButtonText || "Huỷ", role: "cancel", handler: undefined as (data?: any) => void }]
+			? [{ text: cancelButtonText || await this.getResourceAsync("app.alert.buttons.cancel"), role: "cancel", handler: undefined as (data?: any) => void }]
 			: [];
 		buttons.push({
-			text: okButtonText || "Đóng",
+			text: okButtonText || await this.getResourceAsync("app.alert.buttons.ok"),
 			role: undefined as string,
 			handler: async (data?: any) => {
 				postProcess(data);
@@ -707,7 +714,7 @@ export class AppFormsService {
 
 		this._alert = AppUtility.isArray(inputs, true)
 			? await this.alertController.create({
-					header: header || "Chú ý",
+					header: header || await this.getResourceAsync("app.alert.header.general"),
 					subHeader: subHeader,
 					backdropDismiss: false,
 					message: message,
@@ -715,7 +722,7 @@ export class AppFormsService {
 					buttons: buttons
 				})
 			: await this.alertController.create({
-					header: header || "Chú ý",
+					header: header || await this.getResourceAsync("app.alert.header.general"),
 					subHeader: subHeader,
 					backdropDismiss: false,
 					message: message,
@@ -727,11 +734,11 @@ export class AppFormsService {
 	/** Shows the error message (by the alert confirmation box) */
 	public async showErrorAsync(error: any, subHeader?: string, postProcess?: (data?: any) => void) {
 		const message = AppUtility.isGotWrongAccountOrPasswordException(error)
-			? "Tài khoản hoặc mật khẩu không đúng!"
+			? await this.getResourceAsync("app.messages.errors.wrongAccountOrPassword")
 			: AppUtility.isGotCaptchaException(error) || AppUtility.isGotOTPException(error)
-				? "Mã xác thực không đúng"
-				: AppUtility.isNotEmpty(error.Message) ? error.Message : "Đã xảy ra lỗi!";
-		await this.showAlertAsync("Lỗi", subHeader, message, postProcess);
+				? await this.getResourceAsync("app.messages.errors.wrongCaptcha")
+				: AppUtility.isNotEmpty(error.Message) ? error.Message : await this.getResourceAsync("app.messages.errors.general");
+		await this.showAlertAsync(await this.getResourceAsync("app.alert.header.error"), subHeader, message, postProcess);
 	}
 
 	/** Shows the modal box */
