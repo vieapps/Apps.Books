@@ -24,7 +24,8 @@ app-root > ion-app > ion-split-pane > ion-menu > ion-header > ion-toolbar > ion-
 }
 
 /* label of invalid controls */
-.invalid > ion-label {
+.invalid > ion-label,
+.invalid > ion-label.ion-color {
 	color: var(--ion-color-danger);
 }
 

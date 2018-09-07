@@ -83,6 +83,14 @@ export class ReadBookPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
+	onSwipe($event) {
+		console.log("Swipe", $event);
+	}
+
+	onScrollEnd($event) {
+		console.log("Scroll End", $event);
+	}
+
 	async showActionsAsync() {
 		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}

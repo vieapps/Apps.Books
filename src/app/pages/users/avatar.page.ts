@@ -74,8 +74,8 @@ export class AccountAvatarPage implements OnInit {
 
 		this.title = await this.configSvc.getResourceAsync("users.profile.avatar.title");
 		this.resources = {
-			cancel: await this.configSvc.getResourceAsync("users.profile.buttons.cancel"),
-			update: await this.configSvc.getResourceAsync("users.profile.buttons.update"),
+			cancel: await this.configSvc.getResourceAsync("common.buttons.cancel"),
+			update: await this.configSvc.getResourceAsync("common.buttons.update"),
 			header: await this.configSvc.getResourceAsync("users.profile.avatar.header"),
 			avatar: await this.configSvc.getResourceAsync("users.profile.avatar.mode.avatar"),
 			gravatar: await this.configSvc.getResourceAsync("users.profile.avatar.mode.gravatar")

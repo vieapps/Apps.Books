@@ -1,5 +1,6 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Router, NavigationEnd } from "@angular/router";
 import { AppEvents } from "../../components/app.events";
 import { ConfigurationService } from "../../providers/configuration.service";
 
@@ -11,11 +12,14 @@ import { ConfigurationService } from "../../providers/configuration.service";
 export class HomePage implements OnInit, OnDestroy {
 
 	constructor(
+		public router: Router,
 		public configSvc: ConfigurationService
 	) {
 	}
 
 	title = "Home";
+	rxSubscription: Rx.Subscription;
+	changes: any;
 
 	ngOnInit() {
 		if (this.configSvc.isReady) {
@@ -35,17 +39,20 @@ export class HomePage implements OnInit, OnDestroy {
 			}
 		}, "LanguageChangedEventHandlerOfHomePage");
 
-		AppEvents.on("Navigate", info => {
-			if (this.configSvc.isNavigateTo(this.configSvc.appConfig.url.home, info.args.url, info.args.direction)) {
-				this.setTitle();
+		this.rxSubscription = this.router.events.subscribe(event => {
+			if (event instanceof NavigationEnd) {
+				if (this.configSvc.isNavigateTo(this.configSvc.appConfig.url.home, this.configSvc.currentUrl)) {
+					this.setTitle();
+					this.changes = new Date();
+				}
 			}
-		}, "NavigateEventHandlersOfHomePage");
+		});
 	}
 
 	ngOnDestroy() {
 		AppEvents.off("App", "AppReadyEventHandlerOfHomePage");
 		AppEvents.off("App", "LanguageChangedEventHandlerOfHomePage");
-		AppEvents.off("Navigate", "NavigateEventHandlersOfHomePage");
+		this.rxSubscription.unsubscribe();
 	}
 
 	setTitle() {

@@ -33,7 +33,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	id: string;
 	profile: UserProfile;
 	rxSubscriptions = new Array<Rx.Subscription>();
-	rxSubject = new Rx.Subject<{ mode: string, title: string }>();
 	buttons: {
 		ok: {
 			text: string,
@@ -132,12 +131,6 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.rxSubscriptions.push(this.email.form.valueChanges.subscribe(value => this.email.value = value));
 		this.rxSubscriptions.push(this.privileges.form.valueChanges.subscribe(value => this.privileges.value = value));
 		this.rxSubscriptions.push(this.invitation.form.valueChanges.subscribe(value => this.invitation.value = value));
-		this.rxSubscriptions.push(this.rxSubject.subscribe(({ mode, title }) => {
-			this.mode = mode;
-			this.title = this.configSvc.appTitle = title;
-			this.prepareButtonsAsync();
-			this.prepareActionsAsync();
-		}));
 		this.openProfileAsync();
 	}
 
@@ -146,8 +139,12 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	}
 
 	setMode(mode: string = "profile", title: string = "Profile") {
-		this.rxSubject.next({ mode: mode, title: title});
-	}
+		this.mode = mode;
+		this.title = title;
+		this.configSvc.appTitle = title;
+		this.prepareButtonsAsync();
+		this.prepareActionsAsync();
+}
 
 	async prepareButtonsAsync() {
 		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), icon: undefined, handler: async () => await this.openProfileAsync() };
@@ -362,7 +359,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 						Css: "--description-label-css"
 					},
 					SelectOptions: {
-						Values: this.configSvc.appConfig.languages
+						Values: this.configSvc.languages
 					},
 				}
 			},

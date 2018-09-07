@@ -1,5 +1,7 @@
+import * as Rx from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, OnChanges, Input } from "@angular/core";
+import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { AppUtility } from "../../components/app.utility";
 import { AppEvents } from "../../components/app.events";
@@ -12,9 +14,10 @@ import { Book } from "../../models/book";
 	templateUrl: "./control.home.html",
 	styleUrls: ["./control.home.scss"]
 })
-export class BookHomeScreenControl implements OnInit, OnDestroy {
+export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
 	constructor (
+		public router: Router,
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {
@@ -29,6 +32,8 @@ export class BookHomeScreenControl implements OnInit, OnDestroy {
 		books: "Articles & Books: "
 	};
 	books = new Array<Book>();
+
+	@Input() changes: any;
 
 	get status() {
 		return this.booksSvc.status;
@@ -55,14 +60,15 @@ export class BookHomeScreenControl implements OnInit, OnDestroy {
 				await this.prepareResourcesAsync();
 			}
 		}, "LanguageChangedEventHandlerOfBookHomeScreen");
+	}
 
-		AppEvents.on("Navigate", () => this.updateBooks(), "NavigateEventsOfBookHomeScreen");
+	ngOnChanges() {
+		this.updateBooks();
 	}
 
 	ngOnDestroy() {
 		AppEvents.off("App", "AppReadyEventHandlerOfBookHomeScreen");
 		AppEvents.off("App", "LanguageChangedEventHandlerOfBookHomeScreen");
-		AppEvents.off("Navigate", "NavigateEventsOfBookHomeScreen");
 	}
 
 	private async prepareResourcesAsync() {

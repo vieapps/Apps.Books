@@ -574,7 +574,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Gets the state to determines that navigate to an url */
-	public isNavigateTo(url: string, navigateToUrl: string, direction: string) {
+	public isNavigateTo(url: string, navigateToUrl: string, direction?: string) {
 		return url === navigateToUrl || ("Back" === direction && this.previousUrl.startsWith(url));
 	}
 

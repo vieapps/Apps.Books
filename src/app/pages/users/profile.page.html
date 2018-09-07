@@ -68,9 +68,8 @@
 				{{ labels.lastAccess }} {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
 			</ion-item>
 		</ion-list>
+		<control-book-bookmarks *ngIf="!id"></control-book-bookmarks>
 	</div>
-
-	<control-book-bookmarks *ngIf="mode === 'profile' && profile && !id"></control-book-bookmarks>
 
 	<div *ngIf="mode !== 'profile' && mode !== 'otp'" [class]="mode">
 		<app-form *ngIf="mode === 'update'"
