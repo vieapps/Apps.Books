@@ -394,7 +394,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	track(index: number, book: Book) {
-		return book.ID;
+		return `${book.ID}@${index}`;
 	}
 
 }

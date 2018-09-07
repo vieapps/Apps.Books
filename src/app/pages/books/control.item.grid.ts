@@ -19,6 +19,6 @@ export class BookGridItemControl {
 	@Input() hideCategory: boolean;
 
 	open() {
-		this.configSvc.navigateForward(this.book.routerURI);
+		this.configSvc.navigateForward(this.book.routerURI || this.book.routerLink + "?x-request=" + this.book.routerParams["x-request"]);
 	}
 }

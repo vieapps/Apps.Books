@@ -10,7 +10,6 @@ import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
-import { RatingPoint } from "../../models/ratingpoint";
 
 @Component({
 	selector: "page-read-book",
@@ -83,8 +82,8 @@ export class ReadBookPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	onSwipe($event) {
-		console.log("Swipe", $event);
+	onSwipeLeft($event) {
+		console.log("Swipe Left", $event);
 	}
 
 	onScrollEnd($event) {

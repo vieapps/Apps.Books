@@ -111,7 +111,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	}
 
 	trackBook(index: number, book: Book) {
-		return book.ID;
+		return `${book.ID}@${index}`;
 	}
 
 }

@@ -1,5 +1,4 @@
 import { Component, OnInit } from "@angular/core";
-import { registerLocaleData } from "@angular/common";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { BooksService } from "../../providers/books.service";
 import { UserProfile } from "../../models/user";
@@ -16,7 +15,6 @@ export class BookmarksControl implements OnInit {
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {
-		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
 
 	profile = new UserProfile();
@@ -31,10 +29,6 @@ export class BookmarksControl implements OnInit {
 			delete: "Delete"
 		}
 	};
-
-	get locale() {
-		return this.configSvc.locale;
-	}
 
 	ngOnInit() {
 		if (this.configSvc.isAuthenticated) {
@@ -58,7 +52,7 @@ export class BookmarksControl implements OnInit {
 	}
 
 	trackBookmark(index: number, bookmark: Bookmark) {
-		return bookmark.ID;
+		return `${bookmark.ID}@${index}`;
 	}
 
 	getTitle(bookmark: Bookmark) {
