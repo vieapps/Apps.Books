@@ -22,6 +22,13 @@ app-root > ion-app > ion-split-pane > ion-menu > ion-header > ion-toolbar > ion-
 	height: 80%;
 	margin: 10%;
 }
+app-root > ion-app > ion-split-pane > ion-menu > ion-content > ion-list > ion-menu-toggle img {
+	max-height: 44px;
+	margin-right: 16px;
+}
+app-root > ion-app > ion-split-pane > ion-menu > ion-content > ion-list > ion-menu-toggle > ion-list-header > ion-label {
+	line-height: 44px;
+}
 
 /* label of invalid controls */
 .invalid > ion-label,

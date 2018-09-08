@@ -1,0 +1,21 @@
+<ion-header>
+	<ion-toolbar>
+		<ion-buttons slot="start">
+			<ion-button (click)="closeAsync()">
+				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+			</ion-button>
+		</ion-buttons>
+		<ion-title>
+			{{ title }}
+		</ion-title>
+	</ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+	<app-form *ngIf="config"
+		[form]="form"
+		[config]="config"
+		[controls]="controls"
+		(initEvent)="onFormInitialized($event)"></app-form>
+	<div padding class="{{options.color}} {{options.font}} {{options.size}} {{options.paragraph}} {{options.align}}" [innerHTML]="sample"></div>
+</ion-content>

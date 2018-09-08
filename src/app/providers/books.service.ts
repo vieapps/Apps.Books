@@ -45,27 +45,50 @@ export class BooksService extends BaseService {
 			}
 		});
 
-		AppEvents.on("Session", info => {
+		AppEvents.on("Session", async info => {
 			if (this.configSvc.isAuthenticated && AppRTU.isReady && "Updated" === info.args.Type) {
-				this.getBookmarks();
+				await this.loadBookmarksAsync(() => this.getBookmarks());
 			}}
 		);
 
-		AppEvents.on("Books", async info => {
-			if ("CategoriesUpdated" === info.args.Type) {
+		AppEvents.on("App", async info => {
+			if ("LanguageChanged" === info.args.Type) {
+				PlatformUtility.setTimeout(async () => {
+					this.updateSearchIntoSidebarAsync();
+					if (this._reading.ID === undefined) {
+						await this.updateCategoriesIntoSidebarAsync();
+					}
+				}, 234);
+			}
+			else if ("HomePageIsOpened" === info.args.Type && this._reading.ID !== undefined) {
 				await this.updateCategoriesIntoSidebarAsync();
+				this._reading.ID = undefined;
 			}
 		});
 
-		AppEvents.on("App", info => {
-			if ("LanguageChanged" === info.args.Type) {
-				PlatformUtility.setTimeout(async () => {
-					await this.updateSearchIntoSidebarAsync();
-					await this.updateCategoriesIntoSidebarAsync();
-				}, 234);
+		AppEvents.on("Books", async info => {
+			if ("CategoriesUpdated" === info.args.Type || "CloseBook" === info.args.Type) {
+				await this.updateCategoriesIntoSidebarAsync();
+				if ("CloseBook" === info.args.Type) {
+					this._reading.ID = undefined;
+				}
+			}
+		});
+
+		AppEvents.on("Books", async info => {
+			if ("OpenBook" === info.args.Type) {
+				await this.updateReadingAsync(info.args.ID, info.args.Chapter);
 			}
 		});
 	}
+
+	private _reading = {
+		ID: undefined as string,
+		Chapter: {
+			Current: undefined as number,
+			Previous: undefined as number
+		}
+	};
 
 	private async updateSearchIntoSidebarAsync() {
 		AppEvents.broadcast("AddSidebarItem", {
@@ -667,6 +690,64 @@ export class BooksService extends BaseService {
 			Body: undefined,
 			Extra: undefined
 		});
+	}
+
+	public sendRequestToReCrawl(id: string, url: string, mode: string) {
+		super.send({
+			ServiceName: "books",
+			ObjectName: "crawl",
+			Verb: "GET",
+			Query: {
+				"object-identity": "recrawl",
+				"id": id,
+				"url": url,
+				"full": "full" === mode
+			},
+			Header: undefined,
+			Body: undefined,
+			Extra: undefined
+		});
+	}
+
+	private getTOCItem(book: Book, index: number, isReading: boolean) {
+		return {
+			title: book.TOCs[index],
+			url: book.routerLink,
+			queryParams: book.routerParams,
+			detail: isReading,
+			onClick: () => AppEvents.broadcast("Books", { Type: "OpenChapter", ID: book.ID, Chapter: index + 1 })
+		};
+	}
+
+	private async updateReadingAsync(id: string, chapter: number) {
+		const book = Book.instances.getValue(id);
+		if (id !== this._reading.ID) {
+			this._reading.ID = id;
+			this._reading.Chapter.Previous = undefined;
+			this._reading.Chapter.Current = chapter - 1;
+			AppEvents.broadcast("UpdateSidebar", {
+				index: 1,
+				title: book.Title,
+				thumbnail: book.Cover,
+				items: book.TOCs.map((toc, index) => this.getTOCItem(book, index, index === this._reading.Chapter.Current))
+			});
+		}
+		else {
+			this._reading.Chapter.Previous = this._reading.Chapter.Current;
+			if (this._reading.Chapter.Previous > -1) {
+				AppEvents.broadcast("UpdateSidebarItem", {
+					MenuIndex: 1,
+					ItemIndex: this._reading.Chapter.Previous,
+					ItemInfo: this.getTOCItem(book, this._reading.Chapter.Previous, false)
+				});
+			}
+			this._reading.Chapter.Current = chapter - 1;
+			AppEvents.broadcast("UpdateSidebarItem", {
+				MenuIndex: 1,
+				ItemIndex: this._reading.Chapter.Current,
+				ItemInfo: this.getTOCItem(book, this._reading.Chapter.Current, true)
+			});
+		}
 	}
 
 }

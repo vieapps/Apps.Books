@@ -663,4 +663,9 @@ export class ConfigurationService extends BaseService {
 		return (await this.translateSvc.get(key, interpolateParams).toPromise()) as string;
 	}
 
+	/** Gets the resources (of the current language) by a key */
+	public async getResourcesAsync(key: string) {
+		return (await this.translateSvc.get(key).toPromise()) as { [key: string]: string };
+	}
+
 }

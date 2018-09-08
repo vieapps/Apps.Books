@@ -133,7 +133,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.Female")
 							}
 						]
-					},
+					}
 				}
 			},
 			{

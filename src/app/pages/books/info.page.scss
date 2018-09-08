@@ -1,0 +1,34 @@
+div {
+	clear: both;
+}
+h1 {
+	margin: 0;
+}
+span {
+	margin-right: 16px;
+}
+label {
+	font-weight: bold;
+}
+ul > li {
+	margin: 8px 0;
+}
+ul.files > li {
+	margin: 16px 0;
+}
+figure,
+div.qrcode > div {
+	width: 290px;
+	margin: 0;
+}
+figure > img {
+	border-radius: 5px;
+}
+div.qrcode > div > label {
+	font-size: 80%;
+	font-weight: normal;
+	color: var(--ion-color-medium);
+}
+ion-icon {
+	cursor: pointer;
+}

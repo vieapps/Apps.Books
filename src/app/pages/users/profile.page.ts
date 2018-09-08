@@ -138,13 +138,24 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 	}
 
-	setMode(mode: string = "profile", title: string = "Profile") {
+	onFormInitialized($event) {
+		if (this.update.config === $event.config) {
+			this.update.form.patchValue(this.profile);
+			this.update.hash = AppCrypto.md5(JSON.stringify(this.update.value || {}));
+		}
+		else {
+			Object.keys(($event.form as FormGroup).controls).forEach(key => ($event.form as FormGroup).controls[key].setValue(""));
+		}
+	}
+
+	async setModeAsync(mode: string, title: string) {
 		this.mode = mode;
-		this.title = title;
-		this.configSvc.appTitle = title;
-		this.prepareButtonsAsync();
-		this.prepareActionsAsync();
-}
+		this.configSvc.appTitle = this.title = title;
+		await Promise.all([
+			this.prepareButtonsAsync(),
+			this.prepareActionsAsync()
+		]);
+	}
 
 	async prepareButtonsAsync() {
 		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), icon: undefined, handler: async () => await this.openProfileAsync() };
@@ -226,20 +237,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
-	onFormInitialized($event) {
-		if (this.update.config === $event.config) {
-			this.update.form.patchValue(this.profile);
-			this.update.hash = AppCrypto.md5(JSON.stringify(this.update.value || {}));
-		}
-		else {
-			Object.keys($event.form.controls).forEach(key => $event.form.controls[key].setValue(""));
-		}
-	}
-
 	async openProfileAsync(onNext?: () => void) {
 		this.id = this.configSvc.requestParams["ID"];
 		if (this.profile === undefined && this.id !== undefined && !UserProfile.instances.containsKey(this.id)) {
-			await this.appFormsSvc.showLoadingAsync(this.title);
+			await this.appFormsSvc.showLoadingAsync();
 		}
 		const id = this.id || this.configSvc.getAccount().id;
 		await this.usersSvc.getProfileAsync(id,
@@ -250,7 +251,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				this.profile = UserProfile.get(id);
 				this.labels.header = await this.configSvc.getResourceAsync("users.profile.labels.header");
 				this.labels.lastAccess = await this.configSvc.getResourceAsync("users.profile.labels.lastAccess");
-				this.setMode("profile", await this.configSvc.getResourceAsync("users.profile.title"));
+				await this.setModeAsync("profile", await this.configSvc.getResourceAsync("users.profile.title"));
 				await this.appFormsSvc.hideLoadingAsync(onNext);
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error)
@@ -375,7 +376,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			}
 		});
 		this.update.language = this.profile.Language;
-		this.setMode("update", await this.configSvc.getResourceAsync("users.profile.update.title"));
+		await this.setModeAsync("update", await this.configSvc.getResourceAsync("users.profile.update.title"));
 	}
 
 	async updateProfileAsync() {
@@ -447,7 +448,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 		];
-		this.setMode("password", await this.configSvc.getResourceAsync("users.profile.password.title"));
+		await this.setModeAsync("password", await this.configSvc.getResourceAsync("users.profile.password.title"));
 	}
 
 	async updatePasswordAsync() {
@@ -503,7 +504,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 		];
-		this.setMode("email", await this.configSvc.getResourceAsync("users.profile.email.title"));
+		await this.setModeAsync("email", await this.configSvc.getResourceAsync("users.profile.email.title"));
 	}
 
 	async updateEmailAsync() {
@@ -555,7 +556,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				app: await this.configSvc.getResourceAsync("users.profile.otp.instruction.app")
 			}
 		};
-		this.setMode("otp", await this.configSvc.getResourceAsync("users.profile.otp.title"));
+		await this.setModeAsync("otp", await this.configSvc.getResourceAsync("users.profile.otp.title"));
 		if (onNext !== undefined) {
 			onNext();
 		}
@@ -605,7 +606,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	}
 
 	async openUpdatePrivilegesAsync() {
-		this.setMode("privileges", await this.configSvc.getResourceAsync("users.profile.privileges.title"));
+		await this.setModeAsync("privileges", await this.configSvc.getResourceAsync("users.profile.privileges.title"));
 	}
 
 	async updatePrivilegesAsync() {
@@ -634,7 +635,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		this.setMode("invitation", await this.configSvc.getResourceAsync("users.profile.invitation.title"));
+		await this.setModeAsync("invitation", await this.configSvc.getResourceAsync("users.profile.invitation.title"));
 	}
 
 	async sendInvitationAsync() {

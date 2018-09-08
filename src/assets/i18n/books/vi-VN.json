@@ -19,6 +19,17 @@
 				"delete": "Xoá"
 			}
 		},
+		"crawl": {
+			"header": "Lấy dữ liệu",
+			"label": "Crawl dữ liệu từ nguồn chỉ định",
+			"placeholder": "Url nguồn dữ liệu",
+			"mode": {
+				"full": "Toàn bộ",
+				"missing": "Các chương thiếu"
+			},
+			"button": "Lấy dữ liệu",
+			"message": "Đã gửi yêu cầu lấy dữ liệu..."
+		},
 		"list": {
 			"title": {
 				"search": "Tìm kiếm",
@@ -45,12 +56,89 @@
 				"header": "Sắp xếp theo",
 				"button": "Đặt",
 				"message": "Đã thay đổi cách thức sắp xếp..."		
+			}
+		},
+		"read": {
+			"actions": {
+				"author": "Cùng tác giả",
+				"info": "Thông tin",
+				"toc": "Mục lục",
+				"options": "Tuỳ chọn đọc",
+				"crawl": "Lấy lại dữ liệu"
 			},
-			"crawl": {
-				"label": "Crawl dữ liệu từ nguồn chỉ định",
-				"button": "Lấy dữ liệu",
-				"message": "Đã gửi yêu cầu lấy dữ liệu...",
-				"placeholder": "Url nguồn dữ liệu"
+			"navigate": {
+				"previous": "Trước",
+				"next": "Sau"
+			},
+			"delete": {
+				"confirm": "Chắc chắn muốn xoá?",
+				"message": "Tác phẩm {{title}} đã được xoá..."
+			}
+		},
+		"info": {
+			"category": "Thể loại",
+			"original": "Nguyên tác",
+			"author": "Tác giả",
+			"translator": "Dịch giả",
+			"publisher": "Nhà xuất bản",
+			"producer": "Đơn vị sản xuất",
+			"chapters": "Số chương/phần",
+			"source": "Nguồn",
+			"download": "Tải xuống",
+			"qrcode": {
+				"header": "QR Code",
+				"description": "Dùng {{scanner}} quét QR Code để mở nhanh"
+			},
+			"statistics": {
+				"views": "Số lượt đọc",
+				"downloads": "Số lượt tải về",
+				"total": "Tổng số",
+				"month": "Trong tháng",
+				"week": "Trong tuần"
+			},
+			"link": "Liên kết tĩnh",
+			"notAuthenticated": "Cần đăng nhập để có thể tải được e-book!"
+		},
+		"options": {
+			"title": "Tuỳ chọn đọc",
+			"labels": {
+				"color": "Màu nền",
+				"font": "Font chữ",
+				"size": "Cỡ chữ",
+				"paragraph": "Cách dòng",
+				"align": "Căn lề",
+				"sample": "<p>Tôi tiếp tục tăng tốc, ngày và đêm hòa vào nhau; bầu trời chuyển sang màu xanh thẳm, sáng rực như hoàng hôn sớm;</p><p>Mặt trời như vệt lửa rung rinh chói sáng; mặt trăng biến thành dải sáng mờ ảo dao động và tôi không thấy bóng dáng ngôi sao nào.</p>"
+			},
+			"color": {
+				"white": "Trắng",
+				"black": "Đen",
+				"sepia": "Ngả vàng"
+			},
+			"font": {
+				"default": "Mặc định",
+				"like-default": "Gần mặc định",
+				"plump": "Tròn",
+				"fat": "Béo",
+				"fancy": "Khác lạ"
+			},
+			"size": {
+				"smallest": "Nhỏ nhất",
+				"smaller": "Nhỏ hơn",
+				"small": "Nhỏ",
+				"normal": "Trung bình",
+				"big": "To",
+				"bigger": "To hơn",
+				"huge": "Rất là bự"
+			},
+			"paragraph": {
+				"one": "Bình thường",
+				"two": "Thưa",
+				"three": "Rất thưa"
+			},
+			"align": {
+				"align-left": "Trái",
+				"align-justify": "Đều hai bên",
+				"align-right": "Phải"
 			}
 		}
 	}

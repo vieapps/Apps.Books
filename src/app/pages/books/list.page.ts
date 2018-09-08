@@ -27,7 +27,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		public authSvc: AuthenticationService,
 		public booksSvc: BooksService
 	) {
-		registerLocaleData(this.configSvc.localeData);
+		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
 
 	filterBy = {
@@ -360,22 +360,22 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	async showCrawlAsync() {
 		await this.appFormsSvc.showAlertAsync(
-			"Crawl",
+			await this.configSvc.getResourceAsync("books.crawl.header"),
 			undefined,
-			await this.configSvc.getResourceAsync("books.list.crawl.label"),
+			await this.configSvc.getResourceAsync("books.crawl.label"),
 			async data => {
 				if (AppUtility.isNotEmpty(data.SourceUrl)) {
 					this.booksSvc.sendRequestToCrawl(data.SourceUrl);
-					await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.list.crawl.message"), 2000);
+					await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.crawl.message"), 2000);
 				}
 			},
-			await this.configSvc.getResourceAsync("books.list.crawl.button"),
+			await this.configSvc.getResourceAsync("books.crawl.button"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel"),
 			[
 				{
 					type: "text",
 					name: "SourceUrl",
-					placeholder: await this.configSvc.getResourceAsync("books.list.crawl.placeholder"),
+					placeholder: await this.configSvc.getResourceAsync("books.crawl.placeholder"),
 					value: ""
 				}
 			]

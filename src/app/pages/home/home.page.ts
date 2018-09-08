@@ -44,6 +44,7 @@ export class HomePage implements OnInit, OnDestroy {
 				if (this.configSvc.isNavigateTo(this.configSvc.appConfig.url.home, this.configSvc.currentUrl)) {
 					this.setTitle();
 					this.changes = new Date();
+					AppEvents.broadcast("App", { Type: "HomePageIsOpened" });
 				}
 			}
 		});

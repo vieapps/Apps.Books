@@ -156,7 +156,7 @@ export class PlatformUtility {
 			const uri = this.parseURI();
 			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + AppConfig.url.base;
 		}
-		return url + AppConfig.url.home + "?" + AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path;
+		return url + AppConfig.url.home.substr(1, AppConfig.url.home.length - 1) + "?" + (AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path);
 	}
 
 	/** Gets the URI for activating */

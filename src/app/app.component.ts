@@ -55,7 +55,8 @@ export class AppComponent implements OnInit {
 					title: string,
 					url: string,
 					queryParams: { [key: string]: any },
-					direction: string
+					direction: string,
+					onClick: () => void
 				},
 				items: Array<{
 					title: string,
@@ -64,7 +65,8 @@ export class AppComponent implements OnInit {
 					icon: string,
 					thumbnail: string,
 					direction: string,
-					detail: boolean
+					detail: boolean,
+					onClick: () => void
 				}>
 			}>()
 		}
@@ -126,7 +128,8 @@ export class AppComponent implements OnInit {
 				direction: "root",
 				icon: "home",
 				thumbnail: undefined as string,
-				detail: false
+				detail: false,
+				onClick: () => {}
 			},
 			login: {
 				title: await this.configSvc.getResourceAsync("common.sidebar.login"),
@@ -135,7 +138,8 @@ export class AppComponent implements OnInit {
 				direction: "forward",
 				icon: "log-in",
 				thumbnail: undefined as string,
-				detail: false
+				detail: false,
+				onClick: () => {}
 			},
 			register: {
 				title: await this.configSvc.getResourceAsync("common.sidebar.register"),
@@ -144,7 +148,8 @@ export class AppComponent implements OnInit {
 				direction: "forward",
 				icon: "person-add",
 				thumbnail: undefined as string,
-				detail: false
+				detail: false,
+				onClick: () => {}
 			},
 			profile: {
 				title: await this.configSvc.getResourceAsync("common.sidebar.profile"),
@@ -153,7 +158,8 @@ export class AppComponent implements OnInit {
 				direction: "forward",
 				icon: "person",
 				thumbnail: undefined as string,
-				detail: false
+				detail: false,
+				onClick: () => {}
 			}
 		};
 	}
@@ -167,9 +173,15 @@ export class AppComponent implements OnInit {
 				direction: itemInfo.direction || "forward",
 				icon: itemInfo.icon,
 				thumbnail: itemInfo.thumbnail,
-				detail: !!itemInfo.detail
+				detail: !!itemInfo.detail,
+				onClick: typeof itemInfo.onClick === "function" ? itemInfo.onClick : () => {}
 			};
-			AppUtility.insertAt(this.sidebar.left.menu[menuIndex].items, item, itemIndex);
+			if (itemIndex > -1 && itemIndex < this.sidebar.left.menu[menuIndex].items.length) {
+				this.sidebar.left.menu[menuIndex].items[itemIndex] = item;
+			}
+			else {
+				AppUtility.insertAt(this.sidebar.left.menu[menuIndex].items, item, itemIndex);
+			}
 		}
 	}
 
@@ -222,6 +234,7 @@ export class AppComponent implements OnInit {
 						icon: item.icon,
 						thumbnail: item.thumbnail,
 						detail: item.detail,
+						onClick: item.onClick
 					};
 				})
 				.filter(item => AppUtility.isNotEmpty(item.title) && AppUtility.isNotEmpty(item.url))

@@ -644,6 +644,7 @@ export class AppFormsService {
 
 	/** Shows the loading */
 	public async showLoadingAsync(message?: string) {
+		await this.hideLoadingAsync();
 		if (this._loading === undefined) {
 			this._loading = await this.loadingController.create({
 				message: message || await this.getResourceAsync("common.messages.loading")
