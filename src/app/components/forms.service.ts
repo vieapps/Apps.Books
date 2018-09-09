@@ -343,7 +343,7 @@ export class AppFormsService {
 			: value;
 	}
 
-	private prepareControls(controls: Array<AppFormsControl>) {
+	private prepareControls(controls: Array<AppFormsControl>, modifyDatePickers?: boolean) {
 		controls.forEach(async (control, index) => {
 			if (!control.Excluded) {
 				control.Options.Label = await this.normalizeResourceAsync(control.Options.Label);
@@ -356,12 +356,16 @@ export class AppFormsService {
 				control.Options.CompleterOptions.SearchingText = await this.normalizeResourceAsync(control.Options.CompleterOptions.SearchingText);
 				control.Options.CompleterOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.CompleterOptions.NoResultsText);
 			}
+			if (AppUtility.isTrue(modifyDatePickers) && control.Type === "DatePicker") {
+				control.Type = "TextBox";
+				control.Options.Type = "date";
+			}
 			if (index < controls.length - 1) {
 				control.next = controls[index + 1];
 			}
 			if (control.SubControls !== undefined) {
 				control.SubControls.Controls.forEach(subcontrol => subcontrol.parent = control);
-				this.prepareControls(control.SubControls.Controls);
+				this.prepareControls(control.SubControls.Controls, modifyDatePickers);
 			}
 		});
 	}
@@ -372,7 +376,7 @@ export class AppFormsService {
 		config.map((options, order) => new AppFormsControl(options, order))
 			.sort((a, b) => a.Order - b.Order)
 			.forEach(control => controls.push(control));
-		this.prepareControls(controls);
+		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop"));
 		return controls;
 	}
 
@@ -395,7 +399,7 @@ export class AppFormsService {
 				this.updateControls(control.SubControls.Controls, value[control.Key]);
 			}
 		});
-		this.prepareControls(controls);
+		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop"));
 	}
 
 	/** Builds the form */

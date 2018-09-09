@@ -167,7 +167,7 @@ export class BooksService extends BaseService {
 		const book = Book.instances.getValue(id);
 		if (book !== undefined && (book.TOCs.length > 0 || book.Body !== "")) {
 			if (AppUtility.isFalse(dontUpdateCounter)) {
-				this.updateCounters(id);
+				this.increaseCounters(id);
 			}
 			if (onNext !== undefined) {
 				onNext();
@@ -179,7 +179,7 @@ export class BooksService extends BaseService {
 				data => {
 					Book.update(data);
 					if (AppUtility.isFalse(dontUpdateCounter)) {
-						this.updateCounters(id);
+						this.increaseCounters(id);
 					}
 					if (onNext !== undefined) {
 						onNext(data);
@@ -211,8 +211,8 @@ export class BooksService extends BaseService {
 			await super.readAsync(
 				`books/book/${id}?chapter=${chapter}`,
 				data => {
-					book.Chapters[chapter - 1] = data.Content;
-					this.updateCounters(id);
+					this.updateChapter(data, chapter);
+					this.increaseCounters(id);
 					if (onNext !== undefined) {
 						onNext(data);
 					}
@@ -245,24 +245,22 @@ export class BooksService extends BaseService {
 				Header: undefined,
 				Body: undefined,
 				Extra: undefined
-			}, data => book.Chapters[chapter - 1] = data.Content);
-		}
-		if (chapter <= book.TotalChapters) {
-			this.updateCounters(id, "view", onCompleted);
+			}, data => this.updateChapter(data, chapter));
 		}
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
 	}
 
-	private updateChapter(data: any) {
+	private updateChapter(data: any, chapter?: number) {
 		const book = Book.instances.getValue(data.ID);
 		if (book !== undefined) {
-			book.Chapters[data.Chapter - 1] = data.Content;
+			book.Chapters[chapter || data.Chapter - 1] = data.Content;
+			this.increaseCounters(data.ID, "view");
 		}
 }
 
-	public updateCounters(id: string, action?: string, onCompleted?: () => void) {
+	public increaseCounters(id: string, action?: string, onCompleted?: () => void) {
 		if (Book.instances.containsKey(id)) {
 			super.send({
 				ServiceName: this.Name,
@@ -276,20 +274,19 @@ export class BooksService extends BaseService {
 				Header: undefined,
 				Body: undefined,
 				Extra: undefined
-			});
+			}, data => this.updateCounters(data));
 		}
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
 	}
 
-	public setCounters(info: any, onCompleted?: () => void) {
-		const book = AppUtility.isObject(info, true)
-			? Book.instances.getValue(info.ID)
+	public updateCounters(data: any, onCompleted?: () => void) {
+		const book = AppUtility.isObject(data, true)
+			? Book.instances.getValue(data.ID)
 			: undefined;
-
-		if (book !== undefined && AppUtility.isArray(info.Counters)) {
-			(info.Counters as Array<any>).forEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
+		if (book !== undefined && AppUtility.isArray(data.Counters)) {
+			(data.Counters as Array<any>).forEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
 			AppEvents.broadcast("Books", { Type: "StatisticsUpdated", ID: book.ID });
 		}
 		if (onCompleted !== undefined) {
@@ -310,7 +307,7 @@ export class BooksService extends BaseService {
 				Header: undefined,
 				Body: undefined,
 				Extra: undefined
-			});
+			}, data => this.updateFiles(data));
 		}
 	}
 
@@ -373,7 +370,7 @@ export class BooksService extends BaseService {
 	private async processUpdateBookMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
 		switch (message.Type.Event) {
 			case "Counters":
-				this.setCounters(message.Data);
+				this.updateCounters(message.Data);
 				break;
 			case "Chapter":
 				this.updateChapter(message.Data);
@@ -613,14 +610,14 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	private syncBookmarks(data: any, onCompleted?: () => void) {
+	private async syncBookmarksAsync(data: any, onCompleted?: () => void) {
 		if (this.configSvc.getAccount().profile !== undefined) {
 			this.configSvc.getAccount().profile.LastSync = new Date();
 		}
 		if (AppUtility.isTrue(data.Sync)) {
 			this.bookmarks.clear();
 		}
-		(data.Objects as Array<any>).forEach(b => {
+		(data.Objects as Array<any> || []).forEach(b => {
 			const bookmark = Bookmark.deserialize(b);
 			if (!this.bookmarks.containsKey(bookmark.ID)) {
 				this.bookmarks.setValue(bookmark.ID, bookmark);
@@ -632,7 +629,7 @@ export class BooksService extends BaseService {
 
 		this.bookmarks.values().forEach((bookmark, index)  => {
 			PlatformUtility.setTimeout(() => {
-				if (!Book.instances.getValue(bookmark.ID)) {
+				if (!Book.instances.containsKey(bookmark.ID)) {
 					AppRTU.send({
 						ServiceName: "books",
 						ObjectName: "book",
@@ -648,10 +645,8 @@ export class BooksService extends BaseService {
 			}, 456 + (index * 10));
 		});
 
-		PlatformUtility.setTimeout(async () => {
-			AppEvents.broadcast("Books", { Type: "BookmarksUpdated", Data: this.bookmarks });
-			await this.storeBookmarksAsync(onCompleted);
-		});
+		AppEvents.broadcast("Books", { Type: "BookmarksUpdated", Data: this.bookmarks });
+		await this.storeBookmarksAsync(onCompleted);
 	}
 
 	public deleteBookmark(id: string, onCompleted?: () => void) {
@@ -674,7 +669,7 @@ export class BooksService extends BaseService {
 
 	private async processUpdateBookmarkMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
 		if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
-			await this.syncBookmarks(message.Data);
+			await this.syncBookmarksAsync(message.Data);
 		}
 	}
 
@@ -695,7 +690,7 @@ export class BooksService extends BaseService {
 	public sendRequestToReCrawl(id: string, url: string, mode: string) {
 		super.send({
 			ServiceName: "books",
-			ObjectName: "crawl",
+			ObjectName: "book",
 			Verb: "GET",
 			Query: {
 				"object-identity": "recrawl",

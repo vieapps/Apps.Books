@@ -1,7 +1,6 @@
-import * as Rx from "rxjs";
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, OnChanges, Input } from "@angular/core";
-import { Router, NavigationEnd } from "@angular/router";
+import { Router } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { AppUtility } from "../../components/app.utility";
 import { AppEvents } from "../../components/app.events";

@@ -1,4 +1,3 @@
-import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { AppEvents } from "../../components/app.events";
@@ -13,7 +12,7 @@ import { Book } from "../../models/book";
 import { CounterInfo } from "./../../models/counters";
 
 @Component({
-	selector: "page-info-book",
+	selector: "page-book-info",
 	templateUrl: "./info.page.html",
 	styleUrls: ["./info.page.scss"]
 })
@@ -27,7 +26,6 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
 
-	rxSubscriptions = new Array<Rx.Subscription>();
 	title = "";
 	qrcode = "";
 	link = "";
@@ -75,21 +73,23 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 
 		AppEvents.on("Books", async info => {
 			if (this.book.ID === info.args.ID) {
-				this.book = Book.instances.getValue(info.args.ID);
 				if ("StatisticsUpdated" === info.args.Type) {
-					this.statistics = {
-						views: this.book.Counters.getValue("View"),
-						downloads: this.book.Counters.getValue("Download")
-					};
+					this.getStatistics();
 				}
 			}
 		}, "EventHandlerOfViewBookInfoPage");
 	}
 
 	ngOnDestroy() {
-		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 		AppEvents.off("App", "LanguageChangedEventHandlerOfViewBookInfoPage");
 		AppEvents.off("Books", "EventHandlerOfViewBookInfoPage");
+	}
+
+	getStatistics() {
+		this.statistics = {
+			views: this.book.Counters.getValue("View") || new CounterInfo(),
+			downloads: this.book.Counters.getValue("Download") || new CounterInfo()
+		};
 	}
 
 	async initializeAsync() {
@@ -98,10 +98,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 			this.book = Book.instances.getValue(id);
 			if (this.book !== undefined) {
 				await this.prepareResourcesAsync();
-				this.statistics = {
-					views: this.book.Counters.getValue("View"),
-					downloads: this.book.Counters.getValue("Download")
-				};
+				this.getStatistics();
 				this.title = this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
 				this.link = PlatformUtility.getRedirectURI(this.book.routerURI);
 				this.qrcode = this.configSvc.appConfig.isNativeApp

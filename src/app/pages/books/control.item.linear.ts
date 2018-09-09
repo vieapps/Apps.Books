@@ -1,4 +1,6 @@
 import { Component, Input } from "@angular/core";
+import { registerLocaleData } from "@angular/common";
+import { ConfigurationService } from "../../providers/configuration.service";
 import { Book } from "../../models/book";
 
 @Component({
@@ -9,7 +11,9 @@ import { Book } from "../../models/book";
 export class BookLinearItemControl {
 
 	constructor (
+		public configSvc: ConfigurationService
 	) {
+		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
 
 	@Input() book: Book;
@@ -22,6 +26,10 @@ export class BookLinearItemControl {
 
 	get queryParams() {
 		return this.book.routerParams;
+	}
+
+	get locale() {
+		return this.configSvc.locale;
 	}
 
 }
