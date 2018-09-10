@@ -356,9 +356,9 @@ export class AppFormsService {
 				control.Options.CompleterOptions.SearchingText = await this.normalizeResourceAsync(control.Options.CompleterOptions.SearchingText);
 				control.Options.CompleterOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.CompleterOptions.NoResultsText);
 			}
-			if (AppUtility.isTrue(modifyDatePickers) && control.Type === "DatePicker") {
+			if (control.Type === "DatePicker" && AppUtility.isTrue(modifyDatePickers)) {
 				control.Type = "TextBox";
-				control.Options.Type = "date";
+				control.Options.Type = control.Options.DatePickerOptions.AllowTimes ? "datetime-local" : "date";
 			}
 			if (index < controls.length - 1) {
 				control.next = controls[index + 1];
@@ -376,7 +376,7 @@ export class AppFormsService {
 		config.map((options, order) => new AppFormsControl(options, order))
 			.sort((a, b) => a.Order - b.Order)
 			.forEach(control => controls.push(control));
-		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop"));
+		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop") && !PlatformUtility.isSafari());
 		return controls;
 	}
 
@@ -399,7 +399,7 @@ export class AppFormsService {
 				this.updateControls(control.SubControls.Controls, value[control.Key]);
 			}
 		});
-		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop"));
+		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop") && !PlatformUtility.isSafari());
 	}
 
 	/** Builds the form */
@@ -722,7 +722,7 @@ export class AppFormsService {
 		}
 
 		const buttons = AppUtility.isNotEmpty(cancelButtonText)
-			? [{ text: cancelButtonText || await this.getResourceAsync("common.buttons.cancel"), role: "cancel", handler: undefined as (data?: any) => void }]
+			? [{ text: cancelButtonText, role: "cancel", handler: undefined as (data?: any) => void }]
 			: [];
 		buttons.push({
 			text: okButtonText || await this.getResourceAsync("common.buttons.ok"),
@@ -734,22 +734,14 @@ export class AppFormsService {
 			}
 		});
 
-		this._alert = AppUtility.isArray(inputs, true)
-			? await this.alertController.create({
-					header: header || await this.getResourceAsync("common.alert.header.general"),
-					subHeader: subHeader,
-					backdropDismiss: false,
-					message: message,
-					inputs: inputs,
-					buttons: buttons
-				})
-			: await this.alertController.create({
-					header: header || await this.getResourceAsync("common.alert.header.general"),
-					subHeader: subHeader,
-					backdropDismiss: false,
-					message: message,
-					buttons: buttons
-				});
+		this._alert = await this.alertController.create({
+			header: header || await this.getResourceAsync("common.alert.header.general"),
+			subHeader: subHeader,
+			backdropDismiss: false,
+			message: message,
+			inputs: AppUtility.isArray(inputs, true) ? inputs : undefined,
+			buttons: buttons
+		});
 		await this._alert.present();
 	}
 

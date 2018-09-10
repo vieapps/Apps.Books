@@ -305,8 +305,11 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Options: {
 					Type: "date",
 					Label: await this.configSvc.getResourceAsync("users.register.controls.BirthDay"),
-					Min: new Date().getFullYear() - 100,
+					Min: (new Date().getFullYear() - 100) + "-01-01",
 					Max: (new Date().getFullYear() - 16) + "-12-31",
+					DatePickerOptions: {
+						AllowTimes: false
+					}
 				}
 			},
 			{
@@ -314,7 +317,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Address.label"),
 					MinLength: 1,
-					MaxLength: 250,
+					MaxLength: 250
 				}
 			},
 			{

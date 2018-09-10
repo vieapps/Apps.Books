@@ -1,6 +1,5 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { registerLocaleData } from "@angular/common";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -22,7 +21,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		public authSvc: AuthenticationService,
 		public usersSvc: UsersService
 	) {
-		registerLocaleData(this.configSvc.localeData);
 	}
 
 	title = "Register new account";
@@ -39,10 +37,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			fill: "solid"
 		}
 	};
-
-	get locale() {
-		return this.configSvc.locale;
-	}
 
 	ngOnInit() {
 		this.rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
@@ -141,10 +135,12 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Type: "DatePicker",
 				Required: true,
 				Options: {
-					Type: "date",
 					Label: await this.configSvc.getResourceAsync("users.register.controls.BirthDay"),
-					Min: new Date().getFullYear() - 100,
+					Min: (new Date().getFullYear() - 100) + "-01-01",
 					Max: (new Date().getFullYear() - 16) + "-12-31",
+					DatePickerOptions: {
+						AllowTimes: false
+					}
 				}
 			},
 			{

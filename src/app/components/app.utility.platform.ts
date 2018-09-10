@@ -74,6 +74,12 @@ export class PlatformUtility {
 						: "Other";
 	}
 
+	/** Getst the state to determines that is Apple Safari */
+	public static isSafari(userAgent?: string) {
+		userAgent = userAgent || window.navigator.userAgent;
+		return userAgent.indexOf("Macintosh") > 0 && userAgent.indexOf("AppleWebKit") > 0 && userAgent.indexOf("Chrome") < 0 && userAgent.indexOf("Edge") < 0;
+	}
+
 	/** Gets the avatar image */
 	public static getAvatarImage(data?: any, noAvatar?: string) {
 		const avatar: string = AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.Avatar)
