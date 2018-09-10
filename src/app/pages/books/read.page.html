@@ -50,9 +50,8 @@
 	</ion-toolbar>
 </ion-footer>
 
-<ion-content (swipeleft)="onSwipeLeft()" (ionScrollEnd)="onScrollEnd()">
+<ion-content (swipeleft)="onSwipeLeftAsync()" (ionScrollEnd)="onScrollEndAsync()">
 	<div *ngIf="book" [class]="options.color" padding>
-
 		<div *ngIf="chapter === 0" class="cover">
 			<figure [hidden]="book.Cover.indexOf('/no/cover/image.png') > 0">
 				<img [src]="book.Cover" />
@@ -116,13 +115,8 @@
 					{{ book.Source }}
 				</label>
 			</div>
-	
-	
 		</div>
-	
 		<div *ngIf="chapter === 0 && book.Body !== ''" class="body {{options.style}}" [innerHTML]="book.Body"></div>
-	
 		<div *ngIf="chapter > 0" class="body {{options.style}}" [innerHTML]="book.Chapters[chapter - 1]"></div>
-
 	</div>
 </ion-content>

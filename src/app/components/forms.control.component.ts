@@ -56,7 +56,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get visible() {
-		return !this.control.Excluded;
+		return !this.control.Hidden;
 	}
 
 	get invalid() {

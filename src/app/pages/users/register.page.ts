@@ -99,9 +99,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 					Type: "text",
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Name.label"),
 					Description: await this.configSvc.getResourceAsync("users.register.controls.Name.description"),
-					DescriptionOptions: {
-						Css: "--description-label-css"
-					},
 					MinLength: 1,
 					MaxLength: 250
 				}
@@ -185,9 +182,6 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.login.reset.controls.Captcha.label"),
 					Description: await this.configSvc.getResourceAsync("users.login.reset.controls.Captcha.description"),
-					DescriptionOptions: {
-						Css: "--description-label-css"
-					},
 					MinLength: 4,
 					MaxLength: 4
 				}

@@ -115,19 +115,21 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		AppEvents.off("Books", "OpenChapterEventHandlerOfReadBookPage");
 	}
 
-	onScrollEnd() {
-		this.updateBookmarksAsync();
-	}
-
-	onSwipeLeft() {
-		this.goNextAsync();
-	}
-
 	getReadingOptions() {
 		this.options = {
 			color: this.booksSvc.readingOptions.color,
 			style: this.booksSvc.readingOptions.font + " " + this.booksSvc.readingOptions.size + " " + this.booksSvc.readingOptions.paragraph + " " + this.booksSvc.readingOptions.align
 		};
+	}
+
+	async onScrollEndAsync() {
+		const scrollElement = await this.contentCtrl.getScrollElement();
+		this.scrollOffset = scrollElement.scrollTop;
+		await this.booksSvc.updateBookmarksAsync(this.book.ID, this.chapter, this.scrollOffset);
+	}
+
+	async onSwipeLeftAsync() {
+		await this.goNextAsync();
 	}
 
 	async initializeAsync() {
@@ -305,11 +307,6 @@ export class ReadBookPage implements OnInit, OnDestroy {
 				onNext();
 			}
 		});
-	}
-
-	async updateBookmarksAsync() {
-		const scrollElement = await this.contentCtrl.getScrollElement();
-		await this.booksSvc.updateBookmarksAsync(this.book.ID, this.chapter, scrollElement.scrollTop);
 	}
 
 	async deleteAsync() {

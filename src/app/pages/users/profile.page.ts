@@ -261,14 +261,15 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	async openUpdateProfileAsync() {
 		this.update.config = [
 			{
+				Key: "ID",
+				Hidden: true
+			},
+			{
 				Key: "Name",
 				Required: true,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Name.label"),
 					Description: await this.configSvc.getResourceAsync("users.register.controls.Name.description"),
-					DescriptionOptions: {
-						Css: "--description-label-css"
-					},
 					MinLength: 1,
 					MaxLength: 250,
 					AutoFocus: true
@@ -359,17 +360,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Language.label"),
 					Description: await this.configSvc.getResourceAsync("users.register.controls.Language.description"),
-					DescriptionOptions: {
-						Css: "--description-label-css"
-					},
 					SelectOptions: {
 						Values: this.configSvc.languages
 					},
 				}
-			},
-			{
-				Key: "ID",
-				Excluded: true
 			}
 		];
 		const required = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.required);

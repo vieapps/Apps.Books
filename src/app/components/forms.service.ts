@@ -23,7 +23,7 @@ export class AppFormsControl {
 	Key = "";
 	Type = "TextBox";
 	Order = 0;
-	Excluded = false;
+	Hidden = false;
 	Required = false;
 	Validators: Array<ValidatorFn> | Array<string> = undefined;
 	AsyncValidators: Array<AsyncValidatorFn> | Array<string> = undefined;
@@ -166,8 +166,8 @@ export class AppFormsControl {
 		control.Key = options.Key || options.key || (alternativeKey !== undefined ? `${alternativeKey}_${control.Order}` : `c_${control.Order}`);
 		control.Type = options.Type || options.type || "TextBox";
 
-		control.Excluded = !!(options.Excluded || options.excluded);
-		control.Required = !control.Excluded && !!options.Required;
+		control.Hidden = !!(options.Hidden || options.hidden);
+		control.Required = !control.Hidden && !!options.Required;
 
 		control.Validators = options.Validators;
 		control.AsyncValidators = options.AsyncValidators;
@@ -187,7 +187,7 @@ export class AppFormsControl {
 			control.Options.Description = controlOptions.Description || controlOptions.description;
 			const descriptionOptions = controlOptions.DescriptionOptions || controlOptions.descriptionoptions;
 			if (descriptionOptions !== undefined) {
-				control.Options.DescriptionOptions.Css = (descriptionOptions.Css || descriptionOptions.css || "").replace("--description-label-css", "description");
+				control.Options.DescriptionOptions.Css = descriptionOptions.Css || descriptionOptions.css || "description";
 				control.Options.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
 			}
 
@@ -345,7 +345,7 @@ export class AppFormsService {
 
 	private prepareControls(controls: Array<AppFormsControl>, modifyDatePickers?: boolean) {
 		controls.forEach(async (control, index) => {
-			if (!control.Excluded) {
+			if (!control.Hidden) {
 				control.Options.Label = await this.normalizeResourceAsync(control.Options.Label);
 				control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
 				control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
@@ -575,7 +575,7 @@ export class AppFormsService {
 
 	private getNext(control: AppFormsControl) {
 		let next = control !== undefined ? control.next : undefined;
-		while (next !== undefined && next.Excluded) {
+		while (next !== undefined && next.Hidden) {
 			next = next.next;
 		}
 		return next;

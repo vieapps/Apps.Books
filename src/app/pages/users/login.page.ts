@@ -143,7 +143,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.otp.config = [
 			{
 				Key: "ID",
-				Excluded: true
+				Hidden: true
 			},
 			{
 				Key: "Provider",
@@ -166,9 +166,6 @@ export class LogInPage implements OnInit, OnDestroy {
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.label"),
 					Description: "",
-					DescriptionOptions: {
-						Css: "--description-label-css"
-					},
 					MinLength: 5,
 					MaxLength: 10,
 					AutoFocus: true
@@ -239,9 +236,6 @@ export class LogInPage implements OnInit, OnDestroy {
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.login.reset.controls.Captcha.label"),
 					Description: await this.configSvc.getResourceAsync("users.login.reset.controls.Captcha.description"),
-					DescriptionOptions: {
-						Css: "--description-label-css"
-					},
 					MinLength: 4,
 					MaxLength: 4
 				}

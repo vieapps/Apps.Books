@@ -214,7 +214,7 @@ export class BooksService extends BaseService {
 			await super.readAsync(
 				`books/book/${id}?chapter=${chapter}`,
 				data => {
-					this.updateChapter(data, chapter);
+					this.updateChapter(data);
 					this.increaseCounters(id);
 					if (onNext !== undefined) {
 						onNext(data);
@@ -248,17 +248,17 @@ export class BooksService extends BaseService {
 				Header: undefined,
 				Body: undefined,
 				Extra: undefined
-			}, data => this.updateChapter(data, chapter));
+			}, data => this.updateChapter(data));
 		}
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
 	}
 
-	private updateChapter(data: any, chapter?: number) {
+	private updateChapter(data: any) {
 		const book = Book.instances.getValue(data.ID);
 		if (book !== undefined) {
-			book.Chapters[chapter || data.Chapter - 1] = data.Content;
+			book.Chapters[data.Chapter - 1] = data.Content;
 			this.increaseCounters(data.ID, "view");
 		}
 }
@@ -573,16 +573,18 @@ export class BooksService extends BaseService {
 
 	private async storeBookmarksAsync(onCompleted?: () => void) {
 		await this.storage.set("VIEApps-Books-Bookmarks", this.bookmarks.values());
+		AppEvents.broadcast("Books", { Type: "BookmarksUpdated", Data: this.bookmarks });
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
 	}
 
-	public async updateBookmarksAsync(id: string, chapter: number, offset: number, onCompleted?: () => void) {
-		const bookmark = new Bookmark();
+	public async updateBookmarksAsync(id: string, chapter: number, position: number, onCompleted?: () => void) {
+		const bookmark = this.bookmarks.getValue(id) || new Bookmark();
 		bookmark.ID = id;
 		bookmark.Chapter = chapter;
-		bookmark.Position = offset;
+		bookmark.Position = position;
+		bookmark.Time = new Date();
 		this.bookmarks.setValue(bookmark.ID, bookmark);
 		await this.storeBookmarksAsync(onCompleted);
 	}
@@ -654,7 +656,6 @@ export class BooksService extends BaseService {
 			}, 456 + (index * 10));
 		});
 
-		AppEvents.broadcast("Books", { Type: "BookmarksUpdated", Data: this.bookmarks });
 		await this.storeBookmarksAsync(onCompleted);
 	}
 

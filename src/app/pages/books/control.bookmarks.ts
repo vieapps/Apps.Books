@@ -51,12 +51,19 @@ export class BookmarksControl implements OnInit, OnDestroy {
 				this.profile = this.configSvc.getAccount().profile;
 				this.prepareBookmarks();
 			}
-		}, "EventHandlerOfBookmarksControl");
+		}, "SessionEventHandlerOfBookmarksControl");
+
+		AppEvents.on("Books", async info => {
+			if ("BookmarksUpdated" === info.args.Type) {
+				this.prepareBookmarks();
+			}
+		}, "BookmarksUpdatedEventHandlerOfBookmarksControl");
 	}
 
 	ngOnDestroy() {
-		AppEvents.off("Session", "EventHandlerOfBookmarksControl");
 		AppEvents.off("App", "LanguageChangedEventHandlerOfBookmarksControl");
+		AppEvents.off("Session", "SessionEventHandlerOfBookmarksControl");
+		AppEvents.off("Books", "BookmarksUpdatedEventHandlerOfBookmarksControl");
 	}
 
 	async prepareResourcesAsync() {
