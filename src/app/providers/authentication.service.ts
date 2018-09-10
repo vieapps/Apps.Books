@@ -154,7 +154,7 @@ export class AuthenticationService extends BaseService {
 
 	public async resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`users/account/reset?${this.configSvc.relatedQuery}&uri=${PlatformUtility.activateURIEncoded}`,
+			`users/account/reset?${this.configSvc.relatedQuery}&uri=${this.configSvc.activateURI}`,
 			{
 				Email: AppCrypto.rsaEncrypt(email)
 			},

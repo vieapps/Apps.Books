@@ -165,16 +165,6 @@ export class PlatformUtility {
 		return url + AppConfig.url.home.substr(1, AppConfig.url.home.length - 1) + "?" + (AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path);
 	}
 
-	/** Gets the URI for activating */
-	public static get activateURI() {
-		return this.getRedirectURI("prego=activate&mode={mode}&code={code}", false);
-	}
-
-	/** Gets the encoded URI for activating */
-	public static get activateURIEncoded() {
-		return AppCrypto.urlEncode(this.activateURI);
-	}
-
 	/** Gets the host name from an uri */
 	public static getHost(uri?: string) {
 		let host = this.parseURI(uri).host;

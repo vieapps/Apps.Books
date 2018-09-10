@@ -144,6 +144,11 @@ export class ConfigurationService extends BaseService {
 		return this.getUrl(this.getPreviousUrl());
 	}
 
+	/** Gets the URI for activating new account/password */
+	public get activateURI() {
+		return AppCrypto.urlEncode(PlatformUtility.getRedirectURI("prego=activate&mode={mode}&code={code}", false));
+	}
+
 	/** Gets the current version of the app title */
 	public get appVersion() {
 		return this.appConfig.app.version;

@@ -187,7 +187,7 @@ export class AppComponent implements OnInit {
 	}
 
 	private async updateSidebarAsync(info: any = {}) {
-		const index = info.index || 0;
+		const index = info.index !== undefined ? info.index : 0;
 		while (this.sidebar.left.menu.length < index + 1) {
 			this.sidebar.left.menu.push({
 				title: undefined,
@@ -224,23 +224,21 @@ export class AppComponent implements OnInit {
 			this.sidebar.left.menu[index].thumbnail = info.thumbnail;
 		}
 
-		if (AppUtility.isArray(info.items, true)) {
-			(info.items as Array<any>)
-				.map(item => {
-					return {
-						title: item.title,
-						url: item.url,
-						queryParams: item.queryParams,
-						direction: item.direction,
-						icon: item.icon,
-						thumbnail: item.thumbnail,
-						detail: item.detail,
-						onClick: item.onClick
-					};
-				})
-				.filter(item => AppUtility.isNotEmpty(item.title) && AppUtility.isNotEmpty(item.url))
-				.forEach(item => this.updateSidebarItem(index, -1, item));
-		}
+		(info.items as Array<any> || [])
+			.map(item => {
+				return {
+					title: item.title,
+					url: item.url,
+					queryParams: item.queryParams,
+					direction: item.direction,
+					icon: item.icon,
+					thumbnail: item.thumbnail,
+					detail: item.detail,
+					onClick: item.onClick
+				};
+			})
+			.filter(item => AppUtility.isNotEmpty(item.title) && AppUtility.isNotEmpty(item.url))
+			.forEach(item => this.updateSidebarItem(index, -1, item));
 	}
 
 	private async normalizeSidebarMenuAsync() {
@@ -291,7 +289,7 @@ export class AppComponent implements OnInit {
 		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
-		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.title) ? info.args.title : this.sidebar.left.title);
+		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title);
 
 		AppEvents.on("Session", async info => {
 			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
@@ -358,7 +356,7 @@ export class AppComponent implements OnInit {
 		const message = "OK" === data.Status
 			? await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.messages.success.account" : "users.activate.messages.success.password")
 			: await this.configSvc.getResourceAsync("users.activate.messages.error.general", { error: (data.Error ? ` (${data.Error.Message})` : "") });
-		await this.appFormsSvc.showAlertAsync(header, subHeader, message, () => this.router.navigateByUrl("/home"));
+		await this.appFormsSvc.showAlertAsync(header, subHeader, message, async () => await this.router.navigateByUrl(this.configSvc.appConfig.url.home));
 	}
 
 	private async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
