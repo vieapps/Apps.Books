@@ -76,6 +76,7 @@ export class AppComponent implements OnInit {
 		this.configSvc.addUrl("/home", {});
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
+				this.configSvc.appConfig.url.routerParams = this.router.routerState.snapshot.root.params;
 				this.configSvc.addUrl((event as NavigationEnd).url, this.router.routerState.snapshot.root.queryParams);
 			}
 		});
@@ -116,7 +117,7 @@ export class AppComponent implements OnInit {
 	}
 
 	trackSidebarItem(index: number, item: any) {
-		return item.title;
+		return `${item.title}@${index}`;
 	}
 
 	private async getSidebarItemsAsync() {
@@ -273,16 +274,16 @@ export class AppComponent implements OnInit {
 	}
 
 	private setupEventHandlers() {
-		AppEvents.on("Navigate", info => {
+		AppEvents.on("Navigate", async info => {
 			switch ((info.args.direction || "forward").toLowerCase()) {
 				case "back":
-					this.navController.navigateBack(info.args.url || this.configSvc.previousUrl, true, info.args.extras);
+					await this.navController.navigateBack(info.args.url || this.configSvc.previousUrl, true, info.args.extras);
 					break;
 				case "forward":
-					this.navController.navigateForward(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
+					await this.navController.navigateForward(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
 					break;
 				default:
-					this.navController.navigateRoot(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
+					await this.navController.navigateRoot(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
 					break;
 				}
 		});
@@ -313,7 +314,9 @@ export class AppComponent implements OnInit {
 		const mode = this.configSvc.queryParams["mode"];
 		const code = this.configSvc.queryParams["code"];
 		if (AppUtility.isNotEmpty(mode) && AppUtility.isNotEmpty(code)) {
-			await this.usersSvc.activateAsync(mode, code,
+			await this.usersSvc.activateAsync(
+				mode,
+				code,
 				async () => {
 					await this.initializeAsync(async () => {
 						await Promise.all([

@@ -226,11 +226,11 @@ export class AppRTU {
 			if ("Error" === json.Type) {
 				if (AppUtility.isGotSecurityException(json.Data)) {
 					console.warn(`[RTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
-					stop();
+					this.stop();
 				}
 				else if (AppUtility.isObject(json.Data, true) && "InvalidRequestException" === json.Data.Type) {
 					console.warn(`[RTU]: Got an invalid requesting data: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
-					stop();
+					this.stop();
 				}
 				else {
 					console.warn(`[RTU]: Got an error: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
@@ -307,7 +307,6 @@ export class AppRTU {
 	public static restart(reason?: string, defer?: number) {
 		this._status = "restarting";
 		console.warn(`[RTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
-
 		PlatformUtility.setTimeout(() => {
 			console.log("[RTU]: Re-starting...");
 			if (this._websocket !== undefined) {
@@ -326,7 +325,6 @@ export class AppRTU {
 			this._websocket.close();
 			this._websocket = undefined;
 		}
-
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
@@ -346,6 +344,9 @@ export class AppRTU {
 					delete request.Query["object-identity"];
 				}
 				query += "&" + AppUtility.getQueryOfJson(request.Query);
+			}
+			if (AppUtility.isObject(request.Extra, true)) {
+				query += "&extras=" + AppUtility.toBase64Url(request.Extra);
 			}
 			AppAPI.send(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body)
 				.toPromise()

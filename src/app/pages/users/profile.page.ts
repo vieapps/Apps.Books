@@ -14,7 +14,7 @@ import { Privilege } from "./../../models/privileges";
 import { AccountAvatarPage } from "./avatar.page";
 
 @Component({
-	selector: "page-account-profile",
+	selector: "page-user-profile",
 	templateUrl: "./profile.page.html",
 	styleUrls: ["./profile.page.scss"]
 })
@@ -141,7 +141,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	onFormInitialized($event) {
 		if (this.update.config === $event.config) {
 			this.update.form.patchValue(this.profile);
-			this.update.hash = AppCrypto.md5(JSON.stringify(this.update.value || {}));
+			this.update.hash = AppCrypto.hash(this.update.value);
 		}
 		else {
 			Object.keys(($event.form as FormGroup).controls).forEach(key => ($event.form as FormGroup).controls[key].setValue(""));
@@ -386,7 +386,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		if (this.update.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.update.form);
 		}
-		else if (this.update.hash === AppCrypto.md5(JSON.stringify(this.update.value || {}))) {
+		else if (this.update.hash === AppCrypto.hash(this.update.value)) {
 			await this.openProfileAsync();
 		}
 		else {

@@ -34,9 +34,14 @@ export class AppCrypto {
 		return result;
 	}
 
-	/** Hashs the string to MD5 */
+	/** Gets MD5 hash of the string */
 	public static md5(text: string): string {
 		return CryptoJS.MD5(text).toString() as string;
+	}
+
+	/** Gets MD5 hash of the object */
+	public static hash(obj: any) {
+		return this.md5(JSON.stringify(obj || {}));
 	}
 
 	/** Signs the string with the specified key using HMAC SHA256 */

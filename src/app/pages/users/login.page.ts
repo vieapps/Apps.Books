@@ -8,7 +8,7 @@ import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 
 @Component({
-	selector: "page-login",
+	selector: "page-user-login",
 	templateUrl: "./login.page.html",
 	styleUrls: ["./login.page.scss"]
 })
@@ -130,7 +130,7 @@ export class LogInPage implements OnInit, OnDestroy {
 						this.openLoginOTPAsync(data);
 					}
 					else {
-						this.configSvc.navigateBack();
+						this.close();
 					}
 				})
 			]),
@@ -208,7 +208,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				this.otp.value.Provider,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "/users/otp"),
-					this.appFormsSvc.hideLoadingAsync(() => this.configSvc.navigateBack())
+					this.appFormsSvc.hideLoadingAsync(() => this.close())
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
 					const control = this.otp.controls.find(c => c.Key === "OTP");
@@ -274,7 +274,7 @@ export class LogInPage implements OnInit, OnDestroy {
 					await this.configSvc.getResourceAsync("users.login.reset.title"),
 					undefined,
 					await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.value.Email }),
-					() => this.configSvc.navigateBack()
+					() => this.close()
 				)
 			]),
 			async error => await Promise.all([
@@ -297,6 +297,15 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	onRefreshCaptcha($event) {
 		this.refreshCaptchaAsync($event as AppFormsControl);
+	}
+
+	close() {
+		if (this.configSvc.previousUrl.startsWith("/users")) {
+			this.configSvc.navigateHome();
+		}
+		else {
+			this.configSvc.navigateBack();
+		}
 	}
 
 }

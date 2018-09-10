@@ -39,11 +39,11 @@ export class AppPagination {
 		const pagination = AppUtility.isNotEmpty(key) ? this.instances.getValue(key) : undefined;
 		return pagination !== undefined
 			? {
-				TotalRecords: pagination.TotalRecords,
-				TotalPages: pagination.TotalPages,
-				PageSize: pagination.PageSize,
-				PageNumber: pagination.PageNumber
-			}
+					TotalRecords: pagination.TotalRecords,
+					TotalPages: pagination.TotalPages,
+					PageSize: pagination.PageSize,
+					PageNumber: pagination.PageNumber
+				}
 			: undefined;
 	}
 

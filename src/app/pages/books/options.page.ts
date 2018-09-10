@@ -8,7 +8,7 @@ import { ConfigurationService } from "../../providers/configuration.service";
 import { BooksService } from "../../providers/books.service";
 
 @Component({
-	selector: "page-book-reading-options",
+	selector: "page-book-options",
 	templateUrl: "./options.page.html",
 	styleUrls: ["./options.page.scss"]
 })
@@ -66,11 +66,11 @@ export class BookReadingOptionsPage implements OnInit, OnDestroy {
 
 	onFormInitialized($event) {
 		this.form.patchValue(this.booksSvc.readingOptions);
-		this.hash = AppCrypto.md5(JSON.stringify(this.form.value || {}));
+		this.hash = AppCrypto.hash(this.form.value);
 	}
 
 	async closeAsync() {
-		if (this.hash !== AppCrypto.md5(JSON.stringify(this.form.value || {}))) {
+		if (this.hash !== AppCrypto.hash(this.form.value)) {
 			Object.keys(this.options).forEach(key => this.booksSvc.readingOptions[key] = this.options[key]);
 			await this.configSvc.storeOptionsAsync();
 		}

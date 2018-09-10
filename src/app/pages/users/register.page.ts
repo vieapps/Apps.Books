@@ -9,7 +9,7 @@ import { AuthenticationService } from "../../providers/authentication.service";
 import { UsersService } from "../../providers/users.service";
 
 @Component({
-	selector: "page-register",
+	selector: "page-user-register",
 	templateUrl: "./register.page.html",
 	styleUrls: ["./register.page.scss"]
 })
@@ -227,7 +227,14 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 					await this.configSvc.getResourceAsync("users.register.alert.header"),
 					undefined,
 					await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.value.Email }),
-					() => this.configSvc.navigateBack()
+					() => {
+						if (this.configSvc.previousUrl.startsWith("/users")) {
+							this.configSvc.navigateHome();
+						}
+						else {
+							this.configSvc.navigateBack();
+						}
+					}
 				)
 			]),
 			async error => await Promise.all([

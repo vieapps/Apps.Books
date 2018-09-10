@@ -10,7 +10,7 @@ import { FilesService } from "../../providers/files.service";
 import { UserProfile } from "../../models/user";
 
 @Component({
-	selector: "page-account-avatar",
+	selector: "page-user-avatar",
 	templateUrl: "./avatar.page.html",
 	styleUrls: ["./avatar.page.scss"]
 })

@@ -30,12 +30,12 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		authors: "Authors: ",
 		books: "Articles & Books: "
 	};
-	books = new Array<Book>();
+	books: Array<Book>;
 
 	@Input() changes: any;
 
 	get status() {
-		return this.booksSvc.status;
+		return this.configSvc.isReady ? this.booksSvc.status : undefined;
 	}
 
 	get locale() {
@@ -57,12 +57,15 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
 				await this.prepareResourcesAsync();
+				this.updateIntroduction();
 			}
 		}, "LanguageChangedEventHandlerOfBookHomeScreen");
 	}
 
 	ngOnChanges() {
-		this.updateBooks();
+		if (this.configSvc.isReady) {
+			this.updateBooks();
+		}
 	}
 
 	ngOnDestroy() {
@@ -81,32 +84,31 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
 	async initializeAsync() {
 		await this.prepareResourcesAsync();
-
-		if (this.booksSvc.introductions === undefined) {
-			this.booksSvc.fetchIntroductionsAsync(() => {
+		if (this.booksSvc.introductions === undefined || this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
+			await this.booksSvc.fetchIntroductionsAsync(() => {
 				this.updateBooks();
 				this.updateIntroduction();
 			});
-		}
-
-		if (this.books.length > 0) {
-			this.updateBooks();
-			this.updateIntroduction();
 		}
 		else {
-			this.booksSvc.searchAsync({ FilterBy: {}, SortBy: {} }, () => {
-				this.updateBooks();
-				this.updateIntroduction();
-			});
+			this.updateBooks();
+			this.updateIntroduction();
 		}
 	}
 
 	updateIntroduction() {
-		this.introduction = this.booksSvc.introductions.introduction;
+		this.introduction = (this.booksSvc.introductions[this.configSvc.appConfig.language] || {}).introduction;
 	}
 
 	updateBooks() {
-		this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(o => o.LastUpdated).Take(40).ToArray(), 12);
+		if (this.books === undefined) {
+			this.booksSvc.searchAsync({ FilterBy: {}, SortBy: {} }, () => {
+				this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(o => o.LastUpdated).Take(40).ToArray(), 12);
+			});
+		}
+		else {
+			this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(o => o.LastUpdated).Take(40).ToArray(), 12);
+		}
 	}
 
 	trackBook(index: number, book: Book) {

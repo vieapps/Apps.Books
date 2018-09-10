@@ -159,6 +159,11 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.getRelatedQuery();
 	}
 
+	/** Gets the router params of the current page/view */
+	public get routerParams() {
+		return this.appConfig.url.routerParams;
+	}
+
 	/** Gets the query params of the current page/view */
 	public get queryParams() {
 		const current = this.getCurrentUrl();

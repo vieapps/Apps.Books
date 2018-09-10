@@ -16,7 +16,7 @@ import { Book } from "../../models/book";
 import { RatingPoint } from "../../models/ratingpoint";
 
 @Component({
-	selector: "page-list-books",
+	selector: "page-books-list",
 	templateUrl: "./list.page.html",
 	styleUrls: ["./list.page.scss"]
 })

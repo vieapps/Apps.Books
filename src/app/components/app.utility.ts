@@ -556,4 +556,5 @@ export class AppUtility {
 
 		return result.trim();
 	}
+
 }

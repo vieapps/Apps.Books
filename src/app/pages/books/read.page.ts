@@ -1,4 +1,5 @@
 import * as Rx from "rxjs";
+import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
@@ -13,7 +14,7 @@ import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
 
 @Component({
-	selector: "page-read-book",
+	selector: "page-book-read",
 	templateUrl: "./read.page.html",
 	styleUrls: ["./read.page.scss"]
 })
@@ -257,7 +258,11 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async goPreviousAsync() {
 		if (this.book.TotalChapters < 2) {
-			console.log("Go Previous Book");
+			const books = new List(Book.instances.values()).Where(book => book.Category === this.book.Category).ToArray();
+			const index = books.findIndex(book => book.ID === this.book.ID);
+			if (index > 0) {
+				this.configSvc.navigateForward(books[index - 1].routerURI);
+			}
 		}
 		else if (this.chapter > 0) {
 			this.chapter--;
@@ -268,7 +273,11 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async goNextAsync() {
 		if (this.book.TotalChapters < 2) {
-			console.log("Go Next Book");
+			const books = new List(Book.instances.values()).Where(book => book.Category === this.book.Category).ToArray();
+			const index = books.findIndex(book => book.ID === this.book.ID);
+			if (index > -1 && index < books.length - 2) {
+				this.configSvc.navigateForward(books[index + 1].routerURI);
+			}
 		}
 		else if (this.chapter < this.book.TotalChapters) {
 			this.chapter++;

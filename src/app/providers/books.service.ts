@@ -77,7 +77,10 @@ export class BooksService extends BaseService {
 
 		AppEvents.on("Books", async info => {
 			if ("OpenBook" === info.args.Type) {
-				await this.updateReadingAsync(info.args.ID, info.args.Chapter);
+				const book = Book.instances.getValue(info.args.ID);
+				if (book !== undefined && book.TotalChapters > 1) {
+					await this.updateReadingAsync(book, info.args.Chapter || 1);
+				}
 			}
 		});
 	}
@@ -390,7 +393,8 @@ export class BooksService extends BaseService {
 	}
 
 	public get introductions() {
-		return this.configSvc.appConfig.extras["Books-Introductions"] as { [key: string]: string };
+		this.configSvc.appConfig.extras["Books-Introductions"] = this.configSvc.appConfig.extras["Books-Introductions"] || {};
+		return this.configSvc.appConfig.extras["Books-Introductions"] as { [key: string]: { [key: string]: string } };
 	}
 
 	private async loadIntroductionsAsync(onCompleted?: () => void) {
@@ -413,12 +417,17 @@ export class BooksService extends BaseService {
 
 	public async fetchIntroductionsAsync(onCompleted?: () => void) {
 		await super.readAsync(
-			"statics/services/books.json",
+			`statics/services/${this.Name.toLowerCase()}/${this.configSvc.appConfig.language}.json`,
 			async data => {
-				this.configSvc.appConfig.extras["Books-Introductions"] = data;
+				this.configSvc.appConfig.extras["Books-Introductions"][this.configSvc.appConfig.language] = data;
 				await this.storeIntroductionsAsync(onCompleted);
 			},
-			error => this.showError("Error occurred while reading introductions", error)
+			error => {
+				this.showError("Error occurred while reading introductions", error);
+				if (onCompleted !== undefined) {
+					onCompleted();
+				}
+			}
 		);
 	}
 
@@ -714,10 +723,9 @@ export class BooksService extends BaseService {
 		};
 	}
 
-	private async updateReadingAsync(id: string, chapter: number) {
-		const book = Book.instances.getValue(id);
-		if (id !== this._reading.ID) {
-			this._reading.ID = id;
+	private async updateReadingAsync(book: Book, chapter: number) {
+		if (book.ID !== this._reading.ID) {
+			this._reading.ID = book.ID;
 			this._reading.Chapter.Previous = undefined;
 			this._reading.Chapter.Current = chapter - 1;
 			AppEvents.broadcast("UpdateSidebar", {

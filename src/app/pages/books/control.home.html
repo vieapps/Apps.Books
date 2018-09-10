@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="books">
 	<h1>
 		{{ latest }}
 	</h1>
@@ -14,7 +14,7 @@
 	</ion-grid>
 </div>
 <section [innerHtml]="introduction"></section>
-<section>
+<section *ngIf="status">
 	<h1>
 		{{ statistics.label }}
 	</h1>
