@@ -10,6 +10,14 @@
 @import "~@ionic/angular/css/text-transformation.css";
 @import "~@ionic/angular/css/flex-utils.css";
 
+/* allow select text */
+ion-content {
+	-webkit-user-select: auto !important;
+	-moz-user-select: auto !important;
+	-ms-user-select: auto !important;
+	user-select: auto !important;
+}
+
 /* side menu */
 @media only screen and (min-width: 1280px) {
 	.split-pane.split-pane-visible ion-menu.split-pane-side {

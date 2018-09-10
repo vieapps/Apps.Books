@@ -48,8 +48,8 @@ export class AppConfig {
 	/** User account registrations */
 	public static accountRegistrations = {
 		registrable: true,
-		excluded: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
 		required: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
+		hidden: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
 		sendInvitationRole: "All",
 		setPrivilegsRole: "ServiceAdministrator"
 	};

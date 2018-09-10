@@ -188,14 +188,14 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 			}
 		];
 
-		const excluded = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.excluded);
+		const hidden = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.hidden);
 		const required = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.required);
 		this.register.config.forEach(options => {
-			if (excluded[options.Key]) {
-				options.Excluded = true;
+			if (hidden[options.Key]) {
+				options.Hidden = true;
 				options.Required = false;
 			}
-			if (required[options.Key] && !options.Excluded) {
+			if (required[options.Key] && !options.Hidden) {
 				options.Required = true;
 			}
 		});

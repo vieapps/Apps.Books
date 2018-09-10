@@ -131,7 +131,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		this.rxSubscriptions.push(this.email.form.valueChanges.subscribe(value => this.email.value = value));
 		this.rxSubscriptions.push(this.privileges.form.valueChanges.subscribe(value => this.privileges.value = value));
 		this.rxSubscriptions.push(this.invitation.form.valueChanges.subscribe(value => this.invitation.value = value));
-		this.openProfileAsync();
+		this.showProfileAsync();
 	}
 
 	ngOnDestroy() {
@@ -158,7 +158,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	}
 
 	async prepareButtonsAsync() {
-		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), icon: undefined, handler: async () => await this.openProfileAsync() };
+		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), icon: undefined, handler: async () => await this.showProfileAsync() };
 		this.buttons.ok = { text: await this.configSvc.getResourceAsync("common.buttons.update"), icon: undefined, handler: undefined };
 
 		if (this.mode === "update") {
@@ -166,7 +166,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				await this.configSvc.getResourceAsync("users.profile.update.messages.alert"),
 				undefined,
 				await this.configSvc.getResourceAsync("users.profile.update.messages.confirm"),
-				async () => await this.openProfileAsync(),
+				async () => await this.showProfileAsync(),
 				await this.configSvc.getResourceAsync("common.buttons.ok"),
 				await this.configSvc.getResourceAsync("common.buttons.cancel")
 			);
@@ -183,7 +183,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		else if (this.mode === "otp") {
 			this.buttons.cancel = undefined;
 			this.buttons.ok.text = await this.configSvc.getResourceAsync("common.buttons.done");
-			this.buttons.ok.handler = async () => await this.openProfileAsync();
+			this.buttons.ok.handler = async () => await this.showProfileAsync();
 		}
 		else if (this.mode === "privileges") {
 			this.buttons.ok.handler = async () => await this.updatePrivilegesAsync();
@@ -237,7 +237,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
-	async openProfileAsync(onNext?: () => void) {
+	async showProfileAsync(onNext?: () => void) {
 		this.id = this.configSvc.requestParams["ID"];
 		if (this.profile === undefined && this.id !== undefined && !UserProfile.instances.containsKey(this.id)) {
 			await this.appFormsSvc.showLoadingAsync();
@@ -315,6 +315,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Address",
+				Required: true,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Address.label"),
 					MinLength: 1,
@@ -324,6 +325,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			{
 				Key: "Addresses",
 				Type: "Completer",
+				Required: true,
 				Options: {
 					Type: "Address",
 					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
@@ -368,7 +370,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		];
 		const required = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.required);
 		this.update.config.forEach(options => {
-			if (required[options.Key] && !options.Excluded) {
+			if (required[options.Key] && !options.Hidden) {
 				options.Required = true;
 			}
 		});
@@ -381,7 +383,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			this.appFormsSvc.highlightInvalids(this.update.form);
 		}
 		else if (this.update.hash === AppCrypto.hash(this.update.value)) {
-			await this.openProfileAsync();
+			await this.showProfileAsync();
 		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
@@ -402,7 +404,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 					}
 					await Promise.all([
 						TrackingUtility.trackAsync(this.title, "users/update/profile"),
-						this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.update.messages.success")))
+						this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.update.messages.success")))
 					]);
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error)
@@ -459,7 +461,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				this.password.value.Password,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/update/password"),
-					this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.password.message")))
+					this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.password.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
@@ -515,7 +517,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				this.email.value.Email,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/update/email"),
-					this.openProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.email.message")))
+					this.showProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.email.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
@@ -650,7 +652,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				relatedInfo,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/invitation"),
-					this.openProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.invitation.message")))
+					this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.invitation.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);

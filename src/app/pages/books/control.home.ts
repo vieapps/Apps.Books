@@ -57,7 +57,12 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
 				await this.prepareResourcesAsync();
-				this.updateIntroduction();
+				if (this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
+					await this.booksSvc.fetchIntroductionsAsync(() => this.updateIntroduction());
+				}
+				else {
+					this.updateIntroduction();
+				}
 			}
 		}, "LanguageChangedEventHandlerOfBookHomeScreen");
 	}

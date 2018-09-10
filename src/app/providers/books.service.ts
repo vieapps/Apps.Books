@@ -386,8 +386,13 @@ export class BooksService extends BaseService {
 				AppEvents.broadcast("Books", { Type: "Deleted", Data: message.Data });
 				break;
 			default:
-				Book.update(message.Data);
-				AppEvents.broadcast("Books", { Type: "Updated", Data: message.Data });
+				if (AppUtility.isNotEmpty(message.Data.ID)) {
+					Book.update(message.Data);
+					AppEvents.broadcast("Books", { Type: "Updated", Data: message.Data });
+				}
+				else if (this.configSvc.isDebug) {
+					console.warn(this.getLogMessage("Got an update"), message);
+				}
 				break;
 		}
 	}

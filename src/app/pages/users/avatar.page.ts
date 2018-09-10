@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { registerLocaleData } from "@angular/common";
 import { ImageCropperComponent, CropperSettings } from "ng2-img-cropper";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -22,7 +21,6 @@ export class AccountAvatarPage implements OnInit {
 		public filesSvc: FilesService,
 		public usersSvc: UsersService
 	) {
-		registerLocaleData(this.configSvc.localeData);
 	}
 
 	title = "Avatar";
@@ -44,10 +42,6 @@ export class AccountAvatarPage implements OnInit {
 	};
 	processing = false;
 	@ViewChild("imgcropper") cropperComponent: ImageCropperComponent;
-
-	get locale() {
-		return this.configSvc.locale;
-	}
 
 	get imageUri() {
 		return this.mode === "Gravatar" ? this.profile.Gravatar : this.cropper.data.image;
