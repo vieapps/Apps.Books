@@ -198,8 +198,7 @@ export class AppComponent implements OnInit {
 			});
 		}
 
-		const reset = info.reset !== undefined ? info.reset as boolean : true;
-		if (reset) {
+		if (info.reset !== undefined ? info.reset as boolean : true) {
 			this.sidebar.left.menu[index].items = [];
 		}
 
@@ -242,8 +241,8 @@ export class AppComponent implements OnInit {
 	}
 
 	private async normalizeSidebarMenuAsync() {
-		const items = this.sidebar.left.menu[0].items;
 		const sidebarItems = await this.getSidebarItemsAsync();
+		const items = this.sidebar.left.menu[0].items;
 		if (this.configSvc.isAuthenticated) {
 			AppUtility.removeAt(items, items.findIndex(item => item.url.startsWith(sidebarItems.register.url)));
 			const index = items.findIndex(item => item.url.startsWith(sidebarItems.login.url));
@@ -294,8 +293,8 @@ export class AppComponent implements OnInit {
 		AppEvents.on("Session", async info => {
 			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
 				const profile = this.configSvc.getAccount().profile;
-				this.sidebar.left.title = profile ? profile.Name : this.configSvc.appConfig.app.name;
-				this.sidebar.left.avatar = profile ? profile.avatarURI : undefined;
+				this.sidebar.left.title = profile !== undefined ? profile.Name : this.configSvc.appConfig.app.name;
+				this.sidebar.left.avatar = profile !== undefined ? profile.avatarURI : undefined;
 				await this.normalizeSidebarMenuAsync();
 			}
 		});
@@ -359,26 +358,26 @@ export class AppComponent implements OnInit {
 		await this.appFormsSvc.showAlertAsync(header, subHeader, message, async () => await this.router.navigateByUrl(this.configSvc.appConfig.url.home));
 	}
 
-	private async initializeAsync(onCompleted?: () => void, noInitializeSession?: boolean) {
+	private async initializeAsync(onNext?: () => void, noInitializeSession?: boolean) {
 		await this.configSvc.initializeAsync(
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-					this.startRTU(onCompleted);
+					this.startRTU(onNext);
 				}
 				else {
 					console.log("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 					await this.configSvc.registerSessionAsync(
 						() => {
 							console.log("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-							this.startRTU(onCompleted);
+							this.startRTU(onNext);
 						},
 						async error => {
 							if (AppUtility.isGotSecurityException(error)) {
 								console.warn("<AppComponent>: Cannot register, the session is need to be re-initialized (anonymous)");
 								await this.configSvc.resetSessionAsync(() => {
 									PlatformUtility.setTimeout(async () => {
-										await this.initializeAsync(onCompleted, noInitializeSession);
+										await this.initializeAsync(onNext, noInitializeSession);
 									}, 234);
 								});
 							}
@@ -395,7 +394,7 @@ export class AppComponent implements OnInit {
 					console.warn("<AppComponent>: Cannot initialize, the session is need to be re-initialized (anonymous)");
 					await this.configSvc.resetSessionAsync(() => {
 						PlatformUtility.setTimeout(async () => {
-							await this.initializeAsync(onCompleted, noInitializeSession);
+							await this.initializeAsync(onNext, noInitializeSession);
 						}, 234);
 					});
 				}
@@ -408,7 +407,7 @@ export class AppComponent implements OnInit {
 		);
 	}
 
-	private startRTU(onCompleted?: () => void) {
+	private startRTU(onNext?: () => void) {
 		AppRTU.start(() => {
 			if (this.configSvc.isWebApp) {
 				PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());
@@ -419,16 +418,16 @@ export class AppComponent implements OnInit {
 			console.log("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
 			AppEvents.broadcast("App", { Type: "Initialized", Data: this.configSvc.appConfig.app });
 			this.appFormsSvc.hideLoadingAsync(() => {
-				if (onCompleted !== undefined) {
-					onCompleted();
+				if (onNext !== undefined) {
+					onNext();
 				}
 				else {
-					let redirect = this.configSvc.queryParams["redirect"] || this.configSvc.appConfig.url.redirectToWhenReady;
+					let redirect = this.configSvc.queryParams["redirect"] as string || this.configSvc.appConfig.url.redirectToWhenReady;
 					if (redirect !== undefined) {
 						this.configSvc.appConfig.url.redirectToWhenReady = undefined;
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
-							console.log(`<AppComponent>: Redirect to the request url\n[${redirect}]`);
+							console.log(`<AppComponent>: Redirect to the request url\n=>: ${redirect}`);
 							this.configSvc.navigateForward(redirect);
 						}
 						catch (error) {

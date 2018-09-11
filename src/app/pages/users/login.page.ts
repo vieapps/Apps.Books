@@ -1,6 +1,5 @@
 import * as Rx from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { registerLocaleData } from "@angular/common";
 import { FormGroup } from "@angular/forms";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
@@ -19,7 +18,6 @@ export class LogInPage implements OnInit, OnDestroy {
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService
 	) {
-		registerLocaleData(this.configSvc.localeData);
 	}
 
 	title = "Login";
@@ -62,10 +60,6 @@ export class LogInPage implements OnInit, OnDestroy {
 			fill: "clear"
 		}
 	};
-
-	get locale() {
-		return this.configSvc.locale;
-	}
 
 	ngOnInit() {
 		this.rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));

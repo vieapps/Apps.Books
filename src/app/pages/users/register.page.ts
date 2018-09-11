@@ -158,11 +158,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 					Type: "Address",
 					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
 					MinLength: 2,
-					MaxLength: 250,
-					CompleterOptions: {
-						SearchingText: await this.configSvc.getResourceAsync("common.messages.completer.searching"),
-						NoResultsText: await this.configSvc.getResourceAsync("common.messages.completer.noresults")
-					}
+					MaxLength: 250
 				}
 			},
 			{

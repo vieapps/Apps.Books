@@ -1,5 +1,6 @@
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
+import { List as IonicList } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { BooksService } from "../../providers/books.service";
@@ -19,8 +20,8 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	) {
 	}
 
-	profile = new UserProfile();
 	bookmarks = new Array<Bookmark>();
+	profile: UserProfile;
 	resources = {
 		header: "Readings",
 		footer: "Sync time:",
@@ -31,6 +32,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 			delete: "Delete"
 		}
 	};
+	@ViewChild("list") list: IonicList;
 
 	ngOnInit() {
 		this.prepareResourcesAsync();
@@ -46,14 +48,14 @@ export class BookmarksControl implements OnInit, OnDestroy {
 			}
 		}, "LanguageChangedEventHandlerOfBookmarksControl");
 
-		AppEvents.on("Session", async info => {
+		AppEvents.on("Session", info => {
 			if ("Updated" === info.args.Type && this.configSvc.isAuthenticated) {
 				this.profile = this.configSvc.getAccount().profile;
 				this.prepareBookmarks();
 			}
 		}, "SessionEventHandlerOfBookmarksControl");
 
-		AppEvents.on("Books", async info => {
+		AppEvents.on("Books", info => {
 			if ("BookmarksUpdated" === info.args.Type) {
 				this.prepareBookmarks();
 			}
@@ -102,10 +104,14 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	open(bookmark: Bookmark) {
-		this.configSvc.navigateForward(Book.instances.getValue(bookmark.ID).routerURI);
+		const book = Book.instances.getValue(bookmark.ID);
+		if (book !== undefined) {
+			this.configSvc.navigateForward(book.routerURI);
+		}
 	}
 
-	delete(bookmark: Bookmark) {
+	async deleteAsync(bookmark: Bookmark) {
+		await this.list.closeSlidingItems();
 		this.booksSvc.deleteBookmark(bookmark.ID, () => this.prepareBookmarks());
 	}
 

@@ -669,13 +669,13 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Gets the resource (of the current language) by a key */
-	public async getResourceAsync(key: string, interpolateParams?: object) {
-		return (await this.translateSvc.get(key, interpolateParams).toPromise()) as string;
+	public getResourceAsync(key: string, interpolateParams?: object) {
+		return this.translateSvc.get(key, interpolateParams).toPromise<string>();
 	}
 
 	/** Gets the resources (of the current language) by a key */
-	public async getResourcesAsync(key: string) {
-		return (await this.translateSvc.get(key).toPromise()) as { [key: string]: string };
+	public getResourcesAsync(key: string) {
+		return this.translateSvc.get(key).toPromise<{ [key: string]: string }>();
 	}
 
 }

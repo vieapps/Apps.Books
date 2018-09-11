@@ -76,26 +76,22 @@
 			[form]="update.form"
 			[config]="update.config"
 			[controls]="update.controls"
-			(initEvent)="onFormInitialized($event)"></app-form>
-	
+			(initEvent)="onFormInitialized($event)"></app-form>	
 		<app-form *ngIf="mode === 'password'"
 			[form]="password.form"
 			[config]="password.config"
 			[controls]="password.controls"
-			(initEvent)="onFormInitialized($event)"></app-form>
-	
+			(initEvent)="onFormInitialized($event)"></app-form>	
 		<app-form *ngIf="mode === 'email'"
 			[form]="email.form"
 			[config]="email.config"
 			[controls]="email.controls"
-			(initEvent)="onFormInitialized($event)"></app-form>
-	
+			(initEvent)="onFormInitialized($event)"></app-form>	
 		<app-form *ngIf="mode === 'invitation' || mode === 'invitationWithPrivileges'"
 			[form]="invitation.form"
 			[config]="invitation.config"
 			[controls]="invitation.controls"
-			(initEvent)="onFormInitialized($event)"></app-form>
-	
+			(initEvent)="onFormInitialized($event)"></app-form>	
 		<app-form *ngIf="mode === 'privileges' || mode === 'invitationWithPrivileges'"
 			[form]="privileges.form"
 			[config]="privileges.config"

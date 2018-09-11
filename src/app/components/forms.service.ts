@@ -5,6 +5,7 @@ import { LoadingController, AlertController, ActionSheetController, ModalControl
 import { TranslateService } from "@ngx-translate/core";
 import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppConfig } from "../app.config";
+import { AppAPI } from "./app.api";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 
@@ -38,7 +39,7 @@ export class AppFormsControl {
 		},
 		Description: undefined as string,
 		DescriptionOptions: {
-			Css: "",
+			Css: "description",
 			Style: ""
 		},
 		Icon: "",
@@ -62,12 +63,13 @@ export class AppFormsControl {
 		MaxHeight: undefined as string,
 		SelectOptions: {
 			Values: undefined as Array<{ Value: string, Label: any }>,
+			RemoteURI: undefined as string,
 			Multiple: false,
 			AsBoxes: false,
 			Interface: "alert",
 			InterfaceOptions: undefined as any,
-			CancelText: undefined as string,
-			OkText: undefined as string
+			CancelText: "{{common.buttons.cancel}}",
+			OkText: "{{common.buttons.ok}}"
 		},
 		DatePickerOptions: {
 			AllowTimes: false,
@@ -77,12 +79,12 @@ export class AppFormsControl {
 			DayShortNames: undefined as string,
 			MonthNames: undefined as string,
 			MonthShortNames: undefined as string,
-			CancelText: undefined as string,
-			DoneText: undefined as string
+			CancelText: "{{common.buttons.cancel}}",
+			DoneText: "{{common.buttons.done}}"
 		},
 		CompleterOptions: {
-			SearchingText: "Searching...",
-			NoResultsText: "Not found",
+			SearchingText: "{{common.messages.completer.searching}}",
+			NoResultsText: "{{common.messages.completer.noresults}}",
 			PauseMiliseconds: 123,
 			ClearSelected: false,
 			DataSource: undefined as CompleterData,
@@ -160,14 +162,14 @@ export class AppFormsControl {
 
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
 		control = control || new AppFormsControl();
-		control.Order = options.Order || options.order || order || 0;
-		control.Extras = options.Extras || options.extras || {};
+		control.Order = (options.Order !== undefined ? options.Order : undefined) || (options.order !== undefined ? options.order : undefined) || (order !== undefined ? order : 0);
 
 		control.Key = options.Key || options.key || (alternativeKey !== undefined ? `${alternativeKey}_${control.Order}` : `c_${control.Order}`);
 		control.Type = options.Type || options.type || "TextBox";
 
 		control.Hidden = !!(options.Hidden || options.hidden);
-		control.Required = !control.Hidden && !!options.Required;
+		control.Required = !control.Hidden && !!(options.Required || options.required);
+		control.Extras = options.Extras || options.extras || {};
 
 		control.Validators = options.Validators;
 		control.AsyncValidators = options.AsyncValidators;
@@ -195,7 +197,7 @@ export class AppFormsControl {
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
 			control.Options.Color = controlOptions.Color || controlOptions.color || "";
 			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
-			control.Options.Name = alternativeKey !== undefined ? `${alternativeKey}-${control.Key}` : `${control.Key}`;
+			control.Options.Name = controlOptions.Name || controlOptions.mame || (alternativeKey !== undefined ? `${alternativeKey}-${control.Key}` : `${control.Key}`);
 			control.Options.ValidatePattern = controlOptions.ValidatePattern || controlOptions.validatepattern;
 
 			control.Options.Disabled = !!(controlOptions.Disabled || controlOptions.disabled);
@@ -225,12 +227,13 @@ export class AppFormsControl {
 							Label: kvp.Label || kvp.label
 						};
 					}),
+					RemoteURI: selectOptions.RemoteURI || selectOptions.remoteuri,
 					Multiple: !!(selectOptions.Multiple || selectOptions.multiple),
 					AsBoxes: !!(selectOptions.AsBoxes || selectOptions.asboxes),
 					Interface: selectOptions.Interface || selectOptions.interface || "alert",
 					InterfaceOptions: selectOptions.InterfaceOptions || selectOptions.interfaceoptions,
-					CancelText: selectOptions.CancelText || selectOptions.canceltext,
-					OkText: selectOptions.OkText || selectOptions.oktext
+					CancelText: selectOptions.CancelText || selectOptions.canceltext || "{{common.buttons.cancel}}",
+					OkText: selectOptions.OkText || selectOptions.oktext || "{{common.buttons.ok}}"
 				};
 			}
 
@@ -244,8 +247,8 @@ export class AppFormsControl {
 					DayShortNames: datepickerOptions.DayShortNames || datepickerOptions.dayshortnames,
 					MonthNames: datepickerOptions.MonthNames || datepickerOptions.monthnames,
 					MonthShortNames: datepickerOptions.MonthShortNames || datepickerOptions.monthshortnames,
-					CancelText: datepickerOptions.CancelText || datepickerOptions.canceltext,
-					DoneText: datepickerOptions.DoneText || datepickerOptions.donetext
+					CancelText: datepickerOptions.CancelText || datepickerOptions.canceltext || "{{common.buttons.cancel}}",
+					DoneText: datepickerOptions.DoneText || datepickerOptions.donetext || "{{common.buttons.done}}"
 				};
 			}
 
@@ -253,8 +256,8 @@ export class AppFormsControl {
 			if (completerOptions !== undefined) {
 				const handlers = completerOptions.Handlers || completerOptions.handlers || {};
 				control.Options.CompleterOptions = {
-					SearchingText: completerOptions.SearchingText || completerOptions.searchingtext || "Searching...",
-					NoResultsText: completerOptions.NoResultsText || completerOptions.noresultstext || "Not found",
+					SearchingText: completerOptions.SearchingText || completerOptions.searchingtext || "{{common.messages.completer.searching}}",
+					NoResultsText: completerOptions.NoResultsText || completerOptions.noresultstext || "{{common.messages.completer.noresults}}",
 					PauseMiliseconds: completerOptions.PauseMiliseconds || completerOptions.pausemiliseconds || 123,
 					ClearSelected: !!(completerOptions.ClearSelected || completerOptions.clearselected),
 					DataSource: completerOptions.DataSource || completerOptions.datasource,
@@ -349,8 +352,26 @@ export class AppFormsService {
 				control.Options.Label = await this.normalizeResourceAsync(control.Options.Label);
 				control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
 				control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
+				if (!AppUtility.isArray(control.Options.SelectOptions.Values, true) && AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
+					try {
+						const response = await AppAPI.getAsync(control.Options.SelectOptions.RemoteURI);
+						control.Options.SelectOptions.Values = (response.json() as Array<any> || []).map(data => {
+							return {
+								Value: data.Value || data.value,
+								Label: data.Label || data.label
+							};
+						});
+					}
+					catch (error) {
+						console.error("[Forms]: Error occurred while preparing select values", error);
+					}
+				}
 				control.Options.SelectOptions.OkText = await this.normalizeResourceAsync(control.Options.SelectOptions.OkText);
 				control.Options.SelectOptions.CancelText = await this.normalizeResourceAsync(control.Options.SelectOptions.CancelText);
+				control.Options.DatePickerOptions.DayNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DayNames);
+				control.Options.DatePickerOptions.DayShortNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DayShortNames);
+				control.Options.DatePickerOptions.MonthNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.MonthNames);
+				control.Options.DatePickerOptions.MonthShortNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.MonthShortNames);
 				control.Options.DatePickerOptions.DoneText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DoneText);
 				control.Options.DatePickerOptions.CancelText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.CancelText);
 				control.Options.CompleterOptions.SearchingText = await this.normalizeResourceAsync(control.Options.CompleterOptions.SearchingText);
@@ -642,19 +663,17 @@ export class AppFormsService {
 	}
 
 	/** Gets the resource of current language by a key */
-	public async getResourceAsync(key: string, interpolateParams?: object) {
-		return (await this.translateSvc.get(key, interpolateParams).toPromise()) as string;
+	public getResourceAsync(key: string, interpolateParams?: object) {
+		return this.translateSvc.get(key, interpolateParams).toPromise<string>();
 	}
 
 	/** Shows the loading */
 	public async showLoadingAsync(message?: string) {
 		await this.hideLoadingAsync();
-		if (this._loading === undefined) {
-			this._loading = await this.loadingController.create({
-				message: message || await this.getResourceAsync("common.messages.loading")
-			});
-			await this._loading.present();
-		}
+		this._loading = await this.loadingController.create({
+			message: message || await this.getResourceAsync("common.messages.loading")
+		});
+		await this._loading.present();
 	}
 
 	/** Hides the loading */

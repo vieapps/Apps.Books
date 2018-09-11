@@ -18,7 +18,7 @@
 		[controls]="register.controls"
 		(initEvent)="onFormInitialized($event)"
 		(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
-	<ion-buttons>
+	<ion-buttons padding-horizontal>
 		<ion-button [fill]="register.button.fill" [color]="register.button.color" (click)="registerAsync()">
 			<ion-icon *ngIf="register.button.icon" [icon]="register.button.icon" slot="start"></ion-icon>
 			{{ register.button.label }}

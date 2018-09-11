@@ -1,5 +1,5 @@
-<ion-list *ngIf="bookmarks.length > 0">
-	<ion-list-header>
+<ion-list #list>
+	<ion-list-header *ngIf="bookmarks.length > 0">
 		{{ resources.header }}
 	</ion-list-header>
 	<ion-item-sliding *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
@@ -23,13 +23,13 @@
 				<ion-icon name="book"></ion-icon>
 				{{ resources.buttons.read }}
 			</ion-item-option>
-			<ion-item-option color="danger" (click)="delete(bookmark)">
+			<ion-item-option color="danger" (click)="deleteAsync(bookmark)">
 				<ion-icon name="trash"></ion-icon>
 				{{ resources.buttons.delete }}
 			</ion-item-option>
 		</ion-item-options>
 	</ion-item-sliding>
-	<ion-item>
+	<ion-item *ngIf="profile && bookmarks.length > 0">
 		<div>
 			<span float-end>
 				{{ resources.footer }} {{ profile.LastSync | date: 'h:mm a @ d/M/y' }}

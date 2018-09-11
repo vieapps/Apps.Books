@@ -41,7 +41,7 @@ export class AccountAvatarPage implements OnInit {
 		}
 	};
 	processing = false;
-	@ViewChild("imgcropper") cropperComponent: ImageCropperComponent;
+	@ViewChild("imgcropper") imgcropperComponent: ImageCropperComponent;
 
 	get imageUri() {
 		return this.mode === "Gravatar" ? this.profile.Gravatar : this.cropper.data.image;
@@ -81,23 +81,22 @@ export class AccountAvatarPage implements OnInit {
 		const fileReader = new FileReader();
 		fileReader.onloadend = (loadEvent: any) => {
 			image.src = loadEvent.target.result;
-			this.cropperComponent.setImage(image);
+			this.imgcropperComponent.setImage(image);
 		};
 		fileReader.readAsDataURL($event.target.files[0]);
 	}
 
 	async updateProfileAsync() {
-		await this.usersSvc.updateProfileAsync({
+		await this.usersSvc.updateProfileAsync(
+			{
 				ID: this.profile.ID,
 				Avatar: this.profile.Avatar
 			},
-			async () => {
-				await this.configSvc.storeProfileAsync(async () => {
-					await TrackingUtility.trackAsync(this.title, "account/avatar");
-					await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.avatar.message")));
-				});
-			},
-			async error => {
+			async () => await this.configSvc.storeProfileAsync(async () => {
+				await TrackingUtility.trackAsync(this.title, "users/update/avatar");
+				await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.avatar.message")));
+			}),
+			error => {
 				this.processing = false;
 				console.error("Error occurred while updating profile with new avatar image => " + AppUtility.getErrorMessage(error), error);
 			}
@@ -107,7 +106,8 @@ export class AccountAvatarPage implements OnInit {
 	async updateAsync() {
 		this.processing = true;
 		if (this.mode === "Avatar" && this.cropper.data.original !== undefined) {
-			await this.filesSvc.uploadAvatarAsync(this.cropper.data.image,
+			await this.filesSvc.uploadAvatarAsync(
+				this.cropper.data.image,
 				async data => {
 					this.profile.Avatar = data.Uri;
 					this.cropper.data = {
@@ -131,8 +131,8 @@ export class AccountAvatarPage implements OnInit {
 		}
 	}
 
-	async cancelAsync(onDismiss?: () => void) {
-		await this.appFormsSvc.hideModalAsync(onDismiss);
+	async cancelAsync(onNext?: () => void) {
+		await this.appFormsSvc.hideModalAsync(onNext);
 	}
 
 }

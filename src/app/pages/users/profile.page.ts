@@ -329,11 +329,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Options: {
 					Type: "Address",
 					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
-					MinLength: 2,
-					CompleterOptions: {
-						SearchingText: await this.configSvc.getResourceAsync("common.messages.completer.searching"),
-						NoResultsText: await this.configSvc.getResourceAsync("common.messages.completer.noresults")
-					}
+					MinLength: 2
 				}
 			},
 			{
