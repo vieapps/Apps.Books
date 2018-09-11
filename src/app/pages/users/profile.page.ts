@@ -282,21 +282,13 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.label"),
 					SelectOptions: {
-						Values: [
-							{
-								Value: "NotProvided",
-								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.NotProvided")
-							},
-							{
-								Value: "Male",
-								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.Male")
-							},
-							{
-								Value: "Female",
-								Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.options.Female")
-							}
-						]
-					},
+						Values: ["NotProvided", "Male", "Female"].map(gender => {
+							return {
+								Value: gender,
+								Label: `{{users.register.controls.Gender.options.${gender}}}`
+							};
+						})
+					}
 				}
 			},
 			{
@@ -306,8 +298,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				Options: {
 					Type: "date",
 					Label: await this.configSvc.getResourceAsync("users.register.controls.BirthDay"),
-					Min: (new Date().getFullYear() - 100) + "-01-01",
-					Max: (new Date().getFullYear() - 16) + "-12-31",
+					MinValue: (new Date().getFullYear() - 100) + "-01-01",
+					MaxValue: (new Date().getFullYear() - 16) + "-12-31",
 					DatePickerOptions: {
 						AllowTimes: false
 					}
@@ -324,7 +316,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			},
 			{
 				Key: "Addresses",
-				Type: "Completer",
+				Type: "Lookup",
 				Required: true,
 				Options: {
 					Type: "Address",

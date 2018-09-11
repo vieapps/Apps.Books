@@ -3,7 +3,7 @@ import { AbstractControl, FormControl, FormGroup, FormArray } from "@angular/for
 import { Validators, ValidatorFn, AsyncValidatorFn } from "@angular/forms";
 import { LoadingController, AlertController, ActionSheetController, ModalController, ToastController } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
-import { CompleterData, CompleterItem } from "ng2-completer";
+import { CompleterData } from "ng2-completer";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "./app.api";
 import { AppUtility } from "./app.utility";
@@ -51,18 +51,14 @@ export class AppFormsControl {
 		Disabled: false,
 		ReadOnly: false,
 		AutoFocus: false,
-		Min: undefined as any,
-		Max: undefined as any,
+		MinValue: undefined as any,
+		MaxValue: undefined as any,
 		MinLength: undefined as number,
 		MaxLength: undefined as number,
 		Width: undefined as string,
-		MinWidth: undefined as string,
-		MaxWidth: undefined as string,
 		Height: undefined as string,
-		MinHeight: undefined as string,
-		MaxHeight: undefined as string,
 		SelectOptions: {
-			Values: undefined as Array<{ Value: string, Label: any }>,
+			Values: undefined as Array<{ Value: string, Label: string }>,
 			RemoteURI: undefined as string,
 			Multiple: false,
 			AsBoxes: false,
@@ -82,16 +78,17 @@ export class AppFormsControl {
 			CancelText: "{{common.buttons.cancel}}",
 			DoneText: "{{common.buttons.done}}"
 		},
-		CompleterOptions: {
+		LookupOptions: {
 			SearchingText: "{{common.messages.completer.searching}}",
 			NoResultsText: "{{common.messages.completer.noresults}}",
+			AsCompleter: true,
 			PauseMiliseconds: 123,
 			ClearSelected: false,
 			DataSource: undefined as CompleterData,
 			Handlers: {
 				Initialize: undefined as (control: AppFormsControl) => void,
 				GetInitialValue: undefined as (control: AppFormsControl) => any,
-				OnItemSelected: undefined as (item: CompleterItem, control: AppFormsControl) => void
+				OnItemSelected: undefined as (item: any, control: AppFormsControl) => void
 			}
 		}
 	};
@@ -204,19 +201,14 @@ export class AppFormsControl {
 			control.Options.ReadOnly = !!(controlOptions.ReadOnly || controlOptions.readonly);
 			control.Options.AutoFocus = !!(controlOptions.AutoFocus || controlOptions.autofocus);
 
-			control.Options.Min = controlOptions.Min || controlOptions.min;
-			control.Options.Max = controlOptions.Max || controlOptions.max;
+			control.Options.MinValue = controlOptions.MinValue || controlOptions.minvalue;
+			control.Options.MaxValue = controlOptions.MaxValue || controlOptions.maxvalue;
 
 			control.Options.MinLength = controlOptions.MinLength || controlOptions.minlength;
 			control.Options.MaxLength = controlOptions.MaxLength || controlOptions.maxlength;
 
 			control.Options.Width = controlOptions.Width || controlOptions.width;
-			control.Options.MinWidth = controlOptions.MinWidth || controlOptions.minwidth;
-			control.Options.MaxWidth = controlOptions.MaxWidth || controlOptions.maxwidth;
-
 			control.Options.Height = controlOptions.Height || controlOptions.height;
-			control.Options.MinHeight = controlOptions.MinHeight || controlOptions.minheight;
-			control.Options.MaxHeight = controlOptions.MaxHeight || controlOptions.maxheight;
 
 			const selectOptions = controlOptions.SelectOptions || controlOptions.selectoptions;
 			if (selectOptions !== undefined) {
@@ -252,15 +244,16 @@ export class AppFormsControl {
 				};
 			}
 
-			const completerOptions = controlOptions.CompleterOptions || controlOptions.completeroptions;
-			if (completerOptions !== undefined) {
-				const handlers = completerOptions.Handlers || completerOptions.handlers || {};
-				control.Options.CompleterOptions = {
-					SearchingText: completerOptions.SearchingText || completerOptions.searchingtext || "{{common.messages.completer.searching}}",
-					NoResultsText: completerOptions.NoResultsText || completerOptions.noresultstext || "{{common.messages.completer.noresults}}",
-					PauseMiliseconds: completerOptions.PauseMiliseconds || completerOptions.pausemiliseconds || 123,
-					ClearSelected: !!(completerOptions.ClearSelected || completerOptions.clearselected),
-					DataSource: completerOptions.DataSource || completerOptions.datasource,
+			const lookupOptions = controlOptions.LookupOptions || controlOptions.lookupoptions;
+			if (lookupOptions !== undefined) {
+				const handlers = lookupOptions.Handlers || lookupOptions.handlers || {};
+				control.Options.LookupOptions = {
+					SearchingText: lookupOptions.SearchingText || lookupOptions.searchingtext || "{{common.messages.completer.searching}}",
+					NoResultsText: lookupOptions.NoResultsText || lookupOptions.noresultstext || "{{common.messages.completer.noresults}}",
+					AsCompleter: lookupOptions.AsCompleter !== undefined || lookupOptions.ascompleter !== undefined ? lookupOptions.AsCompleter || lookupOptions.ascompleter : true,
+					PauseMiliseconds: lookupOptions.PauseMiliseconds || lookupOptions.pausemiliseconds || 123,
+					ClearSelected: !!(lookupOptions.ClearSelected || lookupOptions.clearselected),
+					DataSource: lookupOptions.DataSource || lookupOptions.datasource,
 					Handlers: {
 						Initialize: handlers.Initialize || handlers.initialize,
 						GetInitialValue: handlers.GetInitialValue || handlers.getinitialvalue,
@@ -293,8 +286,8 @@ export class AppFormsControl {
 		options.Validators = this.Validators;
 		options.AsyncValidators = this.AsyncValidators;
 		options.Options.SelectOptions.InterfaceOptions = this.Options.SelectOptions.InterfaceOptions;
-		options.Options.CompleterOptions.DataSource = this.Options.CompleterOptions.DataSource;
-		options.Options.CompleterOptions.Handlers = this.Options.CompleterOptions.Handlers;
+		options.Options.LookupOptions.DataSource = this.Options.LookupOptions.DataSource;
+		options.Options.LookupOptions.Handlers = this.Options.LookupOptions.Handlers;
 		if (onPreCompleted !== undefined) {
 			onPreCompleted(options);
 		}
@@ -340,10 +333,10 @@ export class AppFormsService {
 		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
 	} = {};
 
-	private async normalizeResourceAsync(value: string) {
-		return AppUtility.isNotEmpty(value) && value.startsWith("{{") && value.endsWith("}}")
-			? await this.getResourceAsync(value.substr(2, value.length - 4).trim())
-			: value;
+	private async normalizeResourceAsync(resource: string) {
+		return AppUtility.isNotEmpty(resource) && resource.startsWith("{{") && resource.endsWith("}}")
+			? await this.getResourceAsync(resource.substr(2, resource.length - 4).trim())
+			: resource;
 	}
 
 	private prepareControls(controls: Array<AppFormsControl>, modifyDatePickers?: boolean) {
@@ -352,7 +345,10 @@ export class AppFormsService {
 				control.Options.Label = await this.normalizeResourceAsync(control.Options.Label);
 				control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
 				control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
-				if (!AppUtility.isArray(control.Options.SelectOptions.Values, true) && AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
+				if (AppUtility.isArray(control.Options.SelectOptions.Values, true)) {
+					control.Options.SelectOptions.Values.forEach(async data => data.Label = await this.normalizeResourceAsync(data.Label));
+				}
+				else if (AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
 					try {
 						const response = await AppAPI.getAsync(control.Options.SelectOptions.RemoteURI);
 						control.Options.SelectOptions.Values = (response.json() as Array<any> || []).map(data => {
@@ -374,8 +370,8 @@ export class AppFormsService {
 				control.Options.DatePickerOptions.MonthShortNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.MonthShortNames);
 				control.Options.DatePickerOptions.DoneText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DoneText);
 				control.Options.DatePickerOptions.CancelText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.CancelText);
-				control.Options.CompleterOptions.SearchingText = await this.normalizeResourceAsync(control.Options.CompleterOptions.SearchingText);
-				control.Options.CompleterOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.CompleterOptions.NoResultsText);
+				control.Options.LookupOptions.SearchingText = await this.normalizeResourceAsync(control.Options.LookupOptions.SearchingText);
+				control.Options.LookupOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.LookupOptions.NoResultsText);
 			}
 			if (control.Type === "DatePicker" && AppUtility.isTrue(modifyDatePickers)) {
 				control.Type = "TextBox";
@@ -438,7 +434,7 @@ export class AppFormsService {
 	private getFormGroup(controls: Array<AppFormsControl>, formGroup?: FormGroup, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
 		formGroup = formGroup || new FormGroup({}, validators, asyncValidators);
 		controls.forEach(control => {
-			if (control.SubControls === undefined && control.Type === "Completer" && control.Options.Type === "Address") {
+			if (control.SubControls === undefined && control.Type === "Lookup" && control.Options.LookupOptions.AsCompleter && control.Options.Type === "Address") {
 				const options = control.copy();
 				["County", "Province", "Country"].forEach(key => formGroup.addControl(key, this.getFormControl(new AppFormsControl(options))));
 			}
@@ -457,7 +453,7 @@ export class AppFormsService {
 	private getFormArray(control: AppFormsControl, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
 		const formArray = new FormArray([], validators, asyncValidators);
 		control.SubControls.Controls.forEach(subcontrol => {
-			if (subcontrol.SubControls === undefined && subcontrol.Type === "Completer" && subcontrol.Options.Type === "Address") {
+			if (subcontrol.SubControls === undefined && subcontrol.Type === "Lookup" && control.Options.LookupOptions.AsCompleter && subcontrol.Options.Type === "Address") {
 				const options = subcontrol.copy();
 				const formGroup = new FormGroup({}, this.getValidators(subcontrol), this.getAsyncValidators(subcontrol));
 				["County", "Province", "Country"].forEach(key => formGroup.addControl(key, this.getFormControl(new AppFormsControl(options))));
@@ -508,11 +504,11 @@ export class AppFormsService {
 		}
 
 		if (control.Options.Type === "number" || control.Options.Type === "date") {
-			if (control.Options.Min > 0) {
-				validators.push(Validators.min(control.Options.Min));
+			if (control.Options.MinValue > 0) {
+				validators.push(Validators.min(control.Options.MinValue));
 			}
-			if (control.Options.Max > 0) {
-				validators.push(Validators.max(control.Options.Max));
+			if (control.Options.MaxValue > 0) {
+				validators.push(Validators.max(control.Options.MaxValue));
 			}
 		}
 

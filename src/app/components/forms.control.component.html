@@ -1,7 +1,7 @@
-<ion-item *ngIf="visible && isFormControl && !isControl('Captcha') && !selectAsRadioBoxes"
+<ion-item *ngIf="visible && isFormControl && !isCaptchaControl && !selectAsRadioBoxes"
 	[formGroup]="formGroup"
 	[class.invalid]="invalid"
-	[class.completer-container]="isControl('Completer')">
+	[class.completer-container]="isCompleter">
 
 	<ion-label *ngIf="label"
 		[color]="color.label"
@@ -16,9 +16,8 @@
 		[class]="css.control"
 		[required]="required"
 		[readonly]="readonly"
-		[autofocus]="autofocus"
-		[min]="min"
-		[max]="max"
+		[min]="minValue"
+		[max]="maxValue"
 		[minlength]="minLength"
 		[maxlength]="maxLength"
 		[clearOnEdit]="clearOnEdit"
@@ -51,8 +50,8 @@
 		[value]="value"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
-		(ionChange)="valueChanged($event)">
-		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value">{{select.Label}}</ion-select-option>
+		(ionChange)="onValueChanged($event)">
+		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value">{{ select.Label }}</ion-select-option>
 	</ion-select>
 
 	<ion-datetime *ngIf="isControl('DatePicker')" #elementRef
@@ -64,38 +63,38 @@
 		[monthShortNames]="datetimeMonthShortNames"
 		[cancelText]="datetimeCancelText"
 		[doneText]="datetimeDoneText"
-		[min]="min"
-		[max]="max"
+		[min]="minValue"
+		[max]="maxValue"
 		[value]="datetimeValue"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
-		(ionChange)="datetimeValueChange($event)"></ion-datetime>
+		(ionChange)="datetimeOnValueChanged($event)"></ion-datetime>
 
 	<ion-checkbox *ngIf="isControl('YesNo') && type !== 'toggle'" slot="end" #elementRef
 		[name]="name"
 		[disabled]="disabled"
 		[color]="color.control"
-		[checked]="yesnoChecked"
-		(ionChange)="yesnoValueChange($event)"></ion-checkbox>
+		[checked]="checked"
+		(ionChange)="yesnoOnValueChanged($event)"></ion-checkbox>
 
 	<ion-toggle *ngIf="isControl('YesNo') && type === 'toggle'" slot="end" #elementRef
 		[name]="name"
 		[disabled]="disabled"
 		[color]="color.control"
-		[checked]="yesnoChecked"
-		(ionChange)="yesnoValueChange($event)"></ion-toggle>
+		[checked]="checked"
+		(ionChange)="yesnoOnValueChanged($event)"></ion-toggle>
 
 	<ion-range *ngIf="isControl('Range')" #elementRef
 		[name]="name"
 		[color]="color.control"
 		[disabled]="disabled"
 		[pin]="true"
-		[min]="min"
-		[max]="max"
+		[min]="minValue"
+		[max]="maxValue"
 		[value]="value"
-		(ionChange)="valueChanged($event)"></ion-range>
+		(ionChange)="onValueChanged($event)"></ion-range>
 
-	<ng2-completer *ngIf="isControl('Completer')" #elementRef
+	<ng2-completer *ngIf="isCompleter" #elementRef
 		[inputName]="name"
 		[disableInput]="!!disabled"
 		[placeholder]="completerPlaceHolder"
@@ -107,7 +106,7 @@
 		[textNoResults]="completerNoResultsText"
 		[datasource]="completerDataSource"
 		[initialValue]="completerInitialValue"
-		(selected)="completerItemChange($event)"
+		(selected)="completerOnItemChanged($event)"
 		(keyup)="onKeyUp($event)"></ng2-completer>
 
 </ion-item>
@@ -117,7 +116,7 @@
 	[class.invalid]="invalid"
 	[disabled]="disabled"
 	[value]="value"
-	(ionChange)="valueChanged($event)">
+	(ionChange)="onValueChanged($event)">
 	<ion-list-header *ngIf="label"
 		[color]="color.label"
 		[class]="css.label">{{ label }}</ion-list-header>
@@ -127,13 +126,13 @@
 	</ion-item>
 </ion-radio-group>
 
-<ion-item *ngIf="visible && description && isFormControl && !isControl('Captcha')">
+<ion-item *ngIf="visible && description && isFormControl && !isCaptchaControl">
 	<label
 		[class]="css.description"
 		[style]="style.description">{{ description }}</label>
 </ion-item>
 	
-<div *ngIf="visible && isFormControl && isControl('Captcha')">
+<div *ngIf="visible && isFormControl && isCaptchaControl">
 
 	<ion-item [formGroup]="formGroup" [class.invalid]="invalid">
 		<ion-label *ngIf="label"
@@ -146,9 +145,8 @@
 			[placeholder]="placeholder"
 			[required]="required"
 			[readonly]="readonly"
-			[autofocus]="autofocus"
-			[min]="min"
-			[max]="max"
+			[min]="minValue"
+			[max]="maxValue"
 			[minlength]="minLength"
 			[maxlength]="maxLength"
 			(keyup)="onKeyUp($event)"></ion-input>
