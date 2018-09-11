@@ -329,6 +329,7 @@ export class AppFormsService {
 	private _alert: any;
 	private _toast: any;
 	private _textControls = ["text", "password", "email", "search", "tel", "url"];
+	private _rangeControls = ["number", "date", "datetime", "datetime-local"];
 	private _metaCounties: {
 		[key: string]: Array<{ County: string, Province: string, Country: string, Title: string, TitleANSI: string}>
 	} = {};
@@ -436,7 +437,7 @@ export class AppFormsService {
 		controls.forEach(control => {
 			if (control.SubControls === undefined && control.Type === "Lookup" && control.Options.LookupOptions.AsCompleter && control.Options.Type === "Address") {
 				const options = control.copy();
-				["County", "Province", "Country"].forEach(key => formGroup.addControl(key, this.getFormControl(new AppFormsControl(options))));
+				["County", "Province", "Country"].forEach(name => formGroup.addControl(name, this.getFormControl(new AppFormsControl(options))));
 			}
 			else {
 				const formControl = control.SubControls === undefined
@@ -456,7 +457,7 @@ export class AppFormsService {
 			if (subcontrol.SubControls === undefined && subcontrol.Type === "Lookup" && control.Options.LookupOptions.AsCompleter && subcontrol.Options.Type === "Address") {
 				const options = subcontrol.copy();
 				const formGroup = new FormGroup({}, this.getValidators(subcontrol), this.getAsyncValidators(subcontrol));
-				["County", "Province", "Country"].forEach(key => formGroup.addControl(key, this.getFormControl(new AppFormsControl(options))));
+				["County", "Province", "Country"].forEach(name => formGroup.addControl(name, this.getFormControl(new AppFormsControl(options))));
 				formArray.push(formGroup);
 			}
 			else {
@@ -502,12 +503,11 @@ export class AppFormsService {
 				validators.push(Validators.pattern("([a-zA-Z0-9_.-]+)@([a-zA-Z0-9_.-]+)\\.([a-zA-Z]{2,5})"));
 			}
 		}
-
-		if (control.Options.Type === "number" || control.Options.Type === "date") {
-			if (control.Options.MinValue > 0) {
+		else if (this._rangeControls.findIndex(ctrl => ctrl === control.Options.Type) > -1) {
+			if (control.Options.MinValue !== undefined) {
 				validators.push(Validators.min(control.Options.MinValue));
 			}
-			if (control.Options.MaxValue > 0) {
+			if (control.Options.MaxValue !== undefined) {
 				validators.push(Validators.max(control.Options.MaxValue));
 			}
 		}

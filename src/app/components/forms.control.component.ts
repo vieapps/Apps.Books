@@ -367,9 +367,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				Province: "",
 				Country: ""
 			};
-			["County", "Province", "Country"].forEach(key => {
-				const formControl = this.formGroup.controls[key];
-				value[key] = formControl !== undefined ? formControl.value : "";
+			["County", "Province", "Country"].forEach(name => {
+				const formControl = this.formGroup.controls[name];
+				value[name] = formControl !== undefined ? formControl.value : "";
 			});
 			return this.appFormsSvc.getMetaCounties().find(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
 		}
@@ -383,10 +383,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	completerOnItemChanged(item) {
 		if (this.control.Options.Type === "Address") {
 			const address = AppUtility.isObject(item, true) ? item.originalObject : undefined;
-			["County", "Province", "Country"].forEach(key => {
-				const formControl = this.formGroup.controls[key];
+			["County", "Province", "Country"].forEach(name => {
+				const formControl = this.formGroup.controls[name];
 				if (formControl !== undefined) {
-					formControl.setValue(address !== undefined ? address[key] : "");
+					formControl.setValue(address !== undefined ? address[name] : "");
 				}
 			});
 		}
