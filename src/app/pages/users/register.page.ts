@@ -50,7 +50,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	async initializeFormAsync() {
 		this.register.config = [
 			{
-				Key: "Email",
+				Name: "Email",
 				Required: true,
 				Options: {
 					Type: "email",
@@ -61,7 +61,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "ConfirmEmail",
+				Name: "ConfirmEmail",
 				Required: true,
 				Validators: [this.appFormsSvc.isEquals("Email")],
 				Options: {
@@ -72,7 +72,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Password",
+				Name: "Password",
 				Required: true,
 				Options: {
 					Type: "password",
@@ -82,7 +82,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "ConfirmPassword",
+				Name: "ConfirmPassword",
 				Required: true,
 				Validators: [this.appFormsSvc.isEquals("Password")],
 				Options: {
@@ -93,7 +93,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Name",
+				Name: "Name",
 				Required: true,
 				Options: {
 					Type: "text",
@@ -104,7 +104,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Gender",
+				Name: "Gender",
 				Type: "Select",
 				Required: true,
 				Options: {
@@ -120,7 +120,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "BirthDay",
+				Name: "BirthDay",
 				Type: "DatePicker",
 				Required: true,
 				Options: {
@@ -133,7 +133,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Address",
+				Name: "Address",
 				Required: true,
 				Options: {
 					Type: "text",
@@ -143,7 +143,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Addresses",
+				Name: "Addresses",
 				Type: "Lookup",
 				Required: true,
 				Options: {
@@ -154,7 +154,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Mobile",
+				Name: "Mobile",
 				Required: true,
 				Options: {
 					Type: "tel",
@@ -164,7 +164,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Captcha",
+				Name: "Captcha",
 				Type: "Captcha",
 				Required: true,
 				Options: {
@@ -236,7 +236,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	}
 
 	async refreshCaptchaAsync(control?: AppFormsControl) {
-		await this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Key === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
+		await this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 }

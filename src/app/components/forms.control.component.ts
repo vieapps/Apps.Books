@@ -48,11 +48,11 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get formControl() {
-		return this.formGroup.controls[this.control.Key];
+		return this.formGroup.controls[this.control.Name];
 	}
 
 	get formControlName() {
-		return this.formArrayIndex !== undefined ? this.formArrayIndex : this.control.Key;
+		return this.formArrayIndex !== undefined ? this.formArrayIndex : this.control.Name;
 	}
 
 	get visible() {
@@ -326,7 +326,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		else if (this.control.Options.LookupOptions.Handlers.Initialize !== undefined) {
 			this.control.Options.LookupOptions.Handlers.Initialize(this.control);
 		}
-		console.log("Completer data-source", this.control.Options.LookupOptions.DataSource);
 	}
 
 	get completerPlaceHolder() {
@@ -435,7 +434,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	trackControl(index: number, control: AppFormsControl) {
-		return control.Key;
+		return control.Name;
 	}
 
 	onKeyUp($event: KeyboardEvent) {

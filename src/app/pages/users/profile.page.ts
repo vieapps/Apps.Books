@@ -261,11 +261,11 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	async openUpdateProfileAsync() {
 		this.update.config = [
 			{
-				Key: "ID",
+				Name: "ID",
 				Hidden: true
 			},
 			{
-				Key: "Name",
+				Name: "Name",
 				Required: true,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Name.label"),
@@ -276,7 +276,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Gender",
+				Name: "Gender",
 				Type: "Select",
 				Required: true,
 				Options: {
@@ -292,7 +292,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "BirthDay",
+				Name: "BirthDay",
 				Type: "DatePicker",
 				Required: true,
 				Options: {
@@ -306,7 +306,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Address",
+				Name: "Address",
 				Required: true,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Address.label"),
@@ -315,7 +315,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Addresses",
+				Name: "Addresses",
 				Type: "Lookup",
 				Required: true,
 				Options: {
@@ -325,7 +325,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Mobile",
+				Name: "Mobile",
 				Required: true,
 				Options: {
 					Type: "tel",
@@ -335,7 +335,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Email",
+				Name: "Email",
 				Required: true,
 				Options: {
 					Type: "email",
@@ -344,7 +344,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Language",
+				Name: "Language",
 				Type: "Select",
 				Required: true,
 				Options: {
@@ -403,7 +403,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	async openUpdatePasswordAsync() {
 		this.password.config = [
 			{
-				Key: "OldPassword",
+				Name: "OldPassword",
 				Required: true,
 				Options: {
 					Type: "password",
@@ -414,7 +414,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Password",
+				Name: "Password",
 				Required: true,
 				Options: {
 					Type: "password",
@@ -424,7 +424,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "ConfirmPassword",
+				Name: "ConfirmPassword",
 				Required: true,
 				Validators: [this.appFormsSvc.isEquals("Password")],
 				Options: {
@@ -459,7 +459,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	async openUpdateEmailAsync() {
 		this.email.config = [
 			{
-				Key: "OldPassword",
+				Name: "OldPassword",
 				Required: true,
 				Options: {
 					Type: "password",
@@ -470,7 +470,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Email",
+				Name: "Email",
 				Required: true,
 				Options: {
 					Type: "email",
@@ -480,7 +480,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "ConfirmEmail",
+				Name: "ConfirmEmail",
 				Required: true,
 				Validators: [this.appFormsSvc.isEquals("Email")],
 				Options: {
@@ -602,7 +602,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	async openSendInvitationAsync() {
 		this.invitation.config = [
 			{
-				Key: "Name",
+				Name: "Name",
 				Required: true,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Name.label"),
@@ -612,7 +612,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Email",
+				Name: "Email",
 				Required: true,
 				Options: {
 					Type: "email",

@@ -79,7 +79,7 @@ export class LogInPage implements OnInit, OnDestroy {
 	async openLoginAsync() {
 		this.login.config = [
 			{
-				Key: "Email",
+				Name: "Email",
 				Required: true,
 				Options: {
 					Type: "email",
@@ -90,7 +90,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Password",
+				Name: "Password",
 				Required: true,
 				Options: {
 					Type: "password",
@@ -128,7 +128,7 @@ export class LogInPage implements OnInit, OnDestroy {
 					}
 				})
 			]),
-			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.login.controls.find(c => c.Key === "Email").focus())
+			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.login.controls.find(c => c.Name === "Email").focus())
 		);
 	}
 
@@ -136,11 +136,11 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.otp.providers = data.Providers;
 		this.otp.config = [
 			{
-				Key: "ID",
+				Name: "ID",
 				Hidden: true
 			},
 			{
-				Key: "Provider",
+				Name: "Provider",
 				Type: "Select",
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.login.otp.controls.Provider"),
@@ -155,7 +155,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "OTP",
+				Name: "OTP",
 				Required: true,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.label"),
@@ -177,7 +177,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		};
 		this.rxSubscriptions.push(this.otp.form.valueChanges.subscribe(async value => {
 			const provider = this.otp.providers.find(p => p.Info === value.Provider) || this.otp.providers[0];
-			this.otp.controls.find(c => c.Key === "OTP").Options.Description = "SMS" === provider.Type
+			this.otp.controls.find(c => c.Name === "OTP").Options.Description = "SMS" === provider.Type
 				? await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.sms")
 				: await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.app", { label: provider.Label });
 		}));
@@ -202,7 +202,7 @@ export class LogInPage implements OnInit, OnDestroy {
 					this.appFormsSvc.hideLoadingAsync(() => this.close())
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
-					const control = this.otp.controls.find(c => c.Key === "OTP");
+					const control = this.otp.controls.find(c => c.Name === "OTP");
 					control.value = "";
 					control.focus();
 				})
@@ -213,7 +213,7 @@ export class LogInPage implements OnInit, OnDestroy {
 	async openResetPasswordAsync() {
 		this.reset.config = [
 			{
-				Key: "Email",
+				Name: "Email",
 				Required: true,
 				Options: {
 					Type: "email",
@@ -224,7 +224,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			},
 			{
-				Key: "Captcha",
+				Name: "Captcha",
 				Required: true,
 				Type: "Captcha",
 				Options: {
@@ -267,13 +267,13 @@ export class LogInPage implements OnInit, OnDestroy {
 			]),
 			async error => await Promise.all([
 				this.refreshCaptchaAsync(),
-				this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => c.Key === "Captcha").focus())
+				this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => c.Name === "Captcha").focus())
 			])
 		);
 	}
 
 	async refreshCaptchaAsync(control?: AppFormsControl) {
-		await this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Key === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
+		await this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 	onResetPasswordFormInitialized($event) {

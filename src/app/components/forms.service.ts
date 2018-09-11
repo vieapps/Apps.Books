@@ -21,7 +21,7 @@ export class AppFormsControl {
 		}
 	}
 
-	Key = "";
+	Name = "";
 	Type = "TextBox";
 	Order = 0;
 	Hidden = false;
@@ -157,11 +157,11 @@ export class AppFormsControl {
 		return this.formRef.value;
 	}
 
-	private assign(options: any, control?: AppFormsControl, order?: number, alternativeKey?: string) {
+	private assign(options: any, control?: AppFormsControl, order?: number, alternativeName?: string) {
 		control = control || new AppFormsControl();
 		control.Order = (options.Order !== undefined ? options.Order : undefined) || (options.order !== undefined ? options.order : undefined) || (order !== undefined ? order : 0);
 
-		control.Key = options.Key || options.key || (alternativeKey !== undefined ? `${alternativeKey}_${control.Order}` : `c_${control.Order}`);
+		control.Name = options.Name || options.name || (alternativeName !== undefined ? `${alternativeName}_${control.Order}` : `c_${control.Order}`);
 		control.Type = options.Type || options.type || "TextBox";
 
 		control.Hidden = !!(options.Hidden || options.hidden);
@@ -194,7 +194,7 @@ export class AppFormsControl {
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
 			control.Options.Color = controlOptions.Color || controlOptions.color || "";
 			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
-			control.Options.Name = controlOptions.Name || controlOptions.mame || (alternativeKey !== undefined ? `${alternativeKey}-${control.Key}` : `${control.Key}`);
+			control.Options.Name = controlOptions.Name || controlOptions.name || (alternativeName !== undefined ? `${alternativeName}-${control.Name}` : `${control.Name}`);
 			control.Options.ValidatePattern = controlOptions.ValidatePattern || controlOptions.validatepattern;
 
 			control.Options.Disabled = !!(controlOptions.Disabled || controlOptions.disabled);
@@ -269,7 +269,7 @@ export class AppFormsControl {
 			if (AppUtility.isArray(subConfig, true)) {
 				control.SubControls = {
 					AsArray: !!(subControls.AsArray || subControls.asarray),
-					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Key)).sort((a, b) => a.Order - b.Order)
+					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Name)).sort((a, b) => a.Order - b.Order)
 				};
 				if (control.SubControls.Controls.length < 1) {
 					control.SubControls = undefined;
@@ -401,7 +401,7 @@ export class AppFormsService {
 	public updateControls(controls: Array<AppFormsControl> = [], value: any = {}) {
 		controls.filter(control => control.SubControls !== undefined).forEach(control => {
 			if (control.SubControls.AsArray) {
-				const values = value[control.Key] as Array<any>;
+				const values = value[control.Name] as Array<any>;
 				const options = control.SubControls.Controls[0].copy();
 				while (control.SubControls.Controls.length < values.length) {
 					control.SubControls.Controls.push(new AppFormsControl(options, control.SubControls.Controls.length));
@@ -413,7 +413,7 @@ export class AppFormsService {
 				});
 			}
 			else {
-				this.updateControls(control.SubControls.Controls, value[control.Key]);
+				this.updateControls(control.SubControls.Controls, value[control.Name]);
 			}
 		});
 		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop") && !PlatformUtility.isSafari());
@@ -444,7 +444,7 @@ export class AppFormsService {
 					: control.SubControls.AsArray
 						? this.getFormArray(control, this.getValidators(control), this.getAsyncValidators(control))
 						: this.getFormGroup(control.SubControls.Controls, undefined, this.getValidators(control), this.getAsyncValidators(control));
-				formGroup.addControl(control.Key, formControl);
+				formGroup.addControl(control.Name, formControl);
 			}
 		});
 		return formGroup;
@@ -544,7 +544,7 @@ export class AppFormsService {
 		Object.keys(formGroup.controls).forEach(key => {
 			const formControl = formGroup.controls[key];
 			if (formControl.invalid) {
-				const control = controls.find(ctrl => ctrl.Key === key);
+				const control = controls.find(ctrl => ctrl.Name === key);
 				const subcontrols = control !== undefined && control.SubControls !== undefined ? control.SubControls.Controls : undefined;
 				if (formControl instanceof FormGroup) {
 					first = first || this.highlightInvalidsFormGroup(formControl as FormGroup, subcontrols);

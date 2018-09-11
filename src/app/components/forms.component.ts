@@ -66,7 +66,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	trackControl(index: number, control: AppFormsControl) {
-		return control.Key;
+		return control.Name;
 	}
 
 }
