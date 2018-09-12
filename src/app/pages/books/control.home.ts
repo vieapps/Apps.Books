@@ -89,15 +89,21 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
 	async initializeAsync() {
 		await this.prepareResourcesAsync();
+
 		if (this.booksSvc.introductions === undefined || this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
 			await this.booksSvc.fetchIntroductionsAsync(() => {
-				this.updateBooks();
 				this.updateIntroduction();
 			});
 		}
 		else {
-			this.updateBooks();
 			this.updateIntroduction();
+		}
+
+		if (this.books === undefined) {
+			await this.booksSvc.searchAsync({ FilterBy: {}, SortBy: {} }, () => this.updateBooks());
+		}
+		else {
+			this.updateBooks();
 		}
 	}
 
@@ -106,14 +112,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	}
 
 	updateBooks() {
-		if (this.books === undefined) {
-			this.booksSvc.searchAsync({ FilterBy: {}, SortBy: {} }, () => {
-				this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(o => o.LastUpdated).Take(40).ToArray(), 12);
-			});
-		}
-		else {
-			this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(o => o.LastUpdated).Take(40).ToArray(), 12);
-		}
+		this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(o => o.LastUpdated).Take(40).ToArray(), 12);
 	}
 
 	trackBook(index: number, book: Book) {

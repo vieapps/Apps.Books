@@ -12,7 +12,7 @@
 					<label>
 						{{ bookmark.Time | date: 'h:mm a @ d/M/y' }}
 					</label>
-					<span [hidden]="bookmark.Position < 1">
+					<span>
 						{{ getPosition(bookmark) }}
 					</span>
 				</div>

@@ -16,7 +16,6 @@ import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { FileTransfer } from "@ionic-native/file-transfer/ngx";
-import { QRScanner } from "@ionic-native/qr-scanner/ngx";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 
 import { AppComponent } from "./app.component";
@@ -62,7 +61,6 @@ export function HttpLoaderFactory(http: HttpClient) {
 		AppVersion,
 		FileTransfer,
 		GoogleAnalytics,
-		QRScanner,
 		InAppBrowser,
 		AppReadyGuardService,
 		RegisterGuardService,

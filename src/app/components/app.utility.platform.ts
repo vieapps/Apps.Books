@@ -1,5 +1,6 @@
 declare var FB: any;
 import { ElementRef } from "@angular/core";
+import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "./app.crypto";
@@ -9,10 +10,16 @@ import { AppUtility } from "./app.utility";
 export class PlatformUtility {
 
 	private static _keyboard: Keyboard;
+	private static _inappBrowser: InAppBrowser;
 
 	/** Sets the instance of device keyboard */
 	public static setKeyboard(keyboard: Keyboard) {
 		this._keyboard = keyboard;
+	}
+
+	/** Sets the instance of in-app browser */
+	public static setInAppBrowser(inappBrowser: InAppBrowser) {
+		this._inappBrowser = inappBrowser;
 	}
 
 	/**

@@ -10,6 +10,7 @@ import { Device } from "@ionic-native/device/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
+import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { TranslateService } from "@ngx-translate/core";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "../components/app.crypto";
@@ -30,6 +31,7 @@ export class ConfigurationService extends BaseService {
 		public platformLocation: PlatformLocation,
 		public device: Device,
 		public keyboard: Keyboard,
+		public inappBrowser: InAppBrowser,
 		public appVer: AppVersion,
 		public googleAnalytics: GoogleAnalytics,
 		public storage: Storage,
@@ -213,6 +215,7 @@ export class ConfigurationService extends BaseService {
 			await TrackingUtility.initializeAsync(this.googleAnalytics);
 			if (isNativeApp) {
 				PlatformUtility.setKeyboard(this.keyboard);
+				PlatformUtility.setInAppBrowser(this.inappBrowser);
 				this.appVer.getVersionCode()
 					.then(version => this.appConfig.app.version = version as string)
 					.catch(error => console.error(this.getErrorMessage("Cannot get app version", error)));

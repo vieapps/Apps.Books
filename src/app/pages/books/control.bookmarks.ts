@@ -99,7 +99,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	getPosition(bookmark: Bookmark) {
 		const book = Book.instances.getValue(bookmark.ID);
 		return book !== undefined
-			? (bookmark.Chapter > 0 ? this.resources.chapter + bookmark.Chapter + " - " : "") + this.resources.position + bookmark.Position
+			? (bookmark.Chapter > 0 ? this.resources.chapter + bookmark.Chapter : "") + (bookmark.Position > 0 ?  (bookmark.Chapter > 0 ? " - " : "") + this.resources.position + bookmark.Position : "")
 			: `${bookmark.Chapter}#${bookmark.Position}`;
 	}
 

@@ -16,6 +16,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	) {
 	}
 
+	public show = false;
+	private _style: string = undefined;
+
 	@Input() control: AppFormsControl;
 	@Input() formGroup: FormGroup;
 	@Input() formArrayIndex: number;
@@ -24,9 +27,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	@Output() lastFocusEvent: EventEmitter<any> = new EventEmitter();
 
 	@ViewChild("elementRef") elementRef;
-
-	show = false;
-	private _style: string = undefined;
 
 	ngOnInit() {
 		if (this.isCompleter) {
@@ -164,11 +164,11 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get width() {
-		return this.control.Options.Width;
+		return this.control.Options.Width !== undefined ? this.control.Options.Width : "";
 	}
 
 	get height() {
-		return this.control.Options.Height;
+		return this.control.Options.Height !== undefined ? this.control.Options.Height : "";
 	}
 
 	get style() {
