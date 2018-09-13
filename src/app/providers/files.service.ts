@@ -1,16 +1,15 @@
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
+import { AppConfig } from "../app.config";
 import { AppAPI } from "../components/app.api";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseService } from "./base.service";
-import { ConfigurationService } from "./configuration.service";
 
 @Injectable()
 export class FilesService extends BaseService {
 
 	constructor (
-		public http: Http,
-		public configSvc: ConfigurationService
+		public http: Http
 	) {
 		super(http, "Files");
 	}
@@ -19,7 +18,7 @@ export class FilesService extends BaseService {
 		try {
 			const response = await AppAPI.send(
 				"POST",
-				`${this.configSvc.appConfig.URIs.files}avatars`,
+				`${AppConfig.URIs.files}avatars`,
 				{
 					"x-as-base64": "yes"
 				},

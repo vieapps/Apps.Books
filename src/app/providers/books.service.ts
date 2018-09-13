@@ -55,15 +55,6 @@ export class BooksService extends BaseService {
 					await this.loadBookmarksAsync();
 				}
 			}
-		});
-
-		AppEvents.on("Session", async info => {
-			if (this.configSvc.isAuthenticated && AppRTU.isReady && "Updated" === info.args.Type) {
-				await this.loadBookmarksAsync(() => this.getBookmarks());
-			}}
-		);
-
-		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
 				PlatformUtility.setTimeout(async () => {
 					this.updateSearchIntoSidebarAsync();
@@ -72,31 +63,33 @@ export class BooksService extends BaseService {
 					}
 				}, 234);
 			}
-			else if ("HomePageIsOpened" === info.args.Type && this._reading.ID !== undefined) {
+			if ("HomePageIsOpened" === info.args.Type && this._reading.ID !== undefined) {
 				await this.updateCategoriesIntoSidebarAsync();
 				this._reading.ID = undefined;
 			}
 		});
+
+		AppEvents.on("Session", async info => {
+			if (this.configSvc.isAuthenticated && AppRTU.isReady && "Updated" === info.args.Type) {
+				await this.loadBookmarksAsync(() => this.getBookmarks());
+			}}
+		);
 
 		AppEvents.on("Books", async info => {
 			if ("CategoriesUpdated" === info.args.Type) {
 				await this.updateCategoriesIntoSidebarAsync();
 			}
-		});
-
-		AppEvents.on("Books", async info => {
-			if ("CloseBook" === info.args.Type && this._reading.ID !== undefined) {
-				await this.updateCategoriesIntoSidebarAsync();
-				this._reading.ID = undefined;
-			}
-		});
-
-		AppEvents.on("Books", async info => {
 			if ("OpenBook" === info.args.Type) {
 				const book = Book.instances.getValue(info.args.ID);
 				if (book !== undefined && book.TotalChapters > 1) {
 					await this.updateReadingAsync(book, info.args.Chapter || 1);
 				}
+			}
+			else if ("CloseBook" === info.args.Type && this._reading.ID !== undefined) {
+				await this.updateCategoriesIntoSidebarAsync();
+				this._reading.ID = undefined;
+				this._reading.Chapter.Current = undefined;
+				this._reading.Chapter.Previous = undefined;
 			}
 		});
 	}

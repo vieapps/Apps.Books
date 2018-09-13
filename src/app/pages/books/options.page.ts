@@ -42,13 +42,13 @@ export class BookReadingOptionsPage implements OnInit, OnDestroy {
 		this.title = await this.configSvc.getResourceAsync("books.options.title");
 		this.sample = await this.configSvc.getResourceAsync("books.options.labels.sample");
 		const config = new Array<any>();
-		["color", "font", "size", "paragraph", "align"].forEach(async key => {
-			const resources = await this.configSvc.getResourcesAsync(`books.options.${key}`);
+		["color", "font", "size", "paragraph", "align"].forEach(async name => {
+			const resources = await this.configSvc.getResourcesAsync(`books.options.${name}`);
 			config.push({
-				Key: key,
+				Name: name,
 				Type: "Select",
 				Options: {
-					Label: await this.configSvc.getResourceAsync(`books.options.labels.${key}`),
+					Label: await this.configSvc.getResourceAsync(`books.options.labels.${name}`),
 					SelectOptions: {
 						Values: Object.keys(resources).map(value => {
 							return {
