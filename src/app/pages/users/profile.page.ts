@@ -1,10 +1,12 @@
 import * as Rx from "rxjs";
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { FormGroup } from "@angular/forms";
+import { Input as IonicInput } from "@ionic/angular";
 import { AppUtility } from "../../components/app.utility";
 import { AppCrypto } from "../../components/app.crypto";
 import { AppEvents } from "../../components/app.events";
 import { TrackingUtility } from "../../components/app.utility.trackings";
+import { PlatformUtility } from "../../components/app.utility.platform";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
@@ -87,9 +89,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	otp = {
 		required: false,
 		uri: "",
-		value: "",
 		provisioning: "",
 		providers: new Array<{ Type: string, Label: string, Time: Date, Info: string }>(),
+		value: "",
+		password: "",
 		resources: {
 			status: {
 				label: "status",
@@ -108,6 +111,10 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			instruction: {
 				main: "Open authenticator app",
 				app: "Google Authenticator/Microsoft Authenticator"
+			},
+			password: {
+				label: "Old password",
+				show: false
 			}
 		}
 	};
@@ -124,6 +131,8 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 		controls: new Array<AppFormsControl>(),
 		value: undefined as any
 	};
+
+	@ViewChild(IonicInput) otpCtrl: IonicInput;
 
 	ngOnInit() {
 		this.rxSubscriptions.push(this.update.form.valueChanges.subscribe(value => this.update.value = value));
@@ -451,7 +460,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 					TrackingUtility.trackAsync(this.title, "users/update/password"),
 					this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.password.message")))
 				]),
-				async error => await this.appFormsSvc.showErrorAsync(error)
+				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.password.controls.find(ctrl => ctrl.Name === "OldPassword").focus())
 			);
 		}
 	}
@@ -507,26 +516,22 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 					TrackingUtility.trackAsync(this.title, "users/update/email"),
 					this.showProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.email.message")))
 				]),
-				async error => await this.appFormsSvc.showErrorAsync(error)
+				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.password.controls.find(ctrl => ctrl.Name === "OldPassword").focus())
 			);
 		}
 	}
 
 	async openUpdateOTPAsync(onNext?: () => void) {
 		const account = this.configSvc.getAccount();
-		this.otp.required = account.twoFactors.required;
-		this.otp.providers = account.twoFactors.providers;
+		this.otp.required = account.twoFactors !== undefined ? account.twoFactors.required : false;
+		this.otp.providers = account.twoFactors !== undefined ? account.twoFactors.providers : [];
 		this.otp.provisioning = "";
 		this.otp.uri = "";
 		this.otp.value = "";
 		this.otp.resources = {
 			status: {
 				label: await this.configSvc.getResourceAsync("users.profile.otp.status.label"),
-				value: this.otp.required
-					? await this.configSvc.getResourceAsync("users.profile.otp.status.on")
-					: this.otp.uri === ""
-						? await this.configSvc.getResourceAsync("users.profile.otp.status.off")
-						: await this.configSvc.getResourceAsync("users.profile.otp.status.provisioning")
+				value: ""
 			},
 			providers: await this.configSvc.getResourceAsync("users.profile.otp.labels.providers"),
 			buttons: {
@@ -539,14 +544,27 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 				control: await this.configSvc.getResourceAsync("users.profile.otp.labels.qrcode.control")
 			},
 			instruction: {
-				main: await this.configSvc.getResourceAsync("users.profile.otp.instruction.main"),
-				app: await this.configSvc.getResourceAsync("users.profile.otp.instruction.app")
+				main: await this.configSvc.getResourceAsync("users.profile.otp.labels.instruction.main"),
+				app: await this.configSvc.getResourceAsync("users.profile.otp.labels.instruction.app")
+			},
+			password: {
+				label: await this.configSvc.getResourceAsync("users.profile.password.controls.OldPassword"),
+				show: false
 			}
 		};
+		await this.prepareOTPStatusAsync();
 		await this.setModeAsync("otp", await this.configSvc.getResourceAsync("users.profile.otp.title"));
 		if (onNext !== undefined) {
 			onNext();
 		}
+	}
+
+	async prepareOTPStatusAsync() {
+		this.otp.resources.status.value = this.otp.required
+			? await this.configSvc.getResourceAsync("users.profile.otp.status.on")
+			: this.otp.uri === ""
+				? await this.configSvc.getResourceAsync("users.profile.otp.status.off")
+				: await this.configSvc.getResourceAsync("users.profile.otp.status.provisioning");
 	}
 
 	async prepareOTPAsync() {
@@ -555,7 +573,14 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			async data => {
 				this.otp.provisioning = data.Provisioning;
 				this.otp.uri = data.Uri;
-				await this.appFormsSvc.hideLoadingAsync(() => this.otp.value = "");
+				await Promise.all([
+					this.prepareOTPStatusAsync(),
+					this.appFormsSvc.hideLoadingAsync(() => {
+						this.otp.value = "";
+						this.otp.password = "";
+						PlatformUtility.focus(this.otpCtrl);
+					})
+				]);
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error)
 		);
@@ -564,13 +589,19 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 	async addOTPAsync() {
 		this.appFormsSvc.showLoadingAsync(this.title);
 		await this.usersSvc.add2FAMethodAsync(
+			this.otp.password,
 			this.otp.provisioning,
 			this.otp.value,
 			() => this.openUpdateOTPAsync(async () => await Promise.all([
 				TrackingUtility.trackAsync(this.title, "users/update/otp"),
+				this.prepareOTPStatusAsync(),
 				this.appFormsSvc.hideLoadingAsync()
 			])),
-			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.otp.value = "")
+			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
+				this.otp.value = "";
+				this.otp.password = "";
+				PlatformUtility.focus(this.otpCtrl);
+			})
 		);
 	}
 
@@ -579,16 +610,25 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			await this.configSvc.getResourceAsync("users.profile.otp.buttons.delete"),
 			undefined,
 			await this.configSvc.getResourceAsync("users.profile.otp.messages.confirm", { label: provider.Label }),
-			async () => await this.usersSvc.delete2FAMethodAsync(
+			async data => await this.usersSvc.delete2FAMethodAsync(
+				data.password + "",
 				provider.Info,
 				() => this.openUpdateOTPAsync(async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/update/otp"),
+					this.prepareOTPStatusAsync(),
 					this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.otp.messages.success", { label: provider.Label }))
 				])),
 				error => this.appFormsSvc.showErrorAsync(error)
 			),
 			await this.configSvc.getResourceAsync("common.buttons.yes"),
-			await this.configSvc.getResourceAsync("common.buttons.no")
+			await this.configSvc.getResourceAsync("common.buttons.no"),
+			[
+				{
+					name: "password",
+					type: "password",
+					placeholder: await this.configSvc.getResourceAsync("users.profile.password.controls.OldPassword")
+				}
+			]
 		);
 	}
 
@@ -655,7 +695,7 @@ export class AccountProfilePage implements OnInit, OnDestroy {
 			async () => await this.authSvc.logOutAsync(
 				async () => {
 					await Promise.all([
-						TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), "session/log-out"),
+						TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), "users/logout"),
 						this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.logout.success"))
 					]);
 					if (this.configSvc.previousUrl.startsWith("/users")) {

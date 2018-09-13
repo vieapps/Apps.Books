@@ -76,14 +76,16 @@
 			}
 		},
 		"info": {
-			"category": "Thể loại",
-			"original": "Nguyên tác",
-			"author": "Tác giả",
-			"translator": "Dịch giả",
-			"publisher": "Nhà xuất bản",
-			"producer": "Đơn vị sản xuất",
+			"controls": {
+				"Category": "Thể loại",
+				"Original": "Nguyên tác",
+				"Author": "Tác giả",
+				"Translator": "Dịch giả",
+				"Publisher": "Nhà xuất bản",
+				"Producer": "Đơn vị sản xuất",
+				"Source": "Nguồn"
+			},
 			"chapters": "Số chương/phần",
-			"source": "Nguồn",
 			"download": "Tải xuống",
 			"qrcode": {
 				"header": "QR Code",

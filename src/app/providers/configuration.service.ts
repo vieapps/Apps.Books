@@ -46,6 +46,8 @@ export class ConfigurationService extends BaseService {
 		});
 	}
 
+	private _definitions: { [key: string]: any } = {};
+
 	/** Gets the configuration of the app */
 	public get appConfig() {
 		return AppConfig;
@@ -679,6 +681,39 @@ export class ConfigurationService extends BaseService {
 	/** Gets the resources (of the current language) by a key */
 	public getResourcesAsync(key: string) {
 		return this.translateSvc.get(key).toPromise<{ [key: string]: string }>();
+	}
+
+	/** Gets definitions (forms, views, resources, ...) */
+	public async getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
+		let identity = "", query = "";
+		if (AppUtility.isNotEmpty(serviceName)) {
+			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + serviceName;
+			query += "&x-service-name" + serviceName;
+		}
+		if (AppUtility.isNotEmpty(objectName)) {
+			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + objectName;
+			query += "&x-object-name" + objectName;
+		}
+		if (AppUtility.isNotEmpty(definitionName)) {
+			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + definitionName;
+			query += "&x-object-identity" + definitionName;
+		}
+		if (AppUtility.isNotEmpty(repositoryID)) {
+			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + repositoryID;
+			query += "&x-repository-id" + repositoryID;
+		}
+		if (AppUtility.isNotEmpty(entityID)) {
+			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + entityID;
+			query += "&x-entity-id" + entityID;
+		}
+		if (this._definitions[identity] === undefined) {
+			await this.readAsync(
+				"discovery/definitions" + (AppUtility.isNotEmpty(query) ? "?" + query.substr(1, query.length - 1) : ""),
+				data => this._definitions[identity] = data,
+				error => this.showError("Error occurred while working with definitions", error)
+			);
+		}
+		return this._definitions[identity];
 	}
 
 }

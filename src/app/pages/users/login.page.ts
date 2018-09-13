@@ -142,6 +142,7 @@ export class LogInPage implements OnInit, OnDestroy {
 			{
 				Name: "Provider",
 				Type: "Select",
+				Hidden: this.otp.providers.length < 2,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.login.otp.controls.Provider"),
 					SelectOptions: {
@@ -166,10 +167,6 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		if (this.otp.providers.length < 2) {
-			this.otp.config.find(c => c.Key === "Provider")["Excluded"] = true;
-		}
-
 		this.otp.value = {
 			ID: data.ID,
 			Provider: this.otp.providers[0].Info,

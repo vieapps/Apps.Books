@@ -41,8 +41,8 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 		translator: "Translator",
 		publisher: "Publisher",
 		producer: "Producer",
-		chapters: "Number of chapters",
 		source: "Source",
+		chapters: "Number of chapters",
 		download: "Download",
 		qrcode: {
 			header: "QR Code",
@@ -117,14 +117,14 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 
 	async prepareResourcesAsync() {
 		this.resources = {
-			category: await this.configSvc.getResourceAsync("books.info.category"),
-			original: await this.configSvc.getResourceAsync("books.info.original"),
-			author: await this.configSvc.getResourceAsync("books.info.author"),
-			translator: await this.configSvc.getResourceAsync("books.info.translator"),
-			publisher: await this.configSvc.getResourceAsync("books.info.publisher"),
-			producer: await this.configSvc.getResourceAsync("books.info.producer"),
+			category: await this.configSvc.getResourceAsync("books.info.controls.Category"),
+			original: await this.configSvc.getResourceAsync("books.info.controls.Original"),
+			author: await this.configSvc.getResourceAsync("books.info.controls.Author"),
+			translator: await this.configSvc.getResourceAsync("books.info.controls.Translator"),
+			publisher: await this.configSvc.getResourceAsync("books.info.controls.Publisher"),
+			producer: await this.configSvc.getResourceAsync("books.info.controls.Producer"),
+			source: await this.configSvc.getResourceAsync("books.info.controls.Source"),
 			chapters: await this.configSvc.getResourceAsync("books.info.chapters"),
-			source: await this.configSvc.getResourceAsync("books.info.source"),
 			download: await this.configSvc.getResourceAsync("books.info.download"),
 			qrcode: {
 				header: await this.configSvc.getResourceAsync("books.info.qrcode.header"),

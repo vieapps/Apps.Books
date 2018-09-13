@@ -24,7 +24,19 @@ export class BooksService extends BaseService {
 		public configSvc: ConfigurationService
 	) {
 		super(http, "Books");
-		AppRTU.registerAsObjectScopeProcessor(this.Name, "Book", async message => await this.processUpdateBookMessageAsync(message));
+		this.initialize();
+	}
+
+	private _reading = {
+		ID: undefined as string,
+		Chapter: {
+			Current: undefined as number,
+			Previous: undefined as number
+		}
+	};
+
+	private initialize() {
+		AppRTU.registerAsObjectScopeProcessor(this.Name, "Book", message => this.processUpdateBookMessage(message));
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
 		AppRTU.registerAsServiceScopeProcessor("Scheduler", () => this.sendBookmarks());
@@ -67,11 +79,15 @@ export class BooksService extends BaseService {
 		});
 
 		AppEvents.on("Books", async info => {
-			if ("CategoriesUpdated" === info.args.Type || "CloseBook" === info.args.Type) {
+			if ("CategoriesUpdated" === info.args.Type) {
 				await this.updateCategoriesIntoSidebarAsync();
-				if ("CloseBook" === info.args.Type) {
-					this._reading.ID = undefined;
-				}
+			}
+		});
+
+		AppEvents.on("Books", async info => {
+			if ("CloseBook" === info.args.Type && this._reading.ID !== undefined) {
+				await this.updateCategoriesIntoSidebarAsync();
+				this._reading.ID = undefined;
 			}
 		});
 
@@ -85,14 +101,6 @@ export class BooksService extends BaseService {
 		});
 	}
 
-	private _reading = {
-		ID: undefined as string,
-		Chapter: {
-			Current: undefined as number,
-			Previous: undefined as number
-		}
-	};
-
 	private async updateSearchIntoSidebarAsync() {
 		AppEvents.broadcast("AddSidebarItem", {
 			MenuIndex: 0,
@@ -105,7 +113,6 @@ export class BooksService extends BaseService {
 	}
 
 	private async updateCategoriesIntoSidebarAsync() {
-		const parent = this.configSvc.requestParams["parent"];
 		AppEvents.broadcast("UpdateSidebar", {
 			index: 1,
 			title: await this.configSvc.getResourceAsync("books.home.statistics.categories"),
@@ -116,14 +123,53 @@ export class BooksService extends BaseService {
 					queryParams: {
 						"x-request": AppUtility.toBase64Url({
 							Category: category.Name,
-							Index: index,
-							Parent: parent
+							Index: index
 						})
 					},
 					detail: category.Children !== undefined && category.Children.length > 0
 				};
 			})
 		});
+	}
+
+	private getTOCItem(book: Book, index: number, isReading: boolean) {
+		return {
+			title: book.TOCs[index],
+			url: book.routerLink,
+			queryParams: book.routerParams,
+			detail: isReading,
+			onClick: () => AppEvents.broadcast("Books", { Type: "OpenChapter", ID: book.ID, Chapter: index + 1 })
+		};
+	}
+
+	private async updateReadingAsync(book: Book, chapter: number) {
+		if (book.ID !== this._reading.ID) {
+			this._reading.ID = book.ID;
+			this._reading.Chapter.Previous = undefined;
+			this._reading.Chapter.Current = chapter - 1;
+			AppEvents.broadcast("UpdateSidebar", {
+				index: 1,
+				title: book.Title,
+				thumbnail: book.Cover,
+				items: book.TOCs.map((toc, index) => this.getTOCItem(book, index, index === this._reading.Chapter.Current))
+			});
+		}
+		else {
+			this._reading.Chapter.Previous = this._reading.Chapter.Current;
+			if (this._reading.Chapter.Previous > -1) {
+				AppEvents.broadcast("UpdateSidebarItem", {
+					MenuIndex: 1,
+					ItemIndex: this._reading.Chapter.Previous,
+					ItemInfo: this.getTOCItem(book, this._reading.Chapter.Previous, false)
+				});
+			}
+			this._reading.Chapter.Current = chapter - 1;
+			AppEvents.broadcast("UpdateSidebarItem", {
+				MenuIndex: 1,
+				ItemIndex: this._reading.Chapter.Current,
+				ItemInfo: this.getTOCItem(book, this._reading.Chapter.Current, true)
+			});
+		}
 	}
 
 	public get searchURI() {
@@ -370,7 +416,7 @@ export class BooksService extends BaseService {
 		);
 	}
 
-	private async processUpdateBookMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
+	private processUpdateBookMessage(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
 		switch (message.Type.Event) {
 			case "Counters":
 				this.updateCounters(message.Data);
@@ -717,46 +763,6 @@ export class BooksService extends BaseService {
 			Body: undefined,
 			Extra: undefined
 		});
-	}
-
-	private getTOCItem(book: Book, index: number, isReading: boolean) {
-		return {
-			title: book.TOCs[index],
-			url: book.routerLink,
-			queryParams: book.routerParams,
-			detail: isReading,
-			onClick: () => AppEvents.broadcast("Books", { Type: "OpenChapter", ID: book.ID, Chapter: index + 1 })
-		};
-	}
-
-	private async updateReadingAsync(book: Book, chapter: number) {
-		if (book.ID !== this._reading.ID) {
-			this._reading.ID = book.ID;
-			this._reading.Chapter.Previous = undefined;
-			this._reading.Chapter.Current = chapter - 1;
-			AppEvents.broadcast("UpdateSidebar", {
-				index: 1,
-				title: book.Title,
-				thumbnail: book.Cover,
-				items: book.TOCs.map((toc, index) => this.getTOCItem(book, index, index === this._reading.Chapter.Current))
-			});
-		}
-		else {
-			this._reading.Chapter.Previous = this._reading.Chapter.Current;
-			if (this._reading.Chapter.Previous > -1) {
-				AppEvents.broadcast("UpdateSidebarItem", {
-					MenuIndex: 1,
-					ItemIndex: this._reading.Chapter.Previous,
-					ItemInfo: this.getTOCItem(book, this._reading.Chapter.Previous, false)
-				});
-			}
-			this._reading.Chapter.Current = chapter - 1;
-			AppEvents.broadcast("UpdateSidebarItem", {
-				MenuIndex: 1,
-				ItemIndex: this._reading.Chapter.Current,
-				ItemInfo: this.getTOCItem(book, this._reading.Chapter.Current, true)
-			});
-		}
 	}
 
 }

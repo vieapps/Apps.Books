@@ -212,8 +212,16 @@ export class AppFormsControl {
 
 			const selectOptions = controlOptions.SelectOptions || controlOptions.selectoptions;
 			if (selectOptions !== undefined) {
+				const selectValues = selectOptions.Values || selectOptions.values;
 				control.Options.SelectOptions = {
-					Values: ((selectOptions.Values || selectOptions.values) as Array<any> || []).map(kvp => {
+					Values: AppUtility.isArray(selectValues, true) && selectValues.length > 0 && typeof selectValues[0] === "string"
+						? (selectValues as Array<string>).map(value => {
+							return {
+								Value: value,
+								Label: value
+							};
+						})
+						: (selectValues as Array<any> || []).map(kvp => {
 						return {
 							Value: kvp.Value || kvp.value,
 							Label: kvp.Label || kvp.label || kvp.Value || kvp.value
@@ -328,7 +336,7 @@ export class AppFormsService {
 	private _modal: any;
 	private _alert: any;
 	private _toast: any;
-	private _controlTypes = {
+	private _types = {
 		text: ["text", "password", "email", "search", "tel", "url"],
 		datetime: ["date", "datetime", "datetime-local"]
 	};
@@ -349,16 +357,35 @@ export class AppFormsService {
 				control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
 				control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
 				if (AppUtility.isArray(control.Options.SelectOptions.Values, true)) {
-					control.Options.SelectOptions.Values.forEach(async data => data.Label = await this.normalizeResourceAsync(data.Label));
+					control.Options.SelectOptions.Values.forEach(async selectValue => {
+						selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
+						selectValue.Label = await this.normalizeResourceAsync(selectValue.Label);
+					});
 				}
 				else if (AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
+					let uri = control.Options.SelectOptions.RemoteURI as string;
+					if (!uri.startsWith("http://") && !uri.startsWith("https://")) {
+						uri = AppConfig.URIs.apis + uri;
+					}
+					uri += (uri.indexOf("?") < 0 ? "?" : "&") + AppConfig.getRelatedQuery();
 					try {
-						const response = await AppAPI.getAsync(control.Options.SelectOptions.RemoteURI + (control.Options.SelectOptions.RemoteURI.indexOf("language=") < 0 ? control.Options.SelectOptions.RemoteURI.indexOf("?") < 0 ? "?" : "&" + "language=" + AppConfig.language : ""));
-						control.Options.SelectOptions.Values = (response.json() as Array<any> || []).map(data => {
-							return {
-								Value: data.Value || data.value,
-								Label: data.Label || data.label || data.Value || data.value
-							};
+						const selectValues = (await AppAPI.getAsync(uri)).json();
+						control.Options.SelectOptions.Values = AppUtility.isArray(selectValues, true) && selectValues.length > 0 && typeof selectValues[0] === "string"
+							? (selectValues as Array<string>).map(value => {
+									return {
+										Value: value,
+										Label: value
+									};
+								})
+							: (selectValues as Array<any> || []).map(kvp => {
+									return {
+										Value: kvp.Value || kvp.value,
+										Label: kvp.Label || kvp.label || kvp.Value || kvp.value
+									};
+								});
+						control.Options.SelectOptions.Values.forEach(async selectValue => {
+							selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
+							selectValue.Label = await this.normalizeResourceAsync(selectValue.Label);
 						});
 					}
 					catch (error) {
@@ -494,7 +521,7 @@ export class AppFormsService {
 			validators.push(Validators.required);
 		}
 
-		if (this._controlTypes.text.findIndex(type => type === control.Options.Type) > -1) {
+		if (this._types.text.findIndex(type => type === control.Options.Type) > -1) {
 			if (control.Options.MinLength > 0) {
 				validators.push(Validators.minLength(control.Options.MinLength));
 			}
@@ -505,7 +532,7 @@ export class AppFormsService {
 				validators.push(Validators.pattern("([a-zA-Z0-9_.-]+)@([a-zA-Z0-9_.-]+)\\.([a-zA-Z]{2,5})"));
 			}
 		}
-		else if (this._controlTypes.datetime.findIndex(type => type === control.Options.Type) > -1) {
+		else if (this._types.datetime.findIndex(type => type === control.Options.Type) > -1) {
 			if (control.Options.MinValue !== undefined) {
 				validators.push(this.minDate(control.Options.MinValue));
 			}
@@ -515,10 +542,10 @@ export class AppFormsService {
 		}
 		else if ("number" === control.Options.Type) {
 			if (control.Options.MinValue !== undefined) {
-				validators.push(Validators.min(control.Options.MinValue));
+				validators.push(Validators.min(+control.Options.MinValue));
 			}
 			if (control.Options.MaxValue !== undefined) {
-				validators.push(Validators.max(control.Options.MaxValue));
+				validators.push(Validators.max(+control.Options.MaxValue));
 			}
 		}
 
@@ -545,7 +572,7 @@ export class AppFormsService {
 	public highlightInvalids(form: FormGroup) {
 		const control = this.highlightInvalidsFormGroup(form, form["_controls"] as Array<AppFormsControl>);
 		if (control !== undefined) {
-			console.warn(`Invalid => ${control.Name}`);
+			console.warn(`[Forms]: Invalid => ${control.Name}`);
 			control.focus();
 		}
 	}
@@ -649,8 +676,8 @@ export class AppFormsService {
 	public minDate(date: string): ValidatorFn {
 		return (formControl: AbstractControl): { [key: string]: any } | null => {
 			if (date !== undefined && formControl.value !== undefined && new Date(formControl.value) < new Date(date)) {
-				formControl.setErrors({ greater: true });
-				return { greater: true };
+				formControl.setErrors({ lessThan: true });
+				return { lessThan: true };
 			}
 			else {
 				return null;
@@ -662,8 +689,8 @@ export class AppFormsService {
 	public maxDate(date: string): ValidatorFn {
 		return (formControl: AbstractControl): { [key: string]: any } | null => {
 			if (date !== undefined && formControl.value !== undefined && new Date(formControl.value) > new Date(date)) {
-				formControl.setErrors({ lessThan: true });
-				return { lessThan: true };
+				formControl.setErrors({ greater: true });
+				return { greater: true };
 			}
 			else {
 				return null;

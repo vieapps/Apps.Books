@@ -54,8 +54,8 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		translator: "Translator",
 		publisher: "Publisher",
 		producer: "Producer",
-		chapters: "Number of chapters",
-		source: "Source"
+		source: "Source",
+		chapters: "Number of chapters"
 	};
 	@ViewChild(Content) contentCtrl: Content;
 
@@ -184,14 +184,14 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		this.resources = {
 			previous: await this.configSvc.getResourceAsync("books.read.navigate.previous"),
 			next: await this.configSvc.getResourceAsync("books.read.navigate.next"),
-			category: await this.configSvc.getResourceAsync("books.info.category"),
-			original: await this.configSvc.getResourceAsync("books.info.original"),
-			author: await this.configSvc.getResourceAsync("books.info.author"),
-			translator: await this.configSvc.getResourceAsync("books.info.translator"),
-			publisher: await this.configSvc.getResourceAsync("books.info.publisher"),
-			producer: await this.configSvc.getResourceAsync("books.info.producer"),
-			chapters: await this.configSvc.getResourceAsync("books.info.chapters"),
-			source: await this.configSvc.getResourceAsync("books.info.source")
+			category: await this.configSvc.getResourceAsync("books.info.controls.Category"),
+			original: await this.configSvc.getResourceAsync("books.info.controls.Original"),
+			author: await this.configSvc.getResourceAsync("books.info.controls.Author"),
+			translator: await this.configSvc.getResourceAsync("books.info.controls.Translator"),
+			publisher: await this.configSvc.getResourceAsync("books.info.controls.Publisher"),
+			producer: await this.configSvc.getResourceAsync("books.info.controls.Producer"),
+			source: await this.configSvc.getResourceAsync("books.info.controls.Source"),
+			chapters: await this.configSvc.getResourceAsync("books.info.chapters")
 		};
 	}
 

@@ -76,14 +76,16 @@
 			}
 		},
 		"info": {
-			"category": "Category",
-			"original": "Original",
-			"author": "Author",
-			"translator": "Translator",
-			"publisher": "Publisher",
-			"producer": "Producer",
+			"controls": {
+				"Category": "Category",
+				"Original": "Original",
+				"Author": "Author",
+				"Translator": "Translator",
+				"Publisher": "Publisher",
+				"Producer": "Producer",
+				"Source": "Source"
+			},
 			"chapters": "Number of chapters",
-			"source": "Source",
 			"download": "Download",
 			"qrcode": {
 				"header": "QR Code",

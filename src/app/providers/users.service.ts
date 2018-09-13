@@ -174,12 +174,12 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public async updatePasswordAsync(oldPassword: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async updatePasswordAsync(password: string, newPassword: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
 			`users/account/password?${this.configSvc.relatedQuery}`,
 			{
-				OldPassword: AppCrypto.rsaEncrypt(oldPassword),
-				Password: AppCrypto.rsaEncrypt(password)
+				OldPassword: AppCrypto.rsaEncrypt(password),
+				Password: AppCrypto.rsaEncrypt(newPassword)
 			},
 			onNext,
 			error => {
@@ -191,12 +191,12 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public async updateEmailAsync(oldPassword: string, email: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async updateEmailAsync(password: string, newEmail: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
 			`users/account/email?${this.configSvc.relatedQuery}`,
 			{
-				OldPassword: AppCrypto.rsaEncrypt(oldPassword),
-				Email: AppCrypto.rsaEncrypt(email)
+				OldPassword: AppCrypto.rsaEncrypt(password),
+				Email: AppCrypto.rsaEncrypt(newEmail)
 			},
 			onNext,
 			error => {
@@ -221,7 +221,7 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public async add2FAMethodAsync(provisioning: string, otp: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async add2FAMethodAsync(password: string, provisioning: string, otp: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
 			`users/otp?${this.configSvc.relatedQuery}`,
 			{
@@ -234,11 +234,14 @@ export class UsersService extends BaseService {
 				if (onError !== undefined) {
 					onError(error);
 				}
+			},
+			{
+				"x-password": AppCrypto.rsaEncrypt(password),
 			}
 		);
 	}
 
-	public async delete2FAMethodAsync(info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async delete2FAMethodAsync(password: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.deleteAsync(
 			`users/otp?info=${info}&${this.configSvc.relatedQuery}`,
 			data => this.configSvc.updateAccount(data, onNext),
@@ -247,6 +250,9 @@ export class UsersService extends BaseService {
 				if (onError !== undefined) {
 					onError(error);
 				}
+			},
+			{
+				"x-password": AppCrypto.rsaEncrypt(password),
 			}
 		);
 	}

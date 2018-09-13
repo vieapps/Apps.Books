@@ -9,13 +9,13 @@ export class AppConfig {
 	/** URIs of the remote API and resources */
 	public static URIs = {
 		/** URI of the remote API */
-		apis: "https://apis.vieapps.net/",
+		apis: "https://apis.vieapps.com/",
 
 		/** URI of the remote HTTP Files service */
-		files: "https://fs.vieapps.net/",
+		files: "https://fs.vieapps.com/",
 
 		/** URI to perform activation (on the web) */
-		activations: "https://books.vieapps.net/"
+		activations: "https://books.vieapps.com/"
 	};
 
 	/** Information of the app */
