@@ -44,15 +44,17 @@ export class AuthenticationService extends BaseService {
 	}
 
 	/** Checks to see the account is service administrator or not */
-	public isServiceAdministrator(account?: Account, service?: string) {
+	public isServiceAdministrator(service?: string, account?: Account) {
+		service = (service || this.configSvc.appConfig.app.service).toLowerCase();
 		account = account || this.configSvc.getAccount();
-		return this.isGotServiceRole(service || this.configSvc.appConfig.app.service, "Administrator", account.privileges) || this.isSystemAdministrator(account);
+		return this.isGotServiceRole(service, "Administrator", account.privileges) || this.isSystemAdministrator(account);
 	}
 
 	/** Checks to see the account is service moderator or not */
-	public isServiceModerator(account?: Account, service?: string) {
+	public isServiceModerator(service?: string, account?: Account) {
+		service = (service || this.configSvc.appConfig.app.service).toLowerCase();
 		account = account || this.configSvc.getAccount();
-		return this.isGotServiceRole(service || this.configSvc.appConfig.app.service, "Moderator", account.privileges) || this.isServiceAdministrator(account);
+		return this.isGotServiceRole(service, "Moderator", account.privileges) || this.isServiceAdministrator(service, account);
 	}
 
 	private canDo(role: string) {

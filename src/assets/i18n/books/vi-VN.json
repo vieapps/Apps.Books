@@ -77,13 +77,19 @@
 		},
 		"info": {
 			"controls": {
+				"Title": "Tiêu đề",
 				"Category": "Thể loại",
 				"Original": "Nguyên tác",
 				"Author": "Tác giả",
 				"Translator": "Dịch giả",
 				"Publisher": "Nhà xuất bản",
 				"Producer": "Đơn vị sản xuất",
-				"Source": "Nguồn"
+				"Source": "Nguồn",
+				"Cover": "Ảnh bìa",
+				"LastUpdated": "Cập nhật lúc",
+				"Language": "Ngôn ngữ",
+				"Tags": "Thẻ phân loại",
+				"TOCs": "Mục lục"
 			},
 			"chapters": "Số chương/phần",
 			"download": "Tải xuống",
@@ -141,6 +147,22 @@
 				"align-left": "Trái",
 				"align-justify": "Đều hai bên",
 				"align-right": "Phải"
+			}
+		},
+		"update": {
+			"title": {
+				"update": "Cập nhật thông tin sách",
+				"request": "Gửi yêu cầu cập nhật thông tin sách"
+			},
+			"button": "Gửi yêu cầu",
+			"cover": {
+				"current": "Hiện tại",
+				"new": "Mới"
+			},
+			"messages": {
+				"confirm": "Chắc chắn muốn huỷ bỏ cập nhật?",
+				"success": "Sách đã được cập nhật...",
+				"sent": "Yêu cầu cập nhật sách đã được gửi tới quản trị..."
 			}
 		}
 	}

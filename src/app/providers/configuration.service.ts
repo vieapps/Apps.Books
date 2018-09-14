@@ -685,30 +685,26 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets definitions (forms, views, resources, ...) */
 	public async getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
-		let identity = "", query = "";
+		let path = "discovery/definitions?" + this.relatedQuery;
 		if (AppUtility.isNotEmpty(serviceName)) {
-			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + serviceName;
-			query += "&x-service-name" + serviceName;
+			path += "&x-service-name=" + serviceName;
 		}
 		if (AppUtility.isNotEmpty(objectName)) {
-			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + objectName;
-			query += "&x-object-name" + objectName;
+			path += "&x-object-name=" + objectName;
 		}
 		if (AppUtility.isNotEmpty(definitionName)) {
-			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + definitionName;
-			query += "&x-object-identity" + definitionName;
+			path += "&x-object-identity=" + definitionName;
 		}
 		if (AppUtility.isNotEmpty(repositoryID)) {
-			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + repositoryID;
-			query += "&x-repository-id" + repositoryID;
+			path += "&x-repository-id=" + repositoryID;
 		}
 		if (AppUtility.isNotEmpty(entityID)) {
-			identity += (AppUtility.isNotEmpty(identity) ? ":" : "") + entityID;
-			query += "&x-entity-id" + entityID;
+			path += "&x-entity-id=" + entityID;
 		}
+		const identity = AppCrypto.md5(path.toLowerCase());
 		if (this._definitions[identity] === undefined) {
 			await this.readAsync(
-				"discovery/definitions" + (AppUtility.isNotEmpty(query) ? "?" + query.substr(1, query.length - 1) : ""),
+				path,
 				data => this._definitions[identity] = data,
 				error => this.showError("Error occurred while working with definitions", error)
 			);

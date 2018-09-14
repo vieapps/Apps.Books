@@ -203,7 +203,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", () => this.openOptions())
 		];
 
-		if (this.authSvc.isServiceModerator()) {
+		if (this.authSvc.isServiceModerator(this.booksSvc.serviceName)) {
 			[
 				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", async () => await this.showCrawlAsync()),
 				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", () => this.configSvc.navigateForward(this.book.routerURI.replace("/read/", "/update/"))),

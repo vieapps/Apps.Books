@@ -205,6 +205,12 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 	}
 
+	get textareaRows() {
+		return this.control.Options.TextAreaRows !== undefined && this.control.Options.TextAreaRows > 0
+			? this.control.Options.TextAreaRows
+			: 4;
+	}
+
 	get datetimeValue() {
 		return this.value !== undefined ? new Date(this.value).toJSON() : undefined;
 	}
@@ -278,6 +284,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	get selectAsRadioBoxes() {
 		return this.isControl("Select") && !this.control.Options.SelectOptions.Multiple && this.control.Options.SelectOptions.AsBoxes;
+	}
+
+	get selectAsDropdown() {
+		return this.isControl("Select") && !this.control.Options.SelectOptions.Multiple && this.control.Options.Type === "dropdown";
 	}
 
 	get selectMultiple() {

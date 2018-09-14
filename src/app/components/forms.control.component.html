@@ -1,7 +1,8 @@
 <ion-item *ngIf="visible && isFormControl && !isCaptchaControl && !selectAsRadioBoxes"
 	[formGroup]="formGroup"
 	[class.invalid]="invalid"
-	[class.completer-container]="isCompleter">
+	[class.completer-container]="isCompleter"
+	[class.select-dropdown]="selectAsDropdown">
 
 	<ion-label *ngIf="label"
 		[color]="color.label"
@@ -29,7 +30,7 @@
 		<ion-icon name="eye-off" slot="icon-only" [hidden]="type !== 'password'"></ion-icon>
 	</ion-button>
 
-	<ion-textarea *ngIf="isControl('TextArea')" rows="4" #elementRef
+	<ion-textarea *ngIf="isControl('TextArea')" #elementRef
 		[formControlName]="formControlName"
 		[name]="name"
 		[placeholder]="placeholder"
@@ -38,21 +39,32 @@
 		[readonly]="readonly"
 		[minlength]="minLength"
 		[maxlength]="maxLength"
+		[rows]="textareaRows" 
 		[attr.style]="style.control"></ion-textarea>
 
-	<ion-select *ngIf="isControl('Select')" #elementRef
+	<ion-select *ngIf="isControl('Select') && !selectAsDropdown" #elementRef
 		[name]="name"
 		[multiple]="selectMultiple"
 		[interface]="selectInterface"
 		[interfaceOptions]="selectInterfaceOptions"
 		[cancelText]="selectCancelText"
 		[okText]="selectOkText"
-		[value]="value"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
 		(ionChange)="onValueChanged($event)">
-		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value">{{ select.Label }}</ion-select-option>
+		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value" [selected]="select.Value === value">{{ select.Label }}</ion-select-option>
 	</ion-select>
+
+	<div *ngIf="selectAsDropdown">
+		<select #elementRef
+			[formControlName]="formControlName"
+			[name]="name"
+			[class]="css.control"
+			(change)="formControl.setValue(this.value)">
+			<option *ngFor="let select of selectValues" [value]="select.Value" [selected]="select.Value === value">{{ select.Label }}</option>
+		</select>
+		<div></div>
+	</div>
 
 	<ion-datetime *ngIf="isControl('DatePicker')" #elementRef
 		[displayFormat]="datetimeDisplayFormat"

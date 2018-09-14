@@ -1,0 +1,50 @@
+<ion-header>
+	<ion-toolbar>
+		<ion-buttons slot="start">
+			<ion-button fill="clear" color="secondary" (click)="cancelAsync()">
+				{{ button.cancel }}
+			</ion-button>
+		</ion-buttons>
+		<ion-buttons slot="end">
+			<ion-button fill="clear" color="primary" (click)="updateAsync()">
+				{{ button.update }}
+			</ion-button>
+		</ion-buttons>
+		<ion-title>
+			{{ title }}
+		</ion-title>
+	</ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+	<app-form *ngIf="update.config"
+		[form]="update.form"
+		[config]="update.config"
+		[controls]="update.controls"
+		(initEvent)="onFormInitialized($event)"></app-form>
+	<ion-item class="select-file">
+		<ion-label position="stacked">
+			{{ cover.title }}
+		</ion-label>
+		<div>
+			<input type="file" accept="image/*" (change)="selectCover($event)" />
+		</div>
+		<ion-button fill="clear" slot="end" (click)="removeCover()">
+			<ion-icon name="trash" slot="icon-only"></ion-icon>
+		</ion-button>		
+	</ion-item>
+	<div class="cover" padding>
+		<div *ngIf="cover.uri">
+			<div>
+				{{ cover.current }}
+			</div>
+			<img [src]="cover.uri" />
+		</div>
+		<div *ngIf="cover.image">
+			<div>
+				{{ cover.new }}
+			</div>
+			<img [src]="cover.image" />
+		</div>
+	</div>
+</ion-content>

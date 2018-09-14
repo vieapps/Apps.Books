@@ -77,6 +77,9 @@ export class AccountAvatarPage implements OnInit {
 	}
 
 	prepareImage($event) {
+		if ($event.target.files.length === 0) {
+			return;
+		}
 		const image = new Image();
 		const fileReader = new FileReader();
 		fileReader.onloadend = (loadEvent: any) => {

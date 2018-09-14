@@ -57,6 +57,7 @@ export class AppFormsControl {
 		MaxLength: undefined as number,
 		Width: undefined as string,
 		Height: undefined as string,
+		TextAreaRows: undefined as number,
 		SelectOptions: {
 			Values: undefined as Array<{ Value: string, Label: string }>,
 			RemoteURI: undefined as string,
@@ -210,23 +211,27 @@ export class AppFormsControl {
 			control.Options.Width = controlOptions.Width || controlOptions.width;
 			control.Options.Height = controlOptions.Height || controlOptions.height;
 
+			control.Options.TextAreaRows = controlOptions.TextAreaRows || controlOptions.textarearows;
+
 			const selectOptions = controlOptions.SelectOptions || controlOptions.selectoptions;
 			if (selectOptions !== undefined) {
 				const selectValues = selectOptions.Values || selectOptions.values;
 				control.Options.SelectOptions = {
-					Values: AppUtility.isArray(selectValues, true) && selectValues.length > 0 && typeof selectValues[0] === "string"
-						? (selectValues as Array<string>).map(value => {
-							return {
-								Value: value,
-								Label: value
-							};
-						})
-						: (selectValues as Array<any> || []).map(kvp => {
-						return {
-							Value: kvp.Value || kvp.value,
-							Label: kvp.Label || kvp.label || kvp.Value || kvp.value
-						};
-					}),
+					Values: AppUtility.isArray(selectValues, true)
+						? selectValues.length > 0 && typeof selectValues[0] === "string"
+							? (selectValues as Array<string>).map(value => {
+									return {
+										Value: value,
+										Label: value
+									};
+								})
+							: (selectValues as Array<any> || []).map(kvp => {
+								return {
+									Value: kvp.Value || kvp.value,
+									Label: kvp.Label || kvp.label || kvp.Value || kvp.value
+								};
+							})
+						: undefined,
 					RemoteURI: selectOptions.RemoteURI || selectOptions.remoteuri,
 					Multiple: !!(selectOptions.Multiple || selectOptions.multiple),
 					AsBoxes: !!(selectOptions.AsBoxes || selectOptions.asboxes),
@@ -281,6 +286,9 @@ export class AppFormsControl {
 				};
 				if (control.SubControls.Controls.length < 1) {
 					control.SubControls = undefined;
+				}
+				else {
+					control.SubControls.Controls.forEach((subcontrol, suborder) => subcontrol.Order = suborder);
 				}
 			}
 		}
@@ -369,7 +377,7 @@ export class AppFormsService {
 					}
 					uri += (uri.indexOf("?") < 0 ? "?" : "&") + AppConfig.getRelatedQuery();
 					try {
-						const selectValues = (await AppAPI.getAsync(uri)).json();
+						const selectValues = (await AppAPI.send("GET", uri).toPromise()).json();
 						control.Options.SelectOptions.Values = AppUtility.isArray(selectValues, true) && selectValues.length > 0 && typeof selectValues[0] === "string"
 							? (selectValues as Array<string>).map(value => {
 									return {
@@ -422,13 +430,17 @@ export class AppFormsService {
 		controls = controls || new Array<AppFormsControl>();
 		config.map((options, order) => new AppFormsControl(options, order))
 			.sort((a, b) => a.Order - b.Order)
-			.forEach(control => controls.push(control));
+			.forEach((control, order) => {
+				control.Order = order;
+				controls.push(control);
+			});
 		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop") && !PlatformUtility.isSafari());
 		return controls;
 	}
 
 	/** Updates the definition of all controls */
 	public updateControls(controls: Array<AppFormsControl> = [], value: any = {}) {
+		controls.forEach((control, order) => control.Order = order);
 		controls.filter(control => control.SubControls !== undefined).forEach(control => {
 			if (control.SubControls.AsArray) {
 				const values = value[control.Name] as Array<any>;

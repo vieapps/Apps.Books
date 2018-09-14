@@ -77,13 +77,19 @@
 		},
 		"info": {
 			"controls": {
+				"Title": "Title",
 				"Category": "Category",
 				"Original": "Original",
 				"Author": "Author",
 				"Translator": "Translator",
 				"Publisher": "Publisher",
 				"Producer": "Producer",
-				"Source": "Source"
+				"Source": "Source",
+				"Cover": "Cover image",
+				"LastUpdated": "Last updated",
+				"Language": "Language",
+				"Tags": "Tags",
+				"TOCs": "Table of Contents"
 			},
 			"chapters": "Number of chapters",
 			"download": "Download",
@@ -141,6 +147,22 @@
 				"align-left": "Left",
 				"align-justify": "Justify",
 				"align-right": "Right"
+			}
+		},
+		"update": {
+			"title": {
+				"update": "Update book",
+				"request": "Request to update book"
+			},
+			"button": "Send request",
+			"cover": {
+				"current": "Current",
+				"new": "New"
+			},
+			"messages": {
+				"confirm": "Are you sure you want to discard changes?",
+				"success": "The book has been updated...",
+				"sent": "Update request has been sent..."
 			}
 		}
 	}
