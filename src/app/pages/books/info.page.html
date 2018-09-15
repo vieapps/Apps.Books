@@ -21,7 +21,7 @@
 		<figure float-start>
 			<img [src]="book.Cover" />
 		</figure>
-		<ion-list>
+		<ion-list float-start>
 			<ion-item *ngIf="book.Original !== ''">
 				<span>
 					{{ resources.original }}:
@@ -127,7 +127,7 @@
 				{{ resources.qrcode.description }}
 			</label>
 		</div>
-		<ion-list>
+		<ion-list float-start>
 			<ion-item *ngIf="statistics.views">
 				<div>
 					<section>
@@ -202,7 +202,10 @@
 			<ion-label position="stacked">
 				{{ resources.link }}:
 			</ion-label>
-			<ion-input [value]="link" readonly="true"></ion-input>
+			<ion-input #link [value]="uri" readonly="true"></ion-input>
+			<ion-button slot="end" fill="clear" (click)="copyLinkAsync()">
+				<ion-icon name="copy" slot="icon-only"></ion-icon>
+			</ion-button>
 		</ion-item>
 	</div>
 

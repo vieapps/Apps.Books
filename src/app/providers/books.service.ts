@@ -244,7 +244,7 @@ export class BooksService extends BaseService {
 				onError();
 			}
 		}
-		else if (chapter < 1 || chapter > book.Chapters.length || book.Chapters[chapter - 1] !== "") {
+		else if (chapter < 1 || chapter > book.Chapters.length || (book.Chapters[chapter - 1] !== "" && !book.Chapters[chapter - 1].startsWith("https://") && !book.Chapters[chapter - 1].startsWith("http://"))) {
 			if (onNext !== undefined) {
 				onNext();
 			}
@@ -271,10 +271,11 @@ export class BooksService extends BaseService {
 
 	public async fetchChapterAsync(id: string, chapter: number, onCompleted?: () => void) {
 		const book = Book.instances.getValue(id);
-		while (chapter < book.TotalChapters && book.Chapters[chapter - 1] !== "") {
+		while (chapter < book.TotalChapters) {
 			chapter += 1;
 		}
-		if (book.Chapters[chapter - 1] === "") {
+
+		if (book.Chapters[chapter - 1] === "" || book.Chapters[chapter - 1].startsWith("https://") || book.Chapters[chapter - 1].startsWith("http://")) {
 			super.send({
 				ServiceName: this.Name,
 				ObjectName: "book",
@@ -289,16 +290,13 @@ export class BooksService extends BaseService {
 				Extra: undefined
 			}, data => this.updateChapter(data));
 		}
-		if (onCompleted !== undefined) {
-			onCompleted();
-		}
+		this.increaseCounters(id, "view", onCompleted);
 	}
 
 	private updateChapter(data: any) {
 		const book = Book.instances.getValue(data.ID);
 		if (book !== undefined) {
 			book.Chapters[data.Chapter - 1] = data.Content;
-			this.increaseCounters(data.ID, "view");
 		}
 }
 
@@ -545,7 +543,7 @@ export class BooksService extends BaseService {
 			this.loadCategoriesAsync(),
 			this.loadAuthorsAsync()
 		]);
-		AppRTU.send({
+		super.send({
 			ServiceName: "books",
 			ObjectName: "statistic",
 			Verb: "GET",
@@ -634,7 +632,7 @@ export class BooksService extends BaseService {
 	}
 
 	private getBookmarks(onCompleted?: () => void) {
-		AppRTU.send({
+		super.send({
 			ServiceName: "books",
 			ObjectName: "bookmarks",
 			Verb: "GET",
@@ -650,7 +648,7 @@ export class BooksService extends BaseService {
 
 	private sendBookmarks(onCompleted?: () => void) {
 		if (this.configSvc.isAuthenticated) {
-			AppRTU.send({
+			super.send({
 				ServiceName: "books",
 				ObjectName: "bookmarks",
 				Verb: "POST",
@@ -685,7 +683,7 @@ export class BooksService extends BaseService {
 		this.bookmarks.values().forEach((bookmark, index)  => {
 			PlatformUtility.setTimeout(() => {
 				if (!Book.instances.containsKey(bookmark.ID)) {
-					AppRTU.send({
+					super.send({
 						ServiceName: "books",
 						ObjectName: "book",
 						Verb: "GET",
@@ -704,7 +702,7 @@ export class BooksService extends BaseService {
 	}
 
 	public deleteBookmark(id: string, onCompleted?: () => void) {
-		AppRTU.send({
+		super.send({
 			ServiceName: "books",
 			ObjectName: "bookmarks",
 			Verb: "DELETE",
@@ -750,7 +748,7 @@ export class BooksService extends BaseService {
 				"object-identity": "recrawl",
 				"id": id,
 				"url": url,
-				"full": "full" === mode
+				"full": "full" === mode ? true : false
 			},
 			Header: undefined,
 			Body: undefined,

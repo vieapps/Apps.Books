@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
+import { Input as IonicInput } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
 import { PlatformUtility } from "../../components/app.utility.platform";
@@ -28,7 +29,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 
 	title = "";
 	qrcode = "";
-	link = "";
+	uri = "";
 	book = new Book();
 	statistics = {
 		views: undefined as CounterInfo,
@@ -57,6 +58,8 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 		},
 		link: "Permanent link"
 	};
+
+	@ViewChild("link") linkCtrl: IonicInput;
 
 	get locale() {
 		return this.configSvc.locale;
@@ -100,10 +103,10 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 				await this.prepareResourcesAsync();
 				this.getStatistics();
 				this.title = this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
-				this.link = PlatformUtility.getRedirectURI(this.book.routerURI);
+				this.uri = PlatformUtility.getRedirectURI(this.book.routerURI);
 				this.qrcode = this.configSvc.appConfig.isNativeApp
 					? "vieapps://books/" + this.book.ID
-					: this.link;
+					: this.uri;
 				if (AppUtility.isObject(this.book.Files, true) && (this.book.Files.Epub.Size === "generating..." || this.book.Files.Mobi.Size === "generating...")) {
 					this.booksSvc.generateFiles(this.book.ID);
 				}
@@ -153,6 +156,21 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 				this.appFormsSvc.showAlertAsync(undefined, undefined, await this.configSvc.getResourceAsync("books.info.notAuthenticated"))
 			]);
 		}
+	}
+
+	async copyLinkAsync() {
+		const textbox = document.createElement("textarea");
+		textbox.style.position = "fixed";
+		textbox.style.left = "0";
+		textbox.style.top = "0";
+		textbox.style.opacity = "0";
+		textbox.value = this.linkCtrl.value;
+		document.body.appendChild(textbox);
+		textbox.focus();
+		textbox.select();
+		document.execCommand("copy");
+		document.body.removeChild(textbox);
+		await this.appFormsSvc.showToastAsync("Copied...");
 	}
 
 }

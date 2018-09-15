@@ -333,6 +333,9 @@ export class AppRTU {
 	/** Sends a request to a service */
 	public static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: { [key: string]: any }, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
 		if (this.isReady) {
+			if (request.Body !== undefined && typeof request.Body === "object") {
+				request.Body = JSON.stringify(request.Body);
+			}
 			this._websocket.send(JSON.stringify(request));
 		}
 		else {
