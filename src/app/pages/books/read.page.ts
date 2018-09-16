@@ -67,20 +67,17 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		this.getReadingOptions();
 		this.initializeAsync();
 
-		AppEvents.on("App", info => {
+		AppEvents.on("App", async info => {
 			if ("OptionsUpdated" === info.args.Type) {
 				this.getReadingOptions();
 			}
-		}, "OptionsEventHandlerOfReadBookPage");
-
-		AppEvents.on("App", async info => {
-			if ("LanguageChanged" === info.args.Type) {
+			else if ("LanguageChanged" === info.args.Type) {
 				await Promise.all([
 					this.prepareResourcesAsync(),
 					this.prepareActionsAsync()
 				]);
 			}
-		}, "LanguageChangedEventHandlerOfReadBookPage");
+		}, "AppEventHandlersOfReadBookPage");
 
 		AppEvents.on("Session", info => {
 			if ("Updated" === info.args.Type) {
@@ -109,8 +106,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	ngOnDestroy() {
 		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
-		AppEvents.off("App", "OptionsEventHandlerOfReadBookPage");
-		AppEvents.off("App", "LanguageChangedEventHandlerOfReadBookPage");
+		AppEvents.off("App", "AppEventHandlersOfReadBookPage");
 		AppEvents.off("Session", "AccountEventHandlerOfReadBookPage");
 		AppEvents.off("Books", "OpenChapterEventHandlerOfReadBookPage");
 	}

@@ -159,17 +159,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 	}
 
 	async copyLinkAsync() {
-		const textbox = document.createElement("textarea");
-		textbox.style.position = "fixed";
-		textbox.style.left = "0";
-		textbox.style.top = "0";
-		textbox.style.opacity = "0";
-		textbox.value = this.linkCtrl.value;
-		document.body.appendChild(textbox);
-		textbox.focus();
-		textbox.select();
-		document.execCommand("copy");
-		document.body.removeChild(textbox);
+		PlatformUtility.copyToClipboard(this.linkCtrl.value);
 		await this.appFormsSvc.showToastAsync("Copied...");
 	}
 

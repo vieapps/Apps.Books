@@ -1,0 +1,79 @@
+<ion-header>
+	<ion-toolbar>
+		<ion-buttons slot="end">
+			<ion-button color="primary" (click)="doneAsync()">
+				{{ resources.buttons.done }}
+			</ion-button>
+		</ion-buttons>
+		<ion-title>
+			{{ title }}
+		</ion-title>
+	</ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+	<ion-list>
+		<ion-item>
+			<ion-label>
+				{{ resources.status }}
+				<span>
+					{{ status }}
+				</span>
+			</ion-label>
+			<ion-button *ngIf="!required && provision.uri === ''" fill="solid" color="primary" (click)="provisonAsync()" item-right>
+				<ion-icon name="power" slot="start"></ion-icon>
+				{{ resources.buttons.on }}
+			</ion-button>
+		</ion-item>
+		<ion-list-header *ngIf="required && providers.length > 0">
+			{{ resources.providers }}
+		</ion-list-header>
+		<ion-item *ngFor="let provider of providers">
+			<ion-label>
+				{{ provider.Label }} @ {{ provider.Time | date:'dd/MM/yyyy hh:mm a' }}
+			</ion-label>
+			<ion-button fill="clear" slot="end" (click)="deleteAsync(provider)">
+				<ion-icon name="trash" slot="start"></ion-icon>
+				{{ resources.buttons.delete }}
+			</ion-button>
+		</ion-item>
+		<ion-item *ngIf="provision.uri !== ''">
+			<div text-wrap>
+				<div>
+					{{ resources.qrcode.image }}
+				</div>
+				<div>
+					<img [src]="provision.uri" />
+				</div>
+				<div>
+					{{ resources.instruction.main }}
+				</div>
+				<div>
+					{{ resources.instruction.app }}
+				</div>
+			</div>
+		</ion-item>
+		<ion-item *ngIf="provision.uri !== ''" [class.invalid]="!provision.value || provision.value.length < 5 || provision.value.length > 10">
+			<ion-label position="stacked">
+				{{ resources.qrcode.control }}
+			</ion-label>
+			<ion-input minlength="5" maxlength="10" [(ngModel)]="provision.value" required></ion-input>
+		</ion-item>
+		<ion-item *ngIf="provision.uri !== ''" [class.invalid]="!password">
+			<ion-label position="stacked">
+				{{ resources.password.label }}
+			</ion-label>
+			<ion-input [type]="resources.password.show ? 'text' : 'password'" maxlength="150" [(ngModel)]="password" required></ion-input>
+			<ion-button fill="clear" color="medium" slot="end" tabindex="-1" (click)="resources.password.show = !resources.password.show">
+				<ion-icon name="eye" slot="icon-only" [hidden]="!resources.password.show"></ion-icon>
+				<ion-icon name="eye-off" slot="icon-only" [hidden]="resources.password.show"></ion-icon>
+			</ion-button>
+		</ion-item>
+	</ion-list>
+	<ion-buttons *ngIf="provision.uri !== ''" padding-horizontal>
+		<ion-button fill="solid" color="primary" [disabled]="!password || !provision.value || provision.value.length < 5 || provision.value.length > 10" (click)="addAsync()">
+			<ion-icon name="done-all" slot="start"></ion-icon>
+			{{ resources.buttons.verify }}
+		</ion-button>
+	</ion-buttons>
+</ion-content>

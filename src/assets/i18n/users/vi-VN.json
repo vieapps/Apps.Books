@@ -114,6 +114,7 @@
 				"email": "Đổi email đăng nhập",
 				"otp": "Thiết đặt bảo mật",
 				"privileges": "Đặt quyền truy cập",
+				"list": "Tài khoản người dùng",
 				"logout": "Đăng xuất"
 			},
 			"avatar": {
@@ -189,6 +190,16 @@
 			"logout": {
 				"confirm": "Đăng xuất khỏi hệ thống?",
 				"success": "Đã đăng xuất tài khoản khỏi hệ thống..."
+			}
+		},
+		"list": {
+			"title": {
+				"list": "Danh sách người dùng",
+				"search": "Tìm kiếm người dùng"
+			},
+			"searchbar": {
+				"filter": "tìm nhanh, không dấu cũng OK",
+				"search": "cho từ khoá vào \"..\" để tìm kiếm chính xác"
 			}
 		}
 	}

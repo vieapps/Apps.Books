@@ -1,0 +1,40 @@
+ion-footer > ion-toolbar > div > span,
+ion-footer > ion-toolbar > div > span > ion-icon,
+ion-footer > ion-toolbar > div > span > span {
+	display: inline-block;
+	vertical-align: middle;
+	top: -1px;
+}
+ion-footer > ion-toolbar > div > span > ion-icon {
+	margin-top: 3px;
+	margin-right: 8px;
+}
+ion-item > div,
+ion-item > div > h2 {
+	width: 100%;
+}
+ion-item > ion-thumbnail {
+	width: 48px;
+	height: 48px;
+}
+ion-item > ion-thumbnail > img {
+	border-radius: 50%;
+}
+ion-item > div > div > span {
+	font-size: 0.96em;
+}
+ion-item > div > ion-icon,
+ion-item > div > div > label,
+ion-item > div > div > span > ion-icon,
+ion-item > div > div > label > ion-icon {
+	display: inline-block;
+	vertical-align: middle;
+	top: -1px;
+	font-size: 0.85em;
+	color: var(--ion-color-medium);
+}
+ion-item > div > h2 {
+	margin: 10px 0 5px;
+	font-size: 1.2em;
+	font-weight: normal;
+}

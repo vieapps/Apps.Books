@@ -1,0 +1,72 @@
+<ion-header>
+	<ion-toolbar>
+		<ion-buttons slot="start">
+			<ion-button (click)="close()">
+				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+			</ion-button>
+		</ion-buttons>
+		<ion-buttons *ngIf="!searching" slot="end">
+			<ion-button [hidden]="searching" (click)="openSearch()">
+				<ion-icon name="search" slot="icon-only"></ion-icon>
+			</ion-button>
+		</ion-buttons>
+		<ion-title [hidden]="searching">
+			{{ title }}
+		</ion-title>
+		<ion-searchbar [hidden]="!searching"
+			(ionChange)="onStartSearch($event)"
+			(ionCancel)="onCancelSearch($event)"
+			(ionClear)="onCancelSearch($event)"></ion-searchbar>
+	</ion-toolbar>
+</ion-header>
+
+<ion-footer *ngIf="!filtering">
+	<ion-toolbar>
+		<div>
+			<span [hidden]="!pagination" float-start>
+				<ion-icon name="contacts" color="primary" slot="start"></ion-icon>
+				<span>
+					{{ totalRecords | number:'':locale }} / {{ pagination ? (pagination.TotalRecords | number:'':locale) : '?' }}	
+				</span>
+			</span>
+			<span [hidden]="!pagination || pagination.TotalPages < 2" float-end padding-end>
+				<ion-icon name="code" color="primary" slot="start"></ion-icon>
+				<span>
+					{{ pageNumber | number:'':locale }} / {{ pagination ? (pagination.TotalPages | number:'':locale) : '?' }}
+				</span>
+			</span>
+		</div>
+	</ion-toolbar>
+</ion-footer>
+
+<ion-content>
+	<ion-list padding-end>
+		<ion-item *ngFor="let profile of profiles; let idx=index; trackBy: track" [routerLink]="getRouterLink(profile, idx)" [queryParams]="getQueryParams(profile)" routerDirection="forward">
+			<ion-thumbnail slot="start">
+				<img [src]="profile.avatarURI" />
+			</ion-thumbnail>
+			<div>
+				<h2>
+					{{ profile.Name }}
+				</h2>
+				<div>
+					<span>
+						<ion-icon name="at" slot="start" [color]="profile.IsOnline ? 'primary' : 'medium'"></ion-icon>
+						{{ profile.Email }}
+					</span>
+					<span *ngIf="profile.Mobile != ''">
+						<ion-icon name="call" slot="start"></ion-icon>
+						{{ profile.Mobile }}
+					</span>
+					<label float-end>
+						<ion-icon icon="time" slot="start"></ion-icon>
+						{{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
+					</label>
+				</div>
+			</div>
+		</ion-item>
+	</ion-list>
+	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onScroll($event)">
+		<ion-infinite-scroll-content></ion-infinite-scroll-content>
+	</ion-infinite-scroll>
+</ion-content>

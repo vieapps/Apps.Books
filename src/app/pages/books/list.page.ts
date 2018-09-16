@@ -1,8 +1,7 @@
-import * as Rx from "rxjs";
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { Searchbar, InfiniteScroll, Content } from "@ionic/angular";
+import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppPagination } from "../../components/app.pagination";
 import { AppUtility } from "../../components/app.utility";
@@ -73,7 +72,6 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	title = "";
 	uri = "";
-	rxSubscriptions = new Array<Rx.Subscription>();
 
 	asGrid = false;
 	filtering = false;
@@ -85,9 +83,9 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		handler: () => void
 	}>;
 
+	@ViewChild(Content) contentCtrl: Content;
 	@ViewChild(Searchbar) searchCtrl: Searchbar;
 	@ViewChild(InfiniteScroll) scrollCtrl: InfiniteScroll;
-	@ViewChild(Content) contentCtrl: Content;
 
 	ngOnInit() {
 		this.initializeAsync();
@@ -106,7 +104,6 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	ngOnDestroy() {
-		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 		if (!this.searching) {
 			AppEvents.off("Session", `AccountEvents${this.eventIdentity}`);
 		}
@@ -174,7 +171,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			this.ratings = {};
 			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName) || AppPagination.getDefault();
 			this.pagination.PageNumber = this.pageNumber;
-			this.search(() => this.prepareActionsAsync());
+			this.searchAsync(() => this.prepareActionsAsync());
 		}
 	}
 
@@ -194,7 +191,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				this.ratings = {};
 				this.pageNumber = 0;
 				this.pagination = AppPagination.getDefault();
-				this.search(() => this.scrollCtrl.disabled = false);
+				this.searchAsync(() => this.scrollCtrl.disabled = false);
 			}
 			else {
 				this.prepareResults();
@@ -216,7 +213,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	onScroll($event) {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
-			this.search(() => this.scrollCtrl.complete());
+			this.searchAsync(() => this.scrollCtrl.complete());
 		}
 		else {
 			this.scrollCtrl.complete();
@@ -224,9 +221,9 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	search(onCompleted?: () => void) {
+	async searchAsync(onCompleted?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
-		this.booksSvc.searchAsync(
+		await this.booksSvc.searchAsync(
 			this.request,
 			async data => {
 				this.pageNumber++;

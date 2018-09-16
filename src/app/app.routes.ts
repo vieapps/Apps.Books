@@ -34,9 +34,29 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 				},
 				{
 					path: "profile/:data",
-					loadChildren: "./pages/users/profile.module#AccountProfilePageModule",
+					loadChildren: "./pages/users/profile.module#ViewAccountProfilePageModule",
 					canActivate: [AuthenticatedGuardService]
 				},
+				{
+					path: "update/:data",
+					loadChildren: "./pages/users/update.module#UpdateAccountProfilePageModule",
+					canActivate: [AuthenticatedGuardService]
+				},
+				{
+					path: "otp",
+					loadChildren: "./pages/users/otp.module#UpdateAccount2FAPageModule",
+					canActivate: [AuthenticatedGuardService]
+				},
+				{
+					path: "list",
+					loadChildren: "./pages/users/list.module#ListAccountProfilesPageModule",
+					canActivate: [AuthenticatedGuardService]
+				},
+				{
+					path: "search",
+					loadChildren: "./pages/users/list.module#ListAccountProfilesPageModule",
+					canActivate: [AuthenticatedGuardService]
+				}
 			]
 		},
 		{

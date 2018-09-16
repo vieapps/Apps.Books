@@ -194,6 +194,21 @@ export class PlatformUtility {
 		this.openURI("https://www.google.com/maps?q=" + encodeURIComponent(info));
 	}
 
+	/** Copies the value into clipboard */
+	public static copyToClipboard(value: string) {
+		const textbox = window.document.createElement("textarea");
+		textbox.style.position = "fixed";
+		textbox.style.left = "0";
+		textbox.style.top = "0";
+		textbox.style.opacity = "0";
+		textbox.value = value;
+		window.document.body.appendChild(textbox);
+		textbox.focus();
+		textbox.select();
+		window.document.execCommand("copy");
+		window.document.body.removeChild(textbox);
+	}
+
 	/** Sets environments of the PWA */
 	public static setPWAEnvironment(onFacebookInit?: () => void) {
 		// Javascript libraries (only available when working in web browser)

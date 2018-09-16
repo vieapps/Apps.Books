@@ -1,20 +1,7 @@
-.profile > figure,
-.profile > h1 {
+figure,
+h1 {
 	text-align: center;
 }
-.profile > figure > img {
+figure > img {
 	border-radius: 50%;
-}
-.otp > ion-item > ion-label > span {
-	font-weight: bold;
-	margin-left: 16px;
-}
-.otp > ion-item > div {
-	padding: 30px 0;
-}
-.otp > ion-item > div > div {
-	padding-bottom: 16px;
-}
-.otp > ion-list-header {
-	margin-top: 16px;
 }

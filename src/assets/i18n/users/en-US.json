@@ -114,6 +114,7 @@
 				"email": "Change email",
 				"otp": "2-steps verification",
 				"privileges": "Set privileges",
+				"list": "User accounts",
 				"logout": "Log out"
 			},
 			"avatar": {
@@ -190,6 +191,17 @@
 				"confirm": "Are you sure you want to logout?",
 				"success": "Log out successful..."
 			}
+		},
+		"list": {
+			"title": {
+				"list": "Account profiles",
+				"search": "Search for account profiles"
+			},
+			"searchbar": {
+				"filter": "quick filter by keywords",
+				"search": "place search term into \"..\" for exact searching"
+			}
 		}
+
 	}
 }

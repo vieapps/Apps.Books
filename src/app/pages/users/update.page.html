@@ -1,0 +1,41 @@
+<ion-header>
+	<ion-toolbar>
+		<ion-buttons slot="start">
+			<ion-button *ngIf="buttons.cancel" color="secondary" (click)="buttons.cancel.handler()">
+				<ion-icon *ngIf="buttons.cancel.icon" [name]="buttons.cancel.icon" slot="start"></ion-icon>
+				{{ buttons.cancel.text }}
+			</ion-button>
+		</ion-buttons>
+		<ion-buttons *ngIf="buttons.ok" slot="end">
+			<ion-button color="primary" (click)="buttons.ok.handler()">
+				<ion-icon *ngIf="buttons.ok.icon" [name]="buttons.ok.icon" slot="start"></ion-icon>
+				{{ buttons.ok.text }}
+			</ion-button>
+		</ion-buttons>
+		<ion-title>
+			{{ title }}
+		</ion-title>
+	</ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+
+	<app-form *ngIf="mode === 'profile' && update.config"
+		[form]="update.form"
+		[config]="update.config"
+		[controls]="update.controls"
+		(initEvent)="onFormInitialized($event)"></app-form>
+
+	<app-form *ngIf="mode === 'password' && password.config"
+		[form]="password.form"
+		[config]="password.config"
+		[controls]="password.controls"
+		(initEvent)="onFormInitialized($event)"></app-form>
+
+	<app-form *ngIf="mode === 'email' && email.config"
+		[form]="email.form"
+		[config]="email.config"
+		[controls]="email.controls"
+		(initEvent)="onFormInitialized($event)"></app-form>	
+
+</ion-content>
