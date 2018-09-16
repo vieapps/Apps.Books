@@ -244,7 +244,7 @@ export class BooksService extends BaseService {
 				onError();
 			}
 		}
-		else if (chapter < 1 || chapter > book.Chapters.length || (book.Chapters[chapter - 1] !== "" && !book.Chapters[chapter - 1].startsWith("https://") && !book.Chapters[chapter - 1].startsWith("http://"))) {
+		else if (chapter < 1 || chapter > book.Chapters.length || book.Chapters[chapter - 1] !== "") {
 			if (onNext !== undefined) {
 				onNext();
 			}

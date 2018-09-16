@@ -89,7 +89,8 @@ export class UpdateBookPage implements OnInit {
 				config.push({
 					Name: "TOCs",
 					Type: "TextArea",
-					Required: true,
+					Required: this.book.TotalChapters > 1,
+					Hidden: this.book.TotalChapters < 2,
 					Options: {
 						Type: "text",
 						Label: "{{books.info.controls.TOCs}}",

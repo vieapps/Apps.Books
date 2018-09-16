@@ -6,7 +6,7 @@
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons slot="end">
-			<ion-button (click)="openTOCs()">
+			<ion-button *ngIf="book && book.TotalChapters > 1" (click)="openTOCs()">
 				<ion-icon name="list" slot="icon-only"></ion-icon>
 			</ion-button>
 			<ion-button (click)="openOptions()">
@@ -30,7 +30,7 @@
 			</ion-button>
 		</ion-buttons>
 		<div *ngIf="book">
-			<span [hidden]="book.TotalChapters < 2" float-start>
+			<span *ngIf="book.TotalChapters > 1" float-start>
 				<ion-icon name="bookmark" color="primary" slot="start"></ion-icon>
 				<span>
 					{{ chapter | number:'':locale }} / {{ book.TotalChapters | number:'':locale : '?' }}	
