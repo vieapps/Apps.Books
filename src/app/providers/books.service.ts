@@ -748,7 +748,7 @@ export class BooksService extends BaseService {
 				"object-identity": "recrawl",
 				"id": id,
 				"url": url,
-				"full": "full" === mode ? true : false
+				"full": "full" === mode
 			},
 			Header: undefined,
 			Body: undefined,

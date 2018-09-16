@@ -1,5 +1,7 @@
+import { Subscription } from "rxjs";
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
+import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
@@ -22,6 +24,7 @@ import { RatingPoint } from "../../models/ratingpoint";
 export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	constructor(
 		public appFormsSvc: AppFormsService,
+		public router: Router,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
 		public booksSvc: BooksService
@@ -82,6 +85,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		icon: string,
 		handler: () => void
 	}>;
+	rxSubscription: Subscription;
 
 	@ViewChild(Content) contentCtrl: Content;
 	@ViewChild(Searchbar) searchCtrl: Searchbar;
@@ -96,18 +100,20 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 			}, `AccountEvents${this.eventIdentity}`);
 		}
-		AppEvents.on("Navigate", info => {
-			if (this.configSvc.isNavigateTo(this.uri, info.args.url, info.args.direction)) {
-				this.configSvc.appTitle = this.title;
+		this.rxSubscription = this.router.events.subscribe(event => {
+			if (event instanceof NavigationEnd) {
+				if (this.configSvc.currentUrl.startsWith(this.uri)) {
+					this.configSvc.appTitle = this.title;
+				}
 			}
-		}, `NavigateEvents${this.eventIdentity}`);
+		});
 	}
 
 	ngOnDestroy() {
 		if (!this.searching) {
 			AppEvents.off("Session", `AccountEvents${this.eventIdentity}`);
 		}
-		AppEvents.off("Navigate", `NavigateEvents${this.eventIdentity}`);
+		this.rxSubscription.unsubscribe();
 	}
 
 	ngAfterViewInit() {

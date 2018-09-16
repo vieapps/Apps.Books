@@ -1,5 +1,4 @@
-import * as Rx from "rxjs";
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -13,7 +12,7 @@ import { UsersService } from "../../providers/users.service";
 	templateUrl: "./register.page.html",
 	styleUrls: ["./register.page.scss"]
 })
-export class RegisterAccountPage implements OnInit, OnDestroy {
+export class RegisterAccountPage implements OnInit {
 
 	constructor (
 		public appFormsSvc: AppFormsService,
@@ -24,12 +23,10 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	}
 
 	title = "Register new account";
-	rxSubscriptions = new Array<Rx.Subscription>();
 	register = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Email", "ConfirmEmail"), this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
-		value: undefined as any,
 		button: {
 			label: "Register",
 			icon: undefined as string,
@@ -39,16 +36,11 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 	};
 
 	ngOnInit() {
-		this.rxSubscriptions.push(this.register.form.valueChanges.subscribe(value => this.register.value = value));
 		this.initializeFormAsync();
 	}
 
-	ngOnDestroy() {
-		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
-	}
-
 	async initializeFormAsync() {
-		this.register.config = [
+		const config = [
 			{
 				Name: "Email",
 				Required: true,
@@ -174,16 +166,16 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 					MaxLength: 4
 				}
 			}
-		];
+		] as Array<any>;
 
 		const hidden = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.hidden);
 		const required = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.required);
-		this.register.config.forEach(options => {
-			if (hidden[options.Key]) {
+		config.forEach(options => {
+			if (hidden[options.Name]) {
 				options.Hidden = true;
 				options.Required = false;
 			}
-			if (required[options.Key] && !options.Hidden) {
+			if (required[options.Name] && !options.Hidden) {
 				options.Required = true;
 			}
 		});
@@ -191,6 +183,7 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 		this.register.button.label = await this.configSvc.getResourceAsync("users.register.button");
 		this.title = await this.configSvc.getResourceAsync("users.register.title");
 		this.configSvc.appTitle = this.title;
+		this.register.config = config;
 	}
 
 	async registerAsync() {
@@ -201,14 +194,14 @@ export class RegisterAccountPage implements OnInit, OnDestroy {
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.usersSvc.registerAsync(
-			AppUtility.clone(this.register.value, ["ConfirmEmail", "ConfirmPassword", "Captcha"]),
-			this.register.value.Captcha,
+			AppUtility.clone(this.register.form.value, ["ConfirmEmail", "ConfirmPassword", "Captcha"]),
+			this.register.form.value.Captcha,
 			async () => await Promise.all([
 				TrackingUtility.trackAsync(this.title, "/users/register"),
 				this.appFormsSvc.showAlertAsync(
 					await this.configSvc.getResourceAsync("users.register.alert.header"),
 					undefined,
-					await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.value.Email }),
+					await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.form.value.Email }),
 					() => {
 						if (this.configSvc.previousUrl.startsWith("/users")) {
 							this.configSvc.navigateHome();

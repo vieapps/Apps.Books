@@ -1,4 +1,4 @@
-import * as Rx from "rxjs";
+import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../components/app.crypto";
@@ -27,15 +27,15 @@ export class BookReadingOptionsPage implements OnInit, OnDestroy {
 	controls = new Array<AppFormsControl>();
 	sample = "";
 	hash = "";
-	rxSubscriptions = new Array<Rx.Subscription>();
+	rxSubscription: Subscription;
 
 	ngOnInit() {
-		this.rxSubscriptions.push(this.form.valueChanges.subscribe(value => this.options = value));
+		this.rxSubscription = this.form.valueChanges.subscribe(value => this.options = value);
 		this.initializeAsync();
 	}
 
 	ngOnDestroy() {
-		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
+		this.rxSubscription.unsubscribe();
 	}
 
 	async initializeAsync() {

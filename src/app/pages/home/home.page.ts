@@ -1,4 +1,4 @@
-import * as Rx from "rxjs";
+import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { AppEvents } from "../../components/app.events";
@@ -18,7 +18,7 @@ export class HomePage implements OnInit, OnDestroy {
 	}
 
 	title = "Home";
-	rxSubscription: Rx.Subscription;
+	rxSubscription: Subscription;
 	changes: any;
 
 	ngOnInit() {

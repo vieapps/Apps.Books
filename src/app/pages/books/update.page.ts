@@ -1,9 +1,7 @@
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { Content } from "@ionic/angular";
 import { AppCrypto } from "../../components/app.crypto";
 import { AppUtility } from "../../components/app.utility";
-import { PlatformUtility } from "../../components/app.utility.platform";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
@@ -17,7 +15,7 @@ import { Book } from "../../models/book";
 	templateUrl: "./update.page.html",
 	styleUrls: ["./update.page.scss"]
 })
-export class UpdateBookPage implements OnInit, OnDestroy {
+export class UpdateBookPage implements OnInit {
 	constructor(
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
@@ -47,14 +45,10 @@ export class UpdateBookPage implements OnInit, OnDestroy {
 		update: "Update",
 		cancel: "Cancel"
 	};
-	@ViewChild(Content) contentCtrl: Content;
 
 	ngOnInit() {
 		this.update.requestOnly = !this.authSvc.isServiceModerator(this.booksSvc.serviceName);
 		this.initializeFormAsync();
-	}
-
-	ngOnDestroy() {
 	}
 
 	async initializeFormAsync() {
@@ -122,7 +116,6 @@ export class UpdateBookPage implements OnInit, OnDestroy {
 		const fileReader = new FileReader();
 		fileReader.onloadend = (loadEvent: any) => {
 			this.cover.image = loadEvent.target.result;
-			this.contentCtrl.scrollByPoint(0, -10, 123);
 		};
 		fileReader.readAsDataURL($event.target.files[0]);
 	}
@@ -157,7 +150,7 @@ export class UpdateBookPage implements OnInit, OnDestroy {
 					this.update.form.value,
 					async () => {
 						await Promise.all([
-							this.appFormsSvc.hideLoadingAsync(),
+							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/request-update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sent"))
 						]);
 						this.configSvc.navigateBack();
@@ -170,7 +163,7 @@ export class UpdateBookPage implements OnInit, OnDestroy {
 					this.update.form.value,
 					async () => {
 						await Promise.all([
-							this.appFormsSvc.hideLoadingAsync(),
+							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.success"))
 						]);
 						this.configSvc.navigateBack();

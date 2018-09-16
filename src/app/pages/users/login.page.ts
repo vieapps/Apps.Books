@@ -1,4 +1,4 @@
-import * as Rx from "rxjs";
+import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -22,12 +22,11 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	title = "Login";
 	mode = "";
-	rxSubscriptions = new Array<Rx.Subscription>();
+	rxSubscription: Subscription;
 	login = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
-		value: undefined as any,
 		button: {
 			label: "Login",
 			icon: undefined as string,
@@ -40,7 +39,6 @@ export class LogInPage implements OnInit, OnDestroy {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
-		value: undefined as any,
 		button: {
 			label: "Verify",
 			icon: undefined as string,
@@ -52,7 +50,6 @@ export class LogInPage implements OnInit, OnDestroy {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
-		value: undefined as any,
 		button: {
 			label: "Forgot password",
 			icon: "key",
@@ -62,14 +59,13 @@ export class LogInPage implements OnInit, OnDestroy {
 	};
 
 	ngOnInit() {
-		this.rxSubscriptions.push(this.login.form.valueChanges.subscribe(value => this.login.value = value));
-		this.rxSubscriptions.push(this.otp.form.valueChanges.subscribe(value => this.otp.value = value));
-		this.rxSubscriptions.push(this.reset.form.valueChanges.subscribe(value => this.reset.value = value));
 		this.openLoginAsync();
 	}
 
 	ngOnDestroy() {
-		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
+		if (this.rxSubscription !== undefined) {
+			this.rxSubscription.unsubscribe();
+		}
 	}
 
 	private setTitle() {
@@ -115,8 +111,8 @@ export class LogInPage implements OnInit, OnDestroy {
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.authSvc.logInAsync(
-			this.login.value.Email,
-			this.login.value.Password,
+			this.login.form.value.Email,
+			this.login.form.value.Password,
 			async data => await Promise.all([
 				TrackingUtility.trackAsync(this.title, "/users/login"),
 				this.appFormsSvc.hideLoadingAsync(() => {
@@ -167,17 +163,12 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		this.otp.value = {
-			ID: data.ID,
-			Provider: this.otp.providers[0].Info,
-			OTP: ""
-		};
-		this.rxSubscriptions.push(this.otp.form.valueChanges.subscribe(async value => {
+		this.rxSubscription = this.otp.form.valueChanges.subscribe(async value => {
 			const provider = this.otp.providers.find(p => p.Info === value.Provider) || this.otp.providers[0];
 			this.otp.controls.find(c => c.Name === "OTP").Options.Description = "SMS" === provider.Type
 				? await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.sms")
 				: await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.app", { label: provider.Label });
-		}));
+		});
 		this.otp.button.label = await this.configSvc.getResourceAsync("users.login.otp.button");
 		this.title = await this.configSvc.getResourceAsync("users.login.otp.title");
 		this.mode = "otp";
@@ -191,9 +182,9 @@ export class LogInPage implements OnInit, OnDestroy {
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.authSvc.logInOTPAsync(
-				this.otp.value.ID,
-				this.otp.value.OTP,
-				this.otp.value.Provider,
+				this.otp.form.value.ID,
+				this.otp.form.value.OTP,
+				this.otp.form.value.Provider,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "/users/otp"),
 					this.appFormsSvc.hideLoadingAsync(() => this.close())
@@ -251,14 +242,14 @@ export class LogInPage implements OnInit, OnDestroy {
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.authSvc.resetPasswordAsync(
-			this.reset.value.Email,
-			this.reset.value.Captcha,
+			this.reset.form.value.Email,
+			this.reset.form.value.Captcha,
 			async () => await Promise.all([
 				TrackingUtility.trackAsync(this.title, "/users/reset"),
 				this.appFormsSvc.showAlertAsync(
 					await this.configSvc.getResourceAsync("users.login.reset.title"),
 					undefined,
-					await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.value.Email }),
+					await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.form.value.Email }),
 					() => this.close()
 				)
 			]),

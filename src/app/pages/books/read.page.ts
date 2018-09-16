@@ -1,4 +1,4 @@
-import * as Rx from "rxjs";
+import { Subscription } from "rxjs";
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
@@ -30,7 +30,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
 
-	rxSubscriptions = new Array<Rx.Subscription>();
+	rxSubscription: Subscription;
 	title = "";
 	book: Book;
 	chapter = 0;
@@ -96,19 +96,19 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			}
 		}, "OpenChapterEventHandlerOfReadBookPage");
 
-		this.rxSubscriptions.push(this.router.events.subscribe(event => {
+		this.rxSubscription = this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd && this.configSvc.currentUrl.startsWith(this.book.routerLink)) {
 				this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
 				this.scrollAsync();
 			}
-		}));
+		});
 	}
 
 	ngOnDestroy() {
-		this.rxSubscriptions.forEach(subscription => subscription.unsubscribe());
 		AppEvents.off("App", "AppEventHandlersOfReadBookPage");
 		AppEvents.off("Session", "AccountEventHandlerOfReadBookPage");
 		AppEvents.off("Books", "OpenChapterEventHandlerOfReadBookPage");
+		this.rxSubscription.unsubscribe();
 	}
 
 	getReadingOptions() {
@@ -217,8 +217,8 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			await this.configSvc.getResourceAsync("books.crawl.header"),
 			undefined,
 			undefined,
-			async data => {
-				this.booksSvc.sendRequestToReCrawl(this.book.ID, this.book.SourceUrl, data);
+			async mode => {
+				this.booksSvc.sendRequestToReCrawl(this.book.ID, this.book.SourceUrl, mode);
 				await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.crawl.message"), 2000);
 			},
 			await this.configSvc.getResourceAsync("books.crawl.button"),
