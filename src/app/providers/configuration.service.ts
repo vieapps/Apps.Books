@@ -218,9 +218,13 @@ export class ConfigurationService extends BaseService {
 			if (isNativeApp) {
 				PlatformUtility.setKeyboard(this.keyboard);
 				PlatformUtility.setInAppBrowser(this.inappBrowser);
-				this.appVer.getVersionCode()
-					.then(version => this.appConfig.app.version = version as string)
-					.catch(error => console.error(this.getErrorMessage("Cannot get app version", error)));
+				try {
+					const version = await this.appVer.getVersionCode();
+					this.appConfig.app.version = version + "";
+				}
+				catch (error) {
+					console.error(this.getErrorMessage("Cannot get app version", error));
+				}
 			}
 		}
 
