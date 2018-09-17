@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../components/app.crypto";
 import { AppUtility } from "../../components/app.utility";
@@ -17,6 +17,7 @@ import { Book } from "../../models/book";
 })
 export class UpdateBookPage implements OnInit {
 	constructor(
+		public changeDetector: ChangeDetectorRef,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -117,6 +118,7 @@ export class UpdateBookPage implements OnInit {
 		const fileReader = new FileReader();
 		fileReader.onloadend = (loadEvent: any) => {
 			this.cover.image = loadEvent.target.result;
+			this.changeDetector.detectChanges();
 		};
 		fileReader.readAsDataURL($event.target.files[0]);
 	}

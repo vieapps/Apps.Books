@@ -39,7 +39,11 @@ export class BooksService extends BaseService {
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Book", message => this.processUpdateBookMessage(message));
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
 		AppRTU.registerAsObjectScopeProcessor(this.Name, "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
-		AppRTU.registerAsServiceScopeProcessor("Scheduler", () => this.sendBookmarks());
+		AppRTU.registerAsServiceScopeProcessor("Scheduler", () => {
+			if (this.configSvc.isAuthenticated) {
+				this.sendBookmarks();
+			}
+		});
 		if (this.configSvc.isDebug) {
 			AppRTU.registerAsServiceScopeProcessor(this.Name, () => {});
 		}
@@ -271,10 +275,9 @@ export class BooksService extends BaseService {
 
 	public async fetchChapterAsync(id: string, chapter: number, onCompleted?: () => void) {
 		const book = Book.instances.getValue(id);
-		while (chapter < book.TotalChapters) {
-			chapter += 1;
+		while (chapter < book.TotalChapters && book.Chapters[chapter - 1] !== "") {
+			chapter++;
 		}
-
 		if (book.Chapters[chapter - 1] === "" || book.Chapters[chapter - 1].startsWith("https://") || book.Chapters[chapter - 1].startsWith("http://")) {
 			super.send({
 				ServiceName: this.Name,
@@ -298,7 +301,7 @@ export class BooksService extends BaseService {
 		if (book !== undefined) {
 			book.Chapters[data.Chapter - 1] = data.Content;
 		}
-}
+	}
 
 	public increaseCounters(id: string, action?: string, onCompleted?: () => void) {
 		if (Book.instances.containsKey(id)) {
@@ -321,11 +324,11 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public updateCounters(data: any, onCompleted?: () => void) {
+	private updateCounters(data: any, onCompleted?: () => void) {
 		const book = AppUtility.isObject(data, true)
 			? Book.instances.getValue(data.ID)
 			: undefined;
-		if (book !== undefined && AppUtility.isArray(data.Counters)) {
+		if (book !== undefined && AppUtility.isArray(data.Counters, true)) {
 			(data.Counters as Array<any>).forEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
 			AppEvents.broadcast("Books", { Type: "StatisticsUpdated", ID: book.ID });
 		}
@@ -646,20 +649,18 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	private sendBookmarks(onCompleted?: () => void) {
-		if (this.configSvc.isAuthenticated) {
-			super.send({
-				ServiceName: "books",
-				ObjectName: "bookmarks",
-				Verb: "POST",
-				Query: undefined,
-				Header: undefined,
-				Body: new List(this.bookmarks.values()).OrderByDescending(b => b.Time).Take(30).ToArray(),
-				Extra: undefined
-			});
-			if (onCompleted !== undefined) {
-				onCompleted();
-			}
+	public sendBookmarks(onCompleted?: () => void) {
+		super.send({
+			ServiceName: "books",
+			ObjectName: "bookmarks",
+			Verb: "POST",
+			Query: undefined,
+			Header: undefined,
+			Body: new List(this.bookmarks.values()).OrderByDescending(b => b.Time).Take(30).ToArray(),
+			Extra: undefined
+		});
+		if (onCompleted !== undefined) {
+			onCompleted();
 		}
 	}
 

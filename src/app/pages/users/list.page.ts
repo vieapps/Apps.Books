@@ -1,5 +1,5 @@
 import { List } from "linqts";
-import { Component, OnInit, AfterViewInit, ViewChild } from "@angular/core";
+import { Component, OnInit, AfterViewInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
 import { AppUtility } from "../../components/app.utility";
@@ -21,6 +21,7 @@ import { RatingPoint } from "../../models/ratingpoint";
 export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 
 	constructor (
+		public changeDetector: ChangeDetectorRef,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -204,7 +205,8 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 			}
 		}
 
-		// callback
+		// done
+		this.changeDetector.detectChanges();
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}

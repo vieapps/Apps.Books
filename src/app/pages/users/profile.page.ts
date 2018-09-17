@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -18,6 +18,7 @@ import { AccountAvatarPage } from "./avatar.page";
 export class ViewAccountProfilePage implements OnInit {
 
 	constructor (
+		public changeDetector: ChangeDetectorRef,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -83,6 +84,7 @@ export class ViewAccountProfilePage implements OnInit {
 			this.prepareButtonsAsync(),
 			this.prepareActionsAsync()
 		]);
+		this.changeDetector.detectChanges();
 	}
 
 	async prepareButtonsAsync() {

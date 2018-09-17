@@ -39,6 +39,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		value: undefined as any,
 		button: {
 			label: "Verify",
 			icon: undefined as string,
@@ -130,6 +131,10 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	async openLoginOTPAsync(data: any) {
 		this.otp.providers = data.Providers;
+		this.otp.value = {
+			ID: data.ID,
+			Provider: this.otp.providers[0].Info
+		};
 		this.otp.config = [
 			{
 				Name: "ID",

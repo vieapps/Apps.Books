@@ -246,6 +246,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async goChapterAsync() {
 		if (this.book.Chapters[this.chapter - 1] === "") {
+			await this.appFormsSvc.showLoadingAsync();
 			await this.booksSvc.getChapterAsync(
 				this.book.ID,
 				this.chapter,
@@ -284,9 +285,6 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		else if (this.chapter < this.book.TotalChapters) {
 			this.chapter++;
 			this.scrollOffset = 0;
-			if (this.book.Chapters[this.chapter - 1] === "") {
-				await this.appFormsSvc.showLoadingAsync();
-			}
 			await this.goChapterAsync();
 		}
 	}

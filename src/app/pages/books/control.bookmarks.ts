@@ -115,4 +115,8 @@ export class BookmarksControl implements OnInit, OnDestroy {
 		this.booksSvc.deleteBookmark(bookmark.ID, () => this.prepareBookmarks());
 	}
 
+	send() {
+		this.booksSvc.sendBookmarks();
+	}
+
 }

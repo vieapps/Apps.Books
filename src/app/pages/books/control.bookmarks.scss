@@ -23,3 +23,9 @@ div, h2 {
 ion-icon {
 	margin-right: 8px;
 }
+ion-item.sync > div > span > label {
+	line-height: 35px;
+	display: inline-block;
+	vertical-align: middle;
+	margin-top: 10px;
+}

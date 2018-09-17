@@ -29,10 +29,15 @@
 			</ion-item-option>
 		</ion-item-options>
 	</ion-item-sliding>
-	<ion-item *ngIf="profile && bookmarks.length > 0">
+	<ion-item *ngIf="profile && bookmarks.length > 0" class="sync">
 		<div>
 			<span float-end>
-				{{ resources.footer }} {{ profile.LastSync | date: 'h:mm a @ d/M/y' }}
+				<label>
+					{{ resources.footer }} {{ profile.LastSync | date: 'h:mm a @ d/M/y' }}
+				</label>
+				<ion-button fill="clear" slot="end" (click)="send()">
+					<ion-icon name="cloud-upload" slot="icon-only"></ion-icon>
+				</ion-button>
 			</span>
 		</div>
 	</ion-item>
