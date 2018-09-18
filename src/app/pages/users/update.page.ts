@@ -73,7 +73,7 @@ export class UpdateAccountProfilePage implements OnInit {
 			this.update.hash = AppCrypto.hash(this.update.form.value);
 		}
 		else {
-			Object.keys(($event.form as FormGroup).controls).forEach(key => ($event.form as FormGroup).controls[key].setValue(""));
+			Object.keys(($event.form as FormGroup).controls).forEach(name => ($event.form as FormGroup).controls[name].setValue(""));
 		}
 	}
 
@@ -205,7 +205,10 @@ export class UpdateAccountProfilePage implements OnInit {
 				Options: {
 					Type: "Address",
 					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
-					MinLength: 2
+					MinLength: 2,
+					LookupOptions: {
+						InitialValue: this.appFormsSvc.getMetaCounties().find(address => address.County === this.profile.County && address.Province === this.profile.Province && address.Country === this.profile.Country)
+					}
 				}
 			},
 			{

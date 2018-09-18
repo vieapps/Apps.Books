@@ -253,4 +253,13 @@ export class ViewAccountProfilePage implements OnInit {
 		);
 	}
 
+	close() {
+		if (this.configSvc.previousUrl.startsWith("/users")) {
+			this.configSvc.navigateHome();
+		}
+		else {
+			this.configSvc.navigateBack();
+		}
+	}
+
 }

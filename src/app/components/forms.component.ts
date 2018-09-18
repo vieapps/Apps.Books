@@ -33,18 +33,18 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		if (this.controls === undefined) {
 			throw new Error("Controls or config of the form need to be initialized first (controls/config attributes)");
 		}
-		else if (this.controls.length < 1) {
+
+		if (this.controls.length < 1) {
 			console.warn("[Forms]: No control");
 		}
 		else {
 			this.appFormsSvc.buildForm(this.form, this.controls, this.value);
+			this.form["_controls"] = this.controls;
 		}
-
-		this.form["_controls"] = this.controls;
-		this.initEvent.emit(this);
 	}
 
 	ngAfterViewInit() {
+		this.initEvent.emit(this);
 		PlatformUtility.focus(this.controls.find(control => control.Options.AutoFocus), AppConfig.isRunningOnIOS ? 567 : 345);
 	}
 

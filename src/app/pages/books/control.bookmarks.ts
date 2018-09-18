@@ -2,6 +2,7 @@ import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { List as IonicList } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
+import { AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { BooksService } from "../../providers/books.service";
 import { UserProfile } from "../../models/user";
@@ -15,6 +16,7 @@ import { Book, Bookmark } from "../../models/book";
 export class BookmarksControl implements OnInit, OnDestroy {
 
 	constructor (
+		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {
@@ -116,7 +118,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	send() {
-		this.booksSvc.sendBookmarks();
+		this.booksSvc.sendBookmarks(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sync")));
 	}
 
 }

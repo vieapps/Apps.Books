@@ -121,7 +121,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 	async onScrollEndAsync() {
 		const scrollElement = await this.contentCtrl.getScrollElement();
 		this.scrollOffset = scrollElement.scrollTop;
-		await this.booksSvc.updateBookmarksAsync(this.book.ID, this.chapter, this.scrollOffset);
+		await this.booksSvc.updateBookmarkAsync(this.book.ID, this.chapter, this.scrollOffset);
 	}
 
 	async onSwipeLeftAsync() {

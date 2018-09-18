@@ -162,7 +162,8 @@
 			"messages": {
 				"confirm": "Chắc chắn muốn huỷ bỏ cập nhật?",
 				"success": "Sách đã được cập nhật...",
-				"sent": "Yêu cầu cập nhật sách đã được gửi tới quản trị..."
+				"sent": "Yêu cầu cập nhật sách đã được gửi tới quản trị...",
+				"sync": "Đã đồng bộ sách đang đọc..."
 			}
 		}
 	}

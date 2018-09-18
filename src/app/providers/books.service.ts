@@ -547,7 +547,7 @@ export class BooksService extends BaseService {
 			this.loadAuthorsAsync()
 		]);
 		super.send({
-			ServiceName: "books",
+			ServiceName: this.Name,
 			ObjectName: "statistic",
 			Verb: "GET",
 			Query: {
@@ -618,25 +618,15 @@ export class BooksService extends BaseService {
 
 	private async storeBookmarksAsync(onCompleted?: () => void) {
 		await this.storage.set("VIEApps-Books-Bookmarks", this.bookmarks.values());
-		AppEvents.broadcast("Books", { Type: "BookmarksUpdated", Data: this.bookmarks });
+		AppEvents.broadcast("Books", { Type: "BookmarksUpdated" });
 		if (onCompleted !== undefined) {
 			onCompleted();
 		}
 	}
 
-	public async updateBookmarksAsync(id: string, chapter: number, position: number, onCompleted?: () => void) {
-		const bookmark = this.bookmarks.getValue(id) || new Bookmark();
-		bookmark.ID = id;
-		bookmark.Chapter = chapter;
-		bookmark.Position = position;
-		bookmark.Time = new Date();
-		this.bookmarks.setValue(bookmark.ID, bookmark);
-		await this.storeBookmarksAsync(onCompleted);
-	}
-
 	private getBookmarks(onCompleted?: () => void) {
 		super.send({
-			ServiceName: "books",
+			ServiceName: this.Name,
 			ObjectName: "bookmarks",
 			Verb: "GET",
 			Query: undefined,
@@ -651,7 +641,7 @@ export class BooksService extends BaseService {
 
 	public sendBookmarks(onCompleted?: () => void) {
 		super.send({
-			ServiceName: "books",
+			ServiceName: this.Name,
 			ObjectName: "bookmarks",
 			Verb: "POST",
 			Query: undefined,
@@ -664,10 +654,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	private async syncBookmarksAsync(data: any, onCompleted?: () => void) {
-		if (this.configSvc.getAccount().profile !== undefined) {
-			this.configSvc.getAccount().profile.LastSync = new Date();
-		}
+	private async updateBookmarksAsync(data: any, onCompleted?: () => void) {
 		if (AppUtility.isTrue(data.Sync)) {
 			this.bookmarks.clear();
 		}
@@ -680,12 +667,13 @@ export class BooksService extends BaseService {
 				this.bookmarks.setValue(bookmark.ID, bookmark);
 			}
 		});
+		await this.storeBookmarksAsync(onCompleted);
 
 		this.bookmarks.values().forEach((bookmark, index)  => {
 			PlatformUtility.setTimeout(() => {
 				if (!Book.instances.containsKey(bookmark.ID)) {
 					super.send({
-						ServiceName: "books",
+						ServiceName: this.Name,
 						ObjectName: "book",
 						Verb: "GET",
 						Query: {
@@ -698,13 +686,21 @@ export class BooksService extends BaseService {
 				}
 			}, 456 + (index * 10));
 		});
+	}
 
+	public async updateBookmarkAsync(id: string, chapter: number, position: number, onCompleted?: () => void) {
+		const bookmark = this.bookmarks.getValue(id) || new Bookmark();
+		bookmark.ID = id;
+		bookmark.Chapter = chapter;
+		bookmark.Position = position;
+		bookmark.Time = new Date();
+		this.bookmarks.setValue(bookmark.ID, bookmark);
 		await this.storeBookmarksAsync(onCompleted);
 	}
 
 	public deleteBookmark(id: string, onCompleted?: () => void) {
 		super.send({
-			ServiceName: "books",
+			ServiceName: this.Name,
 			ObjectName: "bookmarks",
 			Verb: "DELETE",
 			Query: {
@@ -721,14 +717,24 @@ export class BooksService extends BaseService {
 	}
 
 	private async processUpdateBookmarkMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
-		if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
-			await this.syncBookmarksAsync(message.Data);
+		if (!this.configSvc.isAuthenticated || this.configSvc.getAccount().id !== message.Data.ID) {
+			return;
+		}
+		if (this.configSvc.getAccount().profile !== undefined) {
+			this.configSvc.getAccount().profile.LastSync = new Date();
+		}
+		if ("Delete" === message.Type.Event) {
+			this.bookmarks.remove(message.Data.ID);
+			await this.storeBookmarksAsync();
+		}
+		else {
+			await this.updateBookmarksAsync(message.Data);
 		}
 	}
 
 	public sendRequestToCrawl(url: string) {
 		super.send({
-			ServiceName: "books",
+			ServiceName: this.Name,
 			ObjectName: "crawl",
 			Verb: "GET",
 			Query: {
@@ -742,7 +748,7 @@ export class BooksService extends BaseService {
 
 	public sendRequestToReCrawl(id: string, url: string, mode: string) {
 		super.send({
-			ServiceName: "books",
+			ServiceName: this.Name,
 			ObjectName: "book",
 			Verb: "GET",
 			Query: {

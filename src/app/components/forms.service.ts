@@ -86,6 +86,7 @@ export class AppFormsControl {
 			PauseMiliseconds: 123,
 			ClearSelected: false,
 			DataSource: undefined as CompleterData,
+			InitialValue: undefined as any,
 			Handlers: {
 				Initialize: undefined as (control: AppFormsControl) => void,
 				GetInitialValue: undefined as (control: AppFormsControl) => any,
@@ -267,6 +268,7 @@ export class AppFormsControl {
 					PauseMiliseconds: lookupOptions.PauseMiliseconds || lookupOptions.pausemiliseconds || 123,
 					ClearSelected: !!(lookupOptions.ClearSelected || lookupOptions.clearselected),
 					DataSource: lookupOptions.DataSource || lookupOptions.datasource,
+					InitialValue: lookupOptions.InitialValue || lookupOptions.initialvalue,
 					Handlers: {
 						Initialize: handlers.Initialize || handlers.initialize,
 						GetInitialValue: handlers.GetInitialValue || handlers.getinitialvalue,

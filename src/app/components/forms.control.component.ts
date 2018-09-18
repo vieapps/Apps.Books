@@ -42,7 +42,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	ngOnDestroy() {
 		this.refreshCaptchaEvent.unsubscribe();
 		this.lastFocusEvent.unsubscribe();
-		if (this.control.Options.LookupOptions.DataSource !== undefined) {
+		if (this.control.Options !== undefined && this.control.Options.LookupOptions !== undefined && this.control.Options.LookupOptions.DataSource !== undefined) {
 			this.control.Options.LookupOptions.DataSource.cancel();
 		}
 	}
@@ -371,7 +371,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get completerInitialValue() {
-		if (this.control.Options.Type === "Address") {
+		if (this.control.Options.LookupOptions.InitialValue !== undefined) {
+			return this.control.Options.LookupOptions.InitialValue;
+		}
+		else if (this.control.Options.Type === "Address") {
 			const value = {
 				County: "",
 				Province: "",
@@ -381,7 +384,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				const formControl = this.formGroup.controls[name];
 				value[name] = formControl !== undefined ? formControl.value : "";
 			});
-			return this.appFormsSvc.getMetaCounties().find(addr => addr.County === value.County && addr.Province === value.Province && addr.Country === value.Country);
+			return this.appFormsSvc.getMetaCounties().find(address => address.County === value.County && address.Province === value.Province && address.Country === value.Country);
 		}
 		else {
 			return this.control.Options.LookupOptions.Handlers.GetInitialValue !== undefined
@@ -396,7 +399,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			["County", "Province", "Country"].forEach(name => {
 				const formControl = this.formGroup.controls[name];
 				if (formControl !== undefined) {
-					formControl.setValue(address !== undefined ? address[name] : "");
+					formControl.setValue(address !== undefined ? address[name] || "" : "");
 				}
 			});
 		}

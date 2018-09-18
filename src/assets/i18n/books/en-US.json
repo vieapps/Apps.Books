@@ -162,7 +162,8 @@
 			"messages": {
 				"confirm": "Are you sure you want to discard changes?",
 				"success": "The book has been updated...",
-				"sent": "Update request has been sent..."
+				"sent": "Update request has been sent...",
+				"sync": "Reading sync successful..."
 			}
 		}
 	}
