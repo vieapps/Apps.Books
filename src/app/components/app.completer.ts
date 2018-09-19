@@ -1,11 +1,11 @@
-import * as Rx from "rxjs";
+import { Subject, Subscription } from "rxjs";
 import { map } from "rxjs/operators";
 import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppAPI } from "./app.api";
 import { AppUtility } from "./app.utility";
 
 /** Custom searching service of ng-completer */
-export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements CompleterData {
+export class AppCustomCompleter extends Subject<CompleterItem[]> implements CompleterData {
 
 	constructor(
 		public onRequest: (term: string) => string,
@@ -15,7 +15,7 @@ export class AppCustomCompleter extends Rx.Subject<CompleterItem[]> implements C
 		super();
 	}
 
-	private _rxSubscriptions = new Array<Rx.Subscription>();
+	private _rxSubscriptions = new Array<Subscription>();
 
 	public search(term: string) {
 		this._rxSubscriptions.push(AppAPI.get(this.onRequest(term)).pipe(map(response => response.json())).subscribe(

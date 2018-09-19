@@ -6,6 +6,7 @@ import { AppFormsControl, AppFormsService } from "../../components/forms.service
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { UsersService } from "../../providers/users.service";
+import { Account } from "../../models/account";
 import { UserProfile } from "../../models/user";
 import { Privilege } from "./../../models/privileges";
 import { AccountAvatarPage } from "./avatar.page";
@@ -66,6 +67,9 @@ export class ViewAccountProfilePage implements OnInit {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		permissions: undefined as {
+
+		},
 		hash: undefined as string
 	};
 
@@ -127,6 +131,7 @@ export class ViewAccountProfilePage implements OnInit {
 
 			else if (this.authSvc.canSetPrivileges) {
 				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", async () => await this.openUpdatePrivilegesAsync()));
+				this.usersSvc.getPrivilegesAsync(this.profile.ID);
 			}
 
 			if (this.authSvc.isSystemAdministrator && !this.configSvc.previousUrl.startsWith("/users/list") && !this.configSvc.previousUrl.startsWith("/users/search")) {
@@ -222,6 +227,7 @@ export class ViewAccountProfilePage implements OnInit {
 
 	async openUpdatePrivilegesAsync() {
 		await this.setModeAsync("privileges", await this.configSvc.getResourceAsync("users.profile.privileges.title"));
+		console.log("ACCOUNT", Account.instances.getValue(this.profile.ID));
 	}
 
 	async updatePrivilegesAsync() {
@@ -254,11 +260,11 @@ export class ViewAccountProfilePage implements OnInit {
 	}
 
 	close() {
-		if (this.configSvc.previousUrl.startsWith("/users")) {
-			this.configSvc.navigateHome();
+		if (this.configSvc.previousUrl.startsWith("/users") ? this.authSvc.isServiceAdministrator() : true) {
+			this.configSvc.navigateBack();
 		}
 		else {
-			this.configSvc.navigateBack();
+			this.configSvc.navigateHome();
 		}
 	}
 

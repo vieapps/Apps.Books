@@ -1,4 +1,4 @@
-import * as Rx from "rxjs";
+import { Subject } from "rxjs";
 import { AppUtility } from "./app.utility";
 
 /** Servicing component for working with app events */
@@ -7,7 +7,7 @@ export class AppEvents {
 	private static _handlers: {
 		[key: string]: Array<{ func: (info: { event: string, args: any }) => void, identity: string }>
 	} = {};
-	private static _subject: Rx.Subject<{ event: string, args: any }> = undefined;
+	private static _subject: Subject<{ event: string, args: any }> = undefined;
 
 	private static getHandlers(event: string) {
 		this._handlers[event] = this._handlers[event] || [];
@@ -16,7 +16,7 @@ export class AppEvents {
 
 	private static initialize() {
 		if (this._subject === undefined) {
-			this._subject = new Rx.Subject<{ event: string, args: any }>();
+			this._subject = new Subject<{ event: string, args: any }>();
 			this._subject.subscribe(({ event, args }) => {
 				this.getHandlers(event).forEach(handler => handler.func({ event: event, args: args || {} }));
 			});

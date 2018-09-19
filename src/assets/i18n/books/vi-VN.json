@@ -1,5 +1,6 @@
 {
 	"books": {
+		"name": "Sách trực tuyến",
 		"home": {
 			"latest": "Mới cập nhật",
 			"statistics": {
@@ -8,6 +9,11 @@
 				"books": "Tổng số bài viết & sách",
 				"categories": "Thể loại"
 			}
+		},
+		"objects": {
+			"book": "Sách điện tử",
+			"category": "Thể loại",
+			"statistic": "Thông tin thống kê"
 		},
 		"bookmarks": {
 			"header": "Sách đang đọc",

@@ -26,8 +26,6 @@ export class AppConfig {
 		mode: "",
 		platform: "",
 		os: "",
-		service: "books",
-		services: "system,users,books,libraries,marketplaces",
 		debug: true,
 		offline: false
 	};
@@ -52,6 +50,33 @@ export class AppConfig {
 		hidden: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
 		sendInvitationRole: "All",
 		setPrivilegsRole: "ServiceAdministrator"
+	};
+
+	/** Services in the app */
+	public static services = {
+		all: [
+			{
+				name: "books",
+				objects: ["book", "category", "statistic"]
+			},
+			{
+				name: "users",
+				objects: []
+			},
+			{
+				name: "portals",
+				objects: []
+			},
+			{
+				name: "cms",
+				objects: []
+			},
+			{
+				name: "documents",
+				objects: []
+			}
+		],
+		main: "books"
 	};
 
 	/** Geographic meta */
@@ -192,7 +217,7 @@ export class AppConfig {
 
 	/** Gets the locale data for working with i18n globalization */
 	public static getLocaleData(locale: string) {
-		switch (locale) {
+		switch (locale || this.locale) {
 			case "vi_VN":
 				return vi_VN;
 			default:
@@ -205,10 +230,25 @@ export class AppConfig {
 		return this.getLocaleData(this.locale);
 	}
 
+	/** Gets the JSON query with related service, culture language and host */
+	public static getRelatedJson(service?: string, additional?: { [key: string]: string }) {
+		const json = {
+			"language": this.language,
+			"host": this.url.host
+		} as { [key: string]: string };
+		service = service || this.services.main;
+		if (AppUtility.isNotEmpty(service)) {
+			json["related-service"] = service;
+		}
+		if (additional !== undefined) {
+			Object.keys(additional).forEach(key => json[key] = additional[key]);
+		}
+		return json;
+	}
+
 	/** Gets the query with related service, culture language and host */
 	public static getRelatedQuery(service?: string) {
-		service = service || this.app.service;
-		return (AppUtility.isNotEmpty(service) ? "related-service=" + service + "&" : "") + "language=" + this.language + "&host=" + this.url.host;
+		return AppUtility.getQueryOfJson(this.getRelatedJson(service));
 	}
 
 	/** Gets the authenticated headers (JSON) for making requests to APIs */

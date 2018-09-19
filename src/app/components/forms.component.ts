@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, AfterContentInit, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppConfig } from "../app.config";
 import { AppFormsControl, AppFormsService } from "./forms.service";
@@ -8,7 +8,7 @@ import { PlatformUtility } from "./app.utility.platform";
 	selector: "app-form",
 	templateUrl: "./forms.component.html"
 })
-export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
+export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit, AfterContentInit {
 
 	constructor (
 		public appFormsSvc: AppFormsService
@@ -44,8 +44,11 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	ngAfterViewInit() {
-		this.initEvent.emit(this);
 		PlatformUtility.focus(this.controls.find(control => control.Options.AutoFocus), AppConfig.isRunningOnIOS ? 567 : 345);
+	}
+
+	ngAfterContentInit() {
+		this.initEvent.emit(this);
 	}
 
 	ngOnDestroy() {

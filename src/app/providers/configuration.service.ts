@@ -20,6 +20,7 @@ import { PlatformUtility } from "../components/app.utility.platform";
 import { TrackingUtility } from "../components/app.utility.trackings";
 import { Account } from "../models/account";
 import { Privilege } from "../models/privileges";
+import { UserProfile } from "../models/user";
 import { Base as BaseService } from "./base.service";
 
 @Injectable()
@@ -342,6 +343,9 @@ export class ConfigurationService extends BaseService {
 			if (AppUtility.isNotEmpty(session) && session !== "{}") {
 				this.appConfig.session = JSON.parse(session as string);
 				this.appConfig.session.account = Account.deserialize(this.appConfig.session.account);
+				if (this.appConfig.session.account.id !== undefined) {
+					Account.instances.setValue(this.appConfig.session.account.id, this.appConfig.session.account);
+				}
 				if (this.isDebug) {
 					console.log(this.getLogMessage("The session is loaded from storage"), this.appConfig.session);
 				}
@@ -408,62 +412,64 @@ export class ConfigurationService extends BaseService {
 		return account || new Account();
 	}
 
-	/** Prepares account information */
-	public prepareAccount(data: any) {
-		const account = {
-			Roles: new Array<string>(),
-			Privileges: new Array<Privilege>(),
-			Status: "Registered",
-			TwoFactorsAuthentication: {
-				Required: false,
-				Providers: new Array<{ Label: string, Type: string, Time: Date, Info: string }>()
-			}
-		};
+	/** Updates information of the account */
+	public updateAccount(data: any, onNext?: (data?: any) => void, updateInstances?: boolean) {
+		const id = data.ID || "";
+		const account = Account.instances.containsKey(id)
+			? Account.instances.getValue(id)
+			: new Account();
+
+		if (account.id === undefined) {
+			account.id = data.ID;
+		}
 
 		if (AppUtility.isArray(data.Roles, true)) {
-			account.Roles = new List<string>(data.Roles).Select(r => r.trim()).Distinct().ToArray();
+			account.roles = new List<string>(data.Roles).Select(r => r.trim()).Distinct().ToArray();
 		}
 
 		if (AppUtility.isArray(data.Privileges, true)) {
-			account.Privileges = (data.Privileges as Array<any>).map(p => Privilege.deserialize(p));
+			account.privileges = (data.Privileges as Array<any>).map(p => Privilege.deserialize(p));
 		}
 
 		if (AppUtility.isNotEmpty(data.Status)) {
-			account.Status = data.Status as string;
+			account.status = data.Status as string;
 		}
 
 		if (AppUtility.isObject(data.TwoFactorsAuthentication, true)) {
-			account.TwoFactorsAuthentication.Required = AppUtility.isTrue(data.TwoFactorsAuthentication.Required);
-			if (AppUtility.isArray(data.TwoFactorsAuthentication.Providers, true)) {
-				account.TwoFactorsAuthentication.Providers = (data.TwoFactorsAuthentication.Providers as Array<any>).map(provider => {
-					return {
-						Label: provider.Label,
-						Type: provider.Type,
-						Time: new Date(provider.Time),
-						Info: provider.Info
-					};
-				});
-			}
-		}
-
-		return account;
-	}
-
-	/** Updates information of the account */
-	public updateAccount(data: any, onCompleted?: (data?: any) => void) {
-		if (this.appConfig.session.account.id !== undefined && this.appConfig.session.account.id === data.ID) {
-			const account = this.prepareAccount(data);
-			this.appConfig.session.account.roles = account.Roles;
-			this.appConfig.session.account.privileges = account.Privileges;
-			this.appConfig.session.account.status = account.Status;
-			this.appConfig.session.account.twoFactors = {
-				required: account.TwoFactorsAuthentication.Required,
-				providers: account.TwoFactorsAuthentication.Providers
+			account.twoFactors = {
+				required: AppUtility.isTrue(data.TwoFactorsAuthentication.Required),
+				providers: AppUtility.isArray(data.TwoFactorsAuthentication.Providers, true)
+					? (data.TwoFactorsAuthentication.Providers as Array<any>).map(provider => {
+							return {
+								Label: provider.Label,
+								Type: provider.Type,
+								Time: new Date(provider.Time),
+								Info: provider.Info
+							};
+						})
+					: []
 			};
-			this.storeSessionAsync(onCompleted);
 		}
-		else if (onCompleted !== undefined) {
-			onCompleted(data);
+
+		if (account.id !== undefined && UserProfile.instances.containsKey(account.id)) {
+			account.profile = UserProfile.get(account.id);
+		}
+
+		if (this.isAuthenticated && this.getAccount().id === account.id) {
+			this.appConfig.session.account = account;
+			if (this.isDebug) {
+				console.log(this.getLogMessage("Account is updated"), this.appConfig.session.account);
+			}
+			Account.instances.setValue(account.id, account);
+			this.storeSessionAsync(onNext);
+		}
+		else {
+			if (account.id !== undefined && AppUtility.isTrue(updateInstances)) {
+				Account.instances.setValue(account.id, account);
+			}
+			if (onNext !== undefined) {
+				onNext(data);
+			}
 		}
 	}
 
@@ -491,12 +497,7 @@ export class ConfigurationService extends BaseService {
 			ServiceName: "users",
 			ObjectName: "profile",
 			Verb: "GET",
-			Query: {
-				"object-identity": this.getAccount().id,
-				"related-service": this.appConfig.app.service,
-				"language": this.appConfig.language,
-				"host": this.appConfig.url.host
-			},
+			Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.getAccount().id }),
 			Header: undefined,
 			Body: undefined,
 			Extra: undefined

@@ -4,9 +4,9 @@ import { AppRTU } from "../components/app.rtu";
 import { AppEvents } from "../components/app.events";
 import { AppCrypto } from "../components/app.crypto";
 import { AppUtility } from "../components/app.utility";
-import { PlatformUtility } from "../components/app.utility.platform";
 import { AppCustomCompleter } from "../components/app.completer";
 import { AppPagination } from "../components/app.pagination";
+import { Account } from "../models/account";
 import { UserProfile } from "../models/user";
 import { Privilege } from "../models/privileges";
 import { Base as BaseService } from "./base.service";
@@ -258,16 +258,23 @@ export class UsersService extends BaseService {
 	}
 
 	public async getPrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.readAsync(
-			`users/account/${id}?${this.configSvc.relatedQuery}`,
-			onNext,
-			error => {
-				console.error(this.getErrorMessage("Error occurred while reading privileges", error));
-				if (onError !== undefined) {
-					onError(error);
-				}
+		if (Account.instances.containsKey(id)) {
+			if (onNext !== undefined) {
+				onNext();
 			}
-		);
+		}
+		else {
+			await super.readAsync(
+				`users/account/${id}?${this.configSvc.relatedQuery}`,
+				data => this.configSvc.updateAccount(data, onNext, true),
+				error => {
+					console.error(this.getErrorMessage("Error occurred while reading privileges", error));
+					if (onError !== undefined) {
+						onError(error);
+					}
+				}
+			);
+		}
 	}
 
 	public async updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
@@ -276,7 +283,7 @@ export class UsersService extends BaseService {
 			{
 				Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
 			},
-			onNext,
+			data => this.configSvc.updateAccount(data, onNext, true),
 			error => {
 				console.error(this.getErrorMessage("Error occurred while updating privileges", error));
 				if (onError !== undefined) {
@@ -328,12 +335,7 @@ export class UsersService extends BaseService {
 				break;
 
 			case "Account":
-				if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
-					this.configSvc.updateAccount(message.Data);
-					if (this.configSvc.isDebug) {
-						console.log(this.getLogMessage("Account is updated"), this.configSvc.getAccount());
-					}
-				}
+				this.configSvc.updateAccount(message.Data);
 				break;
 
 			case "Profile":

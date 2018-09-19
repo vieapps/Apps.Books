@@ -1,5 +1,14 @@
 {
 	"users": {
+		"name": "Users",
+		"roles": {
+			"Administrator": "Administrator",
+			"Moderator": "Moderator",
+			"Editor": "Editor",
+			"Contributor": "Contributor",
+			"Viewer": "Viewer (Read Only)",
+			"Downloader": "Downloader"
+		},
 		"login": {
 			"login": {
 				"title": "Login",

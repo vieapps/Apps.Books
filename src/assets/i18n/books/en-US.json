@@ -1,5 +1,6 @@
 {
 	"books": {
+		"name": "Online Books",
 		"home": {
 			"latest": "Latest",
 			"statistics": {
@@ -8,6 +9,11 @@
 				"books": "Number of articles & books",
 				"categories": "Categories"
 			}
+		},
+		"objects": {
+			"book": "Books",
+			"category": "Categories",
+			"statistic": "Statistics"
 		},
 		"bookmarks": {
 			"header": "Readings",

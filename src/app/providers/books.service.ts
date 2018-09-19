@@ -1,4 +1,4 @@
-import * as Collections from "typescript-collections";
+import { Dictionary } from "typescript-collections";
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
@@ -503,12 +503,12 @@ export class BooksService extends BaseService {
 
 	public get authors() {
 		return this.configSvc.appConfig.extras["Books-Authors"] !== undefined
-			? this.configSvc.appConfig.extras["Books-Authors"] as Collections.Dictionary<string, Array<StatisticBase>>
-			: new Collections.Dictionary<string, Array<StatisticBase>>();
+			? this.configSvc.appConfig.extras["Books-Authors"] as Dictionary<string, Array<StatisticBase>>
+			: new Dictionary<string, Array<StatisticBase>>();
 	}
 
-	private async loadAuthorsAsync(onCompleted?: (authors?: Collections.Dictionary<string, Array<StatisticBase>>) => void) {
-		const authors = new Collections.Dictionary<string, Array<StatisticBase>>();
+	private async loadAuthorsAsync(onCompleted?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
+		const authors = new Dictionary<string, Array<StatisticBase>>();
 		AppUtility.getChars().forEach(async char => {
 			const authours = (await this.storage.get(`VIEApps-Books-Authors-${char}`) as Array<any> || []).map(s => StatisticBase.deserialize(s));
 			authors.setValue(char, authours);
@@ -522,7 +522,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	private async storeAuthorsAsync(onCompleted?: (authors?: Collections.Dictionary<string, Array<StatisticBase>>) => void) {
+	private async storeAuthorsAsync(onCompleted?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
 		const authors = this.authors;
 		await Promise.all(AppUtility.getChars().map(char => this.storage.set(`VIEApps-Books-Authors-${char}`, authors.getValue(char) || [])));
 		AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: authors });
@@ -587,25 +587,24 @@ export class BooksService extends BaseService {
 	}
 
 	public get readingOptions() {
-		this.configSvc.appConfig.options.extras["Books"] =
-			this.configSvc.appConfig.options.extras["Books"] || {
+		this.configSvc.appConfig.options.extras[this.Name] =
+			this.configSvc.appConfig.options.extras[this.Name] || {
 				font: "default",
 				size: "normal",
 				color: "white",
 				paragraph: "one",
 				align: "align-left"
 			};
-		return this.configSvc.appConfig.options.extras["Books"] as { font: string, size: string, color: string, paragraph: string, align: string };
+		return this.configSvc.appConfig.options.extras[this.Name] as { font: string, size: string, color: string, paragraph: string, align: string };
 	}
 
 	public get bookmarks() {
-		return this.configSvc.appConfig.extras["Books-Bookmarks"] !== undefined
-			? this.configSvc.appConfig.extras["Books-Bookmarks"] as Collections.Dictionary<string, Bookmark>
-			: new Collections.Dictionary<string, Bookmark>();
+		this.configSvc.appConfig.extras["Books-Bookmarks"] = this.configSvc.appConfig.extras["Books-Bookmarks"] || new Dictionary<string, Bookmark>();
+		return this.configSvc.appConfig.extras["Books-Bookmarks"] as Dictionary<string, Bookmark>;
 	}
 
 	private async loadBookmarksAsync(onCompleted?: () => void) {
-		const bookmarks = new Collections.Dictionary<string, Bookmark>();
+		const bookmarks = new Dictionary<string, Bookmark>();
 		(await this.storage.get("VIEApps-Books-Bookmarks") as Array<any> || []).forEach(data => {
 			const bookmark = Bookmark.deserialize(data);
 			bookmarks.setValue(bookmark.ID, bookmark);

@@ -1,17 +1,19 @@
-import * as Collections from "typescript-collections";
+import { Dictionary } from "typescript-collections";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseModel } from "./base";
 import { RatingPoint } from "./ratingpoint";
+import { Privilege } from "../models/privileges";
 
 /** Base user profile */
 export class UserProfileBase extends BaseModel {
 
 	constructor() {
 		super();
+		delete this["Privileges"];
 	}
 
 	/** All user profile instances */
-	public static instances = new Collections.Dictionary<string, UserProfileBase>();
+	public static instances = new Dictionary<string, UserProfileBase>();
 
 	// standard properties
 	ID = "";
@@ -102,7 +104,7 @@ export class UserProfile extends UserProfileBase {
 	TotalRewards = 0;
 	TotalContributions = 0;
 	LastSync = new Date();
-	RatingPoints = new Collections.Dictionary<string, RatingPoint>();
+	RatingPoints = new Dictionary<string, RatingPoint>();
 
 	public static get(id: string) {
 		return super.get(id) as UserProfile;
@@ -125,7 +127,7 @@ export class UserProfile extends UserProfileBase {
 
 	public copy(source: any, onCompleted?: (data: any) => void) {
 		super.copy(source, data => {
-			this.RatingPoints = new Collections.Dictionary<string, RatingPoint>();
+			this.RatingPoints = new Dictionary<string, RatingPoint>();
 			if (AppUtility.isArray(data.RatingPoints, true)) {
 				(data.RatingPoints as Array<any>).forEach(o => this.RatingPoints.setValue(o.Type, RatingPoint.deserialize(o)));
 			}

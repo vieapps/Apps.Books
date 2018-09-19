@@ -1,11 +1,10 @@
-import * as Collections from "typescript-collections";
+import { Set } from "typescript-collections";
 import { Injectable } from "@angular/core";
 import { Http } from "@angular/http";
 import { AppRTU } from "./../components/app.rtu";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
-import { PlatformUtility } from "../components/app.utility.platform";
 import { Account } from "../models/account";
 import { Privilege } from "../models/privileges";
 import { Base as BaseService } from "./base.service";
@@ -26,8 +25,8 @@ export class AuthenticationService extends BaseService {
 			? false
 			: AppUtility.isArray(roles, true)
 				? (roles as Array<string>).find(r => r === role) !== undefined
-				: roles instanceof Collections.Set
-					? (roles as Collections.Set<string>).contains(role)
+				: roles instanceof Set
+					? (roles as Set<string>).contains(role)
 					: false;
 	}
 
@@ -45,14 +44,14 @@ export class AuthenticationService extends BaseService {
 
 	/** Checks to see the account is service administrator or not */
 	public isServiceAdministrator(service?: string, account?: Account) {
-		service = (service || this.configSvc.appConfig.app.service).toLowerCase();
+		service = (service || this.configSvc.appConfig.services.main).toLowerCase();
 		account = account || this.configSvc.getAccount();
 		return this.isGotServiceRole(service, "Administrator", account.privileges) || this.isSystemAdministrator(account);
 	}
 
 	/** Checks to see the account is service moderator or not */
 	public isServiceModerator(service?: string, account?: Account) {
-		service = (service || this.configSvc.appConfig.app.service).toLowerCase();
+		service = (service || this.configSvc.appConfig.services.main).toLowerCase();
 		account = account || this.configSvc.getAccount();
 		return this.isGotServiceRole(service, "Moderator", account.privileges) || this.isServiceAdministrator(service, account);
 	}

@@ -1,4 +1,4 @@
-import * as Rx from "rxjs";
+import { Subject } from "rxjs";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "./app.api";
 import { AppUtility } from "./app.utility";
@@ -19,7 +19,7 @@ export class AppRTU {
 	private static _objectScopeHandlers: {
 		[key: string]: Array<{ func: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity: string }>
 	} = {};
-	private static _serviceScopeSubject: Rx.Subject<{
+	private static _serviceScopeSubject: Subject<{
 		service: string,
 		message: {
 			Type: {
@@ -30,7 +30,7 @@ export class AppRTU {
 			Data: any
 		}
 	}>;
-	private static _objectScopeSubject: Rx.Subject<{
+	private static _objectScopeSubject: Subject<{
 		service: string,
 		object: string,
 		message: {
@@ -144,7 +144,7 @@ export class AppRTU {
 
 		// initialize object for registering handlers
 		if (this._serviceScopeSubject === undefined) {
-			this._serviceScopeSubject = new Rx.Subject<{
+			this._serviceScopeSubject = new Subject<{
 				service: string,
 				message: {
 					Type: {
@@ -170,7 +170,7 @@ export class AppRTU {
 		}
 
 		if (this._objectScopeSubject === undefined) {
-			this._objectScopeSubject = new Rx.Subject<{
+			this._objectScopeSubject = new Subject<{
 				service: string,
 				object: string,
 				message: {

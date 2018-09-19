@@ -1,4 +1,4 @@
-import * as Collections from "typescript-collections";
+import { Dictionary } from "typescript-collections";
 import { AppCrypto } from "./app.crypto";
 import { AppUtility } from "./app.utility";
 
@@ -6,7 +6,7 @@ import { AppUtility } from "./app.utility";
 export class AppPagination {
 
 	/** All pagination instances */
-	public static instances = new Collections.Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
+	public static instances = new Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
 
 	private static getKey(info?: any, prefix?: string) {
 		const filterBy = info !== undefined ? AppUtility.clone(info.FilterBy || {}, true) : undefined;

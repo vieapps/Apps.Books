@@ -1,4 +1,4 @@
-import * as Collections from "typescript-collections";
+import { Dictionary } from "typescript-collections";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseModel } from "./base";
 import { RatingPoint } from "./ratingpoint";
@@ -8,11 +8,12 @@ export class Book extends BaseModel {
 
 	constructor() {
 		super();
+		delete this["Privileges"];
 		this.Language = "vi";
 	}
 
 	/** All instances of book */
-	public static instances = new Collections.Dictionary<string, Book>();
+	public static instances = new Dictionary<string, Book>();
 
 	ID = "";
 	Title = "";
@@ -30,8 +31,8 @@ export class Book extends BaseModel {
 	SourceUrl = "";
 	Contributor = "";
 	TotalChapters = 0;
-	Counters: Collections.Dictionary<string, CounterInfo> = undefined;
-	RatingPoints: Collections.Dictionary<string, RatingPoint> = undefined;
+	Counters: Dictionary<string, CounterInfo> = undefined;
+	RatingPoints: Dictionary<string, RatingPoint> = undefined;
 	LastUpdated = new Date();
 
 	TOCs = new Array<string>();
@@ -59,10 +60,10 @@ export class Book extends BaseModel {
 	public static deserialize(json: any, book?: Book) {
 		book = book || new Book();
 		book.copy(json, data => {
-			book.Counters = new Collections.Dictionary<string, CounterInfo>();
+			book.Counters = new Dictionary<string, CounterInfo>();
 			(data.Counters as Array<any>).forEach(o => book.Counters.setValue(o.Type, CounterInfo.deserialize(o)));
 
-			book.RatingPoints = new Collections.Dictionary<string, RatingPoint>();
+			book.RatingPoints = new Dictionary<string, RatingPoint>();
 			(data.RatingPoints as Array<any>).forEach(o => book.RatingPoints.setValue(o.Type, RatingPoint.deserialize(o)));
 
 			book.Chapters = book.TotalChapters > 1 && book.Chapters.length < 1

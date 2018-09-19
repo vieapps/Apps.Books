@@ -1,9 +1,18 @@
+import { Dictionary } from "typescript-collections";
 import { Privilege } from "./privileges";
 import { UserProfile } from "./user";
 import { AppUtility } from "../components/app.utility";
 
 /** Account of the app */
 export class Account {
+
+	constructor (
+	) {
+	}
+
+	/** All user account instances */
+	public static instances = new Dictionary<string, Account>();
+
 	id: string;
 	roles: Array<string>;
 	privileges: Array<Privilege>;
