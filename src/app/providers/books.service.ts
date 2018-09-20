@@ -50,14 +50,7 @@ export class BooksService extends BaseService {
 
 		AppEvents.on("App", async info => {
 			if ("Initialized" === info.args.Type) {
-				await Promise.all([
-					this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
-					this.loadStatisticsAsync(),
-					this.updateSearchIntoSidebarAsync()
-				]);
-				if (this.configSvc.isAuthenticated) {
-					await this.loadBookmarksAsync();
-				}
+				await this.initializeAsync();
 			}
 			if ("LanguageChanged" === info.args.Type) {
 				PlatformUtility.setTimeout(async () => {
@@ -96,6 +89,17 @@ export class BooksService extends BaseService {
 				this._reading.Chapter.Previous = undefined;
 			}
 		});
+	}
+
+	private async initializeAsync() {
+		await Promise.all([
+			this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
+			this.loadStatisticsAsync(),
+			this.updateSearchIntoSidebarAsync()
+		]);
+		if (this.configSvc.isAuthenticated) {
+			await this.loadBookmarksAsync();
+		}
 	}
 
 	private async updateSearchIntoSidebarAsync() {
