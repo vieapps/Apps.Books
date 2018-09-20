@@ -10,5 +10,6 @@
 </ion-header>
 
 <ion-content padding>
-	<control-book-home-screen [changes]="changes"></control-book-home-screen>
+	<control-book-home-screen *ngIf="configSvc.appConfig.services.main === 'books'"
+		[changes]="changes"></control-book-home-screen>
 </ion-content>

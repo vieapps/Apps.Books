@@ -1,5 +1,4 @@
 import { Subscription } from "rxjs";
-import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
@@ -79,9 +78,9 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			}
 		}, "AppEventHandlersOfReadBookPage");
 
-		AppEvents.on("Session", info => {
+		AppEvents.on("Session", async info => {
 			if ("Updated" === info.args.Type) {
-				this.prepareActionsAsync();
+				await this.prepareActionsAsync();
 			}
 		}, "AccountEventHandlerOfReadBookPage");
 
@@ -96,10 +95,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			}
 		}, "OpenChapterEventHandlerOfReadBookPage");
 
-		this.rxSubscription = this.router.events.subscribe(event => {
+		this.rxSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd && this.configSvc.currentUrl.startsWith(this.book.routerLink)) {
 				this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
-				this.scrollAsync();
+				await this.scrollAsync();
 			}
 		});
 	}
@@ -140,7 +139,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 					await this.prepareAsync();
 				}
 				else {
-					await this.appFormsSvc.hideLoadingAsync(() => this.configSvc.navigateBack());
+					await this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
 				}
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error)
@@ -193,10 +192,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", () => this.configSvc.navigateForward("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author }))),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", () => this.openInfo()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.toc"), "list", () => this.openTOCs()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", () => this.openOptions())
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", async () => this.openAuthorAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", async () => this.openInfoAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.toc"), "list", async () => this.openTOCsAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", async () => this.openOptionsAsync())
 		];
 
 		if (this.book !== undefined && this.book.TotalChapters < 2) {
@@ -205,8 +204,8 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 		if (this.authSvc.isServiceModerator(this.booksSvc.serviceName)) {
 			[
-				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", async () => await this.showCrawlAsync()),
-				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", () => this.configSvc.navigateForward(this.book.routerURI.replace("/read/", "/update/"))),
+				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", async () => await this.openRecrawlAsync()),
+				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", async () => await this.openUpdateAsync()),
 				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.delete"), "trash", async () => this.deleteAsync())
 			].forEach(action => this.actions.push(action));
 		}
@@ -214,34 +213,6 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async showActionsAsync() {
 		await this.appFormsSvc.showActionSheetAsync(this.actions);
-	}
-
-	async showCrawlAsync() {
-		await this.appFormsSvc.showAlertAsync(
-			await this.configSvc.getResourceAsync("books.crawl.header"),
-			undefined,
-			undefined,
-			async mode => {
-				this.booksSvc.sendRequestToReCrawl(this.book.ID, this.book.SourceUrl, mode);
-				await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.crawl.message"), 2000);
-			},
-			await this.configSvc.getResourceAsync("books.crawl.button"),
-			await this.configSvc.getResourceAsync("common.buttons.cancel"),
-			[
-				{
-					type: "radio",
-					label: await this.configSvc.getResourceAsync("books.crawl.mode.full"),
-					value: "full",
-					checked: this.book.SourceUrl === ""
-				},
-				{
-					type: "radio",
-					label: await this.configSvc.getResourceAsync("books.crawl.mode.missing"),
-					value: "missing",
-					checked: this.book.SourceUrl !== ""
-				}
-			]
-		);
 	}
 
 	async goChapterAsync() {
@@ -261,10 +232,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async goPreviousAsync() {
 		if (this.book.TotalChapters < 2) {
-			const books = new List(Book.instances.values()).Where(book => book.Category === this.book.Category).ToArray();
+			const books = Book.instances.values().filter(book => book.Category === this.book.Category);
 			const index = books.findIndex(book => book.ID === this.book.ID);
 			if (index > 0) {
-				this.configSvc.navigateForward(books[index - 1].routerURI);
+				await this.configSvc.navigateForwardAsync(books[index - 1].routerURI);
 			}
 		}
 		else if (this.chapter > 0) {
@@ -276,10 +247,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async goNextAsync() {
 		if (this.book.TotalChapters < 2) {
-			const books = new List(Book.instances.values()).Where(book => book.Category === this.book.Category).ToArray();
+			const books = Book.instances.values().filter(book => book.Category === this.book.Category);
 			const index = books.findIndex(book => book.ID === this.book.ID);
 			if (index > -1 && index < books.length - 2) {
-				this.configSvc.navigateForward(books[index + 1].routerURI);
+				await this.configSvc.navigateForwardAsync(books[index + 1].routerURI);
 			}
 		}
 		else if (this.chapter < this.book.TotalChapters) {
@@ -316,8 +287,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 				this.book.ID,
 				async () => {
 					this.booksSvc.deleteBookmark(this.book.ID);
-					await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title }));
-					this.configSvc.navigateBack();
+					await Promise.all([
+						this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title })),
+						this.configSvc.navigateBackAsync()
+					]);
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			),
@@ -326,23 +299,59 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		);
 	}
 
-	openTOCs() {
-		this.menuController.open();
+	async openAuthorAsync() {
+		await this.configSvc.navigateForwardAsync("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author }));
 	}
 
-	openInfo() {
-		this.configSvc.navigateForward(this.book.routerURI.replace("/read/", "/info/"));
+	async openTOCsAsync() {
+		await this.menuController.open();
 	}
 
-	openOptions() {
-		this.configSvc.navigateForward("/books/options");
+	async openInfoAsync() {
+		await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/info/"));
 	}
 
-	close() {
+	async openOptionsAsync() {
+		await this.configSvc.navigateForwardAsync("/books/options");
+	}
+
+	async openRecrawlAsync() {
+		await this.appFormsSvc.showAlertAsync(
+			await this.configSvc.getResourceAsync("books.crawl.header"),
+			undefined,
+			undefined,
+			async mode => {
+				this.booksSvc.sendRequestToReCrawl(this.book.ID, this.book.SourceUrl, mode);
+				await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.crawl.message"), 2000);
+			},
+			await this.configSvc.getResourceAsync("books.crawl.button"),
+			await this.configSvc.getResourceAsync("common.buttons.cancel"),
+			[
+				{
+					type: "radio",
+					label: await this.configSvc.getResourceAsync("books.crawl.mode.full"),
+					value: "full",
+					checked: this.book.SourceUrl === ""
+				},
+				{
+					type: "radio",
+					label: await this.configSvc.getResourceAsync("books.crawl.mode.missing"),
+					value: "missing",
+					checked: this.book.SourceUrl !== ""
+				}
+			]
+		);
+	}
+
+	async openUpdateAsync() {
+		await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/update/"));
+	}
+
+	async closeAsync() {
 		if (this.book.TotalChapters > 1) {
 			AppEvents.broadcast("Books", { Type: "CloseBook", ID: this.book.ID, Chapter: this.chapter });
 		}
-		this.configSvc.navigateBack();
+		await this.configSvc.navigateBackAsync();
 	}
 
 }

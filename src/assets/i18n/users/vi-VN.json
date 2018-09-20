@@ -194,7 +194,8 @@
 				"message": "Lời mời tham gia hệ thống đã được gửi..."
 			},
 			"privileges": {
-				"title": "Đặt quyền truy cập"
+				"title": "Đặt quyền truy cập",
+				"message": "Đã thiết đặt quyền truy cập cho người dùng {{name}} thành công..."
 			},
 			"logout": {
 				"confirm": "Đăng xuất khỏi hệ thống?",

@@ -9,6 +9,8 @@ import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { UsersService } from "../../providers/users.service";
 import { UserProfile } from "../../models/user";
+import { Account } from "../../models/account";
+import { Privilege } from "./../../models/privileges";
 
 @Component({
 	selector: "page-user-update",
@@ -29,37 +31,39 @@ export class UpdateAccountProfilePage implements OnInit {
 	mode = "";
 	id: string;
 	profile: UserProfile;
-	buttons: {
-		ok: {
+	buttons = {
+		ok: undefined as {
 			text: string,
 			icon: string,
 			handler: () => void
 		},
-		cancel: {
+		cancel: undefined as {
 			text: string,
 			icon: string,
 			handler: () => void
 		}
-	} = {
-		ok: undefined,
-		cancel: undefined
 	};
 	update = {
 		form: new FormGroup({}),
-		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		config: undefined as Array<any>,
 		hash: undefined as string,
 		language: this.configSvc.appConfig.language
 	};
 	password = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
-		config: undefined as Array<any>,
-		controls: new Array<AppFormsControl>()
+		controls: new Array<AppFormsControl>(),
+		config: undefined as Array<any>
 	};
 	email = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Email", "ConfirmEmail")]),
-		config: undefined as Array<any>,
-		controls: new Array<AppFormsControl>()
+		controls: new Array<AppFormsControl>(),
+		config: undefined as Array<any>
+	};
+
+	private _privileges = {
+		value: undefined as Array<Privilege>,
+		hash: ""
 	};
 
 	ngOnInit() {
@@ -100,6 +104,9 @@ export class UpdateAccountProfilePage implements OnInit {
 			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.email");
 			this.buttons.ok.handler = async () => await this.updateEmailAsync();
 		}
+		else if (this.mode === "privileges") {
+			this.buttons.ok.handler = async () => await this.updatePrivilegesAsync();
+		}
 		else {
 			this.buttons.cancel = undefined;
 			this.buttons.ok = undefined;
@@ -108,12 +115,15 @@ export class UpdateAccountProfilePage implements OnInit {
 
 	async initializeAsync() {
 		const id = this.configSvc.requestParams["ID"] || this.configSvc.getAccount().id;
-		await this.usersSvc.getProfileAsync(id,
+		await this.usersSvc.getProfileAsync(
+			id,
 			async () => {
 				this.profile = UserProfile.get(id);
-				if (this.profile.ID !== this.configSvc.getAccount().id && !this.authSvc.isSystemAdministrator()) {
-					await this.appFormsSvc.showToastAsync("Hmmm...");
-					this.configSvc.navigateHome();
+				if (this.profile === undefined || (this.profile.ID !== this.configSvc.getAccount().id && !this.authSvc.isSystemAdministrator())) {
+					await Promise.all([
+						this.appFormsSvc.showToastAsync("Hmmm..."),
+						this.configSvc.navigateHomeAsync()
+					]);
 				}
 				else {
 					switch (this.mode) {
@@ -123,6 +133,9 @@ export class UpdateAccountProfilePage implements OnInit {
 						case "email":
 							await this.openUpdateEmailAsync();
 							break;
+						case "privileges":
+							await this.openUpdatePrivilegesAsync();
+							break;
 						default:
 							await this.openUpdateProfileAsync();
 							break;
@@ -131,15 +144,6 @@ export class UpdateAccountProfilePage implements OnInit {
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error)
 		);
-	}
-
-	async showProfileAsync(onNext?: () => void) {
-		await this.appFormsSvc.hideLoadingAsync(() => {
-			if (onNext !== undefined) {
-				onNext();
-			}
-			this.configSvc.navigateBack(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined);
-		});
 	}
 
 	async openUpdateProfileAsync() {
@@ -406,6 +410,49 @@ export class UpdateAccountProfilePage implements OnInit {
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.password.controls.find(ctrl => ctrl.Name === "OldPassword").focus())
 			);
 		}
+	}
+
+	async openUpdatePrivilegesAsync() {
+		this.title = await this.configSvc.getResourceAsync("users.profile.privileges.title");
+		this.configSvc.appTitle = this.title;
+		await this.prepareButtonsAsync();
+		this._privileges.value = Account.instances.getValue(this.profile.ID).privileges;
+		this._privileges.hash = AppCrypto.hash(this._privileges.value);
+	}
+
+	async updatePrivilegesAsync() {
+		if (this._privileges.hash !== AppCrypto.hash(this._privileges.value)) {
+			await this.appFormsSvc.showLoadingAsync(this.title);
+			await this.usersSvc.updatePrivilegesAsync(
+				this.profile.ID,
+				this._privileges.value,
+				async () => await Promise.all([
+					TrackingUtility.trackAsync(this.title, "users/update/privileges"),
+					this.showProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.privileges.message", { name: this.profile.Name })))
+				]),
+				async error => await this.appFormsSvc.showErrorAsync(error)
+			);
+		}
+		else {
+			await this.showProfileAsync();
+		}
+	}
+
+	onPrivilegesChanged($event) {
+		this._privileges.value = $event.privileges;
+	}
+
+	get privileges() {
+		return Account.instances.getValue(this.profile.ID).privileges;
+	}
+
+	async showProfileAsync(preProcess?: () => void) {
+		await this.appFormsSvc.hideLoadingAsync(async () => {
+			if (preProcess !== undefined) {
+				preProcess();
+			}
+			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined);
+		});
 	}
 
 }

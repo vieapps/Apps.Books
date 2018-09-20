@@ -1,18 +1,18 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-button (click)="close()">
+			<ion-button (click)="closeAsync()">
 				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons slot="end">
-			<ion-button *ngIf="book && book.TotalChapters > 1" (click)="openTOCs()">
+			<ion-button *ngIf="book && book.TotalChapters > 1" (click)="openTOCsAsync()">
 				<ion-icon name="list" slot="icon-only"></ion-icon>
 			</ion-button>
-			<ion-button (click)="openOptions()">
+			<ion-button (click)="openOptionsAsync()">
 				<ion-icon name="options" slot="icon-only"></ion-icon>
 			</ion-button>
-			<ion-button (click)="openInfo()">
+			<ion-button (click)="openInfoAsync()">
 				<ion-icon name="information-circle-outline" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>

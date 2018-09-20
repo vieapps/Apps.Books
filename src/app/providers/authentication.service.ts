@@ -117,13 +117,13 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public async logInOTPAsync(userID: string, otpCode: string, providerInfo: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async logInOTPAsync(userID: string, otpProvider: string, otpCode: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
 			`users/session?${this.configSvc.relatedQuery}`,
 			{
 				ID: AppCrypto.rsaEncrypt(userID),
-				OTP: AppCrypto.rsaEncrypt(otpCode),
-				Info: AppCrypto.rsaEncrypt(providerInfo)
+				Info: AppCrypto.rsaEncrypt(otpProvider),
+				OTP: AppCrypto.rsaEncrypt(otpCode)
 			},
 			async data => {
 				console.log(this.getLogMessage("Log in with OTP successful"));
@@ -137,7 +137,7 @@ export class AuthenticationService extends BaseService {
 		await super.deleteAsync(
 			"users/session",
 			async data => {
-				AppEvents.broadcast("Session", { Type: "LogOut", Info: data });
+				AppEvents.broadcast("Session", { Type: "LogOut" });
 				await this.configSvc.updateSessionAsync(data, async () => {
 					await this.configSvc.registerSessionAsync(() => {
 						this.configSvc.patchSession(() => {
@@ -182,7 +182,7 @@ export class AuthenticationService extends BaseService {
 	}
 
 	private async updateSessionAsync(data: any, onNext: (data?: any) => void) {
-		AppEvents.broadcast("Session", { Type: "LogIn", Info: data });
+		AppEvents.broadcast("Session", { Type: "LogIn" });
 		await this.configSvc.updateSessionAsync(data, () => {
 			AppRTU.start(() => {
 				this.configSvc.patchSession(() => {

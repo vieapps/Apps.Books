@@ -3,7 +3,7 @@
 		{{ resources.header }}
 	</ion-list-header>
 	<ion-item-sliding *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
-		<ion-item (click)="open(bookmark)">
+		<ion-item (click)="openAsync(bookmark)">
 			<div>
 				<h2>
 					{{ getTitle(bookmark) }}
@@ -19,7 +19,7 @@
 			</div>
 		</ion-item>
 		<ion-item-options>
-			<ion-item-option color="primary" (click)="open(bookmark)">
+			<ion-item-option color="primary" (click)="openAsync(bookmark)">
 				<ion-icon name="book"></ion-icon>
 				{{ resources.buttons.read }}
 			</ion-item-option>
@@ -35,7 +35,7 @@
 				<label>
 					{{ resources.footer }} {{ profile.LastSync | date: 'h:mm a @ d/M/y' }}
 				</label>
-				<ion-button fill="clear" slot="end" (click)="send()">
+				<ion-button fill="clear" slot="end" (click)="sendAsync()">
 					<ion-icon name="cloud-upload" slot="icon-only"></ion-icon>
 				</ion-button>
 			</span>

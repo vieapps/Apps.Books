@@ -22,11 +22,10 @@ export class LogInPage implements OnInit, OnDestroy {
 
 	title = "Login";
 	mode = "";
-	rxSubscription: Subscription;
 	login = {
 		form: new FormGroup({}),
-		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		config: undefined as Array<any>,
 		button: {
 			label: "Login",
 			icon: undefined as string,
@@ -37,20 +36,21 @@ export class LogInPage implements OnInit, OnDestroy {
 	otp = {
 		providers: new Array<{ Info: string, Label: string, Time: Date, Type: string }>(),
 		form: new FormGroup({}),
-		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		config: undefined as Array<any>,
 		value: undefined as any,
 		button: {
 			label: "Verify",
 			icon: undefined as string,
 			color: "primary",
 			fill: "solid"
-		}
+		},
+		rxsub: undefined as Subscription
 	};
 	reset = {
 		form: new FormGroup({}),
-		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		config: undefined as Array<any>,
 		button: {
 			label: "Forgot password",
 			icon: "key",
@@ -64,8 +64,8 @@ export class LogInPage implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy() {
-		if (this.rxSubscription !== undefined) {
-			this.rxSubscription.unsubscribe();
+		if (this.otp.rxsub !== undefined) {
+			this.otp.rxsub.unsubscribe();
 		}
 	}
 
@@ -99,8 +99,8 @@ export class LogInPage implements OnInit, OnDestroy {
 		];
 		this.login.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.login");
 		this.reset.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.forgot");
+		this.mode = "login";
 		this.title = await this.configSvc.getResourceAsync("users.login.login.title");
-		this.mode = "log-in";
 		this.setTitle();
 	}
 
@@ -116,12 +116,12 @@ export class LogInPage implements OnInit, OnDestroy {
 			this.login.form.value.Password,
 			async data => await Promise.all([
 				TrackingUtility.trackAsync(this.title, "/users/login"),
-				this.appFormsSvc.hideLoadingAsync(() => {
+				this.appFormsSvc.hideLoadingAsync(async () => {
 					if (data.Require2FA) {
-						this.openLoginOTPAsync(data);
+						await this.openLoginOTPAsync(data);
 					}
 					else {
-						this.close();
+						await this.closeAsync();
 					}
 				})
 			]),
@@ -168,15 +168,15 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		this.rxSubscription = this.otp.form.valueChanges.subscribe(async value => {
+		this.otp.rxsub = this.otp.form.valueChanges.subscribe(async value => {
 			const provider = this.otp.providers.find(p => p.Info === value.Provider) || this.otp.providers[0];
 			this.otp.controls.find(c => c.Name === "OTP").Options.Description = "SMS" === provider.Type
 				? await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.sms")
 				: await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.app", { label: provider.Label });
 		});
 		this.otp.button.label = await this.configSvc.getResourceAsync("users.login.otp.button");
-		this.title = await this.configSvc.getResourceAsync("users.login.otp.title");
 		this.mode = "otp";
+		this.title = await this.configSvc.getResourceAsync("users.login.otp.title");
 		this.setTitle();
 	}
 
@@ -188,11 +188,11 @@ export class LogInPage implements OnInit, OnDestroy {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.authSvc.logInOTPAsync(
 				this.otp.form.value.ID,
-				this.otp.form.value.OTP,
 				this.otp.form.value.Provider,
+				this.otp.form.value.OTP,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "/users/otp"),
-					this.appFormsSvc.hideLoadingAsync(() => this.close())
+					this.appFormsSvc.hideLoadingAsync(async () => await this.closeAsync())
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
 					const control = this.otp.controls.find(c => c.Name === "OTP");
@@ -234,35 +234,35 @@ export class LogInPage implements OnInit, OnDestroy {
 			color: "primary",
 			fill: "solid"
 		};
-		this.title = await this.configSvc.getResourceAsync("users.login.reset.title");
 		this.mode = "reset";
+		this.title = await this.configSvc.getResourceAsync("users.login.reset.title");
 		this.setTitle();
 	}
 
 	async resetPasswordAsync() {
 		if (this.reset.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.reset.form);
-			return;
 		}
-
-		await this.appFormsSvc.showLoadingAsync(this.title);
-		await this.authSvc.resetPasswordAsync(
-			this.reset.form.value.Email,
-			this.reset.form.value.Captcha,
-			async () => await Promise.all([
-				TrackingUtility.trackAsync(this.title, "/users/reset"),
-				this.appFormsSvc.showAlertAsync(
-					await this.configSvc.getResourceAsync("users.login.reset.title"),
-					undefined,
-					await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.form.value.Email }),
-					() => this.close()
-				)
-			]),
-			async error => await Promise.all([
-				this.refreshCaptchaAsync(),
-				this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => c.Name === "Captcha").focus())
-			])
-		);
+		else {
+			await this.appFormsSvc.showLoadingAsync(this.title);
+			await this.authSvc.resetPasswordAsync(
+				this.reset.form.value.Email,
+				this.reset.form.value.Captcha,
+				async () => await Promise.all([
+					TrackingUtility.trackAsync(this.title, "/users/reset"),
+					this.appFormsSvc.showAlertAsync(
+						await this.configSvc.getResourceAsync("users.login.reset.title"),
+						undefined,
+						await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.form.value.Email }),
+						async () => await this.closeAsync()
+					)
+				]),
+				async error => await Promise.all([
+					this.refreshCaptchaAsync(),
+					this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => c.Name === "Captcha").focus())
+				])
+			);
+		}
 	}
 
 	async refreshCaptchaAsync(control?: AppFormsControl) {
@@ -276,16 +276,16 @@ export class LogInPage implements OnInit, OnDestroy {
 		});
 	}
 
-	onRefreshCaptcha($event) {
-		this.refreshCaptchaAsync($event as AppFormsControl);
+	onRefreshCaptcha($event: AppFormsControl) {
+		this.refreshCaptchaAsync($event);
 	}
 
-	close() {
+	async closeAsync() {
 		if (this.configSvc.previousUrl.startsWith("/users")) {
-			this.configSvc.navigateHome();
+			await this.configSvc.navigateHomeAsync();
 		}
 		else {
-			this.configSvc.navigateBack();
+			await this.configSvc.navigateBackAsync();
 		}
 	}
 

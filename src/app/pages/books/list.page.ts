@@ -227,7 +227,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	async searchAsync(onCompleted?: () => void) {
+	async searchAsync(onNext?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		await this.booksSvc.searchAsync(
 			this.request,
@@ -235,13 +235,13 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				this.pageNumber++;
 				this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
 				this.pagination.PageNumber = this.pageNumber;
-				this.prepareResults(onCompleted, data !== undefined ? data.Objects : undefined);
+				this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
 				await TrackingUtility.trackAsync(this.title, this.uri);
 			}
 		);
 	}
 
-	prepareResults(onCompleted?: () => void, results?: Array<any>) {
+	prepareResults(onNext?: () => void, results?: Array<any>) {
 		if (this.searching) {
 			(results || []).forEach(o => {
 				const book = Book.instances.getValue(o.ID);
@@ -299,14 +299,14 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 
 		// callback
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
 	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", () => this.configSvc.navigateForward("/books/search")),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", () => this.configSvc.navigateForwardAsync("/books/search")),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.filter"), "funnel", () => this.showFilter()),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.sort"), "list-box", async () => await this.showSortsAsync())
 		];
@@ -385,14 +385,14 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		);
 	}
 
-	cancel() {
+	async cancelAsync() {
 		if (this.filtering) {
 			this.filtering = false;
 			this.filterBy.Query = undefined;
 			this.prepareResults(() => this.scrollCtrl.disabled = false);
 		}
 		else {
-			this.configSvc.navigateBack();
+			await this.configSvc.navigateBackAsync();
 		}
 	}
 

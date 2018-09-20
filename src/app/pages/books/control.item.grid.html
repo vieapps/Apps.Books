@@ -1,4 +1,4 @@
-<div [style.background-image]="'url(' + book.Cover + ')'" (click)="open()">
+<div [style.background-image]="'url(' + book.Cover + ')'" (click)="openAsync()">
 	<section>
 		<span [hidden]="hideAuthor">
 			{{ book.Author }}

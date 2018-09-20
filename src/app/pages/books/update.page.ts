@@ -68,7 +68,7 @@ export class UpdateBookPage implements OnInit {
 		this.book = Book.instances.getValue(this.configSvc.requestParams["ID"]);
 		if (this.book === undefined) {
 			await this.appFormsSvc.showToastAsync("Hmmmmmm....");
-			this.configSvc.navigateBack();
+			this.configSvc.navigateBackAsync();
 		}
 		else {
 			const config = await this.configSvc.getDefinitionAsync(this.booksSvc.serviceName.toLowerCase(), "book", "form-controls") as Array<any>;
@@ -156,7 +156,7 @@ export class UpdateBookPage implements OnInit {
 							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/request-update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sent"))
 						]);
-						this.configSvc.navigateBack();
+						await this.configSvc.navigateBackAsync();
 					},
 					async error => this.appFormsSvc.showErrorAsync(error)
 				);
@@ -169,14 +169,14 @@ export class UpdateBookPage implements OnInit {
 							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.success"))
 						]);
-						this.configSvc.navigateBack();
+						await this.configSvc.navigateBackAsync();
 					},
 					async error => this.appFormsSvc.showErrorAsync(error)
 				);
 			}
 		}
 		else {
-			await this.appFormsSvc.hideLoadingAsync(() => this.configSvc.navigateBack());
+			await this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
 		}
 	}
 
@@ -200,7 +200,7 @@ export class UpdateBookPage implements OnInit {
 			undefined,
 			undefined,
 			await this.configSvc.getResourceAsync("books.update.messages.confirm"),
-			() => this.configSvc.navigateBack(),
+			() => this.configSvc.navigateBackAsync(),
 			await this.configSvc.getResourceAsync("common.buttons.ok"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);

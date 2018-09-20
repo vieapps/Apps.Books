@@ -1,7 +1,7 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-button (click)="configSvc.navigateBack()">
+			<ion-button (click)="configSvc.navigateBackAsync()">
 				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
@@ -202,9 +202,9 @@
 			<ion-label position="stacked">
 				{{ resources.link }}:
 			</ion-label>
-			<ion-input #link [value]="uri" readonly="true"></ion-input>
+			<ion-input #link [value]="uri" readonly></ion-input>
 			<ion-button slot="end" fill="clear" (click)="copyLinkAsync()">
-				<ion-icon name="copy" slot="icon-only"></ion-icon>
+				<ion-icon name="copy" color="medium" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-item>
 	</div>

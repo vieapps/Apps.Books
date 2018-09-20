@@ -66,11 +66,11 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit, Afte
 	}
 
 	onSubmit() {
-		this.submitEvent.next(this.form.value);
+		this.submitEvent.emit(this.form.value);
 	}
 
 	trackControl(index: number, control: AppFormsControl) {
-		return control.Name;
+		return `${control.Name}@${index}`;
 	}
 
 }

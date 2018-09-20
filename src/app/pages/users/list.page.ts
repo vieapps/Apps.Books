@@ -53,7 +53,7 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 	ngOnInit() {
 		if (!this.authSvc.isServiceAdministrator()) {
 			this.appFormsSvc.showToastAsync("Hmmm...");
-			this.configSvc.navigateHome();
+			this.configSvc.navigateHomeAsync();
 		}
 		else {
 			this.initializeAsync();
@@ -97,7 +97,7 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 	}
 
 	openSearch() {
-		this.configSvc.navigateForward("/users/search");
+		this.configSvc.navigateForwardAsync("/users/search");
 	}
 
 	track(index: number, profile: UserProfile) {
@@ -153,7 +153,7 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 		}
 	}
 
-	async searchAsync(onCompleted?: () => void) {
+	async searchAsync(onNext?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		await this.usersSvc.searchAsync(
 			this.request,
@@ -161,13 +161,13 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 				this.pageNumber++;
 				this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.usersSvc.serviceName);
 				this.pagination.PageNumber = this.pageNumber;
-				this.prepareResults(onCompleted, data !== undefined ? data.Objects : undefined);
+				this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
 				await TrackingUtility.trackAsync(this.title, this.configSvc.currentUrl);
 			}
 		);
 	}
 
-	prepareResults(onCompleted?: () => void, results?: Array<any>) {
+	prepareResults(onNext?: () => void, results?: Array<any>) {
 		if (this.searching) {
 			(results || []).forEach(o => {
 				const profile = UserProfile.get(o.ID);
@@ -207,17 +207,17 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 
 		// done
 		this.changeDetector.detectChanges();
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	close() {
+	async closeAsync() {
 		if (this.searching) {
-			this.configSvc.navigateBack();
+			await this.configSvc.navigateBackAsync();
 		}
 		else {
-			this.configSvc.navigateHome();
+			await this.configSvc.navigateHomeAsync();
 		}
 	}
 

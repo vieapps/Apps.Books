@@ -33,7 +33,7 @@ export class HomePage implements OnInit, OnDestroy {
 			}, "AppReadyEventHandlerOfHomePage");
 		}
 
-		AppEvents.on("App", async info => {
+		AppEvents.on("App", info => {
 			if ("LanguageChanged" === info.args.Type) {
 				this.initializeAsync();
 			}

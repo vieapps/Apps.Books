@@ -1,0 +1,5 @@
+<app-form *ngIf="config"
+	[form]="form"
+	[config]="config"
+	[controls]="controls"
+	(initEvent)="onFormInitialized($event)"></app-form>

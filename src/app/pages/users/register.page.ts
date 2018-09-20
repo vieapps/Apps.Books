@@ -25,8 +25,8 @@ export class RegisterAccountPage implements OnInit {
 	title = "Register new account";
 	register = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Email", "ConfirmEmail"), this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
-		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
+		config: undefined as Array<any>,
 		button: {
 			label: "Register",
 			icon: undefined as string,
@@ -202,12 +202,12 @@ export class RegisterAccountPage implements OnInit {
 					await this.configSvc.getResourceAsync("users.register.alert.header"),
 					undefined,
 					await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.form.value.Email }),
-					() => {
+					async () => {
 						if (this.configSvc.previousUrl.startsWith("/users")) {
-							this.configSvc.navigateHome();
+							await this.configSvc.navigateHomeAsync();
 						}
 						else {
-							this.configSvc.navigateBack();
+							await this.configSvc.navigateBackAsync();
 						}
 					}
 				)
@@ -224,8 +224,8 @@ export class RegisterAccountPage implements OnInit {
 		this.register.form.patchValue({ Gender: "NotProvided" });
 	}
 
-	onRefreshCaptcha($event) {
-		this.refreshCaptchaAsync($event as AppFormsControl);
+	onRefreshCaptcha($event: AppFormsControl) {
+		this.refreshCaptchaAsync($event);
 	}
 
 	async refreshCaptchaAsync(control?: AppFormsControl) {

@@ -105,10 +105,10 @@ export class BookmarksControl implements OnInit, OnDestroy {
 			: `${bookmark.Chapter}#${bookmark.Position}`;
 	}
 
-	open(bookmark: Bookmark) {
+	async openAsync(bookmark: Bookmark) {
 		const book = Book.instances.getValue(bookmark.ID);
 		if (book !== undefined) {
-			this.configSvc.navigateForward(book.routerURI);
+			await this.configSvc.navigateForwardAsync(book.routerURI);
 		}
 	}
 
@@ -117,8 +117,9 @@ export class BookmarksControl implements OnInit, OnDestroy {
 		this.booksSvc.deleteBookmark(bookmark.ID, () => this.prepareBookmarks());
 	}
 
-	send() {
-		this.booksSvc.sendBookmarks(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sync")));
+	async sendAsync() {
+		this.booksSvc.sendBookmarks();
+		await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sync"));
 	}
 
 }

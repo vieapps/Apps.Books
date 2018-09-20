@@ -194,7 +194,8 @@
 				"message": "An invitation has been sent..."
 			},
 			"privileges": {
-				"title": "Set privileges"
+				"title": "Set privileges",
+				"message": "Privileges of {{name}} account had been updated..."
 			},
 			"logout": {
 				"confirm": "Are you sure you want to logout?",

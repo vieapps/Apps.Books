@@ -169,8 +169,13 @@
 				"confirm": "Are you sure you want to discard changes?",
 				"success": "The book has been updated...",
 				"sent": "Update request has been sent...",
-				"sync": "Reading sync successful..."
+				"sync": "Readings sync successful..."
 			}
+		},
+		"privileges": {
+			"role": "Acting role in the app",
+			"other": "Other roles",
+			"object": "Acting role of {{object}}"
 		}
 	}
 }

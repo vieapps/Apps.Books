@@ -83,7 +83,7 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public async sendInvitationAsync(name: string, email: string, privileges?: Array<Privilege>, relatedInfo?: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async sendInvitationAsync(name: string, email: string, privileges?: Array<Privilege>, relatedInfo?: { [key: string]: any }, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		const body = {
 			Name: name,
 			Email: AppCrypto.rsaEncrypt(email),

@@ -361,11 +361,16 @@ export class AppFormsService {
 	}
 
 	private prepareControls(controls: Array<AppFormsControl>, modifyDatePickers?: boolean) {
-		controls.forEach(async (control, index) => {
-			if (!control.Hidden) {
-				control.Options.Label = await this.normalizeResourceAsync(control.Options.Label);
-				control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
-				control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
+		controls.forEach((control, index) => {
+			if (index < controls.length - 1) {
+				control.next = controls[index + 1];
+			}
+		});
+		controls.filter(control => !control.Hidden).forEach(async control => {
+			control.Options.Label = await this.normalizeResourceAsync(control.Options.Label);
+			control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
+			control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
+			if (control.Type === "Select") {
 				if (AppUtility.isArray(control.Options.SelectOptions.Values, true)) {
 					control.Options.SelectOptions.Values.forEach(async selectValue => {
 						selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
@@ -404,25 +409,28 @@ export class AppFormsService {
 				}
 				control.Options.SelectOptions.OkText = await this.normalizeResourceAsync(control.Options.SelectOptions.OkText);
 				control.Options.SelectOptions.CancelText = await this.normalizeResourceAsync(control.Options.SelectOptions.CancelText);
-				control.Options.DatePickerOptions.DayNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DayNames);
-				control.Options.DatePickerOptions.DayShortNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DayShortNames);
-				control.Options.DatePickerOptions.MonthNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.MonthNames);
-				control.Options.DatePickerOptions.MonthShortNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.MonthShortNames);
-				control.Options.DatePickerOptions.DoneText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DoneText);
-				control.Options.DatePickerOptions.CancelText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.CancelText);
+			}
+			else if (control.Type === "DatePicker") {
+				if (AppUtility.isTrue(modifyDatePickers)) {
+					control.Type = "TextBox";
+					control.Options.Type = control.Options.DatePickerOptions.AllowTimes ? "datetime-local" : "date";
+				}
+				else  {
+					control.Options.DatePickerOptions.DayNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DayNames);
+					control.Options.DatePickerOptions.DayShortNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DayShortNames);
+					control.Options.DatePickerOptions.MonthNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.MonthNames);
+					control.Options.DatePickerOptions.MonthShortNames = await this.normalizeResourceAsync(control.Options.DatePickerOptions.MonthShortNames);
+					control.Options.DatePickerOptions.DoneText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DoneText);
+					control.Options.DatePickerOptions.CancelText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.CancelText);
+				}
+			}
+			else if (control.Type === "Lookup") {
 				control.Options.LookupOptions.SearchingText = await this.normalizeResourceAsync(control.Options.LookupOptions.SearchingText);
 				control.Options.LookupOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.LookupOptions.NoResultsText);
 			}
-			if (control.Type === "DatePicker" && AppUtility.isTrue(modifyDatePickers)) {
-				control.Type = "TextBox";
-				control.Options.Type = control.Options.DatePickerOptions.AllowTimes ? "datetime-local" : "date";
-			}
-			if (index < controls.length - 1) {
-				control.next = controls[index + 1];
-			}
 			if (control.SubControls !== undefined) {
-				control.SubControls.Controls.forEach(subcontrol => subcontrol.parent = control);
 				this.prepareControls(control.SubControls.Controls, modifyDatePickers);
+				control.SubControls.Controls.forEach(subcontrol => subcontrol.parent = control);
 			}
 		});
 	}
@@ -460,18 +468,18 @@ export class AppFormsService {
 				this.updateControls(control.SubControls.Controls, value[control.Name]);
 			}
 		});
-		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop") && !PlatformUtility.isSafari());
 	}
 
 	/** Builds the form */
 	public buildForm(form: FormGroup, controls: Array<AppFormsControl> = [], value?: any, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
+		this.getFormGroup(controls, form, validators, asyncValidators);
 		if (value !== undefined) {
 			this.updateControls(controls, value);
-			this.getFormGroup(controls, form, validators, asyncValidators);
+			this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop") && !PlatformUtility.isSafari());
 			form.patchValue(value);
 		}
 		else {
-			this.getFormGroup(controls, form, validators, asyncValidators);
+			this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop") && !PlatformUtility.isSafari());
 		}
 	}
 
@@ -516,7 +524,7 @@ export class AppFormsService {
 	}
 
 	private getFormControl(control: AppFormsControl) {
-		return new FormControl({ value: "", disabled: control.Options.Disabled }, this.getValidators(control), this.getAsyncValidators(control));
+		return new FormControl("", this.getValidators(control), this.getAsyncValidators(control));
 	}
 
 	private getValidators(control: AppFormsControl) {
@@ -577,7 +585,6 @@ export class AppFormsService {
 
 	/** Sets value of the form (also modify the FormArray controls if the length is not matched) */
 	public setValue(form: FormGroup, controls: Array<AppFormsControl>, value: any = {}) {
-		this.updateControls(controls, value);
 		Object.keys(form.controls).forEach(key => delete form.controls[key]);
 		this.buildForm(form, controls, value);
 	}

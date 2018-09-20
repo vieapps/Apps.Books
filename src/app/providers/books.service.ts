@@ -273,7 +273,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public async fetchChapterAsync(id: string, chapter: number, onCompleted?: () => void) {
+	public async fetchChapterAsync(id: string, chapter: number, onNext?: () => void) {
 		const book = Book.instances.getValue(id);
 		while (chapter < book.TotalChapters && book.Chapters[chapter - 1] !== "") {
 			chapter++;
@@ -293,7 +293,7 @@ export class BooksService extends BaseService {
 				Extra: undefined
 			}, data => this.updateChapter(data));
 		}
-		this.increaseCounters(id, "view", onCompleted);
+		this.increaseCounters(id, "view", onNext);
 	}
 
 	private updateChapter(data: any) {
@@ -303,7 +303,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public increaseCounters(id: string, action?: string, onCompleted?: () => void) {
+	public increaseCounters(id: string, action?: string, onNext?: () => void) {
 		if (Book.instances.containsKey(id)) {
 			super.send({
 				ServiceName: this.Name,
@@ -319,12 +319,12 @@ export class BooksService extends BaseService {
 				Extra: undefined
 			}, data => this.updateCounters(data));
 		}
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	private updateCounters(data: any, onCompleted?: () => void) {
+	private updateCounters(data: any, onNext?: () => void) {
 		const book = AppUtility.isObject(data, true)
 			? Book.instances.getValue(data.ID)
 			: undefined;
@@ -332,8 +332,8 @@ export class BooksService extends BaseService {
 			(data.Counters as Array<any>).forEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
 			AppEvents.broadcast("Books", { Type: "StatisticsUpdated", ID: book.ID });
 		}
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
@@ -442,35 +442,35 @@ export class BooksService extends BaseService {
 		return this.configSvc.appConfig.extras["Books-Introductions"] as { [key: string]: { [key: string]: string } };
 	}
 
-	private async loadIntroductionsAsync(onCompleted?: () => void) {
+	private async loadIntroductionsAsync(onNext?: () => void) {
 		this.configSvc.appConfig.extras["Books-Introductions"] = await this.storage.get("VIEApps-Books-Introductions") || this.introductions;
 		if (this.introductions !== undefined) {
 			AppEvents.broadcast("Books", { Type: "InstroductionsUpdated", Data: this.introductions });
 		}
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	private async storeIntroductionsAsync(onCompleted?: () => void) {
+	private async storeIntroductionsAsync(onNext?: () => void) {
 		await this.storage.set("VIEApps-Books-Introductions", this.introductions);
 		AppEvents.broadcast("Books", { Type: "InstroductionsUpdated", Data: this.introductions });
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	public async fetchIntroductionsAsync(onCompleted?: () => void) {
+	public async fetchIntroductionsAsync(onNext?: () => void) {
 		await super.readAsync(
 			`statics/services/${this.Name.toLowerCase()}/${this.configSvc.appConfig.language}.json`,
 			async data => {
 				this.configSvc.appConfig.extras["Books-Introductions"][this.configSvc.appConfig.language] = data;
-				await this.storeIntroductionsAsync(onCompleted);
+				await this.storeIntroductionsAsync(onNext);
 			},
 			error => {
 				this.showError("Error occurred while reading introductions", error);
-				if (onCompleted !== undefined) {
-					onCompleted();
+				if (onNext !== undefined) {
+					onNext();
 				}
 			}
 		);
@@ -482,22 +482,22 @@ export class BooksService extends BaseService {
 			: new Array<StatisticInfo>();
 	}
 
-	private async loadCategoriesAsync(onCompleted?: (categories?: Array<StatisticInfo>) => void) {
+	private async loadCategoriesAsync(onNext?: (categories?: Array<StatisticInfo>) => void) {
 		const categories = (await this.storage.get("VIEApps-Books-Categories") as Array<any> || []).map(s => StatisticInfo.deserialize(s));
 		this.configSvc.appConfig.extras["Books-Categories"] = categories;
 		if (categories.length > 0) {
 			AppEvents.broadcast("Books", { Type: "CategoriesUpdated", Data: categories });
 		}
-		if (onCompleted !== undefined) {
-			onCompleted(categories);
+		if (onNext !== undefined) {
+			onNext(categories);
 		}
 	}
 
-	private async storeCategoriesAsync(onCompleted?: (categories?: Array<StatisticInfo>) => void) {
+	private async storeCategoriesAsync(onNext?: (categories?: Array<StatisticInfo>) => void) {
 		await this.storage.set("VIEApps-Books-Categories", this.categories);
 		AppEvents.broadcast("Books", { Type: "CategoriesUpdated", Data: this.categories });
-		if (onCompleted !== undefined) {
-			onCompleted(this.categories);
+		if (onNext !== undefined) {
+			onNext(this.categories);
 		}
 	}
 
@@ -507,7 +507,7 @@ export class BooksService extends BaseService {
 			: new Dictionary<string, Array<StatisticBase>>();
 	}
 
-	private async loadAuthorsAsync(onCompleted?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
+	private async loadAuthorsAsync(onNext?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
 		const authors = new Dictionary<string, Array<StatisticBase>>();
 		AppUtility.getChars().forEach(async char => {
 			const authours = (await this.storage.get(`VIEApps-Books-Authors-${char}`) as Array<any> || []).map(s => StatisticBase.deserialize(s));
@@ -517,17 +517,17 @@ export class BooksService extends BaseService {
 		if (this.authors.size() > 0) {
 			AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: authors });
 		}
-		if (onCompleted !== undefined) {
-			onCompleted(this.authors);
+		if (onNext !== undefined) {
+			onNext(this.authors);
 		}
 	}
 
-	private async storeAuthorsAsync(onCompleted?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
+	private async storeAuthorsAsync(onNext?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
 		const authors = this.authors;
 		await Promise.all(AppUtility.getChars().map(char => this.storage.set(`VIEApps-Books-Authors-${char}`, authors.getValue(char) || [])));
 		AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: authors });
-		if (onCompleted !== undefined) {
-			onCompleted(this.authors);
+		if (onNext !== undefined) {
+			onNext(this.authors);
 		}
 	}
 
@@ -603,27 +603,27 @@ export class BooksService extends BaseService {
 		return this.configSvc.appConfig.extras["Books-Bookmarks"] as Dictionary<string, Bookmark>;
 	}
 
-	private async loadBookmarksAsync(onCompleted?: () => void) {
+	private async loadBookmarksAsync(onNext?: () => void) {
 		const bookmarks = new Dictionary<string, Bookmark>();
 		(await this.storage.get("VIEApps-Books-Bookmarks") as Array<any> || []).forEach(data => {
 			const bookmark = Bookmark.deserialize(data);
 			bookmarks.setValue(bookmark.ID, bookmark);
 		});
 		this.configSvc.appConfig.extras["Books-Bookmarks"] = bookmarks;
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	private async storeBookmarksAsync(onCompleted?: () => void) {
+	private async storeBookmarksAsync(onNext?: () => void) {
 		await this.storage.set("VIEApps-Books-Bookmarks", this.bookmarks.values());
 		AppEvents.broadcast("Books", { Type: "BookmarksUpdated" });
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	private getBookmarks(onCompleted?: () => void) {
+	private getBookmarks(onNext?: () => void) {
 		super.send({
 			ServiceName: this.Name,
 			ObjectName: "bookmarks",
@@ -633,12 +633,12 @@ export class BooksService extends BaseService {
 			Body: undefined,
 			Extra: undefined
 		});
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	public sendBookmarks(onCompleted?: () => void) {
+	public sendBookmarks(onNext?: () => void) {
 		super.send({
 			ServiceName: this.Name,
 			ObjectName: "bookmarks",
@@ -648,12 +648,12 @@ export class BooksService extends BaseService {
 			Body: new List(this.bookmarks.values()).OrderByDescending(b => b.Time).Take(30).ToArray(),
 			Extra: undefined
 		});
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	private async updateBookmarksAsync(data: any, onCompleted?: () => void) {
+	private async updateBookmarksAsync(data: any, onNext?: () => void) {
 		if (AppUtility.isTrue(data.Sync)) {
 			this.bookmarks.clear();
 		}
@@ -666,7 +666,7 @@ export class BooksService extends BaseService {
 				this.bookmarks.setValue(bookmark.ID, bookmark);
 			}
 		});
-		await this.storeBookmarksAsync(onCompleted);
+		await this.storeBookmarksAsync(onNext);
 
 		this.bookmarks.values().forEach((bookmark, index)  => {
 			PlatformUtility.setTimeout(() => {
@@ -687,17 +687,17 @@ export class BooksService extends BaseService {
 		});
 	}
 
-	public async updateBookmarkAsync(id: string, chapter: number, position: number, onCompleted?: () => void) {
+	public async updateBookmarkAsync(id: string, chapter: number, position: number, onNext?: () => void) {
 		const bookmark = this.bookmarks.getValue(id) || new Bookmark();
 		bookmark.ID = id;
 		bookmark.Chapter = chapter;
 		bookmark.Position = position;
 		bookmark.Time = new Date();
 		this.bookmarks.setValue(bookmark.ID, bookmark);
-		await this.storeBookmarksAsync(onCompleted);
+		await this.storeBookmarksAsync(onNext);
 	}
 
-	public deleteBookmark(id: string, onCompleted?: () => void) {
+	public deleteBookmark(id: string, onNext?: () => void) {
 		super.send({
 			ServiceName: this.Name,
 			ObjectName: "bookmarks",
@@ -710,8 +710,8 @@ export class BooksService extends BaseService {
 			Extra: undefined
 		});
 		this.bookmarks.remove(id);
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 

@@ -1,7 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 
-import { Platform, NavController } from "@ionic/angular";
+import { Platform } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
 
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
@@ -32,7 +32,6 @@ export class AppComponent implements OnInit {
 		public splashScreen: SplashScreen,
 		public statusBar: StatusBar,
 		public device: Device,
-		public navController: NavController,
 		public translateSvc: TranslateService,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
@@ -271,20 +270,6 @@ export class AppComponent implements OnInit {
 	}
 
 	private setupEventHandlers() {
-		AppEvents.on("Navigate", async info => {
-			switch ((info.args.direction || "forward").toLowerCase()) {
-				case "back":
-					await this.navController.navigateBack(info.args.url || this.configSvc.previousUrl, true, info.args.extras);
-					break;
-				case "forward":
-					await this.navController.navigateForward(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
-					break;
-				default:
-					await this.navController.navigateRoot(info.args.url || this.configSvc.appConfig.url.home, true, info.args.extras);
-					break;
-				}
-		});
-
 		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
@@ -420,7 +405,7 @@ export class AppComponent implements OnInit {
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
 							console.log(`<AppComponent>: Redirect to the request url\n=>: ${redirect}`);
-							this.configSvc.navigateForward(redirect);
+							this.configSvc.navigateForwardAsync(redirect);
 						}
 						catch (error) {
 							console.error(`<AppComponent>: Redirect url is not well-form\n[${redirect}]`, error);

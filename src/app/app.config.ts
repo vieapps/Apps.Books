@@ -43,16 +43,7 @@ export class AppConfig {
 		}
 	};
 
-	/** User account registrations */
-	public static accountRegistrations = {
-		registrable: true,
-		required: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
-		hidden: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
-		sendInvitationRole: "All",
-		setPrivilegsRole: "ServiceAdministrator"
-	};
-
-	/** Services in the app */
+	/** Available services in the app */
 	public static services = {
 		all: [
 			{
@@ -77,6 +68,21 @@ export class AppConfig {
 			}
 		],
 		main: "books"
+	};
+
+	/** Available organizations in the app */
+	public static organizations = {
+		all: new Array<string>(),
+		current: ""
+	};
+
+	/** User account registrations */
+	public static accountRegistrations = {
+		registrable: true,
+		required: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
+		hidden: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
+		sendInvitationRole: "Authenticated",
+		setPrivilegsRole: "ServiceAdministrator"
 	};
 
 	/** Geographic meta */
@@ -223,11 +229,6 @@ export class AppConfig {
 			default:
 				return en_US;
 		}
-	}
-
-	/** Gets the locale data for working with i18n globalization */
-	public static get localeData() {
-		return this.getLocaleData(this.locale);
 	}
 
 	/** Gets the JSON query with related service, culture language and host */

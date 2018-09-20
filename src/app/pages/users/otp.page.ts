@@ -176,11 +176,11 @@ export class UpdateAccount2FAPage implements OnInit {
 	}
 
 	async doneAsync(onNext?: () => void) {
-		await this.appFormsSvc.hideLoadingAsync(() => {
+		await this.appFormsSvc.hideLoadingAsync(async () => {
 			if (onNext !== undefined) {
 				onNext();
 			}
-			this.configSvc.navigateBack(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined);
+			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined);
 		});
 	}
 

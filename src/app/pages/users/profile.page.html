@@ -1,7 +1,7 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-button *ngIf="mode === 'profile'" (click)="close()">
+			<ion-button *ngIf="mode === 'profile'" (click)="closeAsync()">
 				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
 			</ion-button>
 			<ion-button *ngIf="buttons.cancel" color="secondary" (click)="buttons.cancel.handler()">
@@ -71,16 +71,14 @@
 		<control-book-bookmarks *ngIf="!id"></control-book-bookmarks>
 	</div>
 
-	<app-form *ngIf="invitation.config && (mode === 'invitation' || mode === 'invitationWithPrivileges')"
-		[form]="invitation.form"
-		[config]="invitation.config"
-		[controls]="invitation.controls"
-		(initEvent)="onFormInitialized($event)"></app-form>	
-
-	<app-form *ngIf="privileges.config && (mode === 'privileges' || mode === 'invitationWithPrivileges')"
-		[form]="privileges.form"
-		[config]="privileges.config"
-		[controls]="privileges.controls"
-		(initEvent)="onFormInitialized($event)"></app-form>
+	<div *ngIf="mode === 'invitation'">
+		<app-form *ngIf="invitation.config"
+			[form]="invitation.form"
+			[config]="invitation.config"
+			[controls]="invitation.controls"
+			(initEvent)="onFormInitialized($event)"></app-form>
+		<control-book-privileges *ngIf="configSvc.appConfig.services.main === 'books'"
+			(changesEvent)="onPrivilegesChanged($event)"></control-book-privileges>
+	</div>
 
 </ion-content>

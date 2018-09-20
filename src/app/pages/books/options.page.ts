@@ -23,8 +23,8 @@ export class BookReadingOptionsPage implements OnInit, OnDestroy {
 	title = "";
 	options: any = {};
 	form = new FormGroup({});
-	config: Array<any>;
 	controls = new Array<AppFormsControl>();
+	config: Array<any>;
 	sample = "";
 	hash = "";
 	rxSubscription: Subscription;
@@ -74,7 +74,7 @@ export class BookReadingOptionsPage implements OnInit, OnDestroy {
 			Object.keys(this.options).forEach(key => this.booksSvc.readingOptions[key] = this.options[key]);
 			await this.configSvc.storeOptionsAsync();
 		}
-		this.configSvc.navigateBack();
+		await this.configSvc.navigateBackAsync();
 	}
 
 }

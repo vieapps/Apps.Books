@@ -113,7 +113,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 				await TrackingUtility.trackAsync(this.title, this.book.routerLink);
 			}
 			else {
-				this.configSvc.navigateBack();
+				await this.configSvc.navigateBackAsync();
 			}
 		});
 	}

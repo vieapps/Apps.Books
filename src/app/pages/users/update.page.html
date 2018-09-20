@@ -38,4 +38,8 @@
 		[controls]="email.controls"
 		(initEvent)="onFormInitialized($event)"></app-form>	
 
+	<control-book-privileges *ngIf="mode === 'privileges' && configSvc.appConfig.services.main === 'books'"
+		[privileges]="privileges"
+		(changesEvent)="onPrivilegesChanged($event)"></control-book-privileges>
+
 </ion-content>

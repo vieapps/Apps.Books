@@ -6,7 +6,6 @@ import { AppFormsControl, AppFormsService } from "../../components/forms.service
 import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 import { UsersService } from "../../providers/users.service";
-import { Account } from "../../models/account";
 import { UserProfile } from "../../models/user";
 import { Privilege } from "./../../models/privileges";
 import { AccountAvatarPage } from "./avatar.page";
@@ -60,17 +59,10 @@ export class ViewAccountProfilePage implements OnInit {
 	};
 	invitation = {
 		form: new FormGroup({}),
-		config: undefined as Array<any>,
-		controls: new Array<AppFormsControl>()
-	};
-	privileges = {
-		form: new FormGroup({}),
-		config: undefined as Array<any>,
 		controls: new Array<AppFormsControl>(),
-		permissions: undefined as {
-
-		},
-		hash: undefined as string
+		config: undefined as Array<any>,
+		privileges: undefined as Array<Privilege>,
+		relatedInfo: undefined as { [key: string]: any }
 	};
 
 	ngOnInit() {
@@ -92,15 +84,9 @@ export class ViewAccountProfilePage implements OnInit {
 	}
 
 	async prepareButtonsAsync() {
-		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), icon: undefined, handler: async () => await this.showProfileAsync() };
-		this.buttons.ok = { text: await this.configSvc.getResourceAsync("common.buttons.update"), icon: undefined, handler: undefined };
-
-		if (this.mode === "privileges") {
-			this.buttons.ok.handler = async () => await this.updatePrivilegesAsync();
-		}
-		else if (this.mode === "invitation") {
-			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.invite");
-			this.buttons.ok.handler = async () => await this.sendInvitationAsync();
+		if (this.mode === "invitation") {
+			this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), icon: undefined, handler: async () => await this.showProfileAsync() };
+			this.buttons.ok = { text: await this.configSvc.getResourceAsync("users.profile.buttons.invite"), icon: undefined, handler: async () => await this.sendInvitationAsync() };
 		}
 		else {
 			this.buttons.cancel = undefined;
@@ -122,20 +108,20 @@ export class ViewAccountProfilePage implements OnInit {
 			if (this.profile.ID === this.configSvc.getAccount().id) {
 				[
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.avatar"), "camera", async () => await this.appFormsSvc.showModalAsync(AccountAvatarPage)),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", () => this.openUpdate("profile")),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", () => this.openUpdate("password")),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "mail", () => this.openUpdate("email")),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "unlock", () => this.configSvc.navigateForward("/users/otp"))
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", async () => await this.openUpdateAsync("profile")),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", async () => await this.openUpdateAsync("password")),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "at", async () => await this.openUpdateAsync("email")),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "unlock", async () => await this.configSvc.navigateForwardAsync("/users/otp"))
 				].forEach(action => this.actions.push(action));
 			}
 
 			else if (this.authSvc.canSetPrivileges) {
-				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", async () => await this.openUpdatePrivilegesAsync()));
+				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", async () => await this.openUpdateAsync("privileges")));
 				this.usersSvc.getPrivilegesAsync(this.profile.ID);
 			}
 
 			if (this.authSvc.isSystemAdministrator && !this.configSvc.previousUrl.startsWith("/users/list") && !this.configSvc.previousUrl.startsWith("/users/search")) {
-				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.list"), "contacts", () => this.configSvc.navigateForward("/users/list")));
+				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.list"), "contacts", async () => await this.configSvc.navigateForwardAsync("/users/list")));
 			}
 
 			if (this.id === undefined || this.id === this.configSvc.getAccount().id) {
@@ -173,8 +159,8 @@ export class ViewAccountProfilePage implements OnInit {
 		);
 	}
 
-	openUpdate(mode?: string) {
-		this.configSvc.navigateForward("/users/update/" + (this.id === undefined ? "my" : this.id) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" }));
+	async openUpdateAsync(mode?: string) {
+		await this.configSvc.navigateForwardAsync("/users/update/" + (this.id === undefined ? "my" : this.id) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" }));
 	}
 
 	async openSendInvitationAsync() {
@@ -203,19 +189,22 @@ export class ViewAccountProfilePage implements OnInit {
 		await this.setModeAsync("invitation", await this.configSvc.getResourceAsync("users.profile.invitation.title"));
 	}
 
+	onPrivilegesChanged($event) {
+		this.invitation.privileges = $event.privileges;
+		this.invitation.relatedInfo = $event.relatedInfo;
+	}
+
 	async sendInvitationAsync() {
 		if (this.invitation.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.invitation.form);
 		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
-			const privileges: Array<Privilege> = undefined;
-			const relatedInfo: any = undefined;
 			await this.usersSvc.sendInvitationAsync(
 				this.invitation.form.value.Name,
 				this.invitation.form.value.Email,
-				privileges,
-				relatedInfo,
+				this.invitation.privileges.length > 0 ? this.invitation.privileges : undefined,
+				this.invitation.relatedInfo,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/invitation"),
 					this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.invitation.message")))
@@ -223,15 +212,6 @@ export class ViewAccountProfilePage implements OnInit {
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
 		}
-	}
-
-	async openUpdatePrivilegesAsync() {
-		await this.setModeAsync("privileges", await this.configSvc.getResourceAsync("users.profile.privileges.title"));
-		console.log("ACCOUNT", Account.instances.getValue(this.profile.ID));
-	}
-
-	async updatePrivilegesAsync() {
-
 	}
 
 	async logoutAsync() {
@@ -246,10 +226,10 @@ export class ViewAccountProfilePage implements OnInit {
 						this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.logout.success"))
 					]);
 					if (this.configSvc.previousUrl.startsWith("/users")) {
-						this.configSvc.navigateHome();
+						await this.configSvc.navigateHomeAsync();
 					}
 					else {
-						this.configSvc.navigateBack();
+						await this.configSvc.navigateBackAsync();
 					}
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error)
@@ -259,12 +239,12 @@ export class ViewAccountProfilePage implements OnInit {
 		);
 	}
 
-	close() {
+	async closeAsync() {
 		if (this.configSvc.previousUrl.startsWith("/users") ? this.authSvc.isServiceAdministrator() : true) {
-			this.configSvc.navigateBack();
+			await this.configSvc.navigateBackAsync();
 		}
 		else {
-			this.configSvc.navigateHome();
+			await this.configSvc.navigateHomeAsync();
 		}
 	}
 

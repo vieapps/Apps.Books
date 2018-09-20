@@ -4,7 +4,7 @@ import { Injectable } from "@angular/core";
 import { PlatformLocation } from "@angular/common";
 import { Http } from "@angular/http";
 import { Title } from "@angular/platform-browser";
-import { Platform } from "@ionic/angular";
+import { Platform, NavController } from "@ionic/angular";
 import { Storage } from "@ionic/storage";
 import { Device } from "@ionic-native/device/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
@@ -29,6 +29,7 @@ export class ConfigurationService extends BaseService {
 	constructor (
 		public http: Http,
 		public platform: Platform,
+		public navController: NavController,
 		public platformLocation: PlatformLocation,
 		public device: Device,
 		public keyboard: Keyboard,
@@ -92,11 +93,6 @@ export class ConfigurationService extends BaseService {
 	/** Gets the available locales for working with the app */
 	public get locales() {
 		return this.appConfig.locales;
-	}
-
-	/** Gets the current locale data for working with i18n globalization */
-	public get localeData() {
-		return this.appConfig.localeData;
 	}
 
 	/** Gets the locale data for working with i18n globalization */
@@ -266,7 +262,7 @@ export class ConfigurationService extends BaseService {
 					if (this.isAuthenticated) {
 						this.appConfig.session.account.id = this.appConfig.session.token.uid;
 					}
-					AppEvents.broadcast("Session", { Type: this.isAuthenticated ? "Registered" : "Initialized", Info: this.appConfig.session });
+					AppEvents.broadcast("Session", { Type: this.isAuthenticated ? "Registered" : "Initialized" });
 					if (onNext !== undefined) {
 						onNext(data);
 					}
@@ -285,7 +281,7 @@ export class ConfigurationService extends BaseService {
 				if (this.isDebug) {
 					console.log(this.getLogMessage("The session is registered by APIs"));
 				}
-				AppEvents.broadcast("Session", { Type: "Registered", Info: this.appConfig.session });
+				AppEvents.broadcast("Session", { Type: "Registered" });
 				await this.storeSessionAsync(onNext);
 			},
 			error => this.showError("Error occurred while registering the session", error, onError)
@@ -293,7 +289,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Updates the session and stores into storage */
-	public async updateSessionAsync(session: any, onCompleted?: (data?: any) => void, dontStore?: boolean) {
+	public async updateSessionAsync(session: any, onNext?: (data?: any) => void, dontStore?: boolean) {
 		if (AppUtility.isNotEmpty(session.ID)) {
 			this.appConfig.session.id = session.ID;
 		}
@@ -327,17 +323,17 @@ export class ConfigurationService extends BaseService {
 		}
 
 		if (AppUtility.isTrue(dontStore)) {
-			if (onCompleted !== undefined) {
-				onCompleted(this.appConfig.session);
+			if (onNext !== undefined) {
+				onNext(this.appConfig.session);
 			}
 		}
 		else {
-			await this.storeSessionAsync(onCompleted);
+			await this.storeSessionAsync(onNext);
 		}
 	}
 
 	/** Loads the session from storage */
-	public async loadSessionAsync(onCompleted?: (data?: any) => void) {
+	public async loadSessionAsync(onNext?: (data?: any) => void) {
 		try {
 			const session = await this.storage.get("VIEApps-Session");
 			if (AppUtility.isNotEmpty(session) && session !== "{}") {
@@ -349,41 +345,41 @@ export class ConfigurationService extends BaseService {
 				if (this.isDebug) {
 					console.log(this.getLogMessage("The session is loaded from storage"), this.appConfig.session);
 				}
-				AppEvents.broadcast("Session", { Type: "Loaded", Info: this.appConfig.session });
+				AppEvents.broadcast("Session", { Type: "Loaded" });
 			}
 		}
 		catch (error) {
 			this.showError("Error occurred while loading the session from storage", error);
 		}
-		if (onCompleted !== undefined) {
-			onCompleted(this.appConfig.session);
+		if (onNext !== undefined) {
+			onNext(this.appConfig.session);
 		}
 	}
 
 	/** Stores the session into storage */
-	public async storeSessionAsync(onCompleted?: (data?: any) => void) {
+	public async storeSessionAsync(onNext?: (data?: any) => void) {
 		try {
 			await this.storage.set("VIEApps-Session", JSON.stringify(AppUtility.clone(this.appConfig.session, ["jwt", "captcha"])));
 			if (this.isDebug) {
 				console.log(this.getLogMessage("The session is stored into storage"));
 			}
-			AppEvents.broadcast("Session", { Type: "Updated", Info: this.appConfig.session });
+			AppEvents.broadcast("Session", { Type: "Updated" });
 		}
 		catch (error) {
 			this.showError("Error occurred while storing the session into storage", error);
 		}
-		if (onCompleted !== undefined) {
-			onCompleted(this.appConfig.session);
+		if (onNext !== undefined) {
+			onNext(this.appConfig.session);
 		}
 	}
 
 	/** Resets session information and re-store into storage */
-	public async resetSessionAsync(onCompleted?: (data?: any) => void) {
+	public async resetSessionAsync(onNext?: (data?: any) => void) {
 		this.appConfig.session.id = undefined;
 		this.appConfig.session.token = undefined;
 		this.appConfig.session.keys = undefined;
 		this.appConfig.session.account = this.getAccount(true);
-		await this.storeSessionAsync(onCompleted);
+		await this.storeSessionAsync(onNext);
 	}
 
 	/** Send request to patch the session */
@@ -464,7 +460,7 @@ export class ConfigurationService extends BaseService {
 			this.storeSessionAsync(onNext);
 		}
 		else {
-			if (account.id !== undefined && AppUtility.isTrue(updateInstances)) {
+			if (account.id !== undefined && (AppUtility.isTrue(updateInstances) || Account.instances.containsKey(account.id))) {
 				Account.instances.setValue(account.id, account);
 			}
 			if (onNext !== undefined) {
@@ -508,8 +504,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Store the information of current account profile into storage */
-	public async storeProfileAsync(onCompleted?: (data?: any) => void) {
-		await this.storeSessionAsync(onCompleted);
+	public async storeProfileAsync(onNext?: (data?: any) => void) {
+		await this.storeSessionAsync(onNext);
 	}
 
 	/** Watch the connection of Facebook */
@@ -567,30 +563,19 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
-	/** Sends a request to tell app component navigates to home screen */
-	public navigateHome(url?: string, extras?: { [key: string]: any }) {
-		AppEvents.broadcast("Navigate", {
-			url: url,
-			extras: extras
-		});
+	/** Sends a request to navigates to home screen */
+	public async navigateHomeAsync(url?: string, extras?: { [key: string]: any }) {
+		await this.navController.navigateRoot(url || this.appConfig.url.home, true, extras);
 	}
 
-	/** Sends a request to tell app component navigates back one step */
-	public navigateBack(url?: string, extras?: { [key: string]: any }) {
-		AppEvents.broadcast("Navigate", {
-			direction: "Back",
-			url: url,
-			extras: extras
-		});
+	/** Sends a request to navigates back one step */
+	public async navigateBackAsync(url?: string, extras?: { [key: string]: any }) {
+		await this.navController.navigateBack(url || this.previousUrl, true, extras);
 	}
 
-	/** Sends a request to tell app component navigates forward one step */
-	public navigateForward(url: string, extras?: { [key: string]: any }) {
-		AppEvents.broadcast("Navigate", {
-			direction: "Forward",
-			url: url,
-			extras: extras
-		});
+	/** Sends a request to navigates forward one step */
+	public async navigateForwardAsync(url: string, extras?: { [key: string]: any }) {
+		await this.navController.navigateForward(url || this.appConfig.url.home, true, extras);
 	}
 
 	/** Gets the state to determines that navigate to an url */
@@ -622,7 +607,7 @@ export class ConfigurationService extends BaseService {
 		);
 	}
 
-	private async saveGeoMetaAsync(data: any, onCompleted?: (data?: any) => void) {
+	private async saveGeoMetaAsync(data: any, onNext?: (data?: any) => void) {
 		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces, true)) {
 			this.appConfig.geoMeta.provinces[data.code] = data;
 		}
@@ -637,13 +622,13 @@ export class ConfigurationService extends BaseService {
 		]);
 
 		AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
-		if (onCompleted !== undefined) {
-			onCompleted(data);
+		if (onNext !== undefined) {
+			onNext(data);
 		}
 	}
 
 	/** Loads the options of the app */
-	public async loadOptionsAsync(onCompleted?: () => void) {
+	public async loadOptionsAsync(onNext?: () => void) {
 		this.appConfig.options = await this.storage.get("VIEApps-Options") || {};
 		if (this.appConfig.options === undefined || this.appConfig.options.i18n === undefined || this.appConfig.options.timezone === undefined || this.appConfig.options.extras === undefined) {
 			this.appConfig.options = {
@@ -651,25 +636,25 @@ export class ConfigurationService extends BaseService {
 				timezone: +7.00,
 				extras: {}
 			};
-			await this.storeOptionsAsync(onCompleted);
+			await this.storeOptionsAsync(onNext);
 		}
 		else {
 			AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
-			if (onCompleted !== undefined) {
-				onCompleted();
+			if (onNext !== undefined) {
+				onNext();
 			}
 		}
 	}
 
 	/** Stores the options of the app */
-	public async storeOptionsAsync(onCompleted?: () => void) {
+	public async storeOptionsAsync(onNext?: () => void) {
 		await this.storage.set("VIEApps-Options", this.appConfig.options);
 		AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
 		if (this.isDebug) {
 			console.log(this.getLogMessage("Options are updated"), this.appConfig.options);
 		}
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
