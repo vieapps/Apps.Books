@@ -9,8 +9,11 @@
 				{{ buttons.cancel.text }}
 			</ion-button>
 		</ion-buttons>
-		<ion-buttons *ngIf="buttons.ok" slot="end">
-			<ion-button color="primary" (click)="buttons.ok.handler()">
+		<ion-buttons slot="end">
+			<ion-button *ngIf="mode === 'profile' && canManageUsers" routerLink="/users/list">
+				<ion-icon name="contacts" slot="icon-only"></ion-icon>
+			</ion-button>
+			<ion-button *ngIf="buttons.ok" color="primary" (click)="buttons.ok.handler()">
 				<ion-icon *ngIf="buttons.ok.icon" [name]="buttons.ok.icon" slot="start"></ion-icon>
 				{{ buttons.ok.text }}
 			</ion-button>
@@ -77,7 +80,7 @@
 			[config]="invitation.config"
 			[controls]="invitation.controls"
 			(initEvent)="onFormInitialized($event)"></app-form>
-		<control-book-privileges *ngIf="configSvc.appConfig.services.main === 'books'"
+		<control-book-privileges *ngIf="authSvc.canSetPrivileges && configSvc.appConfig.services.main === 'books'"
 			(changesEvent)="onPrivilegesChanged($event)"></control-book-privileges>
 	</div>
 

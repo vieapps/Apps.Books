@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
-import { CompleterService } from "ng2-completer";
+import { CompleterService, CompleterCmp } from "ng2-completer";
 import { AppFormsControl, AppFormsService } from "./forms.service";
 import { AppUtility } from "./app.utility";
 
@@ -11,13 +11,17 @@ import { AppUtility } from "./app.utility";
 export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor (
+		public changeDetector: ChangeDetectorRef,
 		public appFormsSvc: AppFormsService,
 		public completerSvc: CompleterService
 	) {
 	}
 
-	public show = false;
 	private _style: string = undefined;
+	private _step = "";
+	private _completerInitialValue: any = undefined;
+
+	public show = false;
 
 	@Input() control: AppFormsControl;
 	@Input() formGroup: FormGroup;
@@ -29,14 +33,19 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	@ViewChild("elementRef") elementRef;
 
 	ngOnInit() {
+		this._step = "ngOnInit";
 		if (this.isCompleter) {
 			this.completerInit();
 		}
 	}
 
 	ngAfterViewInit() {
-		this.control.elementRef = this.elementRef;
+		this._step = "ngAfterViewInit";
 		this.control.formRef = this.formControl;
+		this.control.elementRef = this.elementRef;
+		if (this.isCompleter && this._completerInitialValue !== undefined && this.control.Options.Type === "Address") {
+			this.changeDetector.detectChanges();
+		}
 	}
 
 	ngOnDestroy() {
@@ -371,31 +380,38 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get completerInitialValue() {
-		if (this.control.Options.LookupOptions.InitialValue !== undefined) {
-			return this.control.Options.LookupOptions.InitialValue;
+		if (this._completerInitialValue === undefined) {
+			if (this.control.Options.LookupOptions.InitialValue !== undefined) {
+				this._completerInitialValue = this.control.Options.LookupOptions.InitialValue;
+			}
+			else if (this.control.Options.Type === "Address") {
+				const value = {
+					County: "",
+					Province: "",
+					Country: ""
+				};
+				["County", "Province", "Country"].forEach(name => {
+					const formControl = this.formGroup.controls[name];
+					value[name] = formControl !== undefined ? formControl.value : "";
+				});
+				this._completerInitialValue = this.appFormsSvc.getMetaCounties().find(address => address.County === value.County && address.Province === value.Province && address.Country === value.Country);
+			}
+			else {
+				this._completerInitialValue = this.control.Options.LookupOptions.Handlers.GetInitialValue !== undefined
+					? this.control.Options.LookupOptions.Handlers.GetInitialValue(this.control)
+					: undefined;
+			}
 		}
-		else if (this.control.Options.Type === "Address") {
-			const value = {
-				County: "",
-				Province: "",
-				Country: ""
-			};
-			["County", "Province", "Country"].forEach(name => {
-				const formControl = this.formGroup.controls[name];
-				value[name] = formControl !== undefined ? formControl.value : "";
-			});
-			return this.appFormsSvc.getMetaCounties().find(address => address.County === value.County && address.Province === value.Province && address.Country === value.Country);
-		}
-		else {
-			return this.control.Options.LookupOptions.Handlers.GetInitialValue !== undefined
-				? this.control.Options.LookupOptions.Handlers.GetInitialValue(this.control)
-				: undefined;
-		}
+		return this._completerInitialValue;
 	}
 
 	completerOnItemChanged(item) {
 		if (this.control.Options.Type === "Address") {
-			const address = AppUtility.isObject(item, true) ? item.originalObject : undefined;
+			let address = AppUtility.isObject(item, true) ? item.originalObject : undefined;
+			if (address === undefined && this._step === "ngAfterViewInit" && this._completerInitialValue !== undefined) {
+				address = this._completerInitialValue;
+				this._step = "ngDone";
+			}
 			["County", "Province", "Country"].forEach(name => {
 				const formControl = this.formGroup.controls[name];
 				if (formControl !== undefined) {

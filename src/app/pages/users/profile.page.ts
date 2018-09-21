@@ -73,6 +73,10 @@ export class ViewAccountProfilePage implements OnInit {
 		Object.keys(($event.form as FormGroup).controls).forEach(key => ($event.form as FormGroup).controls[key].setValue(""));
 	}
 
+	get canManageUsers() {
+		return this.authSvc.isSystemAdministrator && !this.configSvc.previousUrl.startsWith("/users/list") && !this.configSvc.previousUrl.startsWith("/users/search");
+	}
+
 	async setModeAsync(mode: string, title: string) {
 		this.mode = mode;
 		this.configSvc.appTitle = this.title = title;
@@ -80,7 +84,6 @@ export class ViewAccountProfilePage implements OnInit {
 			this.prepareButtonsAsync(),
 			this.prepareActionsAsync()
 		]);
-		this.changeDetector.detectChanges();
 	}
 
 	async prepareButtonsAsync() {
@@ -118,10 +121,6 @@ export class ViewAccountProfilePage implements OnInit {
 			else if (this.authSvc.canSetPrivileges) {
 				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", async () => await this.openUpdateAsync("privileges")));
 				this.usersSvc.getPrivilegesAsync(this.profile.ID);
-			}
-
-			if (this.authSvc.isSystemAdministrator && !this.configSvc.previousUrl.startsWith("/users/list") && !this.configSvc.previousUrl.startsWith("/users/search")) {
-				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.list"), "contacts", async () => await this.configSvc.navigateForwardAsync("/users/list")));
 			}
 
 			if (this.id === undefined || this.id === this.configSvc.getAccount().id) {
@@ -203,7 +202,7 @@ export class ViewAccountProfilePage implements OnInit {
 			await this.usersSvc.sendInvitationAsync(
 				this.invitation.form.value.Name,
 				this.invitation.form.value.Email,
-				this.invitation.privileges.length > 0 ? this.invitation.privileges : undefined,
+				this.invitation.privileges,
 				this.invitation.relatedInfo,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "users/invitation"),

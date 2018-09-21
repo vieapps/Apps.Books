@@ -209,10 +209,7 @@ export class UpdateAccountProfilePage implements OnInit {
 				Options: {
 					Type: "Address",
 					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
-					MinLength: 2,
-					LookupOptions: {
-						InitialValue: this.appFormsSvc.getMetaCounties().find(address => address.County === this.profile.County && address.Province === this.profile.Province && address.Country === this.profile.Country)
-					}
+					MinLength: 2
 				}
 			},
 			{
@@ -271,7 +268,7 @@ export class UpdateAccountProfilePage implements OnInit {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.usersSvc.updateProfileAsync(
 				this.update.form.value,
-				async data => {
+				async () => {
 					if (this.profile.ID === this.configSvc.getAccount().id) {
 						this.configSvc.getAccount().profile = UserProfile.get(this.profile.ID);
 						await this.configSvc.storeSessionAsync();
@@ -281,7 +278,7 @@ export class UpdateAccountProfilePage implements OnInit {
 								this.configSvc.storeOptionsAsync(),
 								this.configSvc.setResourceLanguageAsync(this.configSvc.appConfig.options.i18n)
 							]);
-							AppEvents.broadcast("App", { Type: "LanguageChanged", Data: this.configSvc.appConfig.options });
+							AppEvents.broadcast("App", { Type: "LanguageChanged" });
 						}
 					}
 					await Promise.all([
