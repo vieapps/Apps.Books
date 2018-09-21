@@ -13,6 +13,7 @@ import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { TranslateService } from "@ngx-translate/core";
 import { AppConfig } from "../app.config";
+import { AppStorage } from "../components/app.storage";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
@@ -41,6 +42,7 @@ export class ConfigurationService extends BaseService {
 		public translateSvc: TranslateService
 	) {
 		super(http, "Configuration");
+		AppStorage.initializeAsync(storage, () => console.log(this.getLogMessage("KVP storage is ready")));
 		AppEvents.on("App", async info => {
 			if ("Initialized" === info.args.Type) {
 				await this.loadGeoMetaAsync();
@@ -224,8 +226,6 @@ export class ConfigurationService extends BaseService {
 				}
 			}
 		}
-
-		await this.storage.ready().then(() => console.log(this.getLogMessage("Storage is ready")));
 	}
 
 	/** Initializes the configuration settings of the app */
@@ -335,7 +335,7 @@ export class ConfigurationService extends BaseService {
 	/** Loads the session from storage */
 	public async loadSessionAsync(onNext?: (data?: any) => void) {
 		try {
-			const session = await this.storage.get("VIEApps-Session");
+			const session = await AppStorage.getAsync("VIEApps-Session");
 			if (AppUtility.isNotEmpty(session) && session !== "{}") {
 				this.appConfig.session = JSON.parse(session as string);
 				this.appConfig.session.account = Account.deserialize(this.appConfig.session.account);
@@ -359,7 +359,7 @@ export class ConfigurationService extends BaseService {
 	/** Stores the session into storage */
 	public async storeSessionAsync(onNext?: (data?: any) => void) {
 		try {
-			await this.storage.set("VIEApps-Session", JSON.stringify(AppUtility.clone(this.appConfig.session, ["jwt", "captcha"])));
+			await AppStorage.setAsync("VIEApps-Session", JSON.stringify(AppUtility.clone(this.appConfig.session, ["jwt", "captcha"])));
 			if (this.isDebug) {
 				console.log(this.getLogMessage("The session is stored into storage"));
 			}
@@ -584,9 +584,9 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private async loadGeoMetaAsync() {
-		this.appConfig.geoMeta.country = await this.storage.get("VIEApps-GeoMeta-Country") || "VN";
-		this.appConfig.geoMeta.countries = await this.storage.get("VIEApps-GeoMeta-Countries") || [];
-		this.appConfig.geoMeta.provinces = await this.storage.get("VIEApps-GeoMeta-Provinces") || {};
+		this.appConfig.geoMeta.country = await AppStorage.getAsync("VIEApps-GeoMeta-Country") || "VN";
+		this.appConfig.geoMeta.countries = await AppStorage.getAsync("VIEApps-GeoMeta-Countries") || [];
+		this.appConfig.geoMeta.provinces = await AppStorage.getAsync("VIEApps-GeoMeta-Provinces") || {};
 
 		if (this.appConfig.geoMeta.provinces[this.appConfig.geoMeta.country] !== undefined) {
 			AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
@@ -616,9 +616,9 @@ export class ConfigurationService extends BaseService {
 		}
 
 		await Promise.all([
-			this.storage.set("VIEApps-GeoMeta-Country", this.appConfig.geoMeta.country),
-			this.storage.set("VIEApps-GeoMeta-Countries", this.appConfig.geoMeta.countries),
-			this.storage.set("VIEApps-GeoMeta-Provinces", this.appConfig.geoMeta.provinces)
+			AppStorage.setAsync("VIEApps-GeoMeta-Country", this.appConfig.geoMeta.country),
+			AppStorage.setAsync("VIEApps-GeoMeta-Countries", this.appConfig.geoMeta.countries),
+			AppStorage.setAsync("VIEApps-GeoMeta-Provinces", this.appConfig.geoMeta.provinces)
 		]);
 
 		AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
@@ -629,7 +629,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Loads the options of the app */
 	public async loadOptionsAsync(onNext?: () => void) {
-		this.appConfig.options = await this.storage.get("VIEApps-Options") || {};
+		this.appConfig.options = await AppStorage.getAsync("VIEApps-Options") || {};
 		if (this.appConfig.options === undefined || this.appConfig.options.i18n === undefined || this.appConfig.options.timezone === undefined || this.appConfig.options.extras === undefined) {
 			this.appConfig.options = {
 				i18n: "vi-VN",
@@ -639,7 +639,7 @@ export class ConfigurationService extends BaseService {
 			await this.storeOptionsAsync(onNext);
 		}
 		else {
-			AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
+			AppEvents.broadcast("App", { Type: "OptionsUpdated" });
 			if (onNext !== undefined) {
 				onNext();
 			}
@@ -648,8 +648,8 @@ export class ConfigurationService extends BaseService {
 
 	/** Stores the options of the app */
 	public async storeOptionsAsync(onNext?: () => void) {
-		await this.storage.set("VIEApps-Options", this.appConfig.options);
-		AppEvents.broadcast("App", { Type: "OptionsUpdated", Data: this.appConfig.options });
+		await AppStorage.setAsync("VIEApps-Options", this.appConfig.options);
+		AppEvents.broadcast("App", { Type: "OptionsUpdated" });
 		if (this.isDebug) {
 			console.log(this.getLogMessage("Options are updated"), this.appConfig.options);
 		}
