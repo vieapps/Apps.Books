@@ -74,7 +74,7 @@ export class ViewAccountProfilePage implements OnInit {
 	}
 
 	get canManageUsers() {
-		return this.authSvc.isSystemAdministrator && !this.configSvc.previousUrl.startsWith("/users/list") && !this.configSvc.previousUrl.startsWith("/users/search");
+		return this.authSvc.isSystemAdministrator() && !this.configSvc.previousUrl.startsWith("/users/list") && !this.configSvc.previousUrl.startsWith("/users/search");
 	}
 
 	async setModeAsync(mode: string, title: string) {

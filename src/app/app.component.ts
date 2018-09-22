@@ -72,7 +72,6 @@ export class AppComponent implements OnInit {
 	};
 
 	ngOnInit() {
-		this.configSvc.addUrl("/home", {});
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
 				this.configSvc.appConfig.url.routerParams = this.router.routerState.snapshot.root.params;
@@ -327,6 +326,7 @@ export class AppComponent implements OnInit {
 	}
 
 	private async showActivationResultAsync(data: any) {
+		this.configSvc.appConfig.url.stack[this.configSvc.appConfig.url.stack.length - 1].params = {};
 		const header = await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.header.account" : "users.activate.header.password");
 		const subHeader = await this.configSvc.getResourceAsync("OK" === data.Status ? "users.activate.subHeader.success" : "users.activate.subHeader.error");
 		const message = "OK" === data.Status
@@ -402,6 +402,7 @@ export class AppComponent implements OnInit {
 					let redirect = this.configSvc.queryParams["redirect"] as string || this.configSvc.appConfig.url.redirectToWhenReady;
 					if (redirect !== undefined) {
 						this.configSvc.appConfig.url.redirectToWhenReady = undefined;
+						this.configSvc.appConfig.url.stack[this.configSvc.appConfig.url.stack.length - 1].params = {};
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
 							console.log(`<AppComponent>: Redirect to the request url\n=>: ${redirect}`);

@@ -3,6 +3,7 @@ import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angu
 import { FormGroup } from "@angular/forms";
 import { AppFormsControl } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
+import { BooksService } from "../../providers/books.service";
 import { Privilege } from "./../../models/privileges";
 
 @Component({
@@ -13,7 +14,8 @@ import { Privilege } from "./../../models/privileges";
 export class BookPrivilegesControl implements OnInit, OnDestroy {
 
 	constructor (
-		public configSvc: ConfigurationService
+		public configSvc: ConfigurationService,
+		public booksSvc: BooksService
 	) {
 	}
 
@@ -41,13 +43,11 @@ export class BookPrivilegesControl implements OnInit, OnDestroy {
 	}
 
 	async initializeFormAsync() {
+		const serviceName = this.booksSvc.serviceName.toLowerCase();
 		if (this.privileges === undefined || this.privileges.length < 1) {
-			const privilege = new Privilege();
-			privilege.ServiceName = "books";
-			privilege.Role = "Viewer";
-			this.privileges = [privilege];
+			this.privileges = [new Privilege(serviceName)];
 		}
-		const role = this.privileges.find(privilege => privilege.ServiceName === "books" && privilege.ObjectName === "");
+
 		const roles = ["Administrator", "Moderator", "Viewer"].map(r => {
 			return {
 				Value: r,
@@ -56,20 +56,20 @@ export class BookPrivilegesControl implements OnInit, OnDestroy {
 		});
 		roles.forEach(async r => r.Label = await this.configSvc.getResourceAsync(`users.roles.${r.Value}`));
 
-		this.objects = this.privileges.filter(privilege => privilege.ServiceName === "books" && privilege.ObjectName !== "").map(privilege => {
+		this.objects = this.privileges.filter(privilege => privilege.ServiceName === serviceName && privilege.ObjectName !== "").map(privilege => {
 			return {
 				Object: privilege.ObjectName,
 				Role: privilege.Role,
 				Label: ""
 			};
 		});
-		this.configSvc.appConfig.services.all.find(svc => svc.name === "books").objects.forEach(async object => {
+		this.configSvc.appConfig.services.all.find(svc => svc.name === serviceName).objects.forEach(async object => {
 			const label = await this.configSvc.getResourceAsync("books.privileges.object", { object: await this.configSvc.getResourceAsync(`books.objects.${object}`) });
 			const obj = this.objects.find(o => o.Object === object);
 			if (obj === undefined) {
 				this.objects.push({
 					Object: object,
-					Role: role !== undefined ? role.Role : "Viewer",
+					Role: "Viewer",
 					Label: label
 				});
 			}
@@ -113,36 +113,31 @@ export class BookPrivilegesControl implements OnInit, OnDestroy {
 	}
 
 	onFormInitialized($event) {
-		const role = this.privileges.find(privilege => privilege.ServiceName === "books" && privilege.ObjectName === "");
+		const role = this.privileges.find(privilege => privilege.ServiceName === this.booksSvc.serviceName.toLowerCase() && privilege.ObjectName === "");
 		const value = {
 			Role: role !== undefined ? role.Role : "Viewer",
 			Objects: {} as { [key: string]: string }
 		};
-		this.objects.forEach(object => {
-			value.Objects[object.Object] = object.Role;
-		});
+		this.objects.forEach(object => value.Objects[object.Object] = object.Role);
 		this.form.patchValue(value);
 	}
 
-	onFormChanged(value: any) {
-		const servicePrivilege = new Privilege();
-		servicePrivilege.ServiceName = "books";
-		servicePrivilege.Role = value.Role;
-		const privileges = [servicePrivilege];
-
+	onFormChanged(value) {
+		const serviceName = this.booksSvc.serviceName.toLowerCase();
+		const privileges = [new Privilege(serviceName, undefined, value.Role)];
 		const subControls = this.controls.find(control => control.Name === "Objects").SubControls.Controls;
+
 		if (value.Role === "Viewer") {
 			subControls.forEach(control => {
 				control.Options.Disabled = false;
 				const role = value.Objects[control.Name] as string;
 				if (role !== "Viewer") {
-					const objectPrivilege = new Privilege();
-					objectPrivilege.ServiceName = "books";
-					objectPrivilege.ObjectName = control.Name;
-					objectPrivilege.Role = role;
-					privileges.push(objectPrivilege);
+					privileges.push(new Privilege(serviceName, control.Name, role));
 				}
 			});
+			if (privileges.length === 1) {
+				privileges.splice(0, 1);
+			}
 		}
 		else {
 			subControls.forEach(control => control.Options.Disabled = true);

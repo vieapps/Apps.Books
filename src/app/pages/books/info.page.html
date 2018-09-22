@@ -82,11 +82,11 @@
 				<span>
 					{{ resources.source }}:
 				</span>
-				<label *ngIf="book.SourceUrl === ''">
+				<label *ngIf="!sourceUrl">
 					{{ book.Source }}
 				</label>
-				<label *ngIf="book.SourceUrl !== ''">
-					<a [href]="book.SourceUrl" target="_blank">
+				<label *ngIf="sourceUrl">
+					<a [href]="sourceUrl" target="_blank">
 						{{ book.Source }}
 					</a>
 				</label>

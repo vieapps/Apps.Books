@@ -10,7 +10,7 @@
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons slot="end">
-			<ion-button *ngIf="mode === 'profile' && canManageUsers" routerLink="/users/list">
+			<ion-button *ngIf="mode === 'profile' && !id && canManageUsers" routerLink="/users/list">
 				<ion-icon name="contacts" slot="icon-only"></ion-icon>
 			</ion-button>
 			<ion-button *ngIf="buttons.ok" color="primary" (click)="buttons.ok.handler()">
@@ -71,7 +71,7 @@
 				{{ labels.lastAccess }} {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
 			</ion-item>
 		</ion-list>
-		<control-book-bookmarks *ngIf="!id"></control-book-bookmarks>
+		<control-book-bookmarks *ngIf="configSvc.appConfig.services.main === 'books' && !id"></control-book-bookmarks>
 	</div>
 
 	<div *ngIf="mode === 'invitation'">
@@ -80,7 +80,7 @@
 			[config]="invitation.config"
 			[controls]="invitation.controls"
 			(initEvent)="onFormInitialized($event)"></app-form>
-		<control-book-privileges *ngIf="authSvc.canSetPrivileges && configSvc.appConfig.services.main === 'books'"
+		<control-book-privileges *ngIf="configSvc.appConfig.services.main === 'books' && authSvc.canSetPrivileges"
 			(changesEvent)="onPrivilegesChanged($event)"></control-book-privileges>
 	</div>
 

@@ -91,10 +91,10 @@ export class UsersService extends BaseService {
 			Medium: this.configSvc.appConfig.app.id
 		};
 		if (privileges !== undefined) {
-			body["Privileges"] = AppCrypto.rsaEncrypt(JSON.stringify(privileges));
+			body["Privileges"] = AppCrypto.aesEncrypt(JSON.stringify(privileges));
 		}
 		if (relatedInfo !== undefined) {
-			body["RelatedInfo"] = AppCrypto.rsaEncrypt(JSON.stringify(relatedInfo));
+			body["RelatedInfo"] = AppCrypto.aesEncrypt(JSON.stringify(relatedInfo));
 		}
 		await super.createAsync(
 			`users/account/invite?${this.configSvc.relatedQuery}&uri=${this.configSvc.activateURI}`,
@@ -281,7 +281,7 @@ export class UsersService extends BaseService {
 		await super.updateAsync(
 			`users/account/${id}?${this.configSvc.relatedQuery}`,
 			{
-				Privileges: AppCrypto.rsaEncrypt(JSON.stringify(privileges))
+				Privileges: AppCrypto.aesEncrypt(JSON.stringify(privileges))
 			},
 			data => this.configSvc.updateAccount(data, onNext, true),
 			error => {
@@ -342,7 +342,9 @@ export class UsersService extends BaseService {
 				UserProfile.update(message.Data);
 				if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
 					this.configSvc.getAccount().profile = UserProfile.get(message.Data.ID);
-					this.configSvc.appConfig.options.i18n = this.configSvc.getAccount().profile.Language;
+					if (this.configSvc.appConfig.options.i18n !== this.configSvc.getAccount().profile.Language) {
+						await this.configSvc.changeLanguageAsync(this.configSvc.getAccount().profile.Language);
+					}
 					await Promise.all([
 						this.configSvc.storeOptionsAsync(),
 						this.configSvc.storeProfileAsync(() => {

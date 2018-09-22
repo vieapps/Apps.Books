@@ -29,9 +29,7 @@ export class RegisterAccountPage implements OnInit {
 		config: undefined as Array<any>,
 		button: {
 			label: "Register",
-			icon: undefined as string,
-			color: "primary",
-			fill: "solid"
+			icon: undefined as string
 		}
 	};
 

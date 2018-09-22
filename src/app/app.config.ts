@@ -111,7 +111,7 @@ export class AppConfig {
 
 	/** Options of the app */
 	public static options = {
-		i18n: "vi-VN",
+		i18n: "en-US",
 		timezone: +7.00,
 		extras: {} as { [key: string]: any }
 	};

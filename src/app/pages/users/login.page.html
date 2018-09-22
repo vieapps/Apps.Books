@@ -19,11 +19,11 @@
 			[config]="login.config"
 			[controls]="login.controls"></app-form>
 		<ion-buttons padding-horizontal>
-			<ion-button [fill]="login.button.fill" [color]="login.button.color" (click)="logInAsync()">
+			<ion-button fill="solid" color="primary" (click)="logInAsync()">
 				<ion-icon *ngIf="login.button.icon" [icon]="login.button.icon" slot="start"></ion-icon>
 				{{ login.button.label }}
 			</ion-button>
-			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="openResetPasswordAsync()">
+			<ion-button fill="clear" color="primary" (click)="openResetPasswordAsync()">
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{ reset.button.label }}
 			</ion-button>
@@ -37,7 +37,7 @@
 			[controls]="otp.controls"
 			[value]="otp.value"></app-form>
 		<ion-buttons padding-horizontal>
-			<ion-button [fill]="otp.button.fill" [color]="otp.button.color" (click)="logInOTPAsync()">
+			<ion-button fill="solid" color="primary" (click)="logInOTPAsync()">
 				<ion-icon *ngIf="otp.button.icon" [icon]="otp.button.icon" slot="start"></ion-icon>
 				{{ otp.button.label }}
 			</ion-button>
@@ -52,7 +52,7 @@
 			(initEvent)="onResetPasswordFormInitialized($event)"
 			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
 		<ion-buttons padding-horizontal>
-			<ion-button [fill]="reset.button.fill" [color]="reset.button.color" (click)="resetPasswordAsync()">
+			<ion-button fill="solid" color="primary" (click)="resetPasswordAsync()">
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{ reset.button.label }}
 			</ion-button>

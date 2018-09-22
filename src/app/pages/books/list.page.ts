@@ -93,13 +93,6 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	ngOnInit() {
 		this.initializeAsync();
-		if (!this.searching) {
-			AppEvents.on("Session", info => {
-				if ("Updated" === info.args.Type) {
-					this.prepareActionsAsync();
-				}
-			}, `AccountEvents${this.eventIdentity}`);
-		}
 		this.rxSubscription = this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
 				if (this.configSvc.currentUrl.startsWith(this.uri)) {
@@ -107,13 +100,31 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 			}
 		});
+		if (!this.searching) {
+			AppEvents.on("Session", async info => {
+				if ("Updated" === info.args.Type) {
+					await this.prepareActionsAsync();
+				}
+			}, `AccountEventHandlers${this.eventIdentity}`);
+			AppEvents.on("Books", async info => {
+				if ("Deleted" === info.args.Type) {
+					if (this.filterBy.And.Category.Equals !== undefined && this.filterBy.And.Category.Equals === info.args.Category) {
+						this.prepareResults();
+					}
+					else if (this.filterBy.And.Author.Equals !== undefined && this.filterBy.And.Author.Equals === info.args.Author) {
+						this.prepareResults();
+					}
+				}
+			}, `BookEventHandlers${this.eventIdentity}`);
+		}
 	}
 
 	ngOnDestroy() {
-		if (!this.searching) {
-			AppEvents.off("Session", `AccountEvents${this.eventIdentity}`);
-		}
 		this.rxSubscription.unsubscribe();
+		if (!this.searching) {
+			AppEvents.off("Session", `AccountEventHandlers${this.eventIdentity}`);
+			AppEvents.off("Books", `BookEventHandlers${this.eventIdentity}`);
+		}
 	}
 
 	ngAfterViewInit() {

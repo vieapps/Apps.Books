@@ -28,9 +28,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		config: undefined as Array<any>,
 		button: {
 			label: "Login",
-			icon: undefined as string,
-			color: "primary",
-			fill: "solid"
+			icon: undefined as string
 		}
 	};
 	otp = {
@@ -41,9 +39,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		value: undefined as any,
 		button: {
 			label: "Verify",
-			icon: undefined as string,
-			color: "primary",
-			fill: "solid"
+			icon: undefined as string
 		},
 		rxsub: undefined as Subscription
 	};
@@ -53,9 +49,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		config: undefined as Array<any>,
 		button: {
 			label: "Forgot password",
-			icon: "key",
-			color: "primary",
-			fill: "clear"
+			icon: "key"
 		}
 	};
 
@@ -230,9 +224,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		];
 		this.reset.button = {
 			label: await this.configSvc.getResourceAsync("users.login.reset.button"),
-			icon: undefined,
-			color: "primary",
-			fill: "solid"
+			icon: undefined
 		};
 		this.mode = "reset";
 		this.title = await this.configSvc.getResourceAsync("users.login.reset.title");

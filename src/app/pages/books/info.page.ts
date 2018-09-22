@@ -163,4 +163,10 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 		await this.appFormsSvc.showToastAsync("Copied...");
 	}
 
+	get sourceUrl() {
+		return this.book.SourceUrl !== ""
+			? this.book.SourceUrl.replace("/mobile/", "/").replace("/mobil/", "/truyen/").replace("http://", "https://")
+			: undefined;
+	}
+
 }

@@ -3,10 +3,23 @@ import { AppUtility } from "../components/app.utility";
 
 /** Privilege of an individual business service */
 export class Privilege {
+
+	constructor(serviceName?: string, objectName?: string, role?: string) {
+		if (AppUtility.isNotEmpty(serviceName)) {
+			this.ServiceName = serviceName;
+			if (AppUtility.isNotEmpty(objectName)) {
+				this.ObjectName = objectName;
+			}
+			if (AppUtility.isNotEmpty(role)) {
+				this.Role = role;
+			}
+		}
+	}
+
 	ServiceName = "";
 	ObjectName = "";
 	ObjectIdentity = "";
-	Role = "";
+	Role = "Viewer";
 	Actions = new Array<string>();
 
 	public static deserialize(json: any, privilege?: Privilege) {
@@ -18,6 +31,10 @@ export class Privilege {
 
 /** Privilege of an individual business object */
 export class Privileges {
+
+	constructor() {
+	}
+
 	DownloadableRoles = new Set<string>();
 	DownloadableUsers = new Set<string>();
 	ViewableRoles = new Set<string>();

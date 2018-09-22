@@ -275,25 +275,27 @@ export class BooksService extends BaseService {
 
 	public async fetchChapterAsync(id: string, chapter: number, onNext?: () => void) {
 		const book = Book.instances.getValue(id);
-		while (chapter < book.TotalChapters && book.Chapters[chapter - 1] !== "") {
+		while (chapter <= book.TotalChapters && book.Chapters[chapter - 1] !== "") {
 			chapter++;
 		}
-		if (book.Chapters[chapter - 1] === "" || book.Chapters[chapter - 1].startsWith("https://") || book.Chapters[chapter - 1].startsWith("http://")) {
-			super.send({
-				ServiceName: this.Name,
-				ObjectName: "book",
-				Verb: "GET",
-				Query: {
-					"object-identity": "chapter",
-					"id": id,
-					"chapter": chapter
-				},
-				Header: undefined,
-				Body: undefined,
-				Extra: undefined
-			}, data => this.updateChapter(data));
+		if (chapter <= book.TotalChapters) {
+			if (book.Chapters[chapter - 1] === "" || book.Chapters[chapter - 1].startsWith("https://") || book.Chapters[chapter - 1].startsWith("http://")) {
+				super.send({
+					ServiceName: this.Name,
+					ObjectName: "book",
+					Verb: "GET",
+					Query: {
+						"object-identity": "chapter",
+						"id": id,
+						"chapter": chapter
+					},
+					Header: undefined,
+					Body: undefined,
+					Extra: undefined
+				}, data => this.updateChapter(data));
+			}
+			this.increaseCounters(id, "view", onNext);
 		}
-		this.increaseCounters(id, "view", onNext);
 	}
 
 	private updateChapter(data: any) {
@@ -423,12 +425,12 @@ export class BooksService extends BaseService {
 				break;
 			case "Delete":
 				Book.instances.remove(message.Data.ID);
-				AppEvents.broadcast("Books", { Type: "Deleted", Data: message.Data });
+				AppEvents.broadcast("Books", { Type: "Deleted", ID: message.Data.ID, Category: message.Data.Category, Author: message.Data.Author });
 				break;
 			default:
 				if (AppUtility.isNotEmpty(message.Data.ID)) {
 					Book.update(message.Data);
-					AppEvents.broadcast("Books", { Type: "Updated", Data: message.Data });
+					AppEvents.broadcast("Books", { Type: "Updated", ID: message.Data.ID });
 				}
 				else if (this.configSvc.isDebug) {
 					console.warn(this.getLogMessage("Got an update"), message);

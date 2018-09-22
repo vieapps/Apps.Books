@@ -2,7 +2,6 @@ import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { AppCrypto } from "../../components/app.crypto";
-import { AppEvents } from "../../components/app.events";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
@@ -273,12 +272,7 @@ export class UpdateAccountProfilePage implements OnInit {
 						this.configSvc.getAccount().profile = UserProfile.get(this.profile.ID);
 						await this.configSvc.storeSessionAsync();
 						if (this.update.language !== this.update.form.value.Language) {
-							this.configSvc.appConfig.options.i18n = this.update.form.value.Language;
-							await Promise.all([
-								this.configSvc.storeOptionsAsync(),
-								this.configSvc.setResourceLanguageAsync(this.configSvc.appConfig.options.i18n)
-							]);
-							AppEvents.broadcast("App", { Type: "LanguageChanged" });
+							await this.configSvc.changeLanguageAsync(this.update.form.value.Language);
 						}
 					}
 					await Promise.all([
@@ -436,11 +430,18 @@ export class UpdateAccountProfilePage implements OnInit {
 	}
 
 	onPrivilegesChanged($event) {
-		this._privileges.value = $event.privileges;
+		if (this.configSvc.appConfig.services.main !== "") {
+			this._privileges.value = this._privileges.value.filter(privilege => privilege.ServiceName !== this.configSvc.appConfig.services.main).concat($event.privileges as Privilege[]);
+		}
+		else {
+			this._privileges.value = $event.privileges as Privilege[];
+		}
 	}
 
 	get privileges() {
-		return Account.instances.getValue(this.profile.ID).privileges;
+		return this.configSvc.appConfig.services.main !== ""
+			? Account.instances.getValue(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === this.configSvc.appConfig.services.main)
+			: Account.instances.getValue(this.profile.ID).privileges;
 	}
 
 	async showProfileAsync(preProcess?: () => void) {

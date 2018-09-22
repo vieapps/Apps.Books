@@ -82,7 +82,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			if ("Updated" === info.args.Type) {
 				await this.prepareActionsAsync();
 			}
-		}, "AccountEventHandlerOfReadBookPage");
+		}, "AppEventHandlersOfReadBookPage");
 
 		AppEvents.on("Books", async info => {
 			if ("OpenChapter" === info.args.Type && this.chapter !== info.args.Chapter) {
@@ -93,7 +93,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 				}
 				await this.goChapterAsync();
 			}
-		}, "OpenChapterEventHandlerOfReadBookPage");
+			else if ("Deleted" === info.args.Type && this.book.ID === info.args.ID) {
+				await this.closeAsync();
+			}
+		}, "BookEventHandlersOfReadBookPage");
 
 		this.rxSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd && this.configSvc.currentUrl.startsWith(this.book.routerLink)) {
@@ -105,8 +108,8 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	ngOnDestroy() {
 		AppEvents.off("App", "AppEventHandlersOfReadBookPage");
-		AppEvents.off("Session", "AccountEventHandlerOfReadBookPage");
-		AppEvents.off("Books", "OpenChapterEventHandlerOfReadBookPage");
+		AppEvents.off("Session", "AppEventHandlersOfReadBookPage");
+		AppEvents.off("Books", "BookEventHandlersOfReadBookPage");
 		this.rxSubscription.unsubscribe();
 	}
 
@@ -215,13 +218,13 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
-	async goChapterAsync() {
+	async goChapterAsync(direction: string = "next") {
 		if (this.book.Chapters[this.chapter - 1] === "") {
 			await this.appFormsSvc.showLoadingAsync();
 			await this.booksSvc.getChapterAsync(
 				this.book.ID,
 				this.chapter,
-				async () => await this.scrollAsync(async () => await this.booksSvc.fetchChapterAsync(this.book.ID, this.chapter + 1)),
+				async () => await this.scrollAsync(async () => await this.booksSvc.fetchChapterAsync(this.book.ID, direction === "previous" ? this.chapter - 1 : this.chapter + 1)),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
 		}
@@ -241,7 +244,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		else if (this.chapter > 0) {
 			this.chapter--;
 			this.scrollOffset = 0;
-			await this.goChapterAsync();
+			await this.goChapterAsync("previous");
 		}
 	}
 

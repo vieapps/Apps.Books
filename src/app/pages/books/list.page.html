@@ -7,11 +7,11 @@
 			<ion-menu-button *ngIf="!showBackButton"></ion-menu-button>
 		</ion-buttons>
 		<ion-buttons *ngIf="!searching" slot="end">
-			<ion-button [disabled]="!asGrid" (click)="asGrid = false">
-				<ion-icon name="list" slot="icon-only"></ion-icon>
+			<ion-button [hidden]="!asGrid" (click)="asGrid = false">
+				<ion-icon name="md-list" slot="icon-only"></ion-icon>
 			</ion-button>
-			<ion-button [disabled]="asGrid" (click)="asGrid = true">
-				<ion-icon name="grid" slot="icon-only"></ion-icon>
+			<ion-button [hidden]="asGrid" (click)="asGrid = true">
+				<ion-icon name="md-grid" slot="icon-only"></ion-icon>
 			</ion-button>
 			<ion-button [hidden]="filtering" (click)="showFilter()">
 				<ion-icon name="search" slot="icon-only"></ion-icon>

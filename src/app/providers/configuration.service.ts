@@ -629,20 +629,13 @@ export class ConfigurationService extends BaseService {
 
 	/** Loads the options of the app */
 	public async loadOptionsAsync(onNext?: () => void) {
-		this.appConfig.options = await AppStorage.getAsync("VIEApps-Options") || {};
-		if (this.appConfig.options === undefined || this.appConfig.options.i18n === undefined || this.appConfig.options.timezone === undefined || this.appConfig.options.extras === undefined) {
-			this.appConfig.options = {
-				i18n: "vi-VN",
-				timezone: +7.00,
-				extras: {}
-			};
+		const options = await AppStorage.getAsync("VIEApps-Options") || {};
+		if (options.i18n !== undefined && options.timezone !== undefined && options.extras !== undefined) {
+			this.appConfig.options = options;
 			await this.storeOptionsAsync(onNext);
 		}
-		else {
-			AppEvents.broadcast("App", { Type: "OptionsUpdated" });
-			if (onNext !== undefined) {
-				onNext();
-			}
+		else if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
@@ -656,6 +649,16 @@ export class ConfigurationService extends BaseService {
 		if (onNext !== undefined) {
 			onNext();
 		}
+	}
+
+	/** Changes the language & locale of resources to use in the app */
+	public async changeLanguageAsync(language: string) {
+		this.appConfig.options.i18n = language;
+		AppEvents.broadcast("App", { Type: "LanguageChanged" });
+		await Promise.all([
+			this.storeOptionsAsync(),
+			this.setResourceLanguageAsync(language)
+		]);
 	}
 
 	/** Sets the language & locale of resources to use in the app */
