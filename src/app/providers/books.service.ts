@@ -45,6 +45,7 @@ export class BooksService extends BaseService {
 		});
 		if (this.configSvc.isDebug) {
 			AppRTU.registerAsServiceScopeProcessor(this.Name, () => {});
+			AppRTU.registerAsObjectScopeProcessor(this.Name, "Crawl", () => {});
 		}
 
 		AppEvents.on("App", async info => {
