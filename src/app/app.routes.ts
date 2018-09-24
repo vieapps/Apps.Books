@@ -94,7 +94,8 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 				},
 				{
 					path: "update/:data",
-					loadChildren: "./pages/books/update.module#UpdateBookPageModule"
+					loadChildren: "./pages/books/update.module#UpdateBookPageModule",
+					canActivate: [AuthenticatedGuardService]
 				},
 			]
 		},

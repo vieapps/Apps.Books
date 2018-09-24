@@ -233,10 +233,10 @@ export class AppConfig {
 
 	/** Gets the JSON query with related service, culture language and host */
 	public static getRelatedJson(service?: string, additional?: { [key: string]: string }) {
-		const json = {
+		const json: { [key: string]: string } = {
 			"language": this.language,
 			"host": this.url.host
-		} as { [key: string]: string };
+		};
 		service = service || this.services.main;
 		if (AppUtility.isNotEmpty(service)) {
 			json["related-service"] = service;

@@ -3,7 +3,7 @@
 	"version": "1.0.0-beta",
 	"author": "VIEApps.net",
 	"homepage": "https://vieapps.net/",
-	"description": "Online Books from VIEApps.net",
+	"description": "VIEApps NGX Online Books",
 	"scripts": {
 		"ng": "ng",
 		"start": "ng serve",
