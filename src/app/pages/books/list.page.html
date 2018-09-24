@@ -53,14 +53,14 @@
 
 <ion-content>
 
-	<ion-list *ngIf="!displayAsGrid" padding-end>
+	<ion-list *ngIf="!displayAsGrid">
 		<control-book-linear-item *ngFor="let book of books; trackBy: track"
 			[book]="book"
 			[hideAuthor]="hideAuthor"
 			[hideCategory]="hideCategory"></control-book-linear-item>
 	</ion-list>
 
-	<ion-grid *ngIf="displayAsGrid" padding-horizontal>
+	<ion-grid *ngIf="displayAsGrid">
 		<ion-row>
 			<ion-col *ngFor="let book of books; trackBy: track" size-sx="6" size-sm="4" size-md="4" size-lg="4" size-xl="3">
 				<control-book-grid-item

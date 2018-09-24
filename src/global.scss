@@ -38,6 +38,14 @@ app-root > ion-app > ion-split-pane > ion-menu > ion-content > ion-list > ion-me
 	line-height: 44px;
 }
 
+/* search bar on iOS */
+.sc-ion-searchbar-ios-h {
+	height: auto;
+}
+.searchbar-input-container.sc-ion-searchbar-ios {
+	height: 28px;
+}
+
 /* label of invalid controls */
 .invalid > ion-label,
 .invalid > ion-label.ion-color {

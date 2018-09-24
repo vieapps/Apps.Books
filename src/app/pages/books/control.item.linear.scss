@@ -1,22 +1,22 @@
-ion-item > ion-thumbnail {
-	width: 65px;
-	height: 80px;
+ion-item > ion-label > ion-thumbnail {
+	width: 75px;
+	height: 70px;
 }
-ion-item > ion-thumbnail > img {
+ion-item > ion-label > ion-thumbnail > img {
 	width: 65px;
-	max-height: 80px;
+	max-height: 70px;
 	border-radius: 5px;
 }
-ion-item > div,
-ion-item > div > div,
-ion-item > div > h2 {
+ion-item > ion-label > div,
+ion-item > ion-label > div > div,
+ion-item > ion-label > div > h2 {
 	width: 100%;
 }
-ion-item > div > div > span {
+ion-item > ion-label > div > div > span {
 	font-size: 0.96em;
 }
-ion-item > div > div > label > span > span,
-ion-item > div > div > label > span > ion-icon {
+ion-item > ion-label > div > div > label > span > span,
+ion-item > ion-label > div > div > label > span > ion-icon {
 	display: inline-block;
 	vertical-align: middle;
 	top: -1px;
@@ -24,7 +24,7 @@ ion-item > div > div > label > span > ion-icon {
 	color: var(--ion-color-medium);
 	margin-left: 3px;
 }
-ion-item > div > h2 {
+ion-item > ion-label > div > h2 {
 	margin: 12px 0 5px;
 	font-size: 1.2em;
 	font-weight: normal;
