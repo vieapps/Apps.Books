@@ -20,19 +20,19 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-footer *ngIf="!filtering">
+<ion-footer *ngIf="!filtering && pagination">
 	<ion-toolbar>
 		<div>
-			<span [hidden]="!pagination" float-start>
+			<span float-start>
 				<ion-icon name="contacts" color="primary" slot="start"></ion-icon>
 				<span>
-					{{ totalRecords | number:'':locale }} / {{ pagination ? (pagination.TotalRecords | number:'':locale) : '?' }}	
+					{{ totalRecords | number:'':locale }} / {{ pagination.TotalRecords | number:'':locale }}	
 				</span>
 			</span>
-			<span [hidden]="!pagination || pagination.TotalPages < 2" float-end padding-end>
+			<span [hidden]="pagination.TotalPages < 2" float-end padding-end>
 				<ion-icon name="code" color="primary" slot="start"></ion-icon>
 				<span>
-					{{ pageNumber | number:'':locale }} / {{ pagination ? (pagination.TotalPages | number:'':locale) : '?' }}
+					{{ pageNumber | number:'':locale }} / {{ pagination.TotalPages | number:'':locale }}
 				</span>
 			</span>
 		</div>
