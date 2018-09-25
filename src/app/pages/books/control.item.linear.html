@@ -5,10 +5,10 @@
 		</ion-thumbnail>
 		<div>
 			<div>
-				<span [hidden]="hideAuthor">
+				<span *ngIf="!hideAuthor">
 					{{ book.Author }}
 				</span>
-				<span [hidden]="hideCategory">
+				<span *ngIf="!hideCategory">
 					{{ book.Category }}
 				</span>
 				<label float-end>

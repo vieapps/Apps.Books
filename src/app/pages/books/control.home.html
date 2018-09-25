@@ -1,6 +1,6 @@
 <div *ngIf="books">
 	<h1 padding-horizontal>
-		{{ latest }}
+		{{ labels.latest }}
 	</h1>
 	<ion-grid>
 		<ion-row>
@@ -16,14 +16,14 @@
 <section [innerHtml]="introduction" padding-horizontal></section>
 <section *ngIf="status">
 	<h1 padding-horizontal>
-		{{ statistics.label }}
+		{{ labels.statistics }}
 	</h1>
 	<ul>
 		<li>
-			{{ statistics.authors }}: <b>{{ status.Authors | number:'':locale }}</b>
+			{{ labels.authors }}: <b>{{ status.Authors | number:'':locale }}</b>
 		</li>
 		<li>
-			{{ statistics.books }}: <b>{{ status.Books | number:'':locale }}</b>
+			{{ labels.books }}: <b>{{ status.Books | number:'':locale }}</b>
 		</li>
 	</ul>
 </section>

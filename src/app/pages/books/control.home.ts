@@ -24,9 +24,9 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	}
 
 	introduction = "";
-	latest = "Latest";
-	statistics = {
-		label: "Statistics:",
+	labels = {
+		latest: "Latest",
+		statistics: "Statistics:",
 		authors: "Authors: ",
 		books: "Articles & Books: "
 	};
@@ -79,9 +79,9 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	}
 
 	private async prepareResourcesAsync() {
-		this.latest = await this.configSvc.getResourceAsync("books.home.latest");
-		this.statistics = {
-			label: await this.configSvc.getResourceAsync("books.home.statistics.label"),
+		this.labels = {
+			latest: await this.configSvc.getResourceAsync("books.home.latest"),
+			statistics: await this.configSvc.getResourceAsync("books.home.statistics.label"),
 			authors: await this.configSvc.getResourceAsync("books.home.statistics.authors"),
 			books: await this.configSvc.getResourceAsync("books.home.statistics.books")
 		};
@@ -91,9 +91,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		await this.prepareResourcesAsync();
 
 		if (this.booksSvc.introductions === undefined || this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
-			await this.booksSvc.fetchIntroductionsAsync(() => {
-				this.updateIntroduction();
-			});
+			await this.booksSvc.fetchIntroductionsAsync(() => this.updateIntroduction());
 		}
 		else {
 			this.updateIntroduction();
