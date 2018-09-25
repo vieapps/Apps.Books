@@ -94,17 +94,13 @@ ion-footer > ion-toolbar > div {
 	text-align: center;
 }
 ion-footer > ion-toolbar > div > span,
-ion-footer > ion-toolbar > div > span > ion-icon,
-ion-footer > ion-toolbar > div > span > span {
+ion-footer > ion-toolbar > div > ion-icon,
+ion-footer > ion-toolbar > div > span {
 	display: inline-block;
 	vertical-align: middle;
 	top: -1px;
 }
-ion-footer > ion-toolbar > div > span {
-	line-height: 44px;
-}
-ion-footer > ion-toolbar > div > span > ion-icon {
-	margin-top: 3px;
+ion-footer > ion-toolbar > div > ion-icon {
 	margin-right: 8px;
 }
 .cover > figure,

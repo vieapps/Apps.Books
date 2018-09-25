@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, ViewChild } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
@@ -19,7 +19,8 @@ import { RatingPoint } from "../../models/ratingpoint";
 @Component({
 	selector: "page-books-list",
 	templateUrl: "./list.page.html",
-	styleUrls: ["./list.page.scss"]
+	styleUrls: ["./list.page.scss"],
+	encapsulation: ViewEncapsulation.None
 })
 export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	constructor(

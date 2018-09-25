@@ -41,11 +41,15 @@
 
 <ion-content>
 	<ion-list padding-end>
-		<ion-item *ngFor="let profile of profiles; let idx=index; trackBy: track" [routerLink]="getRouterLink(profile, idx)" [queryParams]="getQueryParams(profile)" routerDirection="forward">
-			<ion-thumbnail slot="start">
-				<img [src]="profile.avatarURI" />
-			</ion-thumbnail>
-			<div>
+		<ion-item *ngFor="let profile of profiles; let idx=index; trackBy: track" [routerLink]="getRouterLink(profile, idx)" [queryParams]="getQueryParams(profile)" routerDirection="forward" detail="false">
+			<ion-label>
+				<ion-thumbnail float-start padding-end>
+					<img [src]="profile.avatarURI" />
+				</ion-thumbnail>
+				<label float-end>
+					<ion-icon icon="time" slot="start"></ion-icon>
+					{{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
+				</label>
 				<h2>
 					{{ profile.Name }}
 				</h2>
@@ -58,12 +62,8 @@
 						<ion-icon name="call" slot="start"></ion-icon>
 						{{ profile.Mobile }}
 					</span>
-					<label float-end>
-						<ion-icon icon="time" slot="start"></ion-icon>
-						{{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
-					</label>
 				</div>
-			</div>
+			</ion-label>
 		</ion-item>
 	</ion-list>
 	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onScroll($event)">

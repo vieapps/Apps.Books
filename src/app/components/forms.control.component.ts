@@ -111,8 +111,8 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	get color() {
 		return {
-			label: this.control.Options.LabelOptions.Color,
-			control: this.control.Options.Color
+			label: AppUtility.isNotEmpty(this.control.Options.LabelOptions.Color) ? this.control.Options.LabelOptions.Color : undefined,
+			control: AppUtility.isNotEmpty(this.control.Options.Color) ? this.control.Options.Color : undefined
 		};
 	}
 
@@ -194,8 +194,8 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			}
 		}
 		return {
-			control: this._style !== "" ? this._style : undefined,
-			description: this.control.Options.DescriptionOptions.Style !== "" ? this.control.Options.DescriptionOptions.Style : undefined
+			control: AppUtility.isNotEmpty(this._style) ? this._style : undefined,
+			description: AppUtility.isNotEmpty(this.control.Options.DescriptionOptions.Style) ? this.control.Options.DescriptionOptions.Style : undefined
 		};
 	}
 

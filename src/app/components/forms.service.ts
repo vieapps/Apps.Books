@@ -181,7 +181,7 @@ export class AppFormsControl {
 			const labelOptions = controlOptions.LabelOptions || controlOptions.labeloptions;
 			if (labelOptions !== undefined) {
 				control.Options.LabelOptions.Position = labelOptions.Position || labelOptions.position || "stacked";
-				control.Options.LabelOptions.Color = labelOptions.Color || labelOptions.color || "";
+				control.Options.LabelOptions.Color = labelOptions.Color || labelOptions.color;
 				control.Options.LabelOptions.Css = labelOptions.Css || labelOptions.css || "";
 			}
 
@@ -194,7 +194,7 @@ export class AppFormsControl {
 
 			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeholder;
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
-			control.Options.Color = controlOptions.Color || controlOptions.color || "";
+			control.Options.Color = controlOptions.Color || controlOptions.color;
 			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
 			control.Options.Name = controlOptions.Name || controlOptions.name || (alternativeName !== undefined ? `${alternativeName}-${control.Name}` : `${control.Name}`);
 			control.Options.ValidatePattern = controlOptions.ValidatePattern || controlOptions.validatepattern;

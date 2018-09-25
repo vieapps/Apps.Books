@@ -121,8 +121,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 	}
 
 	async onScrollEndAsync() {
-		const scrollElement = await this.contentCtrl.getScrollElement();
-		this.scrollOffset = scrollElement.scrollTop;
+		this.scrollOffset = (await this.contentCtrl.getScrollElement()).scrollTop;
 		await this.booksSvc.updateBookmarkAsync(this.book.ID, this.chapter, this.scrollOffset);
 	}
 
@@ -290,10 +289,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 				this.book.ID,
 				async () => {
 					this.booksSvc.deleteBookmark(this.book.ID);
-					await Promise.all([
-						this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title })),
-						this.configSvc.navigateBackAsync()
-					]);
+					await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title }));
 				},
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			),
@@ -352,7 +348,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async closeAsync() {
 		if (this.book.TotalChapters > 1) {
-			AppEvents.broadcast("Books", { Type: "CloseBook", ID: this.book.ID, Chapter: this.chapter });
+			AppEvents.broadcast("Books", { Type: "CloseBook", ID: this.book.ID });
 		}
 		await this.configSvc.navigateBackAsync();
 	}
