@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../components/app.crypto";
+import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
@@ -33,6 +34,7 @@ export class UpdateBookPage implements OnInit {
 		controls: new Array<AppFormsControl>(),
 		config: undefined as Array<any>,
 		requestOnly: true,
+		category: "",
 		hash: "",
 	};
 	cover = {
@@ -107,6 +109,7 @@ export class UpdateBookPage implements OnInit {
 	onFormInitialized($event) {
 		this.update.form.patchValue(this.book);
 		this.update.form.controls["TOCs"].setValue(this.book.TOCs.join("\n"));
+		this.update.category = this.book.Category;
 		this.update.hash = AppCrypto.hash(this.update.form.value);
 	}
 
@@ -125,6 +128,7 @@ export class UpdateBookPage implements OnInit {
 
 	removeCover() {
 		this.cover.image = undefined;
+		this.changeDetector.detectChanges();
 	}
 
 	async uploadCoverAsync(onNext: () => void) {
@@ -158,7 +162,7 @@ export class UpdateBookPage implements OnInit {
 						]);
 						await this.configSvc.navigateBackAsync();
 					},
-					async error => this.appFormsSvc.showErrorAsync(error)
+					async error => await this.appFormsSvc.showErrorAsync(error)
 				);
 			}
 			else {
@@ -169,9 +173,12 @@ export class UpdateBookPage implements OnInit {
 							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.success"))
 						]);
+						if (this.update.category !== this.update.form.value.Category) {
+							AppEvents.broadcast("Books", { Type: "Moved", From: this.update.category, To: this.update.form.value.Category });
+						}
 						await this.configSvc.navigateBackAsync();
 					},
-					async error => this.appFormsSvc.showErrorAsync(error)
+					async error => await this.appFormsSvc.showErrorAsync(error)
 				);
 			}
 		}
@@ -187,7 +194,7 @@ export class UpdateBookPage implements OnInit {
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			if (this.cover.image !== undefined) {
-				this.uploadCoverAsync(async () => await this.updateBookAsync());
+				await this.uploadCoverAsync(async () => await this.updateBookAsync());
 			}
 			else {
 				await this.updateBookAsync();
@@ -200,7 +207,7 @@ export class UpdateBookPage implements OnInit {
 			undefined,
 			undefined,
 			await this.configSvc.getResourceAsync("books.update.messages.confirm"),
-			() => this.configSvc.navigateBackAsync(),
+			async () => await this.configSvc.navigateBackAsync(),
 			await this.configSvc.getResourceAsync("common.buttons.ok"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);

@@ -74,7 +74,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 			}
 		}, "LanguageChangedEventHandlerOfViewBookInfoPage");
 
-		AppEvents.on("Books", async info => {
+		AppEvents.on("Books", info => {
 			if (this.book.ID === info.args.ID) {
 				if ("StatisticsUpdated" === info.args.Type) {
 					this.getStatistics();

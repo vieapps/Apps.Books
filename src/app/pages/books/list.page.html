@@ -34,17 +34,17 @@
 				<ion-icon name="more" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
-		<div>
-			<span [hidden]="!pagination" float-start>
+		<div *ngIf="pagination">
+			<span float-start>
 				<ion-icon name="book" color="primary" slot="start"></ion-icon>
 				<span>
-					{{ totalRecords | number:'':locale }} / {{ pagination ? (pagination.TotalRecords | number:'':locale) : '?' }}	
+					{{ totalRecords | number:'':locale }} / {{ pagination.TotalRecords | number:'':locale }}	
 				</span>
 			</span>
-			<span [hidden]="!pagination || pagination.TotalPages < 2">
+			<span [hidden]="pagination.TotalPages < 2">
 				<ion-icon name="code" color="primary" slot="start"></ion-icon>
 				<span>
-					{{ pageNumber | number:'':locale }} / {{ pagination ? (pagination.TotalPages | number:'':locale) : '?' }}
+					{{ pageNumber | number:'':locale }} / {{ pagination.TotalPages | number:'':locale }}
 				</span>
 			</span>
 		</div>

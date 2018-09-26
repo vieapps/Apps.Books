@@ -18,6 +18,10 @@ export class BookGridItemControl {
 	@Input() hideAuthor: boolean;
 	@Input() hideCategory: boolean;
 
+	get coverBackground() {
+		return `url(${this.book.Cover})`;
+	}
+
 	async openAsync() {
 		await this.configSvc.navigateForwardAsync(this.book.routerURI || this.book.routerLink + "?x-request=" + this.book.routerParams["x-request"]);
 	}

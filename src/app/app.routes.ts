@@ -89,14 +89,14 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 					loadChildren: "./pages/books/info.module#ViewBookInfoPageModule"
 				},
 				{
-					path: "options",
-					loadChildren: "./pages/books/options.module#BookReadingOptionsPageModule"
-				},
-				{
 					path: "update/:data",
 					loadChildren: "./pages/books/update.module#UpdateBookPageModule",
 					canActivate: [AuthenticatedGuardService]
 				},
+				{
+					path: "options",
+					loadChildren: "./pages/books/options.module#BookReadingOptionsPageModule"
+				}
 			]
 		},
 	])],

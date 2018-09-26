@@ -287,10 +287,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			await this.configSvc.getResourceAsync("books.read.delete.confirm"),
 			async () => await this.booksSvc.deleteAsync(
 				this.book.ID,
-				async () => {
-					this.booksSvc.deleteBookmark(this.book.ID);
-					await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title }));
-				},
+				async () => this.booksSvc.deleteBookmark(this.book.ID, async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title }))),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			),
 			await this.configSvc.getResourceAsync("common.buttons.ok"),

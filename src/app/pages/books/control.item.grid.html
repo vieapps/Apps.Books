@@ -1,4 +1,4 @@
-<div [style.background-image]="'url(' + book.Cover + ')'" [title]="book.Title" (click)="openAsync()">
+<div [style.background-image]="coverBackground" [title]="book.Title" (click)="openAsync()">
 	<section>
 		<span *ngIf="!hideAuthor">
 			{{ book.Author }}

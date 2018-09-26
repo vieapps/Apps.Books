@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
@@ -19,8 +19,7 @@ import { RatingPoint } from "../../models/ratingpoint";
 @Component({
 	selector: "page-books-list",
 	templateUrl: "./list.page.html",
-	styleUrls: ["./list.page.scss"],
-	encapsulation: ViewEncapsulation.None
+	styleUrls: ["./list.page.scss"]
 })
 export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	constructor(
@@ -108,13 +107,17 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 			}, `AccountEventHandlers${this.eventIdentity}`);
 			AppEvents.on("Books", async info => {
-				if ("Deleted" === info.args.Type) {
-					if (this.filterBy.And.Category.Equals !== undefined && this.filterBy.And.Category.Equals === info.args.Category) {
-						this.prepareResults();
-					}
-					else if (this.filterBy.And.Author.Equals !== undefined && this.filterBy.And.Author.Equals === info.args.Author) {
-						this.prepareResults();
-					}
+				const reprepareResults = "Deleted" === info.args.Type
+					? this.filterBy.And.Category.Equals !== undefined
+						? this.filterBy.And.Category.Equals === info.args.Category
+						: this.filterBy.And.Author.Equals !== undefined
+							? this.filterBy.And.Author.Equals === info.args.Author
+							: false
+					: "Moved" === info.args.Type
+						? this.filterBy.And.Category.Equals !== undefined && (this.filterBy.And.Category.Equals === info.args.From || this.filterBy.And.Category.Equals === info.args.To)
+						: false;
+				if (reprepareResults) {
+					this.prepareResults();
 				}
 			}, `BookEventHandlers${this.eventIdentity}`);
 		}
@@ -189,7 +192,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			this.ratings = {};
 			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName) || AppPagination.getDefault();
 			this.pagination.PageNumber = this.pageNumber;
-			this.searchAsync(() => this.prepareActionsAsync());
+			await this.searchAsync(async () => await this.prepareActionsAsync());
 		}
 	}
 
@@ -318,17 +321,17 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", () => this.configSvc.navigateForwardAsync("/books/search")),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", async () => await this.configSvc.navigateForwardAsync("/books/search")),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.filter"), "funnel", () => this.showFilter()),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.sort"), "list-box", async () => await this.showSortsAsync())
 		];
 
 		const pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 		if (pagination !== undefined && this.pageNumber < pagination.PageNumber) {
-			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.show", { totalRecords: AppPagination.computeTotal(pagination.PageNumber, pagination) }), "eye", () => {
+			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.show", { totalRecords: AppPagination.computeTotal(pagination.PageNumber, pagination) }), "eye", async () => {
 				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 				this.pageNumber = this.pagination.PageNumber;
-				this.prepareResults(() => this.prepareActionsAsync());
+				await this.prepareResults(async () => await this.prepareActionsAsync());
 			}));
 		}
 
@@ -355,7 +358,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				if (this.sort !== data) {
 					this.sort = data;
 					this.prepareResults(async () => {
-						await this.contentCtrl.scrollToTop(500);
+						await this.contentCtrl.scrollToTop(567);
 						await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.list.sort.message"));
 					});
 				}
