@@ -62,6 +62,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		return this.configSvc.locale;
 	}
 
+	get canShowMore() {
+		return this.configSvc.screenWidth > 767;
+	}
+
 	ngOnInit() {
 		this.getReadingOptions();
 		this.initializeAsync();

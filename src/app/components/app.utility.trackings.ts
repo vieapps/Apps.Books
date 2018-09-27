@@ -33,7 +33,12 @@ export class TrackingUtility {
 	public static async trackAsync(title?: string, path?: string) {
 		// Google Analytics
 		if (this._googleAnalytics !== undefined) {
-			await this._googleAnalytics.trackView(title || AppConfig.app.name, path || (AppConfig.url.stack.length > 0 ? AppConfig.url.stack[AppConfig.url.stack.length - 1].url : "/"));
+			try {
+				await this._googleAnalytics.trackView(title || AppConfig.app.name, path || (AppConfig.url.stack.length > 0 ? AppConfig.url.stack[AppConfig.url.stack.length - 1].url : "/"));
+			}
+			catch (error) {
+				console.error(`[Tracking]: Error occurred while tracking a screen view with Google Analytics => ${AppUtility.getErrorMessage(error)}`, error);
+			}
 		}
 	}
 

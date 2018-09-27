@@ -2,6 +2,7 @@ import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { AppEvents } from "../../components/app.events";
+import { TrackingUtility } from "../../components/app.utility.trackings";
 import { ConfigurationService } from "../../providers/configuration.service";
 
 @Component({
@@ -39,12 +40,13 @@ export class HomePage implements OnInit, OnDestroy {
 			}
 		}, "LanguageChangedEventHandlerOfHomePage");
 
-		this.rxSubscription = this.router.events.subscribe(event => {
+		this.rxSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd) {
 				if (this.configSvc.isNavigateTo(this.configSvc.appConfig.url.home, this.configSvc.currentUrl)) {
 					this.setTitle();
 					this.changes = new Date();
 					AppEvents.broadcast("App", { Type: "HomePageIsOpened" });
+					await TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.home + "/return");
 				}
 			}
 		});
@@ -63,6 +65,7 @@ export class HomePage implements OnInit, OnDestroy {
 	async initializeAsync() {
 		this.title = await this.configSvc.getResourceAsync("homepage.title");
 		this.setTitle();
+		await TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.home + "/initialize");
 	}
 
 }

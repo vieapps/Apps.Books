@@ -790,7 +790,7 @@ export class AppFormsService {
 			};
 		});
 		if (AppUtility.isFalse(dontAddCancelButton)) {
-			actions.push(this.getActionSheetButton(await this.getResourceAsync("common.buttons.cancel"), "close", async () => await this.hideActionSheetAsync(), "cancel"));
+			actions.push(this.getActionSheetButton(await this.getResourceAsync("common.buttons.cancel"), isRunningOnIOS ? undefined : "close", async () => await this.hideActionSheetAsync(), "cancel"));
 		}
 		this._actionsheet = await this.actionsheetController.create({
 			buttons: actions,

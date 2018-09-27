@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
@@ -23,6 +23,7 @@ import { RatingPoint } from "../../models/ratingpoint";
 })
 export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	constructor(
+		public changeDetector: ChangeDetectorRef,
 		public appFormsSvc: AppFormsService,
 		public router: Router,
 		public configSvc: ConfigurationService,
@@ -76,7 +77,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	title = "";
 	uri = "";
 
-	asGrid = false;
+	asGrid = true;
 	filtering = false;
 	searching = false;
 	actions: Array<{
@@ -93,10 +94,11 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	ngOnInit() {
 		this.initializeAsync();
-		this.rxSubscription = this.router.events.subscribe(event => {
+		this.rxSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd) {
 				if (this.configSvc.currentUrl.startsWith(this.uri)) {
 					this.configSvc.appTitle = this.title;
+					await TrackingUtility.trackAsync(this.title, this.uri);
 				}
 			}
 		});
@@ -188,7 +190,6 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 					: "/books/list-by-author/" + AppUtility.toANSI(this.filterBy.And.Author.Equals, true) + "?x-request=";
 
 		if (!this.searching) {
-			this.asGrid = this.configSvc.screenWidth > 480;
 			this.ratings = {};
 			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName) || AppPagination.getDefault();
 			this.pagination.PageNumber = this.pageNumber;
@@ -252,6 +253,9 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				this.pagination.PageNumber = this.pageNumber;
 				this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
 				await TrackingUtility.trackAsync(this.title, this.uri);
+				if (this.filterBy.And.Author.Equals !== undefined) {
+					this.changeDetector.detectChanges();
+				}
 			}
 		);
 	}
@@ -342,6 +346,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	showFilter() {
 		this.filtering = true;
+		this.changeDetector.detectChanges();
 		PlatformUtility.focus(this.searchCtrl);
 	}
 

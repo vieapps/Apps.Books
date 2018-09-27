@@ -6,7 +6,6 @@ import { TranslateService } from "@ngx-translate/core";
 
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
-import { Device } from "@ionic-native/device/ngx";
 
 import { AppRTU } from "./components/app.rtu";
 import { AppEvents } from "./components/app.events";
@@ -31,7 +30,6 @@ export class AppComponent implements OnInit {
 		public platform: Platform,
 		public splashScreen: SplashScreen,
 		public statusBar: StatusBar,
-		public device: Device,
 		public translateSvc: TranslateService,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
@@ -39,7 +37,9 @@ export class AppComponent implements OnInit {
 		public usersSvc: UsersService,
 		public booksSvc: BooksService
 	) {
-		console.log("<AppComponent>: Initializing", this.configSvc.appConfig.app);
+		if (this.configSvc.isDebug) {
+			console.log("<AppComponent>: Initializing...");
+		}
 	}
 
 	sidebar = {
@@ -85,12 +85,12 @@ export class AppComponent implements OnInit {
 
 			if (this.platform.is("cordova")) {
 				this.splashScreen.hide();
-				if (this.device.platform !== "browser") {
+				if (this.configSvc.isNativeApp) {
 					this.statusBar.styleDefault();
-					if ("iOS" === this.device.platform && this.device.model.startsWith("iPhone1") && AppUtility.toInt(this.device.model.substring(this.device.model.length - 1)) > 2) {
+					this.statusBar.overlaysWebView(false);
+					if (this.configSvc.isRunningOnIOS) {
 						this.statusBar.backgroundColorByHexString("f8f8f8");
 					}
-					this.statusBar.overlaysWebView(false);
 				}
 			}
 
@@ -298,7 +298,7 @@ export class AppComponent implements OnInit {
 			await this.usersSvc.activateAsync(
 				mode,
 				code,
-				() => this.initializeAsync(async () => {
+				async () => await this.initializeAsync(async () => {
 					await Promise.all([
 						TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("common.loading.activate"), `users/activate/${mode}`),
 						this.showActivationResultAsync({
@@ -307,7 +307,7 @@ export class AppComponent implements OnInit {
 						})
 					]);
 				}, true),
-				error => this.initializeAsync(async () => await this.showActivationResultAsync({
+				async error => await this.initializeAsync(async () => await this.showActivationResultAsync({
 					Status: "Error",
 					Mode: mode,
 					Error: error
@@ -326,41 +326,43 @@ export class AppComponent implements OnInit {
 	}
 
 	private async showActivationResultAsync(data: any) {
-		this.configSvc.appConfig.url.stack[this.configSvc.appConfig.url.stack.length - 1].params = {};
-		const header = await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.header.account" : "users.activate.header.password");
-		const subHeader = await this.configSvc.getResourceAsync("OK" === data.Status ? "users.activate.subHeader.success" : "users.activate.subHeader.error");
-		const message = "OK" === data.Status
-			? await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.messages.success.account" : "users.activate.messages.success.password")
-			: await this.configSvc.getResourceAsync("users.activate.messages.error.general", { error: (data.Error ? ` (${data.Error.Message})` : "") });
-		await this.appFormsSvc.showAlertAsync(header, subHeader, message, async () => await this.router.navigateByUrl(this.configSvc.appConfig.url.home));
+		await this.appFormsSvc.showAlertAsync(
+			await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.header.account" : "users.activate.header.password"),
+			await this.configSvc.getResourceAsync("OK" === data.Status ? "users.activate.subHeader.success" : "users.activate.subHeader.error"),
+			"OK" === data.Status
+				? await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.messages.success.account" : "users.activate.messages.success.password")
+				: await this.configSvc.getResourceAsync("users.activate.messages.error.general", { error: (data.Error ? ` (${data.Error.Message})` : "") }),
+			async () => {
+				this.configSvc.appConfig.url.stack[this.configSvc.appConfig.url.stack.length - 1] = {
+					url: this.configSvc.appConfig.url.home,
+					params: {}
+				};
+				await this.router.navigateByUrl(this.configSvc.appConfig.url.home);
+			}
+		);
 	}
 
 	private async initializeAsync(onNext?: () => void, noInitializeSession?: boolean) {
 		await this.configSvc.initializeAsync(
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
-					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.appConfig.isNativeApp ? JSON.stringify(this.configSvc.appConfig.session) : this.configSvc.appConfig.session : "");
 					this.startRTU(onNext);
 				}
 				else {
-					console.log("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+					console.log("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.isNativeApp ? JSON.stringify(this.configSvc.appConfig.session) : this.configSvc.appConfig.session : "");
 					await this.configSvc.registerSessionAsync(
 						() => {
-							console.log("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+							console.log("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.appConfig.isNativeApp ? JSON.stringify(this.configSvc.appConfig.session) : this.configSvc.appConfig.session : "");
 							this.startRTU(onNext);
 						},
 						async error => {
 							if (AppUtility.isGotSecurityException(error)) {
 								console.warn("<AppComponent>: Cannot register, the session is need to be re-initialized (anonymous)");
-								await this.configSvc.resetSessionAsync(() => {
-									PlatformUtility.setTimeout(async () => {
-										await this.initializeAsync(onNext, noInitializeSession);
-									}, 234);
-								});
+								await this.configSvc.resetSessionAsync(() => PlatformUtility.setTimeout(async () => await this.initializeAsync(onNext, noInitializeSession), 234));
 							}
 							else {
-								await this.appFormsSvc.hideLoadingAsync();
-								console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error);
+								await this.appFormsSvc.hideLoadingAsync(() => console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error));
 							}
 						}
 					);
@@ -369,15 +371,10 @@ export class AppComponent implements OnInit {
 			async error => {
 				if (AppUtility.isGotSecurityException(error)) {
 					console.warn("<AppComponent>: Cannot initialize, the session is need to be re-initialized (anonymous)");
-					await this.configSvc.resetSessionAsync(() => {
-						PlatformUtility.setTimeout(async () => {
-							await this.initializeAsync(onNext, noInitializeSession);
-						}, 234);
-					});
+					await this.configSvc.resetSessionAsync(() => PlatformUtility.setTimeout(async () => await this.initializeAsync(onNext, noInitializeSession), 234));
 				}
 				else {
-					await this.appFormsSvc.hideLoadingAsync();
-					console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error);
+					await this.appFormsSvc.hideLoadingAsync(() => console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error));
 				}
 			},
 			noInitializeSession
@@ -385,16 +382,18 @@ export class AppComponent implements OnInit {
 	}
 
 	private startRTU(onNext?: () => void) {
-		AppRTU.start(() => {
+		AppRTU.start(async () => {
 			if (this.configSvc.isWebApp) {
 				PlatformUtility.setPWAEnvironment(() => this.configSvc.watchFacebookConnect());
 			}
 			if (this.configSvc.isAuthenticated) {
 				this.configSvc.patchAccount(() => this.configSvc.getProfile());
 			}
-			console.log("<AppComponent>: The app is initialized", this.configSvc.isDebug ? this.configSvc.appConfig.app : "");
-			AppEvents.broadcast("App", { Type: "Initialized", Data: this.configSvc.appConfig.app });
-			this.appFormsSvc.hideLoadingAsync(() => {
+			if (this.configSvc.isDebug) {
+				console.log("<AppComponent>: The app is initialized", this.configSvc.appConfig.isNativeApp ? JSON.stringify(this.configSvc.appConfig.app) : this.configSvc.appConfig.app);
+			}
+			AppEvents.broadcast("App", { Type: "Initialized" });
+			await this.appFormsSvc.hideLoadingAsync(async () => {
 				if (onNext !== undefined) {
 					onNext();
 				}
@@ -402,14 +401,17 @@ export class AppComponent implements OnInit {
 					let redirect = this.configSvc.queryParams["redirect"] as string || this.configSvc.appConfig.url.redirectToWhenReady;
 					if (redirect !== undefined) {
 						this.configSvc.appConfig.url.redirectToWhenReady = undefined;
-						this.configSvc.appConfig.url.stack[this.configSvc.appConfig.url.stack.length - 1].params = {};
+						this.configSvc.appConfig.url.stack[this.configSvc.appConfig.url.stack.length - 1] = {
+							url: this.configSvc.appConfig.url.home,
+							params: {}
+						};
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
 							console.log(`<AppComponent>: Redirect to the request url\n=>: ${redirect}`);
-							this.configSvc.navigateForwardAsync(redirect);
+							await this.configSvc.navigateForwardAsync(redirect);
 						}
 						catch (error) {
-							console.error(`<AppComponent>: Redirect url is not well-form\n[${redirect}]`, error);
+							console.error(`<AppComponent>: Redirect url is not well-form\n[${redirect}]`, this.configSvc.appConfig.isNativeApp ? JSON.stringify(error) : error);
 						}
 					}
 				}

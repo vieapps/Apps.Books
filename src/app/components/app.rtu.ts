@@ -165,7 +165,7 @@ export class AppRTU {
 						console.warn(`[RTU]: No suitable service scope handler is found (${service})`);
 					}
 				},
-				error => console.warn("[RTU]: Got an error", error)
+				error => console.warn("[RTU]: Got an error", AppConfig.isNativeApp ? JSON.stringify(error) : error)
 			);
 		}
 
@@ -244,7 +244,7 @@ export class AppRTU {
 				};
 
 				if (AppConfig.isDebug) {
-					console.log("[RTU]: Got a message", message);
+					console.log("[RTU]: Got a message", AppConfig.isNativeApp ? JSON.stringify(message) : message);
 				}
 
 				if (message.Type.Service === "Pong") {

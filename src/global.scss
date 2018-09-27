@@ -23,22 +23,32 @@ ion-content {
 		max-width: 320px;
 	}
 }
-app-root > ion-app > ion-split-pane > ion-menu > ion-header > ion-toolbar > ion-thumbnail img {
+ion-menu.menu-side-start > ion-header > ion-toolbar > ion-thumbnail img {
 	border-radius: 50%;
 	width: 80%;
 	height: 80%;
 	margin: 10%;
 }
-app-root > ion-app > ion-split-pane.split-pane-ios > ion-menu > ion-header > ion-toolbar > ion-thumbnail {
+.ios ion-menu.menu-side-start > ion-header > ion-toolbar > ion-thumbnail {
 	height: 36px;
 	width: 36px;
 }
-app-root > ion-app > ion-split-pane > ion-menu > ion-content > ion-list > ion-menu-toggle img {
+ion-menu > ion-content > ion-list > ion-menu-toggle img {
 	max-height: 44px;
 	margin-right: 16px;
 }
-app-root > ion-app > ion-split-pane > ion-menu > ion-content > ion-list > ion-menu-toggle > ion-list-header > ion-label {
+ion-menu > ion-content > ion-list > ion-menu-toggle > ion-list-header > ion-label {
 	line-height: 44px;
+}
+
+/* footer toolbars */
+ion-footer > ion-toolbar {
+	padding-left: 8px;
+} 
+
+/* header toolbars on iOS */
+.plt-ios ion-header ion-toolbar:first-child {
+	padding-top: 0;
 }
 
 /* search bar on iOS */

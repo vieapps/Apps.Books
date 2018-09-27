@@ -27,7 +27,7 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-footer *ngIf="!filtering">
+<ion-footer *ngIf="!filtering && (actions || pagination)">
 	<ion-toolbar>
 		<ion-buttons *ngIf="actions" slot="end">
 			<ion-button color="primary" (click)="showActionsAsync()">

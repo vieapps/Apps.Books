@@ -3,7 +3,7 @@ import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { PlatformLocation } from "@angular/common";
 import { Http } from "@angular/http";
-import { Title } from "@angular/platform-browser";
+import { Title as BrowserTitle } from "@angular/platform-browser";
 import { Platform, NavController } from "@ionic/angular";
 import { Storage } from "@ionic/storage";
 import { Device } from "@ionic-native/device/ngx";
@@ -29,16 +29,16 @@ export class ConfigurationService extends BaseService {
 
 	constructor (
 		public http: Http,
+		public platformLocation: PlatformLocation,
 		public platform: Platform,
 		public navController: NavController,
-		public platformLocation: PlatformLocation,
 		public device: Device,
 		public keyboard: Keyboard,
 		public inappBrowser: InAppBrowser,
-		public appVer: AppVersion,
+		public appVersion: AppVersion,
 		public googleAnalytics: GoogleAnalytics,
 		public storage: Storage,
-		public browserTitle: Title,
+		public browserTitle: BrowserTitle,
 		public translateSvc: TranslateService
 	) {
 		super(http, "Configuration");
@@ -70,6 +70,11 @@ export class ConfigurationService extends BaseService {
 	/** Gets the state that determines the app is running in debug mode or not */
 	public get isDebug() {
 		return this.appConfig.isDebug;
+	}
+
+	/** Gets the state that determines is native app */
+	public get isNativeApp() {
+		return this.appConfig.isNativeApp;
 	}
 
 	/** Gets the state that determines is web progressive app */
@@ -152,11 +157,6 @@ export class ConfigurationService extends BaseService {
 		return AppCrypto.urlEncode(PlatformUtility.getRedirectURI("prego=activate&mode={mode}&code={code}", false));
 	}
 
-	/** Gets the current version of the app title */
-	public get appVersion() {
-		return this.appConfig.app.version;
-	}
-
 	/** Sets the app title (means title of the browser) */
 	public set appTitle(value: string) {
 		this.browserTitle.setTitle(`${value} :: ${this.appConfig.app.name}`);
@@ -213,17 +213,31 @@ export class ConfigurationService extends BaseService {
 		}
 
 		if (isCordova) {
-			await TrackingUtility.initializeAsync(this.googleAnalytics);
 			if (isNativeApp) {
-				PlatformUtility.setKeyboard(this.keyboard);
+				if (!this.isRunningOnIOS) {
+					PlatformUtility.setKeyboard(this.keyboard);
+				}
 				PlatformUtility.setInAppBrowser(this.inappBrowser);
-				try {
-					const version = await this.appVer.getVersionCode();
-					this.appConfig.app.version = version + "";
+			}
+
+			try {
+				const appVersion = (await this.appVersion.getVersionCode()) + "";
+				this.appConfig.app.version = isNativeApp && !this.isRunningOnIOS
+					? appVersion.replace(/0/g, ".")
+					: appVersion;
+				if (this.isDebug) {
+					console.log(this.getLogMessage("App version: " + this.appConfig.app.version + " [" + appVersion + "]"));
 				}
-				catch (error) {
-					console.error(this.getErrorMessage("Cannot get app version", error));
+			}
+			catch (error) {
+				if (isNativeApp) {
+					console.error(this.getErrorMessage("Error occurred while preparing app version", error));
 				}
+			}
+
+			await TrackingUtility.initializeAsync(this.googleAnalytics);
+			if (this.isDebug) {
+				console.log(this.getLogMessage(`Device Info\n- UUID: ${this.device.uuid}\n- Manufacturer: ${this.device.manufacturer}\n- Model: ${this.device.model}\n- Serial: ${this.device.serial}\n- Platform: ${this.device.platform} ${this.device.platform !== "browser" ? this.device.version : "[" + this.device.model + " v" + this.device.version + "]"}`));
 			}
 		}
 	}
