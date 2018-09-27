@@ -28,7 +28,7 @@ import { UsersService } from "./providers/users.service";
 import { FilesService } from "./providers/files.service";
 import { BooksService } from "./providers/books.service";
 
-// AOT exported function for ngx-translate factories
+// ngx-translate factories
 export function HttpLoaderFactory(http: HttpClient) {
 	return new MultiTranslateHttpLoader(http, [
 		{ prefix: "./assets/i18n/common/", suffix: ".json" },
@@ -38,7 +38,7 @@ export function HttpLoaderFactory(http: HttpClient) {
 }
 
 // hammerjs config for working with touch gestures
-export class HammerConfig extends HammerGestureConfig  {
+export class HammerConfig extends HammerGestureConfig {
 	options = {
 		touchAction: "auto"
 	};

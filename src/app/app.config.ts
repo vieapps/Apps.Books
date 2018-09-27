@@ -22,7 +22,7 @@ export class AppConfig {
 	public static app = {
 		id: "ngx-books",
 		name: "VIEApps NGX Books",
-		version: "1.0.0-beta.12a",
+		version: "1.0.0-beta.12b",
 		mode: "",
 		platform: "",
 		os: "",

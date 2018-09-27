@@ -41,7 +41,7 @@
 	</ion-toolbar>
 </ion-footer>
 
-<ion-content padding>
+<ion-content>
 
 	<div *ngIf="mode === 'profile' && profile">
 		<figure>
@@ -50,7 +50,7 @@
 		<h1>
 			{{ profile.Name }}
 		</h1>
-		<ion-list>
+		<ion-list padding-end>
 			<ion-list-header>
 				{{ labels.header }}
 			</ion-list-header>

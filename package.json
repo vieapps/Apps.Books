@@ -1,6 +1,6 @@
 {
 	"name": "net.vieapps.books",
-	"version": "1.0.0-beta.12a",
+	"version": "1.0.0-beta.12b",
 	"author": "VIEApps.net",
 	"homepage": "https://vieapps.net/",
 	"description": "VIEApps NGX Online Books",
@@ -80,7 +80,7 @@
 		"@ionic/lab": "1.0.9",
 		"@types/jasmine": "~2.8.8",
 		"@types/jasminewd2": "~2.0.4",
-		"@types/node": "~10.9.4",
+		"@types/node": "~10.10.3",
 		"codelyzer": "~4.4.4",
 		"jasmine-core": "~3.2.1",
 		"jasmine-spec-reporter": "~4.2.1",

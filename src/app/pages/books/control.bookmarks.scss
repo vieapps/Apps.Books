@@ -24,8 +24,15 @@ ion-icon {
 	margin-right: 8px;
 }
 ion-item.sync > div > span > label {
-	line-height: 35px;
 	display: inline-block;
 	vertical-align: middle;
-	margin-top: 10px;
+	top: -1px;
+	margin: 10px 0;
+	line-height: 35px;
+	font-size: 0.8em;
+}
+ion-item.sync > div > span > ion-button {
+	display: inline-block;
+	vertical-align: middle;
+	top: -1px;
 }

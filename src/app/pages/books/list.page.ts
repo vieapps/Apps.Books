@@ -346,6 +346,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	showFilter() {
 		this.filtering = true;
+		this.searchCtrl.value = undefined;
 		this.changeDetector.detectChanges();
 		PlatformUtility.focus(this.searchCtrl);
 	}

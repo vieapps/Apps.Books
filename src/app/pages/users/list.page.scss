@@ -38,3 +38,8 @@ ion-item div > span > ion-icon {
 	font-size: 0.85em;
 	color: var(--ion-color-medium);
 }
+@media only screen and (max-width: 479px) {
+	label.time {
+		display: none !important;
+	}
+}
