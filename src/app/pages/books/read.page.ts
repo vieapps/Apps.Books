@@ -133,6 +133,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		await this.goNextAsync();
 	}
 
+	async onSwipeRightAsync() {
+		await this.openTOCsAsync();
+	}
+
 	async initializeAsync() {
 		await this.appFormsSvc.showLoadingAsync();
 		const id = this.configSvc.requestParams["ID"];

@@ -50,7 +50,7 @@
 	</ion-toolbar>
 </ion-footer>
 
-<ion-content (swipeleft)="onSwipeLeftAsync()" (ionScrollEnd)="onScrollEndAsync()">
+<ion-content (ionScrollEnd)="onScrollEndAsync()" (swipeleft)="onSwipeLeftAsync()" (swiperight)="onSwipeRightAsync()">
 	<div *ngIf="book" [class]="options.color" padding>
 		<div *ngIf="chapter === 0" class="cover">
 			<figure [hidden]="book.Cover.indexOf('/no/cover/image.png') > 0">

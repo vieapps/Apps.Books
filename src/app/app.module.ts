@@ -1,5 +1,5 @@
 import { NgModule } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
+import { BrowserModule, HammerGestureConfig, HAMMER_GESTURE_CONFIG } from "@angular/platform-browser";
 import { HttpModule } from "@angular/http";
 import { HttpClient, HttpClientModule } from "@angular/common/http";
 import { RouteReuseStrategy } from "@angular/router";
@@ -37,6 +37,13 @@ export function HttpLoaderFactory(http: HttpClient) {
 	]);
 }
 
+// hammerjs config for working with touch gestures
+export class HammerConfig extends HammerGestureConfig  {
+	options = {
+		touchAction: "auto"
+	};
+}
+
 @NgModule({
 	declarations: [AppComponent],
 	imports: [
@@ -71,7 +78,8 @@ export function HttpLoaderFactory(http: HttpClient) {
 		UsersService,
 		FilesService,
 		BooksService,
-		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+		{ provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig }
 	],
 	bootstrap: [AppComponent]
 })
