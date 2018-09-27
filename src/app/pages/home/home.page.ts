@@ -27,26 +27,26 @@ export class HomePage implements OnInit, OnDestroy {
 			this.initializeAsync();
 		}
 		else {
-			AppEvents.on("App", info => {
+			AppEvents.on("App", async info => {
 				if ("Initialized" === info.args.Type) {
-					this.initializeAsync();
+					await this.initializeAsync();
 				}
 			}, "AppReadyEventHandlerOfHomePage");
 		}
 
-		AppEvents.on("App", info => {
+		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
-				this.initializeAsync();
+				await this.setTitleAsync();
 			}
 		}, "LanguageChangedEventHandlerOfHomePage");
 
 		this.rxSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd) {
 				if (this.configSvc.isNavigateTo(this.configSvc.appConfig.url.home, this.configSvc.currentUrl)) {
-					this.setTitle();
+					await this.setTitleAsync();
 					this.changes = new Date();
 					AppEvents.broadcast("App", { Type: "HomePageIsOpened" });
-					await TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.home + "/return");
+					await this.trackAsync("return");
 				}
 			}
 		});
@@ -58,14 +58,17 @@ export class HomePage implements OnInit, OnDestroy {
 		this.rxSubscription.unsubscribe();
 	}
 
-	setTitle() {
-		this.configSvc.appTitle = this.title;
+	async initializeAsync() {
+		await this.setTitleAsync();
+		await this.trackAsync();
 	}
 
-	async initializeAsync() {
-		this.title = await this.configSvc.getResourceAsync("homepage.title");
-		this.setTitle();
-		await TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.home + "/initialize");
+	async setTitleAsync() {
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("homepage.title");
+	}
+
+	async trackAsync(section?: string) {
+		await TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.home + "/" + (section || "initialize"));
 	}
 
 }
