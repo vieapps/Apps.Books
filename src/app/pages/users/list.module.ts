@@ -17,4 +17,5 @@ import { ListAccountProfilesPage } from "./list.page";
 		])
 	]
 })
+
 export class ListAccountProfilesPageModule {}

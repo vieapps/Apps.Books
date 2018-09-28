@@ -189,6 +189,27 @@ export class BooksService extends BaseService {
 		);
 	}
 
+	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.search(
+			this.searchURI,
+			request,
+			AppUtility.isNotNull(onNext)
+				? data => {
+					if (data !== undefined) {
+						(data.Objects as Array<any> || []).forEach(o => Book.update(o));
+					}
+					onNext(data);
+				}
+				: undefined,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while searching", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
+	}
+
 	public async searchAsync(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.searchAsync(
 			this.searchURI,
@@ -734,7 +755,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public sendRequestToCrawl(url: string) {
+	public sendRequestToCrawl(url: string, onNext?: () => void) {
 		super.send({
 			ServiceName: this.Name,
 			ObjectName: "crawl",
@@ -746,6 +767,9 @@ export class BooksService extends BaseService {
 			Body: undefined,
 			Extra: undefined
 		});
+		if (onNext !== undefined) {
+			onNext();
+		}
 	}
 
 	public sendRequestToReCrawl(id: string, url: string, mode: string) {

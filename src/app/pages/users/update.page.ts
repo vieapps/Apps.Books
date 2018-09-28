@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { AppCrypto } from "../../components/app.crypto";
@@ -16,9 +16,11 @@ import { Privilege } from "./../../models/privileges";
 	templateUrl: "./update.page.html",
 	styleUrls: ["./update.page.scss"]
 })
+
 export class UpdateAccountProfilePage implements OnInit {
 
 	constructor (
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -121,7 +123,7 @@ export class UpdateAccountProfilePage implements OnInit {
 				if (this.profile === undefined || (this.profile.ID !== this.configSvc.getAccount().id && !this.authSvc.isSystemAdministrator())) {
 					await Promise.all([
 						this.appFormsSvc.showToastAsync("Hmmm..."),
-						this.configSvc.navigateHomeAsync()
+						this.zone.run(async () => await this.configSvc.navigateHomeAsync())
 					]);
 				}
 				else {
@@ -404,7 +406,7 @@ export class UpdateAccountProfilePage implements OnInit {
 	}
 
 	async openUpdatePrivilegesAsync() {
-		this.title = await this.configSvc.getResourceAsync("users.profile.privileges.title");
+		this.title = await this.configSvc.getResourceAsync("users.profile.privileges.title") + ` [${this.profile.Name}]`;
 		this.configSvc.appTitle = this.title;
 		await this.prepareButtonsAsync();
 		this._privileges.value = Account.instances.getValue(this.profile.ID).privileges;
@@ -431,10 +433,10 @@ export class UpdateAccountProfilePage implements OnInit {
 
 	onPrivilegesChanged($event) {
 		if (this.configSvc.appConfig.services.main !== "") {
-			this._privileges.value = this._privileges.value.filter(privilege => privilege.ServiceName !== this.configSvc.appConfig.services.main).concat($event.privileges as Privilege[]);
+			this._privileges.value = this._privileges.value.filter(privilege => privilege.ServiceName !== this.configSvc.appConfig.services.main).concat($event.privileges as Array<Privilege>);
 		}
 		else {
-			this._privileges.value = $event.privileges as Privilege[];
+			this._privileges.value = $event.privileges as Array<Privilege>;
 		}
 	}
 
@@ -449,7 +451,7 @@ export class UpdateAccountProfilePage implements OnInit {
 			if (preProcess !== undefined) {
 				preProcess();
 			}
-			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined);
+			await this.zone.run(async () => await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined));
 		});
 	}
 

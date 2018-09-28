@@ -170,6 +170,38 @@ export class Base {
 		}
 	}
 
+	/**
+	 * Searchs for instances (sends a request to remote API for searching with GET verb and "x-request" of query parameter)
+	 * @param path The URI path of the remote API to send the request to (with 'x-request' query string)
+	 * @param request The request to search (contains filter, sort and pagination)
+	 * @param onNext The handler to run when the process is completed
+	 * @param onError The handler to run when got any error
+	 * @param dontProcessPagination Set to true to by-pass process pagination
+	*/
+	protected search(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean) {
+		return AppAPI.get(path + AppUtility.toBase64Url(request)).subscribe(
+			response => {
+				if (AppUtility.isFalse(dontProcessPagination) || onNext !== undefined) {
+					const data = response.json();
+					if (AppUtility.isFalse(dontProcessPagination)) {
+						AppPagination.set(data, this.serviceName);
+					}
+					if (onNext !== undefined) {
+						onNext(data);
+					}
+				}
+			},
+			error => {
+				if (onError !== undefined) {
+					onError(AppUtility.parseError(error));
+				}
+				else {
+					this.showError("Error occurred while searching", error);
+				}
+			}
+		);
+	}
+
 	/** Sends a request/info to remote API via WebSocket connection (of the real-time update component) */
 	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: { [key: string]: any }, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
 		AppRTU.send(request, whenNotReady);

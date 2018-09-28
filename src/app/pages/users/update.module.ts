@@ -21,4 +21,5 @@ import { UpdateAccountProfilePage } from "./update.page";
 		])
 	]
 })
+
 export class UpdateAccountProfilePageModule {}

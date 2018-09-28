@@ -1,9 +1,7 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-button *ngIf="mode === 'profile'" (click)="closeAsync()">
-				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-			</ion-button>
+			<ion-back-button *ngIf="mode === 'profile'"></ion-back-button>
 			<ion-button *ngIf="buttons.cancel" color="secondary" (click)="buttons.cancel.handler()">
 				<ion-icon *ngIf="buttons.cancel.icon" [name]="buttons.cancel.icon" slot="start"></ion-icon>
 				{{ buttons.cancel.text }}

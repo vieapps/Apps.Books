@@ -1,5 +1,6 @@
-div {
+section {
 	clear: both;
+	overflow: hidden;
 }
 h1 {
 	margin: 0;
@@ -17,18 +18,26 @@ ul.files > li {
 	margin: 16px 0;
 }
 figure,
-div.qrcode > div {
-	width: 290px;
+.qrcode > div {
+	text-align: center;
 	margin: 0;
 }
 figure > img {
+	width: 290px;
 	border-radius: 5px;
 }
-div.qrcode > div > label {
+.qrcode > div > label {
 	font-size: 80%;
 	font-weight: normal;
 	color: var(--ion-color-medium);
 }
 ion-icon {
 	cursor: pointer;
+}
+@media only screen and (min-width: 576px) {
+	figure,
+	.qrcode > div {
+		width: 290px;
+		float: left;
+	}
 }

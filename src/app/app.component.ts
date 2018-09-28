@@ -23,6 +23,7 @@ import { BooksService } from "./providers/books.service";
 	selector: "app-root",
 	templateUrl: "app.component.html"
 })
+
 export class AppComponent implements OnInit {
 
 	constructor(

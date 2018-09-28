@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { Input as IonicInput } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
@@ -17,8 +17,10 @@ import { CounterInfo } from "./../../models/counters";
 	templateUrl: "./info.page.html",
 	styleUrls: ["./info.page.scss"]
 })
+
 export class ViewBookInfoPage implements OnInit, OnDestroy {
 	constructor(
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -56,6 +58,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 			month: "Total of this month",
 			week: "Total of this week"
 		},
+		updated: "Updated at",
 		link: "Permanent link"
 	};
 
@@ -113,7 +116,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 				await TrackingUtility.trackAsync(this.title, this.book.routerLink);
 			}
 			else {
-				await this.configSvc.navigateBackAsync();
+				this.zone.run(async () => await this.configSvc.navigateBackAsync());
 			}
 		});
 	}
@@ -140,6 +143,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 				month: await this.configSvc.getResourceAsync("books.info.statistics.month"),
 				week: await this.configSvc.getResourceAsync("books.info.statistics.week")
 			},
+			updated: await this.configSvc.getResourceAsync("books.info.updated"),
 			link: await this.configSvc.getResourceAsync("books.info.link")
 		};
 	}

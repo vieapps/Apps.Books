@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -12,9 +12,11 @@ import { UsersService } from "../../providers/users.service";
 	templateUrl: "./register.page.html",
 	styleUrls: ["./register.page.scss"]
 })
+
 export class RegisterAccountPage implements OnInit {
 
 	constructor (
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -187,34 +189,34 @@ export class RegisterAccountPage implements OnInit {
 	async registerAsync() {
 		if (this.register.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.register.form);
-			return;
 		}
-
-		await this.appFormsSvc.showLoadingAsync(this.title);
-		await this.usersSvc.registerAsync(
-			AppUtility.clone(this.register.form.value, ["ConfirmEmail", "ConfirmPassword", "Captcha"]),
-			this.register.form.value.Captcha,
-			async () => await Promise.all([
-				TrackingUtility.trackAsync(this.title, "/users/register"),
-				this.appFormsSvc.showAlertAsync(
-					await this.configSvc.getResourceAsync("users.register.alert.header"),
-					undefined,
-					await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.form.value.Email }),
-					async () => {
-						if (this.configSvc.previousUrl.startsWith("/users")) {
-							await this.configSvc.navigateHomeAsync();
-						}
-						else {
-							await this.configSvc.navigateBackAsync();
-						}
-					}
-				)
-			]),
-			async error => await Promise.all([
-				this.refreshCaptchaAsync(),
-				this.appFormsSvc.showErrorAsync(error)
-			])
-		);
+		else {
+			await this.appFormsSvc.showLoadingAsync(this.title);
+			await this.usersSvc.registerAsync(
+				AppUtility.clone(this.register.form.value, ["ConfirmEmail", "ConfirmPassword", "Captcha"]),
+				this.register.form.value.Captcha,
+				async () => await Promise.all([
+					TrackingUtility.trackAsync(this.title, "/users/register"),
+					this.appFormsSvc.showAlertAsync(
+						await this.configSvc.getResourceAsync("users.register.alert.header"),
+						undefined,
+						await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.form.value.Email }),
+						() => this.zone.run(async () => {
+							if (this.configSvc.previousUrl.startsWith("/users")) {
+								await this.configSvc.navigateHomeAsync();
+							}
+							else {
+								await this.configSvc.navigateBackAsync();
+							}
+						})
+					)
+				]),
+				async error => await Promise.all([
+					this.refreshCaptchaAsync(),
+					this.appFormsSvc.showErrorAsync(error)
+				])
+			);
+		}
 	}
 
 	onFormInitialized($event) {

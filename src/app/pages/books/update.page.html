@@ -23,13 +23,13 @@
 		[controls]="update.controls"
 		(initEvent)="onFormInitialized($event)"></app-form>
 	<ion-item class="select-file">
-		<ion-label position="stacked">
+		<ion-label position="stacked" color="primary">
 			{{ cover.title }}
 		</ion-label>
 		<div>
-			<input type="file" accept="image/*" (change)="selectCover($event)" />
+			<input type="file" accept="image/*" (change)="prepareCover($event)" />
 		</div>
-		<ion-button fill="clear" slot="end" (click)="removeCover()">
+		<ion-button fill="clear" slot="end" (click)="cover.image = undefined">
 			<ion-icon name="trash" slot="icon-only"></ion-icon>
 		</ion-button>		
 	</ion-item>

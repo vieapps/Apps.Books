@@ -1,5 +1,4 @@
 import { Subject, Subscription } from "rxjs";
-import { map } from "rxjs/operators";
 import { CompleterData, CompleterItem } from "ng2-completer";
 import { AppAPI } from "./app.api";
 import { AppUtility } from "./app.utility";
@@ -15,19 +14,27 @@ export class AppCustomCompleter extends Subject<CompleterItem[]> implements Comp
 		super();
 	}
 
-	private _rxSubscriptions = new Array<Subscription>();
+	private _subscription: Subscription;
+
+	private _unsubscribe() {
+		if (this._subscription !== undefined) {
+			this._subscription.unsubscribe();
+			this._subscription = undefined;
+		}
+	}
 
 	public search(term: string) {
-		this._rxSubscriptions.push(AppAPI.get(this.onRequest(term)).pipe(map(response => response.json())).subscribe(
-			data => this.next(this.onConvert(data)),
+		this._unsubscribe();
+		this._subscription = AppAPI.get(this.onRequest(term)).subscribe(
+			response => this.next(this.onConvert(response.json())),
 			error => console.error("[Custom Completer]: Error occurred while fetching remote data => " + AppUtility.getErrorMessage(error), error)
-		));
+		);
 	}
 
 	public cancel() {
 		if (this.onCancel !== undefined) {
 			this.onCancel();
 		}
-		this._rxSubscriptions.forEach(subscription => subscription.unsubscribe());
+		this._unsubscribe();
 	}
 }

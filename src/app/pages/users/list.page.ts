@@ -1,7 +1,8 @@
+import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, AfterViewInit, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, NgZone } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
+import { Searchbar, InfiniteScroll } from "@ionic/angular";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { PlatformUtility } from "../../components/app.utility.platform";
@@ -18,9 +19,11 @@ import { RatingPoint } from "../../models/ratingpoint";
 	templateUrl: "./list.page.html",
 	styleUrls: ["./list.page.scss"]
 })
-export class ListAccountProfilesPage implements OnInit, AfterViewInit {
+
+export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor (
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -44,15 +47,16 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 		SortBy: { [key: string]: any },
 		Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }
 	};
-
-	@ViewChild(Content) contentCtrl: Content;
+	subscription: Subscription;
 	@ViewChild(Searchbar) searchCtrl: Searchbar;
 	@ViewChild(InfiniteScroll) scrollCtrl: InfiniteScroll;
 
 	ngOnInit() {
 		if (!this.authSvc.isServiceAdministrator()) {
-			this.appFormsSvc.showToastAsync("Hmmm...");
-			this.configSvc.navigateHomeAsync();
+			Promise.all([
+				this.appFormsSvc.showToastAsync("Hmmm..."),
+				this.zone.run(async () => await this.configSvc.navigateHomeAsync())
+			]);
 		}
 		else {
 			this.initializeAsync();
@@ -61,6 +65,12 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 
 	ngAfterViewInit() {
 		this.initializeSearchbarAsync();
+	}
+
+	ngOnDestroy() {
+		if (this.subscription !== undefined) {
+			this.subscription.unsubscribe();
+		}
 	}
 
 	get locale() {
@@ -84,7 +94,7 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 			this.ratings = {};
 			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.usersSvc.serviceName) || AppPagination.getDefault();
 			this.pagination.PageNumber = this.pageNumber;
-			this.searchAsync();
+			await this.searchAsync();
 		}
 	}
 
@@ -95,8 +105,8 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 		}
 	}
 
-	openSearch() {
-		this.configSvc.navigateForwardAsync("/users/search");
+	async openSearchAsync() {
+		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/users/search"));
 	}
 
 	track(index: number, profile: UserProfile) {
@@ -114,7 +124,7 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 	}
 
 	onStartSearch($event) {
-		this.scrollCtrl.disabled = true;
+		this.cancel();
 		if (AppUtility.isNotEmpty($event.detail.value)) {
 			this.filterBy.Query = $event.detail.value;
 			if (this.searching) {
@@ -130,8 +140,8 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 		}
 	}
 
-	onCancelSearch($event) {
-		this.scrollCtrl.disabled = true;
+	onCancelSearch() {
+		this.cancel();
 		this.filterBy.Query = undefined;
 		if (this.searching) {
 			this.profiles = [];
@@ -142,7 +152,7 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 		}
 	}
 
-	onScroll($event) {
+	onScroll() {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
 			this.searchAsync(() => this.scrollCtrl.complete());
 		}
@@ -154,16 +164,29 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 
 	async searchAsync(onNext?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
-		await this.usersSvc.searchAsync(
-			this.request,
-			async data => {
-				this.pageNumber++;
-				this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.usersSvc.serviceName);
-				this.pagination.PageNumber = this.pageNumber;
-				this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
-				await TrackingUtility.trackAsync(this.title, this.configSvc.currentUrl);
-			}
-		);
+		const onNextAsync = async data => {
+			this.pageNumber++;
+			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.usersSvc.serviceName);
+			this.pagination.PageNumber = this.pageNumber;
+			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
+			await TrackingUtility.trackAsync(this.title, this.configSvc.currentUrl);
+		};
+		if (this.searching) {
+			this.subscription = this.usersSvc.search(this.request, onNextAsync);
+		}
+		else {
+			await this.usersSvc.searchAsync(this.request, onNextAsync);
+		}
+	}
+
+	cancel(dontDisableInfiniteScroll?: boolean) {
+		if (this.subscription !== undefined) {
+			this.subscription.unsubscribe();
+			this.subscription = undefined;
+		}
+		if (AppUtility.isFalse(dontDisableInfiniteScroll)) {
+			this.scrollCtrl.disabled = true;
+		}
 	}
 
 	prepareResults(onNext?: () => void, results?: Array<any>) {
@@ -207,15 +230,6 @@ export class ListAccountProfilesPage implements OnInit, AfterViewInit {
 		// done
 		if (onNext !== undefined) {
 			onNext();
-		}
-	}
-
-	async closeAsync() {
-		if (this.searching) {
-			await this.configSvc.navigateBackAsync();
-		}
-		else {
-			await this.configSvc.navigateHomeAsync();
 		}
 	}
 

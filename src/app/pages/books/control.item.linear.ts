@@ -8,6 +8,7 @@ import { Book } from "../../models/book";
 	templateUrl: "./control.item.linear.html",
 	styleUrls: ["./control.item.linear.scss"]
 })
+
 export class BookLinearItemControl {
 
 	constructor (

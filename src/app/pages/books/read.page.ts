@@ -1,6 +1,4 @@
-import { Subscription } from "rxjs";
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
-import { Router, NavigationEnd } from "@angular/router";
+import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { Content, MenuController } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
@@ -17,9 +15,10 @@ import { Book } from "../../models/book";
 	templateUrl: "./read.page.html",
 	styleUrls: ["./read.page.scss"]
 })
+
 export class ReadBookPage implements OnInit, OnDestroy {
 	constructor(
-		public router: Router,
+		public zone: NgZone,
 		public menuController: MenuController,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
@@ -29,7 +28,6 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
 
-	rxSubscription: Subscription;
 	title = "";
 	book: Book;
 	chapter = 0;
@@ -62,8 +60,8 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		return this.configSvc.locale;
 	}
 
-	get canShowMore() {
-		return this.configSvc.screenWidth > 767;
+	get screen() {
+		return this.configSvc.screenWidth;
 	}
 
 	ngOnInit() {
@@ -72,19 +70,19 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 		AppEvents.on("App", async info => {
 			if ("OptionsUpdated" === info.args.Type) {
-				this.getReadingOptions();
+				this.zone.run(() => this.getReadingOptions());
 			}
 			else if ("LanguageChanged" === info.args.Type) {
-				await Promise.all([
+				await this.zone.run(async () => await Promise.all([
 					this.prepareResourcesAsync(),
 					this.prepareActionsAsync()
-				]);
+				]));
 			}
 		}, "AppEventHandlersOfReadBookPage");
 
 		AppEvents.on("Session", async info => {
 			if ("Updated" === info.args.Type) {
-				await this.prepareActionsAsync();
+				await this.zone.run(async () => await this.prepareActionsAsync());
 			}
 		}, "AppEventHandlersOfReadBookPage");
 
@@ -95,26 +93,19 @@ export class ReadBookPage implements OnInit, OnDestroy {
 				if (this.book.Chapters[this.chapter - 1] === "") {
 					await this.appFormsSvc.showLoadingAsync();
 				}
-				await this.goChapterAsync();
+				await this.zone.run(async () => await this.goChapterAsync());
 			}
 			else if ("Deleted" === info.args.Type && this.book.ID === info.args.ID) {
-				await this.closeAsync();
+				this.onClose();
+				await this.zone.run(async () => await this.configSvc.navigateBackAsync());
 			}
 		}, "BookEventHandlersOfReadBookPage");
-
-		this.rxSubscription = this.router.events.subscribe(async event => {
-			if (event instanceof NavigationEnd && this.configSvc.currentUrl.startsWith(this.book.routerLink)) {
-				this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
-				await this.scrollAsync();
-			}
-		});
 	}
 
 	ngOnDestroy() {
 		AppEvents.off("App", "AppEventHandlersOfReadBookPage");
 		AppEvents.off("Session", "AppEventHandlersOfReadBookPage");
 		AppEvents.off("Books", "BookEventHandlersOfReadBookPage");
-		this.rxSubscription.unsubscribe();
 	}
 
 	getReadingOptions() {
@@ -122,6 +113,12 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			color: this.booksSvc.readingOptions.color,
 			style: this.booksSvc.readingOptions.font + " " + this.booksSvc.readingOptions.size + " " + this.booksSvc.readingOptions.paragraph + " " + this.booksSvc.readingOptions.align
 		};
+	}
+
+	onClose() {
+		if (this.book.TotalChapters > 1) {
+			AppEvents.broadcast("Books", { Type: "CloseBook", ID: this.book.ID });
+		}
 	}
 
 	async onScrollEndAsync() {
@@ -149,7 +146,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 					await this.prepareAsync();
 				}
 				else {
-					await this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
+					await Promise.all([
+						this.appFormsSvc.hideLoadingAsync(),
+						this.zone.run(async () => await this.configSvc.navigateBackAsync())
+					]);
 				}
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error)
@@ -202,22 +202,24 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", async () => this.openAuthorAsync()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", async () => this.openInfoAsync()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.toc"), "list", async () => this.openTOCsAsync()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", async () => this.openOptionsAsync())
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", async () => await this.openAuthorAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", async () => await this.openInfoAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.toc"), "list", async () => await this.openTOCsAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", async () => await this.openOptionsAsync())
 		];
 
-		if (this.book !== undefined && this.book.TotalChapters < 2) {
+		if (this.screen > 992 || this.book === undefined || this.book.TotalChapters < 2) {
 			AppUtility.removeAt(this.actions, 2);
 		}
 
 		if (this.authSvc.isServiceModerator(this.booksSvc.serviceName)) {
 			[
-				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", async () => await this.openRecrawlAsync()),
 				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", async () => await this.openUpdateAsync()),
-				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.delete"), "trash", async () => this.deleteAsync())
+				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.delete"), "trash", async () => await this.deleteAsync())
 			].forEach(action => this.actions.push(action));
+			if (this.book !== undefined && this.book.SourceUrl !== "") {
+				AppUtility.insertAt(this.actions, this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", async () => await this.openRecrawlAsync()), this.actions.length - 2);
+			}
 		}
 	}
 
@@ -245,7 +247,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			const books = Book.instances.values().filter(book => book.Category === this.book.Category);
 			const index = books.findIndex(book => book.ID === this.book.ID);
 			if (index > 0) {
-				await this.configSvc.navigateForwardAsync(books[index - 1].routerURI);
+				this.zone.run(async () => await this.configSvc.navigateForwardAsync(books[index - 1].routerURI));
 			}
 		}
 		else if (this.chapter > 0) {
@@ -260,7 +262,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			const books = Book.instances.values().filter(book => book.Category === this.book.Category);
 			const index = books.findIndex(book => book.ID === this.book.ID);
 			if (index > -1 && index < books.length - 2) {
-				await this.configSvc.navigateForwardAsync(books[index + 1].routerURI);
+				this.zone.run(async () => await this.configSvc.navigateForwardAsync(books[index + 1].routerURI));
 			}
 		}
 		else if (this.chapter < this.book.TotalChapters) {
@@ -280,43 +282,26 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		else {
 			await this.contentCtrl.scrollToTop(567);
 		}
-		await this.appFormsSvc.hideLoadingAsync(async () => {
-			await TrackingUtility.trackAsync(this.title, this.book.routerLink);
-			if (onNext !== undefined) {
-				onNext();
-			}
-		});
-	}
-
-	async deleteAsync() {
-		await this.appFormsSvc.showAlertAsync(
-			await this.configSvc.getResourceAsync("common.buttons.delete"),
-			undefined,
-			await this.configSvc.getResourceAsync("books.read.delete.confirm"),
-			async () => await this.booksSvc.deleteAsync(
-				this.book.ID,
-				async () => this.booksSvc.deleteBookmark(this.book.ID, async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title }))),
-				async error => await this.appFormsSvc.showErrorAsync(error)
-			),
-			await this.configSvc.getResourceAsync("common.buttons.ok"),
-			await this.configSvc.getResourceAsync("common.buttons.cancel")
-		);
+		await Promise.all([
+			this.appFormsSvc.hideLoadingAsync(onNext),
+			TrackingUtility.trackAsync(this.title, this.book.routerLink),
+		]);
 	}
 
 	async openAuthorAsync() {
-		await this.configSvc.navigateForwardAsync("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author }));
-	}
-
-	async openTOCsAsync() {
-		await this.menuController.open();
+		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author })));
 	}
 
 	async openInfoAsync() {
-		await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/info/"));
+		await this.zone.run(async () => await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/info/")));
+	}
+
+	async openTOCsAsync() {
+		await this.menuController.open("start");
 	}
 
 	async openOptionsAsync() {
-		await this.configSvc.navigateForwardAsync("/books/options");
+		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/books/options"));
 	}
 
 	async openRecrawlAsync() {
@@ -335,27 +320,35 @@ export class ReadBookPage implements OnInit, OnDestroy {
 					type: "radio",
 					label: await this.configSvc.getResourceAsync("books.crawl.mode.full"),
 					value: "full",
-					checked: this.book.SourceUrl === ""
+					checked: false
 				},
 				{
 					type: "radio",
 					label: await this.configSvc.getResourceAsync("books.crawl.mode.missing"),
 					value: "missing",
-					checked: this.book.SourceUrl !== ""
+					checked: true
 				}
 			]
 		);
 	}
 
 	async openUpdateAsync() {
-		await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/update/"));
+		await this.zone.run(async () => await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/update/")));
 	}
 
-	async closeAsync() {
-		if (this.book.TotalChapters > 1) {
-			AppEvents.broadcast("Books", { Type: "CloseBook", ID: this.book.ID });
-		}
-		await this.configSvc.navigateBackAsync();
+	async deleteAsync() {
+		await this.appFormsSvc.showAlertAsync(
+			await this.configSvc.getResourceAsync("common.buttons.delete"),
+			undefined,
+			await this.configSvc.getResourceAsync("books.read.delete.confirm"),
+			async () => await this.booksSvc.deleteAsync(
+				this.book.ID,
+				async () => this.booksSvc.deleteBookmark(this.book.ID, async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title }))),
+				async error => await this.appFormsSvc.showErrorAsync(error)
+			),
+			await this.configSvc.getResourceAsync("common.buttons.ok"),
+			await this.configSvc.getResourceAsync("common.buttons.cancel")
+		);
 	}
 
 }

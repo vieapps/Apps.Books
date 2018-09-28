@@ -6,6 +6,7 @@ import en_US from "@angular/common/locales/en";
 
 /** Configuration of the app */
 export class AppConfig {
+
 	/** URIs of the remote API and resources */
 	public static URIs = {
 		/** URI of the remote API */

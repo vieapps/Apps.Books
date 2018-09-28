@@ -19,4 +19,5 @@ import { HomePage } from "./home.page";
 		])
 	]
 })
+
 export class HomePageModule {}

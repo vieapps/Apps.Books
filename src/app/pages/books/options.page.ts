@@ -12,6 +12,7 @@ import { BooksService } from "../../providers/books.service";
 	templateUrl: "./options.page.html",
 	styleUrls: ["./options.page.scss"]
 })
+
 export class BookReadingOptionsPage implements OnInit, OnDestroy {
 	constructor(
 		public appFormsSvc: AppFormsService,
@@ -27,15 +28,15 @@ export class BookReadingOptionsPage implements OnInit, OnDestroy {
 	config: Array<any>;
 	sample = "";
 	hash = "";
-	rxSubscription: Subscription;
+	subscription: Subscription;
 
 	ngOnInit() {
-		this.rxSubscription = this.form.valueChanges.subscribe(value => this.options = value);
+		this.subscription = this.form.valueChanges.subscribe(value => this.options = value);
 		this.initializeAsync();
 	}
 
 	ngOnDestroy() {
-		this.rxSubscription.unsubscribe();
+		this.subscription.unsubscribe();
 	}
 
 	async initializeAsync() {
@@ -69,12 +70,11 @@ export class BookReadingOptionsPage implements OnInit, OnDestroy {
 		this.hash = AppCrypto.hash(this.form.value);
 	}
 
-	async closeAsync() {
+	onClose() {
 		if (this.hash !== AppCrypto.hash(this.form.value)) {
 			Object.keys(this.options).forEach(key => this.booksSvc.readingOptions[key] = this.options[key]);
-			await this.configSvc.storeOptionsAsync();
+			this.configSvc.storeOptionsAsync();
 		}
-		await this.configSvc.navigateBackAsync();
 	}
 
 }

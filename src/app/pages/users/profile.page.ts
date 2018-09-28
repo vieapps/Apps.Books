@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -15,10 +15,11 @@ import { AccountAvatarPage } from "./avatar.page";
 	templateUrl: "./profile.page.html",
 	styleUrls: ["./profile.page.scss"]
 })
+
 export class ViewAccountProfilePage implements OnInit {
 
 	constructor (
-		public changeDetector: ChangeDetectorRef,
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -114,7 +115,7 @@ export class ViewAccountProfilePage implements OnInit {
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", async () => await this.openUpdateAsync("profile")),
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", async () => await this.openUpdateAsync("password")),
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "at", async () => await this.openUpdateAsync("email")),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "unlock", async () => await this.configSvc.navigateForwardAsync("/users/otp"))
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "unlock", async () => await this.openOTPAsync())
 				].forEach(action => this.actions.push(action));
 			}
 
@@ -159,7 +160,11 @@ export class ViewAccountProfilePage implements OnInit {
 	}
 
 	async openUpdateAsync(mode?: string) {
-		await this.configSvc.navigateForwardAsync("/users/update/" + (this.id === undefined ? "my" : this.id) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" }));
+		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/users/update/" + (this.id === undefined ? "my" : AppUtility.toANSI(this.profile.Name, true)) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" })));
+	}
+
+	async openOTPAsync(mode?: string) {
+		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/users/otp"));
 	}
 
 	async openSendInvitationAsync() {
@@ -219,32 +224,23 @@ export class ViewAccountProfilePage implements OnInit {
 			undefined,
 			await this.configSvc.getResourceAsync("users.profile.logout.confirm"),
 			async () => await this.authSvc.logOutAsync(
-				async () => {
-					await Promise.all([
-						TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), "users/logout"),
-						this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.logout.success"))
-					]);
-					if (this.configSvc.previousUrl.startsWith("/users")) {
-						await this.configSvc.navigateHomeAsync();
-					}
-					else {
-						await this.configSvc.navigateBackAsync();
-					}
-				},
+				async () => await Promise.all([
+					TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), "users/logout"),
+					this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.logout.success")),
+					this.zone.run(async () => {
+						if (this.configSvc.previousUrl.startsWith("/users")) {
+							await this.configSvc.navigateHomeAsync();
+						}
+						else {
+							await this.configSvc.navigateBackAsync();
+						}
+					})
+				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			),
 			await this.configSvc.getResourceAsync("users.profile.buttons.logout"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);
-	}
-
-	async closeAsync() {
-		if (this.configSvc.previousUrl.startsWith("/users") ? this.authSvc.isServiceAdministrator() : true) {
-			await this.configSvc.navigateBackAsync();
-		}
-		else {
-			await this.configSvc.navigateHomeAsync();
-		}
 	}
 
 }

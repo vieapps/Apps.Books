@@ -19,4 +19,5 @@ import { ViewBookInfoPage } from "./info.page";
 		])
 	]
 })
+
 export class ViewBookInfoPageModule {}

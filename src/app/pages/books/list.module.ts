@@ -19,4 +19,5 @@ import { ListBooksPage } from "./list.page";
 		])
 	]
 })
+
 export class ListBooksPageModule {}

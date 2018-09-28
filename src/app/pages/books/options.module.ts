@@ -19,4 +19,5 @@ import { BookReadingOptionsPage } from "./options.page";
 		])
 	]
 })
+
 export class BookReadingOptionsPageModule {}

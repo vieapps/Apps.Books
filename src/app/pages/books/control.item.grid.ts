@@ -1,4 +1,4 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input, NgZone } from "@angular/core";
 import { ConfigurationService } from "../../providers/configuration.service";
 import { Book } from "../../models/book";
 
@@ -7,9 +7,11 @@ import { Book } from "../../models/book";
 	templateUrl: "./control.item.grid.html",
 	styleUrls: ["./control.item.grid.scss"]
 })
+
 export class BookGridItemControl {
 
 	constructor (
+		public zone: NgZone,
 		public configSvc: ConfigurationService
 	) {
 	}
@@ -23,7 +25,7 @@ export class BookGridItemControl {
 	}
 
 	async openAsync() {
-		await this.configSvc.navigateForwardAsync(this.book.routerURI || this.book.routerLink + "?x-request=" + this.book.routerParams["x-request"]);
+		await this.zone.run(async () => await this.configSvc.navigateForwardAsync(this.book.routerURI || this.book.routerLink + "?x-request=" + this.book.routerParams["x-request"]));
 	}
 
 }

@@ -11,6 +11,7 @@ import { Privilege } from "./../../models/privileges";
 	templateUrl: "./control.privileges.html",
 	styleUrls: ["./control.privileges.scss"]
 })
+
 export class BookPrivilegesControl implements OnInit, OnDestroy {
 
 	constructor (
@@ -30,15 +31,15 @@ export class BookPrivilegesControl implements OnInit, OnDestroy {
 		Role: string,
 		Label: string
 	}>;
-	rxSubscription: Subscription;
+	subscription: Subscription;
 
 	ngOnInit() {
-		this.rxSubscription = this.form.valueChanges.subscribe(value => this.onFormChanged(value));
+		this.subscription = this.form.valueChanges.subscribe(value => this.onFormChanged(value));
 		this.initializeFormAsync();
 	}
 
 	ngOnDestroy() {
-		this.rxSubscription.unsubscribe();
+		this.subscription.unsubscribe();
 		this.changesEvent.unsubscribe();
 	}
 

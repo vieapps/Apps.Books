@@ -13,6 +13,7 @@ import { UserProfile } from "../../models/user";
 	templateUrl: "./avatar.page.html",
 	styleUrls: ["./avatar.page.scss"]
 })
+
 export class AccountAvatarPage implements OnInit {
 
 	constructor (

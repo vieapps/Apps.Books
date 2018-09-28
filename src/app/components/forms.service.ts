@@ -758,13 +758,13 @@ export class AppFormsService {
 	}
 
 	/** Hides the loading */
-	public async hideLoadingAsync(onDismiss?: () => void) {
+	public async hideLoadingAsync(onNext?: () => void) {
 		if (this._loading !== undefined) {
 			await this._loading.dismiss();
 			this._loading = undefined;
 		}
-		if (onDismiss !== undefined) {
-			onDismiss();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
@@ -780,47 +780,34 @@ export class AppFormsService {
 
 	/** Shows the action sheet */
 	public async showActionSheetAsync(buttons: Array<{ text: string, role: string, icon: string, handler: () => void }>, backdropDismiss?: boolean, dontAddCancelButton?: boolean) {
-		const isRunningOnIOS = AppConfig.isRunningOnIOS;
-		const actions = buttons.map(button => {
-			return {
-				text: button.text,
-				role: button.role,
-				icon: isRunningOnIOS ? undefined : button.icon,
-				handler: button.handler
-			};
-		});
+		await this.hideLoadingAsync();
 		if (AppUtility.isFalse(dontAddCancelButton)) {
-			actions.push(this.getActionSheetButton(await this.getResourceAsync("common.buttons.cancel"), isRunningOnIOS ? undefined : "close", async () => await this.hideActionSheetAsync(), "cancel"));
+			buttons.push(this.getActionSheetButton(await this.getResourceAsync("common.buttons.cancel"), "close", async () => await this.hideActionSheetAsync(), "cancel"));
+		}
+		if (AppConfig.isRunningOnIOS) {
+			buttons.forEach(button => button.icon = undefined);
 		}
 		this._actionsheet = await this.actionsheetController.create({
-			buttons: actions,
+			buttons: buttons,
 			backdropDismiss: backdropDismiss
 		});
-		await Promise.all([
-			this.hideLoadingAsync(),
-			this._actionsheet.present()
-		]);
+		await this._actionsheet.present();
 	}
 
 	/** Hides the action sheet */
-	public async hideActionSheetAsync(onDismiss?: () => void) {
+	public async hideActionSheetAsync(onNext?: () => void) {
 		if (this._actionsheet !== undefined) {
 			await this._actionsheet.dismiss();
 			this._actionsheet = undefined;
 		}
-		if (onDismiss !== undefined) {
-			onDismiss();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
-	/** Shows the alert confirmation box  */
+	/** Shows the alert/confirmation box  */
 	public async showAlertAsync(header: string = null, subHeader: string = null, message: string, postProcess: (data?: any) => void = () => {}, okButtonText: string = null, cancelButtonText: string = null, inputs: Array<any> = null) {
-		await this.hideLoadingAsync();
-		if (this._alert !== undefined) {
-			await this._alert.dismiss();
-			this._alert = undefined;
-		}
-
+		await this.hideLoadingAsync(async () => await this.hideAlertAsync());
 		const buttons = AppUtility.isNotEmpty(cancelButtonText)
 			? [{ text: cancelButtonText, role: "cancel", handler: undefined as (data?: any) => void }]
 			: [];
@@ -833,7 +820,6 @@ export class AppFormsService {
 				this._alert = undefined;
 			}
 		});
-
 		this._alert = await this.alertController.create({
 			header: header || await this.getResourceAsync("common.alert.header.general"),
 			subHeader: subHeader,
@@ -843,6 +829,17 @@ export class AppFormsService {
 			buttons: buttons
 		});
 		await this._alert.present();
+	}
+
+	/** Hides the alert/confirmation sheet */
+	public async hideAlertAsync(onNext?: () => void) {
+		if (this._alert !== undefined) {
+			await this._alert.dismiss();
+			this._alert = undefined;
+		}
+		if (onNext !== undefined) {
+			onNext();
+		}
 	}
 
 	/** Shows the error message (by the alert confirmation box) */
@@ -857,7 +854,7 @@ export class AppFormsService {
 
 	/** Shows the modal box */
 	public async showModalAsync(component: any) {
-		await this.hideModalAsync();
+		await this.hideLoadingAsync(async () => await this.hideModalAsync());
 		this._modal = await this.modalController.create({
 			component: component,
 			backdropDismiss: false
@@ -866,21 +863,19 @@ export class AppFormsService {
 	}
 
 	/** Hides the modal box */
-	public async hideModalAsync(onDismiss?: () => void) {
+	public async hideModalAsync(onNext?: () => void) {
 		if (this._modal !== undefined) {
 			await this._modal.dismiss();
 			this._modal = undefined;
 		}
-		if (onDismiss !== undefined) {
-			onDismiss();
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
 	/** Shows the toast alert message */
 	public async showToastAsync(message: string, duration: number = 1000, showCloseButton: boolean = false, closeButtonText: string = "close", atBottom: boolean = false) {
-		if (this._toast !== undefined) {
-			await this._toast.dismiss();
-		}
+		await this.hideToastAsync();
 		this._toast = !showCloseButton && duration < 1
 			? await this.toastController.create({
 					message: message,
@@ -899,6 +894,17 @@ export class AppFormsService {
 				}
 			);
 		await this._toast.present();
+	}
+
+	/** Hides the toast alert message */
+	public async hideToastAsync(onNext?: () => void) {
+		if (this._toast !== undefined) {
+			await this._toast.dismiss();
+			this._toast = undefined;
+		}
+		if (onNext !== undefined) {
+			onNext();
+		}
 	}
 
 }

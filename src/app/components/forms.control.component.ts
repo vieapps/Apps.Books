@@ -8,6 +8,7 @@ import { AppUtility } from "./app.utility";
 	selector: "app-form-control",
 	templateUrl: "./forms.control.component.html"
 })
+
 export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor (

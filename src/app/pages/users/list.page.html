@@ -1,12 +1,10 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-button (click)="closeAsync()">
-				<ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-			</ion-button>
+			<ion-back-button></ion-back-button>
 		</ion-buttons>
 		<ion-buttons *ngIf="!searching" slot="end">
-			<ion-button [hidden]="searching" (click)="openSearch()">
+			<ion-button [hidden]="searching" (click)="openSearchAsync()">
 				<ion-icon name="search" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
@@ -15,8 +13,8 @@
 		</ion-title>
 		<ion-searchbar [hidden]="!searching"
 			(ionChange)="onStartSearch($event)"
-			(ionCancel)="onCancelSearch($event)"
-			(ionClear)="onCancelSearch($event)"></ion-searchbar>
+			(ionCancel)="onCancelSearch()"
+			(ionClear)="onCancelSearch()"></ion-searchbar>
 	</ion-toolbar>
 </ion-header>
 
@@ -66,7 +64,7 @@
 			</ion-label>
 		</ion-item>
 	</ion-list>
-	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onScroll($event)">
+	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onScroll()">
 		<ion-infinite-scroll-content></ion-infinite-scroll-content>
 	</ion-infinite-scroll>
 </ion-content>

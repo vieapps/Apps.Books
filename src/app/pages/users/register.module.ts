@@ -19,4 +19,5 @@ import { RegisterAccountPage } from "./register.page";
 		])
 	]
 })
+
 export class RegisterAccountPageModule {}

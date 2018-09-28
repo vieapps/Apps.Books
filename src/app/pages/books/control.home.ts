@@ -13,6 +13,7 @@ import { Book } from "../../models/book";
 	templateUrl: "./control.home.html",
 	styleUrls: ["./control.home.scss"]
 })
+
 export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
 	constructor (

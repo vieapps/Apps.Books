@@ -31,4 +31,5 @@ import { BookPrivilegesControl } from "./control.privileges";
 		BookPrivilegesControl
 	]
 })
+
 export class BookControlsModule {}

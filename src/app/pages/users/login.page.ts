@@ -1,5 +1,5 @@
 import { Subscription } from "rxjs";
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
@@ -11,9 +11,11 @@ import { AuthenticationService } from "../../providers/authentication.service";
 	templateUrl: "./login.page.html",
 	styleUrls: ["./login.page.scss"]
 })
+
 export class LogInPage implements OnInit, OnDestroy {
 
 	constructor (
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService
@@ -115,7 +117,7 @@ export class LogInPage implements OnInit, OnDestroy {
 						await this.openLoginOTPAsync(data);
 					}
 					else {
-						await this.closeAsync();
+						this.close();
 					}
 				})
 			]),
@@ -186,7 +188,7 @@ export class LogInPage implements OnInit, OnDestroy {
 				this.otp.form.value.OTP,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, "/users/otp"),
-					this.appFormsSvc.hideLoadingAsync(async () => await this.closeAsync())
+					this.appFormsSvc.hideLoadingAsync(() => this.close())
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
 					const control = this.otp.controls.find(c => c.Name === "OTP");
@@ -246,7 +248,7 @@ export class LogInPage implements OnInit, OnDestroy {
 						await this.configSvc.getResourceAsync("users.login.reset.title"),
 						undefined,
 						await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.form.value.Email }),
-						async () => await this.closeAsync()
+						() => this.close()
 					)
 				]),
 				async error => await Promise.all([
@@ -272,13 +274,15 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.refreshCaptchaAsync($event);
 	}
 
-	async closeAsync() {
-		if (this.configSvc.previousUrl.startsWith("/users")) {
-			await this.configSvc.navigateHomeAsync();
-		}
-		else {
-			await this.configSvc.navigateBackAsync();
-		}
+	close() {
+		this.zone.run(async () => {
+			if (this.configSvc.previousUrl.startsWith("/users")) {
+				await this.configSvc.navigateHomeAsync();
+			}
+			else {
+				await this.configSvc.navigateBackAsync();
+			}
+		});
 	}
 
 }

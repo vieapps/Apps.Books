@@ -10,6 +10,7 @@ import { ConfigurationService } from "../../providers/configuration.service";
 	templateUrl: "./home.page.html",
 	styleUrls: ["./home.page.scss"],
 })
+
 export class HomePage implements OnInit, OnDestroy {
 
 	constructor(
@@ -19,7 +20,7 @@ export class HomePage implements OnInit, OnDestroy {
 	}
 
 	title = "Home";
-	rxSubscription: Subscription;
+	routerSubscription: Subscription;
 	changes: any;
 
 	ngOnInit() {
@@ -40,12 +41,12 @@ export class HomePage implements OnInit, OnDestroy {
 			}
 		}, "LanguageChangedEventHandlerOfHomePage");
 
-		this.rxSubscription = this.router.events.subscribe(async event => {
+		this.routerSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd) {
 				if (this.configSvc.isNavigateTo(this.configSvc.appConfig.url.home, this.configSvc.currentUrl)) {
-					await this.setTitleAsync();
-					this.changes = new Date();
 					AppEvents.broadcast("App", { Type: "HomePageIsOpened" });
+					this.changes = new Date();
+					await this.setTitleAsync();
 					await this.trackAsync("return");
 				}
 			}
@@ -55,7 +56,7 @@ export class HomePage implements OnInit, OnDestroy {
 	ngOnDestroy() {
 		AppEvents.off("App", "AppReadyEventHandlerOfHomePage");
 		AppEvents.off("App", "LanguageChangedEventHandlerOfHomePage");
-		this.rxSubscription.unsubscribe();
+		this.routerSubscription.unsubscribe();
 	}
 
 	async initializeAsync() {

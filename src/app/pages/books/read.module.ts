@@ -17,4 +17,5 @@ import { ReadBookPage } from "./read.page";
 		])
 	]
 })
+
 export class ReadBookPageModule {}

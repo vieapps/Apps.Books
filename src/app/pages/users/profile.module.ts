@@ -23,4 +23,5 @@ import { BookControlsModule } from "../books/controls.module";
 		])
 	]
 })
+
 export class ViewAccountProfilePageModule {}

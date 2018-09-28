@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../components/app.crypto";
 import { AppEvents } from "../../components/app.events";
@@ -16,9 +16,10 @@ import { Book } from "../../models/book";
 	templateUrl: "./update.page.html",
 	styleUrls: ["./update.page.scss"]
 })
+
 export class UpdateBookPage implements OnInit {
 	constructor(
-		public changeDetector: ChangeDetectorRef,
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -70,7 +71,7 @@ export class UpdateBookPage implements OnInit {
 		this.book = Book.instances.getValue(this.configSvc.requestParams["ID"]);
 		if (this.book === undefined) {
 			await this.appFormsSvc.showToastAsync("Hmmmmmm....");
-			this.configSvc.navigateBackAsync();
+			await this.returnAsync();
 		}
 		else {
 			const config = await this.configSvc.getDefinitionAsync(this.booksSvc.serviceName.toLowerCase(), "book", "form-controls") as Array<any>;
@@ -113,7 +114,7 @@ export class UpdateBookPage implements OnInit {
 		this.update.hash = AppCrypto.hash(this.update.form.value);
 	}
 
-	selectCover($event) {
+	prepareCover($event) {
 		this.cover.image = undefined;
 		if ($event.target.files.length === 0) {
 			return;
@@ -121,14 +122,8 @@ export class UpdateBookPage implements OnInit {
 		const fileReader = new FileReader();
 		fileReader.onloadend = (loadEvent: any) => {
 			this.cover.image = loadEvent.target.result;
-			this.changeDetector.detectChanges();
 		};
 		fileReader.readAsDataURL($event.target.files[0]);
-	}
-
-	removeCover() {
-		this.cover.image = undefined;
-		this.changeDetector.detectChanges();
 	}
 
 	async uploadCoverAsync(onNext: () => void) {
@@ -160,7 +155,7 @@ export class UpdateBookPage implements OnInit {
 							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/request-update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sent"))
 						]);
-						await this.configSvc.navigateBackAsync();
+						await this.returnAsync();
 					},
 					async error => await this.appFormsSvc.showErrorAsync(error)
 				);
@@ -176,14 +171,14 @@ export class UpdateBookPage implements OnInit {
 						if (this.update.category !== this.update.form.value.Category) {
 							AppEvents.broadcast("Books", { Type: "Moved", From: this.update.category, To: this.update.form.value.Category });
 						}
-						await this.configSvc.navigateBackAsync();
+						await this.returnAsync();
 					},
 					async error => await this.appFormsSvc.showErrorAsync(error)
 				);
 			}
 		}
 		else {
-			await this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
+			await this.appFormsSvc.hideLoadingAsync(async () => await this.returnAsync());
 		}
 	}
 
@@ -207,10 +202,14 @@ export class UpdateBookPage implements OnInit {
 			undefined,
 			undefined,
 			await this.configSvc.getResourceAsync("books.update.messages.confirm"),
-			async () => await this.configSvc.navigateBackAsync(),
+			async () => await this.returnAsync(),
 			await this.configSvc.getResourceAsync("common.buttons.ok"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);
+	}
+
+	async returnAsync() {
+		await this.zone.run(async () => await this.configSvc.navigateBackAsync());
 	}
 
 }

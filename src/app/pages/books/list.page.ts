@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, NgZone } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
@@ -21,11 +21,12 @@ import { RatingPoint } from "../../models/ratingpoint";
 	templateUrl: "./list.page.html",
 	styleUrls: ["./list.page.scss"]
 })
+
 export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	constructor(
-		public changeDetector: ChangeDetectorRef,
-		public appFormsSvc: AppFormsService,
+		public zone: NgZone,
 		public router: Router,
+		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
 		public booksSvc: BooksService
@@ -86,7 +87,8 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		icon: string,
 		handler: () => void
 	}>;
-	rxSubscription: Subscription;
+	routerSubscription: Subscription;
+	searchSubscription: Subscription;
 
 	@ViewChild(Content) contentCtrl: Content;
 	@ViewChild(Searchbar) searchCtrl: Searchbar;
@@ -94,7 +96,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	ngOnInit() {
 		this.initializeAsync();
-		this.rxSubscription = this.router.events.subscribe(async event => {
+		this.routerSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd) {
 				if (this.configSvc.currentUrl.startsWith(this.uri)) {
 					this.configSvc.appTitle = this.title;
@@ -119,14 +121,15 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 						? this.filterBy.And.Category.Equals !== undefined && (this.filterBy.And.Category.Equals === info.args.From || this.filterBy.And.Category.Equals === info.args.To)
 						: false;
 				if (reprepareResults) {
-					this.prepareResults();
+					this.zone.run(() => this.prepareResults());
 				}
 			}, `BookEventHandlers${this.eventIdentity}`);
 		}
 	}
 
 	ngOnDestroy() {
-		this.rxSubscription.unsubscribe();
+		this.routerSubscription.unsubscribe();
+		this.cancel(true);
 		if (!this.searching) {
 			AppEvents.off("Session", `AccountEventHandlers${this.eventIdentity}`);
 			AppEvents.off("Books", `BookEventHandlers${this.eventIdentity}`);
@@ -190,10 +193,18 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 					: "/books/list-by-author/" + AppUtility.toANSI(this.filterBy.And.Author.Equals, true) + "?x-request=";
 
 		if (!this.searching) {
-			this.ratings = {};
-			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName) || AppPagination.getDefault();
-			this.pagination.PageNumber = this.pageNumber;
-			await this.searchAsync(async () => await this.prepareActionsAsync());
+			if (this.filterBy.And.Category.Equals === undefined && this.filterBy.And.Author.Equals === undefined) {
+				await Promise.all([
+					this.appFormsSvc.showToastAsync("Hmmm..."),
+					this.zone.run(async () => await this.configSvc.navigateHomeAsync())
+				]);
+			}
+			else {
+				this.ratings = {};
+				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName) || AppPagination.getDefault();
+				this.pagination.PageNumber = this.pageNumber;
+				await this.searchAsync(async () => await this.prepareActionsAsync());
+			}
 		}
 	}
 
@@ -205,7 +216,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	onStartSearch($event) {
-		this.scrollCtrl.disabled = true;
+		this.cancel();
 		if (AppUtility.isNotEmpty($event.detail.value)) {
 			this.filterBy.Query = $event.detail.value;
 			if (this.searching) {
@@ -221,19 +232,25 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	onCancelSearch($event) {
-		this.scrollCtrl.disabled = true;
+	onCancelSearch(back?: boolean) {
+		this.cancel();
 		this.filterBy.Query = undefined;
 		if (this.searching) {
 			this.books = [];
 			this.ratings = {};
 		}
 		else {
-			this.prepareResults();
+			if (back) {
+				this.filtering = false;
+				this.prepareResults(() => this.scrollCtrl.disabled = false);
+			}
+			else {
+				this.prepareResults();
+			}
 		}
 	}
 
-	onScroll($event) {
+	onScroll() {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
 			this.searchAsync(() => this.scrollCtrl.complete());
 		}
@@ -245,19 +262,29 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	async searchAsync(onNext?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
-		await this.booksSvc.searchAsync(
-			this.request,
-			async data => {
-				this.pageNumber++;
-				this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
-				this.pagination.PageNumber = this.pageNumber;
-				this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
-				await TrackingUtility.trackAsync(this.title, this.uri);
-				if (this.filterBy.And.Author.Equals !== undefined) {
-					this.changeDetector.detectChanges();
-				}
-			}
-		);
+		const onNextAsync = async data => {
+			this.pageNumber++;
+			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
+			this.pagination.PageNumber = this.pageNumber;
+			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
+			await TrackingUtility.trackAsync(this.title, this.uri);
+		};
+		if (this.searching) {
+			this.searchSubscription = this.booksSvc.search(this.request, onNextAsync);
+		}
+		else {
+			await this.booksSvc.searchAsync(this.request, onNextAsync);
+		}
+	}
+
+	cancel(dontDisableInfiniteScroll?: boolean) {
+		if (this.searchSubscription !== undefined) {
+			this.searchSubscription.unsubscribe();
+			this.searchSubscription = undefined;
+		}
+		if (AppUtility.isFalse(dontDisableInfiniteScroll)) {
+			this.scrollCtrl.disabled = true;
+		}
 	}
 
 	prepareResults(onNext?: () => void, results?: Array<any>) {
@@ -325,34 +352,33 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", async () => await this.configSvc.navigateForwardAsync("/books/search")),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.filter"), "funnel", () => this.showFilter()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", () => this.zone.run(async () => await this.configSvc.navigateForwardAsync("/books/search"))),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.filter"), "funnel", () => this.zone.run(() => this.showFilter())),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.sort"), "list-box", async () => await this.showSortsAsync())
 		];
 
 		const pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 		if (pagination !== undefined && this.pageNumber < pagination.PageNumber) {
-			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.show", { totalRecords: AppPagination.computeTotal(pagination.PageNumber, pagination) }), "eye", async () => {
+			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.show", { totalRecords: AppPagination.computeTotal(pagination.PageNumber, pagination) }), "eye", () => this.zone.run(async () => {
 				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 				this.pageNumber = this.pagination.PageNumber;
 				await this.prepareResults(async () => await this.prepareActionsAsync());
-			}));
+			})));
 		}
 
 		if (this.authSvc.isServiceModerator()) {
-			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.crawl"), "build", async () => await this.showCrawlAsync()));
+			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.crawl"), "build", () => this.zone.run(async () => await this.showCrawlAsync())));
 		}
+	}
+
+	async showActionsAsync() {
+		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
 	showFilter() {
 		this.filtering = true;
 		this.searchCtrl.value = undefined;
-		this.changeDetector.detectChanges();
 		PlatformUtility.focus(this.searchCtrl);
-	}
-
-	async showActionsAsync() {
-		await this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
 	async showSortsAsync() {
@@ -360,7 +386,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			await this.configSvc.getResourceAsync("books.list.sort.header"),
 			undefined,
 			undefined,
-			async data => {
+			data => this.zone.run(() => {
 				if (this.sort !== data) {
 					this.sort = data;
 					this.prepareResults(async () => {
@@ -368,7 +394,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 						await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.list.sort.message"));
 					});
 				}
-			},
+			}),
 			await this.configSvc.getResourceAsync("books.list.sort.button"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel"),
 			this.sorts.map(s => {
@@ -387,10 +413,9 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			await this.configSvc.getResourceAsync("books.crawl.header"),
 			undefined,
 			await this.configSvc.getResourceAsync("books.crawl.label"),
-			async data => {
+			data => {
 				if (AppUtility.isNotEmpty(data.SourceUrl)) {
-					this.booksSvc.sendRequestToCrawl(data.SourceUrl);
-					await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.crawl.message"), 2000);
+					this.booksSvc.sendRequestToCrawl(data.SourceUrl, async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.crawl.message"), 2000));
 				}
 			},
 			await this.configSvc.getResourceAsync("books.crawl.button"),
@@ -404,17 +429,6 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 			]
 		);
-	}
-
-	async cancelAsync() {
-		if (this.filtering) {
-			this.filtering = false;
-			this.filterBy.Query = undefined;
-			this.prepareResults(() => this.scrollCtrl.disabled = false);
-		}
-		else {
-			await this.configSvc.navigateBackAsync();
-		}
 	}
 
 	track(index: number, book: Book) {

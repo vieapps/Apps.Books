@@ -19,4 +19,5 @@ import { UpdateBookPage } from "./update.page";
 		])
 	]
 })
+
 export class UpdateBookPageModule {}

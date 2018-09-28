@@ -13,4 +13,5 @@ import { AccountAvatarPage } from "./avatar.page";
 	],
 	entryComponents: [AccountAvatarPage]
 })
+
 export class AccountAvatarPageModule {}

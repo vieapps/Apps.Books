@@ -110,6 +110,7 @@
 				"month": "Total of this month",
 				"week": "Total of this week"
 			},
+			"updated": "Updated at",
 			"link": "Link",
 			"notAuthenticated": "Please login to download e-book files!"
 		},

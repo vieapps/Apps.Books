@@ -102,4 +102,5 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 	])],
 	exports: [RouterModule]
 })
+
 export class AppRoutingModule {}

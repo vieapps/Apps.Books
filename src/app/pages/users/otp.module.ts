@@ -19,4 +19,5 @@ import { UpdateAccount2FAPage } from "./otp.page";
 		])
 	]
 })
+
 export class UpdateAccount2FAPageModule {}

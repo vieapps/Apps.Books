@@ -48,6 +48,27 @@ export class UsersService extends BaseService {
 		);
 	}
 
+	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.search(
+			this.searchURI,
+			request,
+			AppUtility.isNotNull(onNext)
+				? data => {
+					if (data !== undefined) {
+						(data.Objects as Array<any> || []).forEach(o => UserProfile.update(o));
+					}
+					onNext(data);
+				}
+				: undefined,
+			error => {
+				console.error(this.getErrorMessage("Error occurred while searching", error));
+				if (onError !== undefined) {
+					onError(error);
+				}
+			}
+		);
+	}
+
 	public async searchAsync(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.searchAsync(
 			this.searchURI,
@@ -294,18 +315,22 @@ export class UsersService extends BaseService {
 	}
 
 	private async processUpdateMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
+		const account = this.configSvc.getAccount();
 		switch (message.Type.Object) {
 			case "Session":
-				if (this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.UserID) {
-					switch (message.Type.Event) {
-						case "Update":
+				const isCurrentSession = this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.isAuthenticated && account.id === message.Data.UserID;
+				switch (message.Type.Event) {
+					case "Update":
+						if (isCurrentSession) {
 							await this.configSvc.updateSessionAsync(message.Data, () => {
 								console.warn(this.getLogMessage("The session is updated with new token"), this.configSvc.appConfig.session);
 								this.configSvc.patchSession(() => this.configSvc.patchAccount());
 							});
-							break;
+						}
+						break;
 
-						case "Revoke":
+					case "Revoke":
+						if (isCurrentSession) {
 							await this.configSvc.resetSessionAsync(async () => {
 								await this.configSvc.initializeSessionAsync(async () => {
 									await this.configSvc.registerSessionAsync(() => {
@@ -314,23 +339,28 @@ export class UsersService extends BaseService {
 									});
 								});
 							});
-							break;
+						}
+						break;
 
-						case "Status":
-							const profile = UserProfile.get(message.Data.UserID);
-							if (profile !== undefined) {
-								profile.IsOnline = message.Data.IsOnline;
-								profile.LastAccess = new Date();
-							}
-							break;
+					case "Status":
+						const userProfile = UserProfile.get(message.Data.UserID);
+						if (userProfile !== undefined) {
+							userProfile.IsOnline = this.configSvc.isAuthenticated && account.id === userProfile.ID ? true : message.Data.IsOnline;
+							userProfile.LastAccess = new Date();
+						}
+						break;
 
-						default:
-							console.warn(this.getLogMessage("Got an update of session"), message);
-							break;
-					}
+					default:
+						console.warn(this.getLogMessage("Got an update of session"), message);
+						break;
 				}
-				else {
-					console.warn(this.getLogMessage("Got an update of session"), message);
+				break;
+
+			case "Status":
+				const accountProfile = UserProfile.get(message.Data.UserID);
+				if (accountProfile !== undefined) {
+					accountProfile.IsOnline = this.configSvc.isAuthenticated && account.id === accountProfile.ID ? true : message.Data.IsOnline;
+					accountProfile.LastAccess = new Date();
 				}
 				break;
 
@@ -340,22 +370,24 @@ export class UsersService extends BaseService {
 
 			case "Profile":
 				UserProfile.update(message.Data);
-				if (this.configSvc.isAuthenticated && this.configSvc.getAccount().id === message.Data.ID) {
-					this.configSvc.getAccount().profile = UserProfile.get(message.Data.ID);
-					if (this.configSvc.appConfig.options.i18n !== this.configSvc.getAccount().profile.Language) {
-						await this.configSvc.changeLanguageAsync(this.configSvc.getAccount().profile.Language);
-					}
-					await Promise.all([
-						this.configSvc.storeOptionsAsync(),
-						this.configSvc.storeProfileAsync(() => {
-							if (this.configSvc.isDebug) {
-								console.log(this.getLogMessage("User profile is updated"), this.configSvc.getAccount().profile);
-							}
-							if (this.configSvc.appConfig.facebook.token !== undefined && this.configSvc.appConfig.facebook.id !== undefined) {
-								this.configSvc.getFacebookProfile();
-							}
-						})
-					]);
+				if (this.configSvc.isAuthenticated && account.id === message.Data.ID) {
+					account.profile = UserProfile.get(message.Data.ID);
+					account.profile.IsOnline = true;
+					account.profile.LastAccess = new Date();
+					await this.configSvc.storeProfileAsync(async () => {
+						if (this.configSvc.appConfig.options.i18n !== account.profile.Language) {
+							await this.configSvc.changeLanguageAsync(account.profile.Language);
+						}
+						else {
+							await this.configSvc.storeOptionsAsync();
+						}
+						if (this.configSvc.appConfig.facebook.token !== undefined && this.configSvc.appConfig.facebook.id !== undefined) {
+							this.configSvc.getFacebookProfile();
+						}
+						if (this.configSvc.isDebug) {
+							console.log(this.getLogMessage("User profile is updated"), account.profile);
+						}
+					});
 				}
 				break;
 

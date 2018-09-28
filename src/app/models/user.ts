@@ -81,7 +81,6 @@ export class UserProfileBase extends BaseModel {
 					ID: this.ID
 				})
 			};
-
 			if (onCompleted !== undefined) {
 				onCompleted(data);
 			}
