@@ -1,7 +1,3 @@
-section {
-	clear: both;
-	overflow: hidden;
-}
 h1 {
 	margin: 0;
 }
@@ -17,27 +13,16 @@ ul > li {
 ul.files > li {
 	margin: 16px 0;
 }
-figure,
-.qrcode > div {
-	text-align: center;
-	margin: 0;
-}
-figure > img {
-	width: 290px;
+img {
 	border-radius: 5px;
-}
-.qrcode > div > label {
-	font-size: 80%;
-	font-weight: normal;
-	color: var(--ion-color-medium);
+	width: 270px;
+	max-width: 100%;
 }
 ion-icon {
 	cursor: pointer;
 }
-@media only screen and (min-width: 576px) {
-	figure,
-	.qrcode > div {
-		width: 290px;
-		float: left;
-	}
+.qrcode > span {
+	font-size: 80%;
+	font-weight: normal;
+	color: var(--ion-color-medium);
 }

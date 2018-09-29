@@ -15,197 +15,198 @@
 		{{ book.Title }}
 	</h1>
 
-	<section padding>
-		<figure padding-bottom>
-			<img [src]="book.Cover" />
-		</figure>
-		<div>
-			<ion-list>
-				<ion-item *ngIf="book.Original !== ''">
-					<span>
-						{{ resources.original }}:
-					</span>
-					<label>
-						{{ book.Original }}
-					</label>
-				</ion-item>
-				<ion-item>
-					<span>
-						{{ resources.author }}:
-					</span>
-					<label>
-						{{ book.Author }}
-					</label>
-				</ion-item>
-				<ion-item *ngIf="book.Translator !== ''">
-					<span>
-						{{ resources.translator }}:
-					</span>
-					<label>
-						{{ book.Translator }}
-					</label>
-				</ion-item>
-				<ion-item *ngIf="book.Publisher !== ''">
-					<span>
-						{{ resources.publisher }}:
-					</span>
-					<label>
-						{{ book.Publisher }}
-					</label>
-				</ion-item>
-				<ion-item *ngIf="book.Producer !== ''">
-					<span>
-						{{ resources.producer }}:
-					</span>
-					<label>
-						{{ book.Producer }}
-					</label>
-				</ion-item>
-				<ion-item *ngIf="book.TotalChapters > 1">
-					<span>
-						{{ resources.chapters }}:
-					</span>
-					<label>
-						{{ book.TotalChapters | number:'':locale }}
-					</label>
-				</ion-item>
-				<ion-item>
-					<span>
-						{{ resources.category }}:
-					</span>
-					<label>
-						{{ book.Category }}
-					</label>
-				</ion-item>
-				<ion-item *ngIf="book.Source !== ''">
-					<span>
-						{{ resources.source }}:
-					</span>
-					<label *ngIf="!sourceUrl">
-						{{ book.Source }}
-					</label>
-					<label *ngIf="sourceUrl">
-						<a [href]="sourceUrl" target="_blank">
+	<ion-grid padding>
+		<ion-row>
+			<ion-col padding-bottom text-center size-xs="12" size-sm="6" size-md="4" size-md="3">
+				<img [src]="book.Cover" />
+			</ion-col>
+			<ion-col size-xs="12" size-sm="6" size-md="8" size-md="9">
+				<ion-list>
+					<ion-item *ngIf="book.Original !== ''">
+						<span>
+							{{ resources.original }}:
+						</span>
+						<label>
+							{{ book.Original }}
+						</label>
+					</ion-item>
+					<ion-item>
+						<span>
+							{{ resources.author }}:
+						</span>
+						<label>
+							{{ book.Author }}
+						</label>
+					</ion-item>
+					<ion-item *ngIf="book.Translator !== ''">
+						<span>
+							{{ resources.translator }}:
+						</span>
+						<label>
+							{{ book.Translator }}
+						</label>
+					</ion-item>
+					<ion-item *ngIf="book.Publisher !== ''">
+						<span>
+							{{ resources.publisher }}:
+						</span>
+						<label>
+							{{ book.Publisher }}
+						</label>
+					</ion-item>
+					<ion-item *ngIf="book.Producer !== ''">
+						<span>
+							{{ resources.producer }}:
+						</span>
+						<label>
+							{{ book.Producer }}
+						</label>
+					</ion-item>
+					<ion-item *ngIf="book.TotalChapters > 1">
+						<span>
+							{{ resources.chapters }}:
+						</span>
+						<label>
+							{{ book.TotalChapters | number:'':locale }}
+						</label>
+					</ion-item>
+					<ion-item>
+						<span>
+							{{ resources.category }}:
+						</span>
+						<label>
+							{{ book.Category }}
+						</label>
+					</ion-item>
+					<ion-item *ngIf="book.Source !== ''">
+						<span>
+							{{ resources.source }}:
+						</span>
+						<label *ngIf="!sourceUrl">
 							{{ book.Source }}
-						</a>
-					</label>
-				</ion-item>
-				<ion-item>
-					<span>
-						{{ resources.updated }}:
-					</span>
-					<label>
-						{{ book.LastUpdated | date: 'h:mm a @ d/M/y' }}
-					</label>
-				</ion-item>
-				<ion-item>
-					<div padding-top>
-						<section>
-							e-Books:
-						</section>
-						<ul class="files">
-							<li (click)="downloadAsync('Epub')">
-								<span>
-									EPUB: {{ book.Files.Epub.Size }}
-								</span>
-								<ion-icon *ngIf="book.Files.Epub.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" float-end></ion-icon>
-							</li>
-							<li (click)="downloadAsync('Mobi')">
-								<span>
-									MOBI: {{ book.Files.Mobi.Size }}
-								</span>
-								<ion-icon *ngIf="book.Files.Mobi.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" float-end></ion-icon>
-							</li>
-						</ul>
-					</div>
-				</ion-item>
-			</ion-list>
-		</div>
-	</section>
-
-	<section class="qrcode" padding>
-		<div padding-bottom>
-			<span>
-				{{ resources.qrcode.header }}
-			</span>
-			<div>
-				<qr-code [value]="qrcode" [size]="290"></qr-code>
-			</div>
-			<label>
-				{{ resources.qrcode.description }}
-			</label>
-		</div>
-		<div>
-			<ion-list>
-				<ion-item *ngIf="statistics.views">
-					<div>
-						<section>
-							{{ resources.statistics.views }}:
-						</section>
-						<ul>
-							<li>
-								<span>
-									{{ resources.statistics.total }}:
-								</span>
-								<label>
-									{{ statistics.views.Total | number:'':locale }}
-								</label>
-							</li>
-							<li>
-								<span>
-									{{ resources.statistics.month }}:
-								</span>
-								<label>
-									{{ statistics.views.Month | number:'':locale }}
-								</label>
-							</li>
-							<li>
-								<span>
-									{{ resources.statistics.week }}:
-								</span>
-								<label>
-									{{ statistics.views.Week | number:'':locale }}
-								</label>
-							</li>
-						</ul>
-					</div>
-				</ion-item>
-				<ion-item *ngIf="statistics.downloads">
-					<div padding-top>
-						<section>
-							{{ resources.statistics.downloads }}:
-						</section>
-						<ul>
-							<li>
-								<span>
-									{{ resources.statistics.total }}:
-								</span>
-								<label>
-									{{ statistics.downloads.Total | number:'':locale }}
-								</label>
-							</li>
-							<li>
-								<span>
-									{{ resources.statistics.month }}:
-								</span>
-								<label>
-									{{ statistics.downloads.Month | number:'':locale }}
-								</label>
-							</li>
-							<li>
-								<span>
-									{{ resources.statistics.week }}:
-								</span>
-								<label>
-									{{ statistics.downloads.Week | number:'':locale }}
-								</label>
-							</li>
-						</ul>
-					</div>
-				</ion-item>
-			</ion-list>
-		</div>
-	</section>
+						</label>
+						<label *ngIf="sourceUrl">
+							<a [href]="sourceUrl" target="_blank">
+								{{ book.Source }}
+							</a>
+						</label>
+					</ion-item>
+					<ion-item>
+						<span>
+							{{ resources.updated }}:
+						</span>
+						<label>
+							{{ book.LastUpdated | date: 'h:mm a @ d/M/y' }}
+						</label>
+					</ion-item>
+					<ion-item>
+						<div padding-top>
+							<section>
+								e-Books:
+							</section>
+							<ul class="files">
+								<li (click)="downloadAsync('Epub')">
+									<span>
+										EPUB: {{ book.Files.Epub.Size }}
+									</span>
+									<ion-icon *ngIf="book.Files.Epub.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" float-end></ion-icon>
+								</li>
+								<li (click)="downloadAsync('Mobi')">
+									<span>
+										MOBI: {{ book.Files.Mobi.Size }}
+									</span>
+									<ion-icon *ngIf="book.Files.Mobi.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" float-end></ion-icon>
+								</li>
+							</ul>
+						</div>
+					</ion-item>
+				</ion-list>
+			</ion-col>
+		</ion-row>
+		<ion-row padding-top>
+			<ion-col padding-bottom text-center class="qrcode" size-xs="12" size-sm="6" size-md="4" size-md="3">
+				<div>
+					{{ resources.qrcode.header }}
+				</div>
+				<div>
+					<qr-code [value]="qrcode" [size]="290"></qr-code>
+				</div>
+				<span>
+					{{ resources.qrcode.description }}
+				</span>
+			</ion-col>
+			<ion-col size-xs="12" size-sm="6" size-md="8" size-md="9">
+				<ion-list>
+					<ion-item *ngIf="statistics.views">
+						<div>
+							<section>
+								{{ resources.statistics.views }}:
+							</section>
+							<ul>
+								<li>
+									<span>
+										{{ resources.statistics.total }}:
+									</span>
+									<label>
+										{{ statistics.views.Total | number:'':locale }}
+									</label>
+								</li>
+								<li>
+									<span>
+										{{ resources.statistics.month }}:
+									</span>
+									<label>
+										{{ statistics.views.Month | number:'':locale }}
+									</label>
+								</li>
+								<li>
+									<span>
+										{{ resources.statistics.week }}:
+									</span>
+									<label>
+										{{ statistics.views.Week | number:'':locale }}
+									</label>
+								</li>
+							</ul>
+						</div>
+					</ion-item>
+					<ion-item *ngIf="statistics.downloads">
+						<div padding-top>
+							<section>
+								{{ resources.statistics.downloads }}:
+							</section>
+							<ul>
+								<li>
+									<span>
+										{{ resources.statistics.total }}:
+									</span>
+									<label>
+										{{ statistics.downloads.Total | number:'':locale }}
+									</label>
+								</li>
+								<li>
+									<span>
+										{{ resources.statistics.month }}:
+									</span>
+									<label>
+										{{ statistics.downloads.Month | number:'':locale }}
+									</label>
+								</li>
+								<li>
+									<span>
+										{{ resources.statistics.week }}:
+									</span>
+									<label>
+										{{ statistics.downloads.Week | number:'':locale }}
+									</label>
+								</li>
+							</ul>
+						</div>
+					</ion-item>
+				</ion-list>
+			</ion-col>
+		</ion-row>
+	</ion-grid>
 
 	<section padding-vertical>
 		<ion-item>

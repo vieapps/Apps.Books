@@ -161,3 +161,8 @@ ion-item.select-file > ion-label {
 .completer-image-default {
 	background-image: none !important;
 }
+
+/* QR Code */
+qr-code > img {
+	height: auto !important;
+}
