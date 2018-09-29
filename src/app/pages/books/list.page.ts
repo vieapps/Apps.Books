@@ -267,7 +267,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
 			this.pagination.PageNumber = this.pageNumber;
 			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
-			await TrackingUtility.trackAsync(this.title, this.uri);
+			await TrackingUtility.trackAsync(this.title + ` [${this.pageNumber}]`, this.uri);
 		};
 		if (this.searching) {
 			this.searchSubscription = this.booksSvc.search(this.request, onNextAsync);

@@ -284,7 +284,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		}
 		await Promise.all([
 			this.appFormsSvc.hideLoadingAsync(onNext),
-			TrackingUtility.trackAsync(this.title, this.book.routerLink),
+			TrackingUtility.trackAsync(this.title + ` [${this.chapter}]`, this.book.routerLink),
 		]);
 	}
 

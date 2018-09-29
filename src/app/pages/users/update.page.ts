@@ -278,7 +278,7 @@ export class UpdateAccountProfilePage implements OnInit {
 						}
 					}
 					await Promise.all([
-						TrackingUtility.trackAsync(this.title, "users/update/profile"),
+						TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/profile"),
 						this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.update.messages.success")))
 					]);
 				},
@@ -338,7 +338,7 @@ export class UpdateAccountProfilePage implements OnInit {
 				this.password.form.value.OldPassword,
 				this.password.form.value.Password,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "users/update/password"),
+					TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/password"),
 					this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.password.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.password.controls.find(ctrl => ctrl.Name === "OldPassword").focus())
@@ -397,7 +397,7 @@ export class UpdateAccountProfilePage implements OnInit {
 				this.email.form.value.OldPassword,
 				this.email.form.value.Email,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "users/update/email"),
+					TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/email"),
 					this.showProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.email.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.password.controls.find(ctrl => ctrl.Name === "OldPassword").focus())
@@ -420,7 +420,7 @@ export class UpdateAccountProfilePage implements OnInit {
 				this.profile.ID,
 				this._privileges.value,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "users/update/privileges"),
+					TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/privileges"),
 					this.showProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.privileges.message", { name: this.profile.Name })))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)

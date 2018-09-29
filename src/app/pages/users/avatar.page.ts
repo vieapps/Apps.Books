@@ -97,7 +97,7 @@ export class AccountAvatarPage implements OnInit {
 				Avatar: this.profile.Avatar
 			},
 			async () => await this.configSvc.storeProfileAsync(async () => {
-				await TrackingUtility.trackAsync(this.title, "users/update/avatar");
+				await TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/avatar");
 				await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.avatar.message")));
 			}),
 			error => {

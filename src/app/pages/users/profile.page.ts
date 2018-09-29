@@ -147,9 +147,9 @@ export class ViewAccountProfilePage implements OnInit {
 		await this.usersSvc.getProfileAsync(id,
 			async () => {
 				if (this.profile === undefined) {
-					await TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.title"), "/users/profile");
+					this.profile = UserProfile.get(id);
+					await TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.title") + ` [${this.profile.Name}]`, "/users/profile");
 				}
-				this.profile = UserProfile.get(id);
 				this.labels.header = await this.configSvc.getResourceAsync("users.profile.labels.header");
 				this.labels.lastAccess = await this.configSvc.getResourceAsync("users.profile.labels.lastAccess");
 				await this.setModeAsync("profile", await this.configSvc.getResourceAsync("users.profile.title"));
@@ -210,7 +210,7 @@ export class ViewAccountProfilePage implements OnInit {
 				this.invitation.privileges,
 				this.invitation.relatedInfo,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "users/invitation"),
+					TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/invitation"),
 					this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.invitation.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)

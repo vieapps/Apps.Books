@@ -169,7 +169,7 @@ export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit
 			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.usersSvc.serviceName);
 			this.pagination.PageNumber = this.pageNumber;
 			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
-			await TrackingUtility.trackAsync(this.title, this.configSvc.currentUrl);
+			await TrackingUtility.trackAsync(this.title + ` [${this.pageNumber}]`, this.configSvc.currentUrl);
 		};
 		if (this.searching) {
 			this.subscription = this.usersSvc.search(this.request, onNextAsync);

@@ -113,7 +113,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 				if (AppUtility.isObject(this.book.Files, true) && (this.book.Files.Epub.Size === "generating..." || this.book.Files.Mobi.Size === "generating...")) {
 					this.booksSvc.generateFiles(this.book.ID);
 				}
-				await TrackingUtility.trackAsync(this.title, this.book.routerLink);
+				await TrackingUtility.trackAsync("Info: " + this.title, this.book.routerLink);
 			}
 			else {
 				this.zone.run(async () => await this.configSvc.navigateBackAsync());
