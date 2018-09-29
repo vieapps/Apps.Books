@@ -1,7 +1,7 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-back-button (click)="onClose()"></ion-back-button>
+			<ion-back-button text="" (click)="onClose()"></ion-back-button>
 		</ion-buttons>
 		<ion-buttons slot="end">
 			<ion-button *ngIf="book && book.TotalChapters > 1 && screen > 767 && screen < 992" (click)="openTOCsAsync()">

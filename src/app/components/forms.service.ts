@@ -809,15 +809,14 @@ export class AppFormsService {
 	public async showAlertAsync(header: string = null, subHeader: string = null, message: string, postProcess: (data?: any) => void = () => {}, okButtonText: string = null, cancelButtonText: string = null, inputs: Array<any> = null) {
 		await this.hideLoadingAsync(async () => await this.hideAlertAsync());
 		const buttons = AppUtility.isNotEmpty(cancelButtonText)
-			? [{ text: cancelButtonText, role: "cancel", handler: undefined as (data?: any) => void }]
+			? [{ text: cancelButtonText, role: "cancel", handler: async (data?: any) => await this.hideAlertAsync() }]
 			: [];
 		buttons.push({
 			text: okButtonText || await this.getResourceAsync("common.buttons.ok"),
 			role: undefined as string,
 			handler: async (data?: any) => {
 				postProcess(data);
-				await this._alert.dismiss();
-				this._alert = undefined;
+				await this.hideAlertAsync();
 			}
 		});
 		this._alert = await this.alertController.create({

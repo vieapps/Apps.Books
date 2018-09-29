@@ -116,7 +116,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 	}
 
 	onClose() {
-		if (this.book.TotalChapters > 1) {
+		if (this.book !== undefined && this.book.TotalChapters > 1) {
 			AppEvents.broadcast("Books", { Type: "CloseBook", ID: this.book.ID });
 		}
 	}

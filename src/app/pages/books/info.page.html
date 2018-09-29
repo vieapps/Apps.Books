@@ -1,7 +1,7 @@
 <ion-header>
 	<ion-toolbar>
 		<ion-buttons slot="start">
-			<ion-back-button></ion-back-button>
+			<ion-back-button text=""></ion-back-button>
 		</ion-buttons>
 		<ion-title>
 			{{ title }}
@@ -104,17 +104,17 @@
 							e-Books:
 						</section>
 						<ul class="files">
-							<li>
+							<li (click)="downloadAsync('Epub')">
 								<span>
 									EPUB: {{ book.Files.Epub.Size }}
 								</span>
-								<ion-icon *ngIf="book.Files.Epub.Size != 'generating...'" name="download" slot="icon-only" [title]="resources.download" (click)="downloadAsync('Epub')" float-end></ion-icon>
+								<ion-icon *ngIf="book.Files.Epub.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" float-end></ion-icon>
 							</li>
-							<li>
+							<li (click)="downloadAsync('Mobi')">
 								<span>
 									MOBI: {{ book.Files.Mobi.Size }}
 								</span>
-								<ion-icon *ngIf="book.Files.Mobi.Size != 'generating...'" name="download" slot="icon-only" [title]="resources.download" (click)="downloadAsync('Mobi')" float-end></ion-icon>
+								<ion-icon *ngIf="book.Files.Mobi.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" float-end></ion-icon>
 							</li>
 						</ul>
 					</div>
