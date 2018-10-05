@@ -17,6 +17,7 @@ import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { FileTransfer } from "@ionic-native/file-transfer/ngx";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
+import { Clipboard } from "@ionic-native/clipboard/ngx";
 
 import { AppComponent } from "./app.component";
 import { AppRoutingModule } from "./app.routes";
@@ -69,6 +70,7 @@ export class HammerConfig extends HammerGestureConfig {
 		FileTransfer,
 		GoogleAnalytics,
 		InAppBrowser,
+		Clipboard,
 		AppReadyGuardService,
 		RegisterGuardService,
 		AuthenticatedGuardService,

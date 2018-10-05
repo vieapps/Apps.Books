@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 
 import { Platform } from "@ionic/angular";
@@ -27,6 +27,7 @@ import { BooksService } from "./providers/books.service";
 export class AppComponent implements OnInit {
 
 	constructor(
+		public zone: NgZone,
 		public router: Router,
 		public platform: Platform,
 		public splashScreen: SplashScreen,
@@ -338,7 +339,7 @@ export class AppComponent implements OnInit {
 					url: this.configSvc.appConfig.url.home,
 					params: {}
 				};
-				await this.router.navigateByUrl(this.configSvc.appConfig.url.home);
+				await this.zone.run(async () => await this.router.navigateByUrl(this.configSvc.appConfig.url.home));
 			}
 		);
 	}
@@ -409,7 +410,7 @@ export class AppComponent implements OnInit {
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
 							console.log(`<AppComponent>: Redirect to the request url\n=>: ${redirect}`);
-							await this.configSvc.navigateForwardAsync(redirect);
+							await this.zone.run(async () => await this.configSvc.navigateForwardAsync(redirect));
 						}
 						catch (error) {
 							console.error(`<AppComponent>: Redirect url is not well-form\n[${redirect}]`, this.configSvc.appConfig.isNativeApp ? JSON.stringify(error) : error);

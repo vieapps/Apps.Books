@@ -11,6 +11,7 @@ import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
+import { Clipboard } from "@ionic-native/clipboard/ngx";
 import { TranslateService } from "@ngx-translate/core";
 import { AppConfig } from "../app.config";
 import { AppStorage } from "../components/app.storage";
@@ -35,6 +36,7 @@ export class ConfigurationService extends BaseService {
 		public device: Device,
 		public keyboard: Keyboard,
 		public inappBrowser: InAppBrowser,
+		public clipboard: Clipboard,
 		public appVersion: AppVersion,
 		public googleAnalytics: GoogleAnalytics,
 		public storage: Storage,
@@ -196,7 +198,7 @@ export class ConfigurationService extends BaseService {
 	/** Prepare the configuration of the app */
 	public async prepareAsync() {
 		const isCordova = this.platform.is("cordova");
-		const isNativeApp = isCordova && this.device.platform !== "browser";
+		const isNativeApp = isCordova && (this.device.platform === "iOS" || this.device.platform === "Android");
 
 		this.appConfig.app.mode = isNativeApp ? "NTA" : "PWA";
 		this.appConfig.app.os = PlatformUtility.getOSPlatform();
@@ -218,6 +220,7 @@ export class ConfigurationService extends BaseService {
 					PlatformUtility.setKeyboard(this.keyboard);
 				}
 				PlatformUtility.setInAppBrowser(this.inappBrowser);
+				PlatformUtility.setClipboard(this.clipboard);
 			}
 
 			try {

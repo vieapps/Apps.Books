@@ -1,6 +1,5 @@
-import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
+import { Component, OnInit, OnDestroy, NgZone } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { Input as IonicInput } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
 import { PlatformUtility } from "../../components/app.utility.platform";
@@ -31,7 +30,6 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 
 	title = "";
 	qrcode = "";
-	uri = "";
 	book = new Book();
 	statistics = {
 		views: undefined as CounterInfo,
@@ -62,10 +60,18 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 		link: "Permanent link"
 	};
 
-	@ViewChild("link") linkCtrl: IonicInput;
-
 	get locale() {
 		return this.configSvc.locale;
+	}
+
+	get sourceUrl() {
+		return this.book.SourceUrl !== ""
+			? this.book.SourceUrl.replace("/mobile/", "/").replace("/mobil/", "/truyen/").replace("http://", "https://")
+			: undefined;
+	}
+
+	get redirectUrl() {
+		return this.book ? PlatformUtility.getRedirectURI(this.book.routerURI) : this.configSvc.appConfig.URIs.activations;
 	}
 
 	ngOnInit() {
@@ -106,10 +112,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 				await this.prepareResourcesAsync();
 				this.getStatistics();
 				this.title = this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
-				this.uri = PlatformUtility.getRedirectURI(this.book.routerURI);
-				this.qrcode = this.configSvc.appConfig.isNativeApp
-					? "vieapps://books/" + this.book.ID
-					: this.uri;
+				this.qrcode = this.configSvc.appConfig.isNativeApp ? "vieapps://books/" + this.book.ID : this.redirectUrl;
 				if (AppUtility.isObject(this.book.Files, true) && (this.book.Files.Epub.Size === "generating..." || this.book.Files.Mobi.Size === "generating...")) {
 					this.booksSvc.generateFiles(this.book.ID);
 				}
@@ -163,14 +166,8 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 	}
 
 	async copyLinkAsync() {
-		PlatformUtility.copyToClipboard(this.linkCtrl.value);
+		PlatformUtility.copyToClipboard(this.redirectUrl);
 		await this.appFormsSvc.showToastAsync("Copied...");
-	}
-
-	get sourceUrl() {
-		return this.book.SourceUrl !== ""
-			? this.book.SourceUrl.replace("/mobile/", "/").replace("/mobil/", "/truyen/").replace("http://", "https://")
-			: undefined;
 	}
 
 }

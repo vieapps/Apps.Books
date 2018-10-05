@@ -125,7 +125,7 @@
 		</ion-row>
 		<ion-row padding-top>
 			<ion-col padding-bottom text-center class="qrcode" size-xs="12" size-sm="6" size-md="4" size-md="3">
-				<div>
+				<div padding-bottom>
 					{{ resources.qrcode.header }}
 				</div>
 				<div>
@@ -213,7 +213,7 @@
 			<ion-label position="stacked">
 				{{ resources.link }}:
 			</ion-label>
-			<ion-input #link [value]="uri" readonly></ion-input>
+			<ion-input [value]="redirectUrl" readonly></ion-input>
 			<ion-button slot="end" fill="clear" (click)="copyLinkAsync()">
 				<ion-icon name="copy" color="medium" slot="icon-only"></ion-icon>
 			</ion-button>

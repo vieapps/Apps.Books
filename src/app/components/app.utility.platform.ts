@@ -2,6 +2,7 @@ declare var FB: any;
 import { ElementRef } from "@angular/core";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
+import { Clipboard } from "@ionic-native/clipboard/ngx";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "./app.crypto";
 import { AppUtility } from "./app.utility";
@@ -11,6 +12,7 @@ export class PlatformUtility {
 
 	private static _keyboard: Keyboard;
 	private static _inappBrowser: InAppBrowser;
+	private static _clipboard: Clipboard;
 
 	/** Sets the instance of device keyboard */
 	public static setKeyboard(keyboard: Keyboard) {
@@ -20,6 +22,11 @@ export class PlatformUtility {
 	/** Sets the instance of in-app browser */
 	public static setInAppBrowser(inappBrowser: InAppBrowser) {
 		this._inappBrowser = inappBrowser;
+	}
+
+	/** Sets the instance of app clipboard */
+	public static setClipboard(clipboard: Clipboard) {
+		this._clipboard = clipboard;
 	}
 
 	/**
@@ -117,42 +124,92 @@ export class PlatformUtility {
 
 	/** Parses an uri */
 	public static parseURI(uri?: string) {
-		const parser = window.document.createElement("a");
-		parser.href = uri || window.location.href;
+		uri = uri || (window && window.location ? window.location.href : "vieapps://service-as-host/path?query=#?hash=");
 
-		// convert query string to object
-		const searchParams = {} as { [key: string]: any };
-		if (parser.search !== "") {
-			const queries = parser.search.replace(/^\?/, "").split("&");
-			for (let index = 0; index < queries.length; index++ ) {
-				const split = queries[index].split("=");
-				searchParams[split[0]] = split[1];
+		let scheme = "http", host = "local", relativeURI = "";
+
+		let pos = uri.indexOf("://");
+		if (pos > -1 ) {
+			scheme = uri.substr(0, pos);
+			pos += 3;
+			const end = uri.indexOf("/", pos);
+			relativeURI = uri.substr(end);
+			if (scheme !== "file") {
+				host = uri.substr(pos, end - pos);
 			}
 		}
+		else {
+			relativeURI = uri;
+		}
 
-		// convert hash string to object
-		const hashParams = {} as { [key: string]: any };
-		let hash = parser.hash;
-		while (hash.indexOf("#") === 0 || hash.indexOf("?") === 0) {
-			hash = hash.substring(1);
+		let port = "";
+		pos = host.indexOf(":");
+		if (pos > 0) {
+			port = host.substr(pos + 1);
+			host = host.substr(0, pos);
+		}
+
+		const hostnames = AppUtility.toArray(host, ".") as Array<string>;
+
+		let path = "", query = "", hash = "";
+		pos = relativeURI.indexOf("?");
+		if (pos > 0) {
+			path = relativeURI.substr(0, pos);
+			query = relativeURI.substr(pos + 1);
+			let end = relativeURI.indexOf("#");
+			if (end > 0 && end < pos) {
+				hash = query;
+				query = "";
+			}
+			else if (end > 0 && end > pos) {
+				end = query.indexOf("#");
+				hash = query.substr(end + 1);
+				query = query.substr(0, end);
+			}
+		}
+		else {
+			path = relativeURI;
+		}
+
+		while (path.endsWith("?") || path.endsWith("&") || path.endsWith("#")) {
+			path = path.substr(0, path.length - 1);
+		}
+
+		const queryParams = {} as { [key: string]: string };
+		while (query.startsWith("?") || query.startsWith("&")) {
+			query = query.substr(1);
+		}
+		if (query !== "") {
+			query.split("&").forEach(param => {
+				const params = param.split("=");
+				queryParams[params[0]] = decodeURIComponent(params[1]);
+			});
+		}
+
+		const hashParams = {} as { [key: string]: string };
+		while (hash.startsWith("?") || hash.startsWith("&") || hash.startsWith("#")) {
+			hash = hash.substr(1);
 		}
 		if (hash !== "") {
-			const queries = hash.replace(/^\?/, "").split("&");
-			for (let index = 0; index < queries.length; index++ ) {
-				const split = queries[index].split("=");
-				hashParams[split[0]] = split[1];
-			}
+			hash.split("&").forEach(param => {
+				const params = param.split("=");
+				hashParams[params[0]] = params[1];
+			});
 		}
 
 		return {
-			protocol: parser.protocol + "//",
-			host: parser.hostname,
-			port: parser.port,
-			path: parser.pathname,
-			search: parser.search,
-			searchParams: searchParams,
-			hash: parser.hash,
-			hashParams: hashParams
+			AbsoluteURI: uri,
+			RelativeURI: relativeURI,
+			HostURI: scheme + "://" + host + (port !== "" ? ":" + port : ""),
+			Scheme: scheme,
+			Host: host,
+			HostNames: hostnames,
+			Port: port,
+			Path: path,
+			Query: query,
+			QueryParams: queryParams,
+			Hash: hash,
+			HashParams: hashParams
 		};
 	}
 
@@ -164,29 +221,28 @@ export class PlatformUtility {
 
 	/** Gets the redirect URI for working with external */
 	public static getRedirectURI(path: string, addAsRedirectParam: boolean = true) {
-		let url = AppConfig.URIs.activations;
-		if (AppConfig.isWebApp && AppUtility.indexOf(window.location.href, "file://") < 0) {
-			const uri = this.parseURI();
-			url = uri.protocol + uri.host + (uri.port !== "" ? ":" + uri.port : "") + AppConfig.url.base;
-		}
-		return url + "?" + (AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path);
+		const uri = this.parseURI(AppConfig.isWebApp ? window.location.href : AppConfig.URIs.activations);
+		return (uri.Scheme === "file"
+			? this.parseURI(AppConfig.URIs.activations).AbsoluteURI
+			: uri.HostURI + AppConfig.url.base) + "?" + (AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path);
 	}
 
-	/** Gets the host name from an uri */
-	public static getHost(uri?: string) {
-		let host = this.parseURI(uri).host;
-		if (host.indexOf(".") < 0) {
+	/** Gets the host name from an url */
+	public static getHost(url?: string) {
+		const uri = this.parseURI(url);
+		if (uri.Host.indexOf(".") < 0) {
+			return uri.Host;
+		}
+		else {
+			let host = uri.HostNames[uri.HostNames.length - 2] + "." + uri.HostNames[uri.HostNames.length - 1];
+			if (uri.HostNames.length > 2 && uri.HostNames[uri.HostNames.length - 3] !== "www") {
+				host = uri.HostNames[uri.HostNames.length - 3] + "." + host;
+			}
+			if (uri.HostNames.length > 3 && uri.HostNames[uri.HostNames.length - 4] !== "www") {
+				host = uri.HostNames[uri.HostNames.length - 4] + "." + host;
+			}
 			return host;
 		}
-		const info = AppUtility.toArray(host, ".");
-		host = info[info.length - 2] + "." + info[info.length - 1];
-		if (info.length > 2 && info[info.length - 3] !== "www") {
-			host = info[info.length - 3] + "." + host;
-		}
-		if (info.length > 3 && info[info.length - 4] !== "www") {
-			host = info[info.length - 4] + "." + host;
-		}
-		return host;
 	}
 
 	/** Opens Google Maps by address or location via query */
@@ -196,17 +252,31 @@ export class PlatformUtility {
 
 	/** Copies the value into clipboard */
 	public static copyToClipboard(value: string) {
-		const textbox = window.document.createElement("textarea");
-		textbox.style.position = "fixed";
-		textbox.style.left = "0";
-		textbox.style.top = "0";
-		textbox.style.opacity = "0";
-		textbox.value = value;
-		window.document.body.appendChild(textbox);
-		textbox.focus();
-		textbox.select();
-		window.document.execCommand("copy");
-		window.document.body.removeChild(textbox);
+		if (AppConfig.isNativeApp) {
+			this._clipboard.copy(value).then(
+				() => {
+					if (AppConfig.isDebug) {
+						console.log("Clipboard copied...");
+					}
+				},
+				error => {
+					console.error(`Clipboard copy error => ${AppUtility.getErrorMessage(error)}`, JSON.stringify(error));
+				}
+			);
+		}
+		else {
+			const textarea = window.document.createElement("textarea");
+			textarea.style.position = "fixed";
+			textarea.style.left = "0";
+			textarea.style.top = "0";
+			textarea.style.opacity = "0";
+			textarea.value = value;
+			window.document.body.appendChild(textarea);
+			textarea.focus();
+			textarea.select();
+			window.document.execCommand("copy");
+			window.document.body.removeChild(textarea);
+		}
 	}
 
 	/** Sets environments of the PWA */
