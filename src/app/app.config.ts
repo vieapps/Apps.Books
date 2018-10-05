@@ -23,7 +23,11 @@ export class AppConfig {
 	public static app = {
 		id: "ngx-books",
 		name: "VIEApps NGX Books",
+		description: "Online Books from VIEApps.net",
 		version: "1.0.0-beta.4",
+		copyright: "© 2016 - 2018 VIEApps.net",
+		license: "Apache-2.0",
+		frameworks: ".net core 2.1 - ionic 4.0-beta.12 - angular 6.1.9 - cordova 8.0.0",
 		mode: "",
 		platform: "",
 		os: "",

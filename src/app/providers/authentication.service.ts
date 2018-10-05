@@ -138,6 +138,7 @@ export class AuthenticationService extends BaseService {
 			"users/session",
 			async data => {
 				AppEvents.broadcast("Session", { Type: "LogOut" });
+				AppEvents.sendToElectron("Users", { Type: "LogOut", Data: data });
 				await this.configSvc.updateSessionAsync(data, async () => {
 					await this.configSvc.registerSessionAsync(() => {
 						this.configSvc.patchSession(() => {
@@ -183,6 +184,7 @@ export class AuthenticationService extends BaseService {
 
 	private async updateSessionAsync(data: any, onNext: (data?: any) => void) {
 		AppEvents.broadcast("Session", { Type: "LogIn" });
+		AppEvents.sendToElectron("Users", { Type: "LogIn", Data: data });
 		await this.configSvc.updateSessionAsync(data, () => {
 			AppRTU.start(() => {
 				this.configSvc.patchSession(() => {

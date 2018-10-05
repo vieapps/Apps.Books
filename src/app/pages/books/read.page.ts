@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { Content, MenuController } from "@ionic/angular";
+import { Content } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -19,7 +19,6 @@ import { Book } from "../../models/book";
 export class ReadBookPage implements OnInit, OnDestroy {
 	constructor(
 		public zone: NgZone,
-		public menuController: MenuController,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -131,7 +130,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 	}
 
 	async onSwipeRightAsync() {
-		await this.openTOCsAsync();
+		await this.openTOCs();
 	}
 
 	async initializeAsync() {
@@ -204,7 +203,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		this.actions = [
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", async () => await this.openAuthorAsync()),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", async () => await this.openInfoAsync()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.toc"), "list", async () => await this.openTOCsAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.toc"), "list", () => this.openTOCs()),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", async () => await this.openOptionsAsync())
 		];
 
@@ -296,8 +295,8 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		await this.zone.run(async () => await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/info/")));
 	}
 
-	async openTOCsAsync() {
-		await this.menuController.open("start");
+	openTOCs() {
+		AppEvents.broadcast("OpenMenu", { Type: "start" });
 	}
 
 	async openOptionsAsync() {

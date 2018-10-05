@@ -8,6 +8,7 @@ import { IonicModule, IonicRouteStrategy } from "@ionic/angular";
 import { IonicStorageModule } from "@ionic/storage";
 import { TranslateModule, TranslateLoader } from "@ngx-translate/core";
 import { MultiTranslateHttpLoader } from "ngx-translate-multi-http-loader";
+import { NgxElectronModule } from "ngx-electron";
 
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
@@ -51,6 +52,7 @@ export class HammerConfig extends HammerGestureConfig {
 		BrowserModule,
 		HttpModule,
 		HttpClientModule,
+		NgxElectronModule,
 		IonicModule.forRoot(),
 		IonicStorageModule.forRoot({ name: "vieappsDB" }),
 		TranslateModule.forRoot({ loader: {

@@ -1,4 +1,6 @@
 import { Subject } from "rxjs";
+import { ElectronService } from "ngx-electron";
+import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
 
 /** Servicing component for working with app events */
@@ -8,6 +10,7 @@ export class AppEvents {
 		[key: string]: Array<{ func: (info: { event: string, args: any }) => void, identity: string }>
 	} = {};
 	private static _subject: Subject<{ event: string, args: any }> = undefined;
+	private static _electronService: ElectronService;
 
 	private static getHandlers(event: string) {
 		this._handlers[event] = this._handlers[event] || [];
@@ -58,6 +61,24 @@ export class AppEvents {
 	public static broadcast(event: string, args?: any) {
 		this.initialize();
 		this._subject.next({ event, args });
+	}
+
+	/** Initializes the service of Electron for sending messages */
+	public static initializeElectronService(electronService: ElectronService) {
+		if (this._electronService === undefined && electronService !== undefined) {
+			this._electronService = electronService;
+		}
+	}
+
+	/**
+	  * Sends an event message to Electron
+	  * @param event The string that presents the name of an event
+	  * @param args The JSON object that presents the arguments of an event
+	*/
+	public static sendToElectron(event: string, args?: any) {
+		if (this._electronService !== undefined) {
+			this._electronService.ipcRenderer.send(event, args || {});
+		}
 	}
 
 }

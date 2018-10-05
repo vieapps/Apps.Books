@@ -1,8 +1,9 @@
 import { Component, OnInit, NgZone } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 
-import { Platform } from "@ionic/angular";
+import { Platform, MenuController } from "@ionic/angular";
 import { TranslateService } from "@ngx-translate/core";
+import { ElectronService } from "ngx-electron";
 
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
@@ -30,9 +31,11 @@ export class AppComponent implements OnInit {
 		public zone: NgZone,
 		public router: Router,
 		public platform: Platform,
+		public menuController: MenuController,
 		public splashScreen: SplashScreen,
 		public statusBar: StatusBar,
 		public translateSvc: TranslateService,
+		public electronSvc: ElectronService,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -83,7 +86,9 @@ export class AppComponent implements OnInit {
 
 		this.platform.ready().then(async () => {
 			await this.configSvc.prepareAsync();
-			await this.configSvc.loadOptionsAsync();
+			if (this.configSvc.appConfig.app.platform.startsWith("Desktop") && this.electronSvc && this.electronSvc.isElectronApp) {
+				this.configSvc.appConfig.app.platform = "Electron PWA";
+			}
 
 			if (this.platform.is("cordova")) {
 				this.splashScreen.hide();
@@ -96,6 +101,7 @@ export class AppComponent implements OnInit {
 				}
 			}
 
+			await this.configSvc.loadOptionsAsync();
 			this.translateSvc.addLangs(this.configSvc.languages.map(language => language.Value));
 			this.translateSvc.setDefaultLang(this.configSvc.appConfig.language);
 			await this.configSvc.setResourceLanguageAsync(this.configSvc.appConfig.language);
@@ -271,10 +277,36 @@ export class AppComponent implements OnInit {
 	}
 
 	private setupEventHandlers() {
+		if (this.electronSvc && this.electronSvc.isElectronApp) {
+			AppEvents.initializeElectronService(this.electronSvc);
+			this.electronSvc.ipcRenderer.on("window.main", ($event, $info) => this.broadcastElectronMessage($info));
+			this.electronSvc.ipcRenderer.on("window.chat", ($event, $info) => this.broadcastElectronMessage($info));
+		}
+
 		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title);
+
+		AppEvents.on("OpenMenu", async info => await this.menuController.open(info.args.Type || "start"));
+		AppEvents.on("Navigate", async info => await this.zone.run(async () => {
+			const url = "LogIn" === info.args.Type
+				? "/users/login"
+				: "Profile" === info.args.Type
+					? "/users/profile/my"
+					: info.args.url;
+			switch ((info.args.direction as string || "forward").toLowerCase()) {
+				case "home":
+					await this.configSvc.navigateHomeAsync(url);
+					break;
+				case "back":
+					await this.configSvc.navigateBackAsync(url);
+					break;
+				default:
+					await this.configSvc.navigateForwardAsync(url);
+					break;
+			}
+		}));
 
 		AppEvents.on("Session", async info => {
 			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
@@ -291,6 +323,13 @@ export class AppComponent implements OnInit {
 				await this.normalizeSidebarMenuAsync();
 			}
 		});
+	}
+
+	private broadcastElectronMessage($info: any = {}) {
+		const event = $info.event as string;
+		if (AppUtility.isNotEmpty(event)) {
+			AppEvents.broadcast(event, $info.args);
+		}
 	}
 
 	private async activateAsync() {
@@ -395,6 +434,15 @@ export class AppComponent implements OnInit {
 				console.log("<AppComponent>: The app is initialized", this.configSvc.appConfig.isNativeApp ? JSON.stringify(this.configSvc.appConfig.app) : this.configSvc.appConfig.app);
 			}
 			AppEvents.broadcast("App", { Type: "Initialized" });
+			AppEvents.sendToElectron("App", { Type: "Initialized", Data: {
+				URIs: this.configSvc.appConfig.URIs,
+				app: this.configSvc.appConfig.app,
+				session: this.configSvc.appConfig.session,
+				services: this.configSvc.appConfig.services,
+				organizations: this.configSvc.appConfig.organizations,
+				accountRegistrations: this.configSvc.appConfig.accountRegistrations,
+				options: this.configSvc.appConfig.options
+			}});
 			await this.appFormsSvc.hideLoadingAsync(async () => {
 				if (onNext !== undefined) {
 					onNext();
