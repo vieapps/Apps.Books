@@ -86,9 +86,6 @@ export class AppComponent implements OnInit {
 
 		this.platform.ready().then(async () => {
 			await this.configSvc.prepareAsync();
-			if (this.configSvc.appConfig.app.platform.startsWith("Desktop") && this.electronSvc && this.electronSvc.isElectronApp) {
-				this.configSvc.appConfig.app.platform = "Electron PWA";
-			}
 
 			if (this.platform.is("cordova")) {
 				this.splashScreen.hide();
@@ -105,13 +102,13 @@ export class AppComponent implements OnInit {
 			this.translateSvc.addLangs(this.configSvc.languages.map(language => language.Value));
 			this.translateSvc.setDefaultLang(this.configSvc.appConfig.language);
 			await this.configSvc.setResourceLanguageAsync(this.configSvc.appConfig.language);
+			this.setupEventHandlers();
 
 			const isActivate = this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"];
 			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(isActivate ? "common.messages.activating" : "common.messages.loading"));
 
 			await this.updateSidebarAsync();
 			this.sidebar.left.title = this.configSvc.appConfig.app.name;
-			this.setupEventHandlers();
 
 			if (isActivate) {
 				await this.activateAsync();
@@ -279,8 +276,15 @@ export class AppComponent implements OnInit {
 	private setupEventHandlers() {
 		if (this.electronSvc && this.electronSvc.isElectronApp) {
 			AppEvents.initializeElectronService(this.electronSvc);
-			this.electronSvc.ipcRenderer.on("window.main", ($event, $info) => this.broadcastElectronMessage($info));
-			this.electronSvc.ipcRenderer.on("window.chat", ($event, $info) => this.broadcastElectronMessage($info));
+			this.electronSvc.ipcRenderer.on("electron.ipc2app", ($event, $info) => {
+				$info = $info || {};
+				if (AppUtility.isNotEmpty($info.event)) {
+					AppEvents.broadcast($info.event, $info.args);
+				}
+				if (this.configSvc.isDebug) {
+					console.log("[Electron]: Got an IPC message", $event, $info);
+				}
+			});
 		}
 
 		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
@@ -294,7 +298,9 @@ export class AppComponent implements OnInit {
 				? "/users/login"
 				: "Profile" === info.args.Type
 					? "/users/profile/my"
-					: info.args.url;
+					: "Accounts" === info.args.Type
+						? "/users/list"
+						: info.args.url;
 			switch ((info.args.direction as string || "forward").toLowerCase()) {
 				case "home":
 					await this.configSvc.navigateHomeAsync(url);
@@ -321,15 +327,9 @@ export class AppComponent implements OnInit {
 			if ("LanguageChanged" === info.args.Type) {
 				await this.updateSidebarAsync();
 				await this.normalizeSidebarMenuAsync();
+				AppEvents.sendToElectron("App", { Type: "LanguageChanged", Language: this.configSvc.appConfig.language });
 			}
 		});
-	}
-
-	private broadcastElectronMessage($info: any = {}) {
-		const event = $info.event as string;
-		if (AppUtility.isNotEmpty(event)) {
-			AppEvents.broadcast(event, $info.args);
-		}
 	}
 
 	private async activateAsync() {
@@ -441,7 +441,8 @@ export class AppComponent implements OnInit {
 				services: this.configSvc.appConfig.services,
 				organizations: this.configSvc.appConfig.organizations,
 				accountRegistrations: this.configSvc.appConfig.accountRegistrations,
-				options: this.configSvc.appConfig.options
+				options: this.configSvc.appConfig.options,
+				languages: this.configSvc.languages
 			}});
 			await this.appFormsSvc.hideLoadingAsync(async () => {
 				if (onNext !== undefined) {

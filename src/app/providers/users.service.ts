@@ -325,6 +325,7 @@ export class UsersService extends BaseService {
 							await this.configSvc.updateSessionAsync(message.Data, () => {
 								console.warn(this.getLogMessage("The session is updated with new token"), this.configSvc.appConfig.session);
 								this.configSvc.patchSession(() => this.configSvc.patchAccount());
+								AppEvents.sendToElectron("Users", { Type: "Session", Data: this.configSvc.appConfig.session });
 							});
 						}
 						break;
@@ -348,7 +349,7 @@ export class UsersService extends BaseService {
 						if (userProfile !== undefined) {
 							userProfile.IsOnline = this.configSvc.isAuthenticated && account.id === userProfile.ID ? true : message.Data.IsOnline;
 							userProfile.LastAccess = new Date();
-							AppEvents.sendToElectron("Users", { Type: "AccountStatus", Data: userProfile });
+							AppEvents.sendToElectron("Users", message);
 						}
 						break;
 
@@ -363,14 +364,14 @@ export class UsersService extends BaseService {
 				if (accountProfile !== undefined) {
 					accountProfile.IsOnline = this.configSvc.isAuthenticated && account.id === accountProfile.ID ? true : message.Data.IsOnline;
 					accountProfile.LastAccess = new Date();
-					AppEvents.sendToElectron("Users", { Type: "AccountStatus", Data: accountProfile });
+					AppEvents.sendToElectron("Users", message);
 				}
 				break;
 
 			case "Account":
 				this.configSvc.updateAccount(message.Data);
 				if (this.configSvc.isAuthenticated && account.id === message.Data.ID) {
-					AppEvents.sendToElectron("Users", { Type: "AccountUpdated", Data: account });
+					AppEvents.sendToElectron("Users", message);
 				}
 				break;
 
@@ -390,7 +391,7 @@ export class UsersService extends BaseService {
 						if (this.configSvc.appConfig.facebook.token !== undefined && this.configSvc.appConfig.facebook.id !== undefined) {
 							this.configSvc.getFacebookProfile();
 						}
-						AppEvents.sendToElectron("Users", { Type: "ProfileUpdated", Data: message.Data });
+						AppEvents.sendToElectron("Users", message);
 						if (this.configSvc.isDebug) {
 							console.log(this.getLogMessage("User profile is updated"), account.profile);
 						}

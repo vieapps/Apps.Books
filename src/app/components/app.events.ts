@@ -1,6 +1,5 @@
 import { Subject } from "rxjs";
 import { ElectronService } from "ngx-electron";
-import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
 
 /** Servicing component for working with app events */
