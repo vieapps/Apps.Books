@@ -287,10 +287,10 @@ export class AppComponent implements OnInit {
 			});
 		}
 
-		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
-		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
-		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
-		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title);
+		AppEvents.on("UpdateSidebar", async info => await this.zone.run(async () => this.updateSidebarAsync(info.args)));
+		AppEvents.on("AddSidebarItem", info => this.zone.run(() => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo)));
+		AppEvents.on("UpdateSidebarItem", info => this.zone.run(() => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo)));
+		AppEvents.on("UpdateSidebarTitle", info => this.zone.run(() => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title));
 
 		AppEvents.on("OpenMenu", async info => await this.menuController.open(info.args.Type || "start"));
 		AppEvents.on("Navigate", async info => await this.zone.run(async () => {
@@ -316,18 +316,22 @@ export class AppComponent implements OnInit {
 
 		AppEvents.on("Session", async info => {
 			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
-				const profile = this.configSvc.getAccount().profile;
-				this.sidebar.left.title = profile !== undefined ? profile.Name : this.configSvc.appConfig.app.name;
-				this.sidebar.left.avatar = profile !== undefined ? profile.avatarURI : undefined;
-				await this.normalizeSidebarMenuAsync();
+				await this.zone.run(async () => {
+					const profile = this.configSvc.getAccount().profile;
+					this.sidebar.left.title = profile !== undefined ? profile.Name : this.configSvc.appConfig.app.name;
+					this.sidebar.left.avatar = profile !== undefined ? profile.avatarURI : undefined;
+					await this.normalizeSidebarMenuAsync();
+				});
 			}
 		});
 
 		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
-				await this.updateSidebarAsync();
-				await this.normalizeSidebarMenuAsync();
-				AppEvents.sendToElectron("App", { Type: "LanguageChanged", Language: this.configSvc.appConfig.language });
+				await this.zone.run(async () => {
+					await this.updateSidebarAsync();
+					await this.normalizeSidebarMenuAsync();
+					AppEvents.sendToElectron("App", { Type: "LanguageChanged", Language: this.configSvc.appConfig.language });
+				});
 			}
 		});
 	}
