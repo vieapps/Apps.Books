@@ -86,7 +86,7 @@
 							{{ book.Source }}
 						</label>
 						<label *ngIf="sourceUrl">
-							<a [href]="sourceUrl" target="_blank">
+							<a (click)="openSource()">
 								{{ book.Source }}
 							</a>
 						</label>

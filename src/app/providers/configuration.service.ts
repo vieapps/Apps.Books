@@ -13,6 +13,7 @@ import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
 import { TranslateService } from "@ngx-translate/core";
+import { ElectronService } from "ngx-electron";
 import { AppConfig } from "../app.config";
 import { AppStorage } from "../components/app.storage";
 import { AppCrypto } from "../components/app.crypto";
@@ -41,7 +42,8 @@ export class ConfigurationService extends BaseService {
 		public googleAnalytics: GoogleAnalytics,
 		public storage: Storage,
 		public browserTitle: BrowserTitle,
-		public translateSvc: TranslateService
+		public translateSvc: TranslateService,
+		public electronSvc: ElectronService
 	) {
 		super(http, "Configuration");
 		AppStorage.initializeAsync(storage, () => console.log(this.getLogMessage("KVP storage is ready")));
@@ -196,7 +198,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Prepare the configuration of the app */
-	public async prepareAsync() {
+	public prepare() {
 		const isCordova = this.platform.is("cordova");
 		const isNativeApp = isCordova && (this.device.platform === "iOS" || this.device.platform === "Android");
 
@@ -216,32 +218,38 @@ export class ConfigurationService extends BaseService {
 
 		if (isCordova) {
 			if (isNativeApp) {
+				this.appVersion.getVersionCode()
+					.then(version => this.appConfig.app.version = isNativeApp && !this.isRunningOnIOS ? (version + "").replace(/0/g, ".") : version + "")
+					.catch(error => console.error(this.getErrorMessage("Error occurred while preparing app version", error)));
+				PlatformUtility.setInAppBrowser(this.inappBrowser);
+				PlatformUtility.setClipboard(this.clipboard);
 				if (!this.isRunningOnIOS) {
 					PlatformUtility.setKeyboard(this.keyboard);
 				}
-				PlatformUtility.setInAppBrowser(this.inappBrowser);
-				PlatformUtility.setClipboard(this.clipboard);
 			}
 
-			try {
-				const appVersion = (await this.appVersion.getVersionCode()) + "";
-				this.appConfig.app.version = isNativeApp && !this.isRunningOnIOS
-					? appVersion.replace(/0/g, ".")
-					: appVersion;
-				if (this.isDebug) {
-					console.log(this.getLogMessage("App version: " + this.appConfig.app.version + " [" + appVersion + "]"));
-				}
-			}
-			catch (error) {
-				if (isNativeApp) {
-					console.error(this.getErrorMessage("Error occurred while preparing app version", error));
-				}
-			}
-
-			await TrackingUtility.initializeAsync(this.googleAnalytics);
+			TrackingUtility.initializeAsync(this.googleAnalytics);
 			if (this.isDebug) {
 				console.log(this.getLogMessage(`Device Info\n- UUID: ${this.device.uuid}\n- Manufacturer: ${this.device.manufacturer}\n- Model: ${this.device.model}\n- Serial: ${this.device.serial}\n- Platform: ${this.device.platform} ${this.device.platform !== "browser" ? this.device.version : "[" + this.device.model + " v" + this.device.version + "]"}`));
 			}
+		}
+
+		if (this.electronSvc !== undefined && this.electronSvc.isElectronApp) {
+			AppEvents.initializeElectronService(this.electronSvc);
+			PlatformUtility.setElectronService(this.electronSvc);
+			this.appConfig.app.shell = "Electron";
+			this.electronSvc.ipcRenderer.on("electron.ipc2app", ($event, $info) => {
+				$info = $info || {};
+				if (AppUtility.isNotEmpty($info.event)) {
+					AppEvents.broadcast($info.event, $info.args);
+				}
+				if (this.isDebug) {
+					console.log("[Electron]: Got an IPC message", $event, $info);
+				}
+			});
+		}
+		else {
+			this.appConfig.app.shell = isNativeApp ? "Cordova" : "Browser";
 		}
 	}
 
@@ -249,7 +257,7 @@ export class ConfigurationService extends BaseService {
 	public async initializeAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void, dontInitializeSession?: boolean) {
 		// prepare environment
 		if (this.appConfig.app.mode === "") {
-			await this.prepareAsync();
+			this.prepare();
 		}
 
 		// load saved session
@@ -666,6 +674,13 @@ export class ConfigurationService extends BaseService {
 		if (onNext !== undefined) {
 			onNext();
 		}
+	}
+
+	/** Prepares the UI languages */
+	public async prepareLanguagesAsync() {
+		this.translateSvc.addLangs(this.languages.map(language => language.Value));
+		this.translateSvc.setDefaultLang(this.appConfig.language);
+		await this.setResourceLanguageAsync(this.appConfig.language);
 	}
 
 	/** Changes the language & locale of resources to use in the app */

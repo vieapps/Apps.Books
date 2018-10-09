@@ -170,4 +170,8 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 		await this.appFormsSvc.showToastAsync("Copied...");
 	}
 
+	openSource() {
+		PlatformUtility.openURI(this.sourceUrl);
+	}
+
 }

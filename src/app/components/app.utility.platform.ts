@@ -3,6 +3,7 @@ import { ElementRef } from "@angular/core";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
+import { ElectronService } from "ngx-electron";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "./app.crypto";
 import { AppUtility } from "./app.utility";
@@ -11,22 +12,28 @@ import { AppUtility } from "./app.utility";
 export class PlatformUtility {
 
 	private static _keyboard: Keyboard;
-	private static _inappBrowser: InAppBrowser;
 	private static _clipboard: Clipboard;
+	private static _inappBrowser: InAppBrowser;
+	private static _electronService: ElectronService;
 
 	/** Sets the instance of device keyboard */
 	public static setKeyboard(keyboard: Keyboard) {
 		this._keyboard = keyboard;
 	}
 
-	/** Sets the instance of in-app browser */
+	/** Sets the instance of app clipboard */
+	public static setClipboard(clipboard: Clipboard) {
+		this._clipboard = clipboard;
+	}
+
+	/** Sets the instance of in-app browser (native app) */
 	public static setInAppBrowser(inappBrowser: InAppBrowser) {
 		this._inappBrowser = inappBrowser;
 	}
 
-	/** Sets the instance of app clipboard */
-	public static setClipboard(clipboard: Clipboard) {
-		this._clipboard = clipboard;
+	/** Sets the instance of Electron service (web app) */
+	public static setElectronService(electronService: ElectronService) {
+		this._electronService = electronService;
 	}
 
 	/**
@@ -115,10 +122,18 @@ export class PlatformUtility {
 		return avatar;
 	}
 
-	/** Opens an uri by OS/In-App browser */
+	/** Opens an uri in browser */
 	public static openURI(uri?: string) {
-		if (AppUtility.isNotEmpty(uri) && (uri.startsWith("http://") || uri.startsWith("https://"))) {
-			window.open(uri);
+		if (AppUtility.isNotEmpty(uri)) {
+			if (this._inappBrowser !== undefined) {
+				this._inappBrowser.create(uri, "_blank");
+			}
+			else if (this._electronService !== undefined) {
+				this._electronService.shell.openExternal(uri);
+			}
+			else {
+				window.open(uri);
+			}
 		}
 	}
 
@@ -279,46 +294,49 @@ export class PlatformUtility {
 		}
 	}
 
-	/** Sets environments of the PWA */
-	public static setPWAEnvironment(onFacebookInit?: () => void) {
-		// Javascript libraries (only available when working in web browser)
-		if (window.location.href.indexOf("file://") < 0) {
-			// Facebook SDK
-			if (AppUtility.isNotEmpty(AppConfig.facebook.id)) {
-				if (!window.document.getElementById("facebook-jssdk")) {
-					const js = window.document.createElement("script");
-					js.id = "facebook-jssdk";
-					js.async = true;
-					js.src = "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=" + AppConfig.facebook.version;
-
-					const ref = window.document.getElementsByTagName("script")[0];
-					ref.parentNode.insertBefore(js, ref);
+	/** Prepares environments of the PWA */
+	public static preparePWAEnvironment(onFacebookInit?: () => void) {
+		// Facebook SDK (only available when working in web browser)
+		if (AppUtility.isNotEmpty(AppConfig.facebook.id) && this.parseURI().Scheme !== "file") {
+			this.appendElement({
+				id: "facebook-jssdk",
+				async: "true",
+				src: "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=" + AppConfig.facebook.version
+			}, "script");
+			window["fbAsyncInit"] = function() {
+				FB.init({
+					appId: AppConfig.facebook.id,
+					channelUrl: "/assets/facebook.html",
+					status: true,
+					cookie: true,
+					xfbml: true,
+					version: AppConfig.facebook.version
+				});
+				if (onFacebookInit !== undefined) {
+					onFacebookInit();
 				}
-				window["fbAsyncInit"] = function () {
-					FB.init({
-						appId: AppConfig.facebook.id,
-						channelUrl: "/assets/facebook.html",
-						status: true,
-						cookie: true,
-						xfbml: true,
-						version: AppConfig.facebook.version
-					});
-					if (onFacebookInit !== undefined) {
-						onFacebookInit();
-					}
-				};
-			}
+			};
 		}
 
 		// scrollbars (on Windows & Linux)
-		const osPlatform = this.getOSPlatform();
-		if (osPlatform === "Windows" || osPlatform === "Linux") {
-			const css = window.document.createElement("style");
-			css.type = "text/css";
-			css.innerText = "::-webkit-scrollbar{height:14px;width:10px;background:#eee;border-left:solid1px#ddd;}::-webkit-scrollbar-thumb{background:#ddd;border:solid1px#cfcfcf;}::-webkit-scrollbar-thumb:hover{background:#b2b2b2;border:solid1px#b2b2b2;}::-webkit-scrollbar-thumb:active{background:#b2b2b2;border:solid1px#b2b2b2;}";
-			const ref = window.document.getElementsByTagName("link")[0];
-			ref.parentNode.insertBefore(css, ref);
+		if (this.getOSPlatform() !== "macOS") {
+			this.appendElement({
+				type: "text/css",
+				innerText: "::-webkit-scrollbar,.hydrated::-webkit-scrollbar{background:#eee}"
+					+ "::-webkit-scrollbar:horizontal,.hydrated::-webkit-scrollbar:horizontal{height:14px}"
+					+ "::-webkit-scrollbar:vertical,.hydrated::-webkit-scrollbar:vertical{width:10px}"
+					+ "::-webkit-scrollbar-thumb,.hydrated::-webkit-scrollbar-thumb{background:#ddd;border-radius:20px}"
+					+ "::-webkit-scrollbar-thumb:hover,.hydrated::-webkit-scrollbar-thumb:hover,"
+					+ "::-webkit-scrollbar-thumb:active,.hydrated::-webkit-scrollbar-thumb:active{background:#b2b2b2}"
+			}, "style", "link");
 		}
+	}
+
+	private static appendElement(options: { [key: string]: string }, tag: string, insertBefore?: string) {
+		const element = window.document.createElement(tag);
+		Object.keys(options).forEach(name => element[name] = options[name]);
+		const ref = window.document.getElementsByTagName(insertBefore || tag)[0];
+		ref.parentNode.insertBefore(element, ref);
 	}
 
 }

@@ -18,11 +18,11 @@ img {
 	width: 270px;
 	max-width: 100%;
 }
-ion-icon {
-	cursor: pointer;
-}
 .qrcode > span {
 	font-size: 80%;
 	font-weight: normal;
 	color: var(--ion-color-medium);
+}
+ion-icon, a, ul.files > li {
+	cursor: pointer;
 }
