@@ -1,8 +1,8 @@
 declare var FB: any;
 import { ElementRef } from "@angular/core";
-import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
+import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { ElectronService } from "ngx-electron";
 import { AppConfig } from "../app.config";
 import { AppCrypto } from "./app.crypto";
@@ -43,7 +43,7 @@ export class PlatformUtility {
 	 */
 	public static setTimeout(action: () => void, defer?: number) {
 		if (AppUtility.isNotNull(action)) {
-			window.setTimeout(() => action(), defer || 0);
+			setTimeout(() => action(), defer || 0);
 		}
 	}
 
@@ -53,12 +53,17 @@ export class PlatformUtility {
 			const ctrl = control instanceof ElementRef
 				? (control as ElementRef).nativeElement
 				: control;
-			if (ctrl !== undefined && typeof ctrl.focus === "function") {
+			if (ctrl !== undefined) {
 				this.setTimeout(() => {
+					if (typeof ctrl.setFocus === "function") {
+						ctrl.setFocus();
+					}
+					else if (typeof ctrl.focus === "function") {
+						ctrl.focus();
+					}
 					if (this._keyboard !== undefined) {
 						this._keyboard.show();
 					}
-					ctrl.focus();
 				}, defer || (AppConfig.isRunningOnIOS ? 456 : 234));
 			}
 		}
@@ -238,7 +243,7 @@ export class PlatformUtility {
 	public static getRedirectURI(path: string, addAsRedirectParam: boolean = true) {
 		const uri = this.parseURI(AppConfig.isWebApp ? window.location.href : AppConfig.URIs.activations);
 		return (uri.Scheme === "file"
-			? this.parseURI(AppConfig.URIs.activations).AbsoluteURI
+			? AppConfig.URIs.activations
 			: uri.HostURI + AppConfig.url.base) + "?" + (AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path);
 	}
 
@@ -280,23 +285,22 @@ export class PlatformUtility {
 			);
 		}
 		else {
-			const textarea = window.document.createElement("textarea");
+			const parentNode = window.document.body;
+			const textarea = this.appendElement({ value: value }, "textarea", parentNode) as HTMLTextAreaElement;
 			textarea.style.position = "fixed";
 			textarea.style.left = "0";
 			textarea.style.top = "0";
 			textarea.style.opacity = "0";
-			textarea.value = value;
-			window.document.body.appendChild(textarea);
 			textarea.focus();
 			textarea.select();
 			window.document.execCommand("copy");
-			window.document.body.removeChild(textarea);
+			parentNode.removeChild(textarea);
 		}
 	}
 
 	/** Prepares environments of the PWA */
 	public static preparePWAEnvironment(onFacebookInit?: () => void) {
-		// Facebook SDK (only available when working in web browser)
+		// Facebook SDKs
 		if (AppUtility.isNotEmpty(AppConfig.facebook.id) && this.parseURI().Scheme !== "file") {
 			this.appendElement({
 				id: "facebook-jssdk",
@@ -328,15 +332,15 @@ export class PlatformUtility {
 					+ "::-webkit-scrollbar-thumb,.hydrated::-webkit-scrollbar-thumb{background:#ddd;border-radius:20px}"
 					+ "::-webkit-scrollbar-thumb:hover,.hydrated::-webkit-scrollbar-thumb:hover,"
 					+ "::-webkit-scrollbar-thumb:active,.hydrated::-webkit-scrollbar-thumb:active{background:#b2b2b2}"
-			}, "style", "link");
+			}, "style");
 		}
 	}
 
-	private static appendElement(options: { [key: string]: string }, tag: string, insertBefore?: string) {
-		const element = window.document.createElement(tag);
+	private static appendElement(options: { [key: string]: any }, tagName: string, parentNode: HTMLElement = window.document.head) {
+		const element = window.document.createElement(tagName);
 		Object.keys(options).forEach(name => element[name] = options[name]);
-		const ref = window.document.getElementsByTagName(insertBefore || tag)[0];
-		ref.parentNode.insertBefore(element, ref);
+		parentNode.appendChild(element);
+		return element;
 	}
 
 }

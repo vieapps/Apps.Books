@@ -403,7 +403,7 @@ export class AppComponent implements OnInit {
 	}
 
 	private startRTU(onNext?: () => void) {
-		AppRTU.start(async () => {
+		AppRTU.start(() => {
 			if (this.configSvc.isWebApp) {
 				PlatformUtility.preparePWAEnvironment(() => this.configSvc.watchFacebookConnect());
 			}
@@ -428,7 +428,7 @@ export class AppComponent implements OnInit {
 				languages: appConfig.languages
 			}});
 
-			await this.appFormsSvc.hideLoadingAsync(async () => {
+			this.appFormsSvc.hideLoadingAsync(() => {
 				if (onNext !== undefined) {
 					onNext();
 				}
@@ -443,7 +443,7 @@ export class AppComponent implements OnInit {
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
 							console.log(`<AppComponent>: Redirect to the request url\n=>: ${redirect}`);
-							await this.zone.run(async () => await this.configSvc.navigateForwardAsync(redirect));
+							this.zone.run(async () => await this.configSvc.navigateForwardAsync(redirect));
 						}
 						catch (error) {
 							console.error(`<AppComponent>: Redirect url is not well-form\n[${redirect}]`, this.configSvc.isNativeApp ? JSON.stringify(error) : error);
