@@ -2,7 +2,7 @@
 
 ## General
 
-This is *"skeleton"* app for development with Ionic 4 on latest Angular, focus on some keys:
+This is *"skeleton"* app for development with latest Ionic/Angular, focus on some keys:
 
 - Single code-base for all platforms: web (browsers), mobile (iOS, Android), desktop (macOS, Windows, Linux)
 - Configable dynamic form/view controls with multi-languages

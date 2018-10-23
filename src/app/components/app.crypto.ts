@@ -100,7 +100,7 @@ export class AppCrypto {
 			this.initAES(keys.aes.key, keys.aes.iv);
 		}
 		if (keys.rsa !== undefined) {
-			this.initRSA(keys.rsa.exponent, keys.rsa.modulus);
+			this.initRSA(keys.rsa.encryptionExponent || keys.rsa.exponent, keys.rsa.decryptionExponent || keys.rsa.exponent, keys.rsa.modulus);
 		}
 		if (keys.jwt !== undefined) {
 			this._jwt = keys.jwt;
@@ -112,8 +112,8 @@ export class AppCrypto {
 		this._aes.iv = CryptoJS.enc.Hex.parse(iv);
 	}
 
-	public static initRSA(exponent: string, modulus: string) {
-		this._rsa.init(exponent, modulus);
+	public static initRSA(encryptionExponent: string, decryptionExponent: string, modulus: string) {
+		this._rsa.init(encryptionExponent, decryptionExponent, modulus);
 	}
 
 }

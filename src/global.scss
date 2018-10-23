@@ -85,13 +85,6 @@ label.description {
 .select-file > div{
 	width: 100% !important;
 }
-.md ion-item.completer-container,
-.md ion-item.select-dropdown,
-.md ion-item.select-file {
-	padding-top: 8px;
-	padding-bottom: 8px;
-	border-bottom: solid 1.5px #f1f1f1;
-}
 ion-item.completer-container > ion-label,
 ion-item.select-dropdown > ion-label,
 ion-item.select-file > ion-label {
