@@ -126,7 +126,6 @@
 <ion-radio-group *ngIf="visible && selectAsRadioBoxes" #elementRef
 	[name]="name"
 	[class.invalid]="invalid"
-	[disabled]="disabled"
 	[value]="value"
 	(ionChange)="onValueChanged($event)">
 	<ion-list-header *ngIf="label"

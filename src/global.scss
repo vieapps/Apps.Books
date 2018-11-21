@@ -64,8 +64,10 @@ ion-footer > ion-toolbar {
 }
 
 /* label of invalid controls */
-.invalid > ion-label,
-.invalid > ion-label.ion-color {
+.invalid:not(.item-has-focus) > ion-label.sc-ion-label-md-h,
+.invalid:not(.item-has-focus) > ion-label.sc-ion-label-md-s,
+.invalid:not(.item-has-focus) > ion-label.sc-ion-label-ios-h,
+.invalid:not(.item-has-focus) > ion-label.sc-ion-label-ios-s {
 	color: var(--ion-color-danger);
 }
 
