@@ -9,10 +9,10 @@ export class AppConfig {
 
 	/** URIs of the remote API and resources */
 	public static URIs = {
-		/** URI of the remote API */
+		/** APIs */
 		apis: "https://apis.vieapps.net/",
 
-		/** URI of the remote HTTP Files service */
+		/** Files HTTP service */
 		files: "https://fs.vieapps.net/",
 
 		/** URI to perform activation (on the web) */
@@ -24,10 +24,10 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.0.0-beta.12",
+		version: "1.0.0-beta.13",
 		copyright: "© 2016 - 2018 VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: ".net core 2.1 - ionic 4.0-beta.16 - angular 7.0.4 - cordova 8.0.0",
+		frameworks: ".net core 2.2 - ionic 4.0 - angular 7.1 - cordova 8.0",
 		homepage: "https://viebooks.net",
 		mode: "",
 		platform: "",

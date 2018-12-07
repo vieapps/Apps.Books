@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
-import { CompleterService, CompleterCmp } from "ng2-completer";
+import { CompleterService } from "ng2-completer";
 import { AppFormsControl, AppFormsService } from "./forms.service";
 import { AppUtility } from "./app.utility";
 

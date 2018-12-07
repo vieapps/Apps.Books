@@ -201,7 +201,7 @@ export class RegisterAccountPage implements OnInit {
 						await this.configSvc.getResourceAsync("users.register.alert.header"),
 						undefined,
 						await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.form.value.Email }),
-						() => this.zone.run(async () => {
+						async () => await this.zone.run(async () => {
 							if (this.configSvc.previousUrl.startsWith("/users")) {
 								await this.configSvc.navigateHomeAsync();
 							}

@@ -71,7 +71,8 @@ export class ViewAccountProfilePage implements OnInit {
 	}
 
 	onFormInitialized($event) {
-		Object.keys(($event.form as FormGroup).controls).forEach(key => ($event.form as FormGroup).controls[key].setValue(""));
+		const controls = ($event.form as FormGroup).controls;
+		Object.keys(controls).forEach(key => controls[key].setValue(""));
 	}
 
 	get canManageUsers() {

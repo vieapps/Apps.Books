@@ -78,7 +78,8 @@ export class UpdateAccountProfilePage implements OnInit {
 			this.update.hash = AppCrypto.hash(this.update.form.value);
 		}
 		else {
-			Object.keys(($event.form as FormGroup).controls).forEach(name => ($event.form as FormGroup).controls[name].setValue(""));
+			const controls = ($event.form as FormGroup).controls;
+			Object.keys(controls).forEach(name => controls[name].setValue(""));
 		}
 	}
 
