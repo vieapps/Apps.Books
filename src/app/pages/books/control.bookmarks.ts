@@ -1,6 +1,6 @@
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
-import { List as IonicList } from "@ionic/angular";
+import { IonList } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
@@ -36,7 +36,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 			delete: "Delete"
 		}
 	};
-	@ViewChild("list") list: IonicList;
+	@ViewChild("list") list: IonList;
 
 	ngOnInit() {
 		this.prepareResourcesAsync();

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { Content } from "@ionic/angular";
+import { IonContent } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -53,7 +53,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		source: "Source",
 		chapters: "Number of chapters"
 	};
-	@ViewChild(Content) contentCtrl: Content;
+	@ViewChild(IonContent) contentCtrl: IonContent;
 
 	get locale() {
 		return this.configSvc.locale;

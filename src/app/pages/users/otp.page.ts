@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, NgZone } from "@angular/core";
-import { Input as IonicInput } from "@ionic/angular";
+import { IonInput } from "@ionic/angular";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { PlatformUtility } from "../../components/app.utility.platform";
 import { AppFormsService } from "../../components/forms.service";
@@ -57,7 +57,7 @@ export class UpdateAccount2FAPage implements OnInit {
 		}
 	};
 
-	@ViewChild(IonicInput) otpCtrl: IonicInput;
+	@ViewChild(IonInput) otpCtrl: IonInput;
 
 	ngOnInit() {
 		this.prepareAsync();

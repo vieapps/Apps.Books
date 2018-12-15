@@ -2,7 +2,7 @@ import { Subscription } from "rxjs";
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, NgZone } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { Searchbar, InfiniteScroll } from "@ionic/angular";
+import { IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { PlatformUtility } from "../../components/app.utility.platform";
@@ -48,8 +48,8 @@ export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit
 		Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }
 	};
 	subscription: Subscription;
-	@ViewChild(Searchbar) searchCtrl: Searchbar;
-	@ViewChild(InfiniteScroll) scrollCtrl: InfiniteScroll;
+	@ViewChild(IonSearchbar) searchCtrl: IonSearchbar;
+	@ViewChild(IonInfiniteScroll) scrollCtrl: IonInfiniteScroll;
 
 	ngOnInit() {
 		if (!this.authSvc.isServiceAdministrator()) {

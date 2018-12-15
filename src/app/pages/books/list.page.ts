@@ -3,7 +3,7 @@ import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, NgZone } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
-import { Content, Searchbar, InfiniteScroll } from "@ionic/angular";
+import { IonContent, IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppPagination } from "../../components/app.pagination";
 import { AppUtility } from "../../components/app.utility";
@@ -90,9 +90,9 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	routerSubscription: Subscription;
 	searchSubscription: Subscription;
 
-	@ViewChild(Content) contentCtrl: Content;
-	@ViewChild(Searchbar) searchCtrl: Searchbar;
-	@ViewChild(InfiniteScroll) scrollCtrl: InfiniteScroll;
+	@ViewChild(IonContent) contentCtrl: IonContent;
+	@ViewChild(IonSearchbar) searchCtrl: IonSearchbar;
+	@ViewChild(IonInfiniteScroll) scrollCtrl: IonInfiniteScroll;
 
 	ngOnInit() {
 		this.initializeAsync();
