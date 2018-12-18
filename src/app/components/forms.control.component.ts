@@ -208,7 +208,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.formControl.value;
 	}
 
-	onValueChanged($event) {
+	onValueChanged($event: any) {
 		this.formControl.setValue($event.detail.value);
 		if (!this.isControl("Range")) {
 			this.focusNext();
@@ -225,7 +225,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.value !== undefined ? new Date(this.value).toJSON() : undefined;
 	}
 
-	datetimeOnValueChanged($event) {
+	datetimeOnValueChanged($event: any) {
 		try {
 			const year = $event.detail.value.year;
 			const month = $event.detail.value.month;
@@ -328,7 +328,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			: false;
 	}
 
-	yesnoOnValueChanged($event) {
+	yesnoOnValueChanged($event: any) {
 		this.control.value = this.minValue === undefined || this.maxValue === undefined
 			? $event.detail.checked
 			: $event.detail.checked ? 1 : 0;
