@@ -18,11 +18,9 @@ export class FilesService extends BaseService {
 		const headers = {
 			"x-as-base64": "yes"
 		} as { [key: string]: string };
-		if (header !== undefined) {
-			Object.keys(header).forEach(key => headers[key] = header[key]);
-		}
+		Object.keys(header || {}).forEach(key => headers[key] = header[key]);
 		try {
-			const response = await AppAPI.send("POST", AppConfig.URIs.files + path, headers, { Data: data }).toPromise();
+			const response = await AppAPI.sendAsync("POST", AppConfig.URIs.files + path, headers, { Data: data });
 			if (onNext !== undefined) {
 				onNext(response.json());
 			}

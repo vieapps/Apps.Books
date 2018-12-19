@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { Platform, MenuController } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
@@ -23,7 +23,6 @@ import { BooksService } from "./providers/books.service";
 export class AppComponent implements OnInit {
 
 	constructor(
-		public zone: NgZone,
 		public router: Router,
 		public platform: Platform,
 		public menuController: MenuController,
@@ -263,13 +262,13 @@ export class AppComponent implements OnInit {
 	}
 
 	private setupEventHandlers() {
-		AppEvents.on("UpdateSidebar", async info => await this.zone.run(async () => this.updateSidebarAsync(info.args)));
-		AppEvents.on("AddSidebarItem", info => this.zone.run(() => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo)));
-		AppEvents.on("UpdateSidebarItem", info => this.zone.run(() => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo)));
-		AppEvents.on("UpdateSidebarTitle", info => this.zone.run(() => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title));
+		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
+		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
+		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
+		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title);
 
 		AppEvents.on("OpenMenu", async info => await this.menuController.open(info.args.Type || "start"));
-		AppEvents.on("Navigate", async info => await this.zone.run(async () => {
+		AppEvents.on("Navigate", async info => {
 			const url = "LogIn" === info.args.Type
 				? "/users/login"
 				: "Profile" === info.args.Type
@@ -288,26 +287,22 @@ export class AppComponent implements OnInit {
 					await this.configSvc.navigateForwardAsync(url);
 					break;
 			}
-		}));
+		});
 
 		AppEvents.on("Session", async info => {
 			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
-				await this.zone.run(async () => {
-					const profile = this.configSvc.getAccount().profile;
-					this.sidebar.left.title = profile !== undefined ? profile.Name : this.configSvc.appConfig.app.name;
-					this.sidebar.left.avatar = profile !== undefined ? profile.avatarURI : undefined;
-					await this.normalizeSidebarMenuAsync();
-				});
+				const profile = this.configSvc.getAccount().profile;
+				this.sidebar.left.title = profile !== undefined ? profile.Name : this.configSvc.appConfig.app.name;
+				this.sidebar.left.avatar = profile !== undefined ? profile.avatarURI : undefined;
+				await this.normalizeSidebarMenuAsync();
 			}
 		});
 
 		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
-				await this.zone.run(async () => {
-					await this.updateSidebarAsync();
-					await this.normalizeSidebarMenuAsync();
-					AppEvents.sendToElectron("App", { Type: "LanguageChanged", Language: this.configSvc.appConfig.language });
-				});
+				await this.updateSidebarAsync();
+				await this.normalizeSidebarMenuAsync();
+				AppEvents.sendToElectron("App", { Type: "LanguageChanged", Language: this.configSvc.appConfig.language });
 			}
 		});
 	}
@@ -358,7 +353,7 @@ export class AppComponent implements OnInit {
 					url: this.configSvc.appConfig.url.home,
 					params: {}
 				};
-				await this.zone.run(async () => await this.router.navigateByUrl(this.configSvc.appConfig.url.home));
+				await this.router.navigateByUrl(this.configSvc.appConfig.url.home);
 			}
 		);
 	}
@@ -428,7 +423,7 @@ export class AppComponent implements OnInit {
 				languages: appConfig.languages
 			}});
 
-			this.appFormsSvc.hideLoadingAsync(() => {
+			this.appFormsSvc.hideLoadingAsync(async () => {
 				if (onNext !== undefined) {
 					onNext();
 				}
@@ -442,11 +437,11 @@ export class AppComponent implements OnInit {
 						};
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
-							console.log(`<AppComponent>: Redirect to the request url\n=>: ${redirect}`);
-							this.zone.run(async () => await this.configSvc.navigateForwardAsync(redirect));
+							console.warn(`<AppComponent>: Redirect to the requested url => ${redirect}`);
+							await this.configSvc.navigateForwardAsync(redirect);
 						}
 						catch (error) {
-							console.error(`<AppComponent>: Redirect url is not well-form\n[${redirect}]`, this.configSvc.isNativeApp ? JSON.stringify(error) : error);
+							console.error(`<AppComponent>: Url for redirecting is not well-form => ${redirect}`, this.configSvc.isNativeApp ? JSON.stringify(error) : error);
 						}
 					}
 				}

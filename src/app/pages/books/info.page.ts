@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, NgZone } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { AppEvents } from "../../components/app.events";
 import { AppUtility } from "../../components/app.utility";
@@ -19,7 +19,6 @@ import { CounterInfo } from "./../../models/counters";
 
 export class ViewBookInfoPage implements OnInit, OnDestroy {
 	constructor(
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -119,7 +118,7 @@ export class ViewBookInfoPage implements OnInit, OnDestroy {
 				await TrackingUtility.trackAsync("Info: " + this.title, this.book.routerLink);
 			}
 			else {
-				this.zone.run(async () => await this.configSvc.navigateBackAsync());
+				await this.configSvc.navigateBackAsync();
 			}
 		});
 	}

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { IonContent } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
@@ -18,7 +18,6 @@ import { Book } from "../../models/book";
 
 export class ReadBookPage implements OnInit, OnDestroy {
 	constructor(
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -69,19 +68,19 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 		AppEvents.on("App", async info => {
 			if ("OptionsUpdated" === info.args.Type) {
-				this.zone.run(() => this.getReadingOptions());
+				this.getReadingOptions();
 			}
 			else if ("LanguageChanged" === info.args.Type) {
-				await this.zone.run(async () => await Promise.all([
+				await Promise.all([
 					this.prepareResourcesAsync(),
 					this.prepareActionsAsync()
-				]));
+				]);
 			}
 		}, "AppEventHandlersOfReadBookPage");
 
 		AppEvents.on("Session", async info => {
 			if ("Updated" === info.args.Type) {
-				await this.zone.run(async () => await this.prepareActionsAsync());
+				await this.prepareActionsAsync();
 			}
 		}, "AppEventHandlersOfReadBookPage");
 
@@ -92,11 +91,11 @@ export class ReadBookPage implements OnInit, OnDestroy {
 				if (this.book.Chapters[this.chapter - 1] === "") {
 					await this.appFormsSvc.showLoadingAsync();
 				}
-				await this.zone.run(async () => await this.goChapterAsync());
+				await this.goChapterAsync();
 			}
 			else if ("Deleted" === info.args.Type && this.book.ID === info.args.ID) {
 				this.onClose();
-				await this.zone.run(async () => await this.configSvc.navigateBackAsync());
+				await this.configSvc.navigateBackAsync();
 			}
 		}, "BookEventHandlersOfReadBookPage");
 	}
@@ -145,10 +144,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 					await this.prepareAsync();
 				}
 				else {
-					await Promise.all([
-						this.appFormsSvc.hideLoadingAsync(),
-						this.zone.run(async () => await this.configSvc.navigateBackAsync())
-					]);
+					this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
 				}
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error)
@@ -246,7 +242,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			const books = Book.instances.values().filter(book => book.Category === this.book.Category);
 			const index = books.findIndex(book => book.ID === this.book.ID);
 			if (index > 0) {
-				this.zone.run(async () => await this.configSvc.navigateForwardAsync(books[index - 1].routerURI));
+				await this.configSvc.navigateForwardAsync(books[index - 1].routerURI);
 			}
 		}
 		else if (this.chapter > 0) {
@@ -261,7 +257,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			const books = Book.instances.values().filter(book => book.Category === this.book.Category);
 			const index = books.findIndex(book => book.ID === this.book.ID);
 			if (index > -1 && index < books.length - 2) {
-				this.zone.run(async () => await this.configSvc.navigateForwardAsync(books[index + 1].routerURI));
+				await this.configSvc.navigateForwardAsync(books[index + 1].routerURI);
 			}
 		}
 		else if (this.chapter < this.book.TotalChapters) {
@@ -288,11 +284,11 @@ export class ReadBookPage implements OnInit, OnDestroy {
 	}
 
 	async openAuthorAsync() {
-		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author })));
+		await this.configSvc.navigateForwardAsync("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author }));
 	}
 
 	async openInfoAsync() {
-		await this.zone.run(async () => await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/info/")));
+		await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/info/"));
 	}
 
 	openTOCs() {
@@ -300,7 +296,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 	}
 
 	async openOptionsAsync() {
-		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/books/options"));
+		await this.configSvc.navigateForwardAsync("/books/options");
 	}
 
 	async openRecrawlAsync() {
@@ -332,7 +328,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 	}
 
 	async openUpdateAsync() {
-		await this.zone.run(async () => await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/update/")));
+		await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/update/"));
 	}
 
 	async deleteAsync() {

@@ -33,7 +33,7 @@ export class AppConfig {
 		platform: "",
 		os: "",
 		shell: "",
-		debug: false,
+		debug: true,
 		offline: false
 	};
 

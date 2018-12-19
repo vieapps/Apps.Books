@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../components/app.crypto";
 import { AppEvents } from "../../components/app.events";
@@ -19,7 +19,6 @@ import { Book } from "../../models/book";
 
 export class UpdateBookPage implements OnInit {
 	constructor(
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -71,7 +70,7 @@ export class UpdateBookPage implements OnInit {
 		this.book = Book.instances.getValue(this.configSvc.requestParams["ID"]);
 		if (this.book === undefined) {
 			await this.appFormsSvc.showToastAsync("Hmmmmmm....");
-			await this.returnAsync();
+			await this.configSvc.navigateBackAsync();
 		}
 		else {
 			const config = await this.configSvc.getDefinitionAsync(this.booksSvc.serviceName.toLowerCase(), "book", "form-controls") as Array<any>;
@@ -107,14 +106,14 @@ export class UpdateBookPage implements OnInit {
 		}
 	}
 
-	onFormInitialized($event) {
+	onFormInitialized($event: any) {
 		this.update.form.patchValue(this.book);
 		this.update.form.controls["TOCs"].setValue(this.book.TOCs.join("\n"));
 		this.update.category = this.book.Category;
 		this.update.hash = AppCrypto.hash(this.update.form.value);
 	}
 
-	prepareCover($event) {
+	prepareCover($event: any) {
 		this.cover.image = undefined;
 		if ($event.target.files.length === 0) {
 			return;
@@ -155,7 +154,7 @@ export class UpdateBookPage implements OnInit {
 							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/request-update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sent"))
 						]);
-						await this.returnAsync();
+						await this.configSvc.navigateBackAsync();
 					},
 					async error => await this.appFormsSvc.showErrorAsync(error)
 				);
@@ -171,14 +170,14 @@ export class UpdateBookPage implements OnInit {
 						if (this.update.category !== this.update.form.value.Category) {
 							AppEvents.broadcast("Books", { Type: "Moved", From: this.update.category, To: this.update.form.value.Category });
 						}
-						await this.returnAsync();
+						await this.configSvc.navigateBackAsync();
 					},
 					async error => await this.appFormsSvc.showErrorAsync(error)
 				);
 			}
 		}
 		else {
-			await this.appFormsSvc.hideLoadingAsync(async () => await this.returnAsync());
+			await this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
 		}
 	}
 
@@ -202,14 +201,10 @@ export class UpdateBookPage implements OnInit {
 			undefined,
 			undefined,
 			await this.configSvc.getResourceAsync("books.update.messages.confirm"),
-			async () => await this.returnAsync(),
+			async () => await this.configSvc.navigateBackAsync(),
 			await this.configSvc.getResourceAsync("common.buttons.ok"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);
-	}
-
-	async returnAsync() {
-		await this.zone.run(async () => await this.configSvc.navigateBackAsync());
 	}
 
 }

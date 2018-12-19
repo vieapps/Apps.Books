@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -19,7 +19,6 @@ import { AccountAvatarPage } from "./avatar.page";
 export class ViewAccountProfilePage implements OnInit {
 
 	constructor (
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -161,11 +160,11 @@ export class ViewAccountProfilePage implements OnInit {
 	}
 
 	async openUpdateAsync(mode?: string) {
-		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/users/update/" + (this.id === undefined ? "my" : AppUtility.toANSI(this.profile.Name, true)) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" })));
+		await this.configSvc.navigateForwardAsync("/users/update/" + (this.id === undefined ? "my" : AppUtility.toANSI(this.profile.Name, true)) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" }));
 	}
 
 	async openOTPAsync(mode?: string) {
-		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/users/otp"));
+		await this.configSvc.navigateForwardAsync("/users/otp");
 	}
 
 	async openSendInvitationAsync() {
@@ -228,20 +227,22 @@ export class ViewAccountProfilePage implements OnInit {
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), "users/logout"),
 					this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.logout.success")),
-					this.zone.run(async () => {
-						if (this.configSvc.previousUrl.startsWith("/users")) {
-							await this.configSvc.navigateHomeAsync();
-						}
-						else {
-							await this.configSvc.navigateBackAsync();
-						}
-					})
+					this.returnAsync()
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			),
 			await this.configSvc.getResourceAsync("users.profile.buttons.logout"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);
+	}
+
+	async returnAsync() {
+		if (this.configSvc.previousUrl.startsWith("/users")) {
+			await this.configSvc.navigateHomeAsync();
+		}
+		else {
+			await this.configSvc.navigateBackAsync();
+		}
 	}
 
 }

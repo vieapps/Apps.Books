@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, NgZone } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { IonContent, IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
@@ -24,7 +24,6 @@ import { RatingPoint } from "../../models/ratingpoint";
 
 export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	constructor(
-		public zone: NgZone,
 		public router: Router,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
@@ -121,7 +120,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 						? this.filterBy.And.Category.Equals !== undefined && (this.filterBy.And.Category.Equals === info.args.From || this.filterBy.And.Category.Equals === info.args.To)
 						: false;
 				if (reprepareResults) {
-					this.zone.run(() => this.prepareResults());
+					this.prepareResults();
 				}
 			}, `BookEventHandlers${this.eventIdentity}`);
 		}
@@ -196,7 +195,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			if (this.filterBy.And.Category.Equals === undefined && this.filterBy.And.Author.Equals === undefined) {
 				await Promise.all([
 					this.appFormsSvc.showToastAsync("Hmmm..."),
-					this.zone.run(async () => await this.configSvc.navigateHomeAsync())
+					this.configSvc.navigateHomeAsync()
 				]);
 			}
 			else {
@@ -215,7 +214,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	onStartSearch($event) {
+	onStartSearch($event: any) {
 		this.cancel();
 		if (AppUtility.isNotEmpty($event.detail.value)) {
 			this.filterBy.Query = $event.detail.value;
@@ -262,7 +261,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	async searchAsync(onNext?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
-		const onNextAsync = async data => {
+		const onNextAsync = async (data: any) => {
 			this.pageNumber++;
 			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
 			this.pagination.PageNumber = this.pageNumber;
@@ -352,22 +351,22 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", () => this.zone.run(async () => await this.configSvc.navigateForwardAsync("/books/search"))),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.filter"), "funnel", () => this.zone.run(() => this.showFilter())),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", async () => await this.configSvc.navigateForwardAsync("/books/search")),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.filter"), "funnel", () => this.showFilter()),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.sort"), "list-box", async () => await this.showSortsAsync())
 		];
 
 		const pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 		if (pagination !== undefined && this.pageNumber < pagination.PageNumber) {
-			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.show", { totalRecords: AppPagination.computeTotal(pagination.PageNumber, pagination) }), "eye", () => this.zone.run(async () => {
+			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.show", { totalRecords: AppPagination.computeTotal(pagination.PageNumber, pagination) }), "eye", () => {
 				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
 				this.pageNumber = this.pagination.PageNumber;
-				await this.prepareResults(async () => await this.prepareActionsAsync());
-			})));
+				this.prepareResults(async () => await this.prepareActionsAsync());
+			}));
 		}
 
 		if (this.authSvc.isServiceModerator()) {
-			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.crawl"), "build", () => this.zone.run(async () => await this.showCrawlAsync())));
+			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.crawl"), "build", async () => await this.showCrawlAsync()));
 		}
 	}
 
@@ -386,7 +385,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 			await this.configSvc.getResourceAsync("books.list.sort.header"),
 			undefined,
 			undefined,
-			data => this.zone.run(() => {
+			data => {
 				if (this.sort !== data) {
 					this.sort = data;
 					this.prepareResults(async () => {
@@ -394,7 +393,7 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 						await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.list.sort.message"));
 					});
 				}
-			}),
+			},
 			await this.configSvc.getResourceAsync("books.list.sort.button"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel"),
 			this.sorts.map(s => {

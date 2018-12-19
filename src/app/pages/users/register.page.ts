@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -16,7 +16,6 @@ import { UsersService } from "../../providers/users.service";
 export class RegisterAccountPage implements OnInit {
 
 	constructor (
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -201,14 +200,14 @@ export class RegisterAccountPage implements OnInit {
 						await this.configSvc.getResourceAsync("users.register.alert.header"),
 						undefined,
 						await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.form.value.Email }),
-						async () => await this.zone.run(async () => {
+						async () => {
 							if (this.configSvc.previousUrl.startsWith("/users")) {
 								await this.configSvc.navigateHomeAsync();
 							}
 							else {
 								await this.configSvc.navigateBackAsync();
 							}
-						})
+						}
 					)
 				]),
 				async error => await Promise.all([

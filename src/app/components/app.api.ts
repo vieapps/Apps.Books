@@ -50,16 +50,33 @@ export class AppAPI {
 		if (this._http === undefined) {
 			throw new Error("[AppAPI]: Call initialize first");
 		}
-		switch (method.toUpperCase()) {
+		switch ((method || "GET").toUpperCase()) {
 			case "POST":
 				return this._http.post(uri, JSON.stringify(body || {}), { headers: this.getHeaders(headers, true) });
 			case "PUT":
 				return this._http.put(uri, JSON.stringify(body || {}), { headers: this.getHeaders(headers, true) });
 			case "DELETE":
 				return this._http.delete(uri, { headers: this.getHeaders(headers) });
+			case "PATCH":
+				return this._http.patch(uri, { headers: this.getHeaders(headers) });
+			case "HEAD":
+				return this._http.head(uri, { headers: this.getHeaders(headers) });
+			case "OPTIONS":
+				return this._http.options(uri, { headers: this.getHeaders(headers) });
 			default:
 				return this._http.get(uri, { headers: this.getHeaders(headers) });
 		}
+	}
+
+	/**
+		* Sends a request to APIs
+		* @param method HTTP verb to perform the request
+		* @param uri Full URI of the end-point API"s uri to perform the request
+		* @param headers Additional headers to perform the request
+		* @param body The JSON object that contains the body to perform the request
+	*/
+	public static sendAsync(method: string = "GET", uri: string, headers?: any, body?: any) {
+		return this.send(method, uri, headers).toPromise();
 	}
 
 	/**

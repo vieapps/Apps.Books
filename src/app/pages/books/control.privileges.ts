@@ -113,7 +113,7 @@ export class BookPrivilegesControl implements OnInit, OnDestroy {
 		];
 	}
 
-	onFormInitialized($event) {
+	onFormInitialized($event: any) {
 		const role = this.privileges.find(privilege => privilege.ServiceName === this.booksSvc.serviceName.toLowerCase() && privilege.ObjectName === "");
 		const value = {
 			Role: role !== undefined ? role.Role : "Viewer",
@@ -123,7 +123,7 @@ export class BookPrivilegesControl implements OnInit, OnDestroy {
 		this.form.patchValue(value);
 	}
 
-	onFormChanged(value) {
+	onFormChanged(value: any) {
 		const serviceName = this.booksSvc.serviceName.toLowerCase();
 		const privileges = [new Privilege(serviceName, undefined, value.Role)];
 		const subControls = this.controls.find(control => control.Name === "Objects").SubControls.Controls;

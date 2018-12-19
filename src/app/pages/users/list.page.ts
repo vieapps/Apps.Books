@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, NgZone } from "@angular/core";
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
 import { AppUtility } from "../../components/app.utility";
@@ -23,7 +23,6 @@ import { RatingPoint } from "../../models/ratingpoint";
 export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor (
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -55,7 +54,7 @@ export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit
 		if (!this.authSvc.isServiceAdministrator()) {
 			Promise.all([
 				this.appFormsSvc.showToastAsync("Hmmm..."),
-				this.zone.run(async () => await this.configSvc.navigateHomeAsync())
+				this.configSvc.navigateHomeAsync()
 			]);
 		}
 		else {
@@ -106,7 +105,7 @@ export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit
 	}
 
 	async openSearchAsync() {
-		await this.zone.run(async () => await this.configSvc.navigateForwardAsync("/users/search"));
+		await this.configSvc.navigateForwardAsync("/users/search");
 	}
 
 	track(index: number, profile: UserProfile) {

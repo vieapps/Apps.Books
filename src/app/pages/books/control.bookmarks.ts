@@ -1,5 +1,5 @@
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { IonList } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppFormsService } from "../../components/forms.service";
@@ -17,7 +17,6 @@ import { Book, Bookmark } from "../../models/book";
 export class BookmarksControl implements OnInit, OnDestroy {
 
 	constructor (
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
@@ -110,7 +109,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	async openAsync(bookmark: Bookmark) {
 		const book = Book.instances.getValue(bookmark.ID);
 		if (book !== undefined) {
-			await this.zone.run(async () => await this.configSvc.navigateForwardAsync(book.routerURI));
+			await this.configSvc.navigateForwardAsync(book.routerURI);
 		}
 	}
 

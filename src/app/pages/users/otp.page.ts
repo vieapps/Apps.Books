@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, NgZone } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 import { IonInput } from "@ionic/angular";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { PlatformUtility } from "../../components/app.utility.platform";
@@ -16,7 +16,6 @@ import { UsersService } from "../../providers/users.service";
 export class UpdateAccount2FAPage implements OnInit {
 
 	constructor (
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -182,7 +181,7 @@ export class UpdateAccount2FAPage implements OnInit {
 			if (onNext !== undefined) {
 				onNext();
 			}
-			await this.zone.run(async () => await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined));
+			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined);
 		});
 	}
 
