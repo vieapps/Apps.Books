@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -16,6 +16,7 @@ import { UsersService } from "../../providers/users.service";
 export class RegisterAccountPage implements OnInit {
 
 	constructor (
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -200,7 +201,7 @@ export class RegisterAccountPage implements OnInit {
 						await this.configSvc.getResourceAsync("users.register.alert.header"),
 						undefined,
 						await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.form.value.Email }),
-						async () => {
+						() => this.zone.run(async () => {
 							if (this.configSvc.previousUrl.startsWith("/users")) {
 								await this.configSvc.navigateHomeAsync();
 							}
@@ -208,17 +209,23 @@ export class RegisterAccountPage implements OnInit {
 								await this.configSvc.navigateBackAsync();
 							}
 						}
-					)
+					))
 				]),
 				async error => await Promise.all([
 					this.refreshCaptchaAsync(),
-					this.appFormsSvc.showErrorAsync(error)
+					this.appFormsSvc.showErrorAsync(error, undefined, () => {
+						if (AppUtility.isGotCaptchaException(error)) {
+							const control = this.register.controls.find(c => c.Name === "Captcha");
+							control.value = "";
+							control.focus();
+						}
+					})
 				])
 			);
 		}
 	}
 
-	onFormInitialized($event) {
+	onFormInitialized($event: any) {
 		this.refreshCaptchaAsync();
 		this.register.form.patchValue({ Gender: "NotProvided" });
 	}

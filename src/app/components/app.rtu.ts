@@ -134,11 +134,11 @@ export class AppRTU {
 		// check
 		if (typeof WebSocket === "undefined") {
 			console.warn("[RTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
-			PlatformUtility.setTimeout(onCompleted, this.isReady ? 13 : 567);
+			PlatformUtility.invoke(onCompleted, this.isReady ? 13 : 567);
 			return;
 		}
 		else if (this._websocket !== undefined) {
-			PlatformUtility.setTimeout(onCompleted, this.isReady ? 13 : 567);
+			PlatformUtility.invoke(onCompleted, this.isReady ? 13 : 567);
 			return;
 		}
 
@@ -300,14 +300,14 @@ export class AppRTU {
 		};
 
 		// callback when done
-		PlatformUtility.setTimeout(onCompleted, this.isReady ? 13 : 567);
+		PlatformUtility.invoke(onCompleted, this.isReady ? 13 : 567);
 	}
 
 	/** Restarts the real-time updater */
 	public static restart(reason?: string, defer?: number) {
 		this._status = "restarting";
 		console.warn(`[RTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
-		PlatformUtility.setTimeout(() => {
+		PlatformUtility.invoke(() => {
 			console.log("[RTU]: Re-starting...");
 			if (this._websocket !== undefined) {
 				this._websocket.close();

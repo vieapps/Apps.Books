@@ -37,24 +37,28 @@ export class PlatformUtility {
 	}
 
 	/**
-	 * Sets time-out to run a function
-	 * @param action The action to run
+	 * Invokes an action when time out
+	 * @param action The action to invoke
 	 * @param defer The defer times (in miliseconds)
 	 */
-	public static setTimeout(action: () => void, defer?: number) {
+	public static invoke(action: () => void, defer?: number) {
 		if (AppUtility.isNotNull(action)) {
 			setTimeout(() => action(), defer || 0);
 		}
 	}
 
-	/** Sets focus into the control */
+	/**
+	 * Sets focus into the control
+	 * @param control The control to focus into
+	 * @param defer The defer times (in miliseconds)
+	 */
 	public static focus(control: any, defer?: number) {
 		if (AppUtility.isNotNull(control)) {
 			const ctrl = control instanceof ElementRef
 				? (control as ElementRef).nativeElement
 				: control;
 			if (ctrl !== undefined) {
-				this.setTimeout(() => {
+				this.invoke(() => {
 					if (typeof ctrl.setFocus === "function") {
 						ctrl.setFocus();
 					}
@@ -97,7 +101,7 @@ export class PlatformUtility {
 					? "Linux"
 					: /Macintosh/i.test(userAgent)
 						? "macOS"
-						: "Other";
+						: "Generic OS";
 	}
 
 	/** Getst the state to determines that is Apple Safari */
@@ -144,7 +148,7 @@ export class PlatformUtility {
 
 	/** Parses an uri */
 	public static parseURI(uri?: string) {
-		uri = uri || (window && window.location ? window.location.href : "vieapps://service-as-host/path?query=#?hash=");
+		uri = uri || (window && window.location ? window.location.href : "scheme://service-as-host/path?query=#?hash=");
 
 		let scheme = "http", host = "local", relativeURI = "";
 
@@ -213,7 +217,7 @@ export class PlatformUtility {
 		if (hash !== "") {
 			hash.split("&").forEach(param => {
 				const params = param.split("=");
-				hashParams[params[0]] = params[1];
+				hashParams[params[0]] = decodeURIComponent(params[1]);
 			});
 		}
 

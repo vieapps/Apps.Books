@@ -1,5 +1,5 @@
 import { Subscription } from "rxjs";
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
@@ -15,6 +15,7 @@ import { AuthenticationService } from "../../providers/authentication.service";
 export class LogInPage implements OnInit, OnDestroy {
 
 	constructor (
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService
@@ -247,12 +248,16 @@ export class LogInPage implements OnInit, OnDestroy {
 						await this.configSvc.getResourceAsync("users.login.reset.title"),
 						undefined,
 						await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.form.value.Email }),
-						async () => await this.closeAsync()
+						() => this.zone.run(async () => await this.closeAsync())
 					)
 				]),
 				async error => await Promise.all([
 					this.refreshCaptchaAsync(),
-					this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => c.Name === "Captcha").focus())
+					this.appFormsSvc.showErrorAsync(error, undefined, () => {
+						const control = this.reset.controls.find(c => c.Name === "Captcha");
+						control.value = "";
+						control.focus();
+					})
 				])
 			);
 		}
@@ -262,7 +267,7 @@ export class LogInPage implements OnInit, OnDestroy {
 		await this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
-	onResetPasswordFormInitialized($event) {
+	onResetPasswordFormInitialized($event: any) {
 		this.refreshCaptchaAsync();
 		this.reset.form.patchValue({
 			Email: this.login.form.value.Email

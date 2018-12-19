@@ -421,7 +421,7 @@ export class ConfigurationService extends BaseService {
 			}
 		});
 		if (onNext !== undefined) {
-			PlatformUtility.setTimeout(onNext, defer || 234);
+			PlatformUtility.invoke(onNext, defer || 234);
 		}
 	}
 
@@ -508,7 +508,7 @@ export class ConfigurationService extends BaseService {
 			Extra: undefined
 		});
 		if (onNext !== undefined) {
-			PlatformUtility.setTimeout(onNext, defer || 234);
+			PlatformUtility.invoke(onNext, defer || 234);
 		}
 	}
 
@@ -524,7 +524,7 @@ export class ConfigurationService extends BaseService {
 			Extra: undefined
 		});
 		if (onNext !== undefined) {
-			PlatformUtility.setTimeout(onNext, defer || 234);
+			PlatformUtility.invoke(onNext, defer || 234);
 		}
 	}
 

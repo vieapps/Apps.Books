@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
@@ -19,6 +19,7 @@ import { AccountAvatarPage } from "./avatar.page";
 export class ViewAccountProfilePage implements OnInit {
 
 	constructor (
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -69,7 +70,7 @@ export class ViewAccountProfilePage implements OnInit {
 		this.showProfileAsync();
 	}
 
-	onFormInitialized($event) {
+	onFormInitialized($event: any) {
 		const controls = ($event.form as FormGroup).controls;
 		Object.keys(controls).forEach(key => controls[key].setValue(""));
 	}
@@ -111,16 +112,16 @@ export class ViewAccountProfilePage implements OnInit {
 
 			if (this.profile.ID === this.configSvc.getAccount().id) {
 				[
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.avatar"), "camera", async () => await this.appFormsSvc.showModalAsync(AccountAvatarPage)),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", async () => await this.openUpdateAsync("profile")),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", async () => await this.openUpdateAsync("password")),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "at", async () => await this.openUpdateAsync("email")),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "unlock", async () => await this.openOTPAsync())
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.avatar"), "camera", () => this.zone.run(async () => await this.appFormsSvc.showModalAsync(AccountAvatarPage))),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", () => this.zone.run(async () => await this.openUpdateAsync("profile"))),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", () => this.zone.run(async () => await this.openUpdateAsync("password"))),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "at", () => this.zone.run(async () => await this.openUpdateAsync("email"))),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "unlock", () => this.zone.run(async () => await this.openOTPAsync()))
 				].forEach(action => this.actions.push(action));
 			}
 
 			else if (this.authSvc.canSetPrivileges) {
-				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", async () => await this.openUpdateAsync("privileges")));
+				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", () => this.zone.run(async () => await this.openUpdateAsync("privileges"))));
 				this.usersSvc.getPrivilegesAsync(this.profile.ID);
 			}
 
@@ -193,7 +194,7 @@ export class ViewAccountProfilePage implements OnInit {
 		await this.setModeAsync("invitation", await this.configSvc.getResourceAsync("users.profile.invitation.title"));
 	}
 
-	onPrivilegesChanged($event) {
+	onPrivilegesChanged($event: any) {
 		this.invitation.privileges = $event.privileges;
 		this.invitation.relatedInfo = $event.relatedInfo;
 	}
@@ -227,22 +228,20 @@ export class ViewAccountProfilePage implements OnInit {
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), "users/logout"),
 					this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.logout.success")),
-					this.returnAsync()
+					this.zone.run(async () => {
+						if (this.configSvc.previousUrl.startsWith("/users")) {
+							await this.configSvc.navigateHomeAsync();
+						}
+						else {
+							await this.configSvc.navigateBackAsync();
+						}
+					})
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			),
 			await this.configSvc.getResourceAsync("users.profile.buttons.logout"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);
-	}
-
-	async returnAsync() {
-		if (this.configSvc.previousUrl.startsWith("/users")) {
-			await this.configSvc.navigateHomeAsync();
-		}
-		else {
-			await this.configSvc.navigateBackAsync();
-		}
 	}
 
 }

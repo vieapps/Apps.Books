@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { IonContent } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
@@ -18,6 +18,7 @@ import { Book } from "../../models/book";
 
 export class ReadBookPage implements OnInit, OnDestroy {
 	constructor(
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -197,10 +198,10 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", async () => await this.openAuthorAsync()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", async () => await this.openInfoAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", () => this.zone.run(async () => await this.openAuthorAsync())),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", () => this.zone.run(async () => await this.openInfoAsync())),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.toc"), "list", () => this.openTOCs()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", async () => await this.openOptionsAsync())
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", () => this.zone.run(async () => await this.openOptionsAsync()))
 		];
 
 		if (this.screen > 992 || this.book === undefined || this.book.TotalChapters < 2) {
@@ -209,11 +210,11 @@ export class ReadBookPage implements OnInit, OnDestroy {
 
 		if (this.authSvc.isServiceModerator(this.booksSvc.serviceName)) {
 			[
-				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", async () => await this.openUpdateAsync()),
-				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.delete"), "trash", async () => await this.deleteAsync())
+				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", () => this.zone.run(async () => await this.openUpdateAsync())),
+				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.delete"), "trash", () => this.zone.run(async () => await this.deleteAsync()))
 			].forEach(action => this.actions.push(action));
 			if (this.book !== undefined && this.book.SourceUrl !== "") {
-				AppUtility.insertAt(this.actions, this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", async () => await this.openRecrawlAsync()), this.actions.length - 2);
+				AppUtility.insertAt(this.actions, this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", () => this.zone.run(async () => await this.openRecrawlAsync())), this.actions.length - 2);
 			}
 		}
 	}
@@ -338,7 +339,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 			await this.configSvc.getResourceAsync("books.read.delete.confirm"),
 			async () => await this.booksSvc.deleteAsync(
 				this.book.ID,
-				async () => this.booksSvc.deleteBookmark(this.book.ID, async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title }))),
+				() => this.booksSvc.deleteBookmark(this.book.ID, async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.read.delete.message", { title: this.book.Title }))),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			),
 			await this.configSvc.getResourceAsync("common.buttons.ok"),

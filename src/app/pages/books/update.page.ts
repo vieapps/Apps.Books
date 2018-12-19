@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../components/app.crypto";
 import { AppEvents } from "../../components/app.events";
@@ -19,6 +19,7 @@ import { Book } from "../../models/book";
 
 export class UpdateBookPage implements OnInit {
 	constructor(
+		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -201,7 +202,7 @@ export class UpdateBookPage implements OnInit {
 			undefined,
 			undefined,
 			await this.configSvc.getResourceAsync("books.update.messages.confirm"),
-			async () => await this.configSvc.navigateBackAsync(),
+			async () => await this.zone.run(async () => await this.configSvc.navigateBackAsync()),
 			await this.configSvc.getResourceAsync("common.buttons.ok"),
 			await this.configSvc.getResourceAsync("common.buttons.cancel")
 		);

@@ -77,7 +77,7 @@ export class AccountAvatarPage implements OnInit {
 		};
 	}
 
-	prepareImage($event) {
+	prepareImage($event: any) {
 		if ($event.target.files.length === 0) {
 			return;
 		}

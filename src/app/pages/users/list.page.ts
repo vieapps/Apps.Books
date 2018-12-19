@@ -122,7 +122,7 @@ export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit
 		};
 	}
 
-	onStartSearch($event) {
+	onStartSearch($event: any) {
 		this.cancel();
 		if (AppUtility.isNotEmpty($event.detail.value)) {
 			this.filterBy.Query = $event.detail.value;
@@ -163,7 +163,7 @@ export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit
 
 	async searchAsync(onNext?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
-		const onNextAsync = async data => {
+		const onNextAsync = async (data: any) => {
 			this.pageNumber++;
 			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.usersSvc.serviceName);
 			this.pagination.PageNumber = this.pageNumber;

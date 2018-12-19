@@ -53,8 +53,8 @@ export class BooksService extends BaseService {
 				await this.initializeAsync();
 			}
 			if ("LanguageChanged" === info.args.Type) {
-				PlatformUtility.setTimeout(async () => {
-					this.updateSearchIntoSidebarAsync();
+				PlatformUtility.invoke(async () => {
+					await this.updateSearchIntoSidebarAsync();
 					if (this._reading.ID === undefined) {
 						await this.updateCategoriesIntoSidebarAsync();
 					}
@@ -693,7 +693,7 @@ export class BooksService extends BaseService {
 		await this.storeBookmarksAsync(onNext);
 
 		this.bookmarks.values().forEach((bookmark, index)  => {
-			PlatformUtility.setTimeout(() => {
+			PlatformUtility.invoke(() => {
 				if (!Book.instances.containsKey(bookmark.ID)) {
 					super.send({
 						ServiceName: this.Name,

@@ -375,7 +375,7 @@ export class AppComponent implements OnInit {
 						async error => {
 							if (AppUtility.isGotSecurityException(error)) {
 								console.warn("<AppComponent>: Cannot register, the session is need to be re-initialized (anonymous)");
-								await this.configSvc.resetSessionAsync(() => PlatformUtility.setTimeout(async () => await this.initializeAsync(onNext, noInitializeSession), 234));
+								await this.configSvc.resetSessionAsync(() => PlatformUtility.invoke(async () => await this.initializeAsync(onNext, noInitializeSession), 234));
 							}
 							else {
 								await this.appFormsSvc.hideLoadingAsync(() => console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error));
@@ -387,7 +387,7 @@ export class AppComponent implements OnInit {
 			async error => {
 				if (AppUtility.isGotSecurityException(error)) {
 					console.warn("<AppComponent>: Cannot initialize, the session is need to be re-initialized (anonymous)");
-					await this.configSvc.resetSessionAsync(() => PlatformUtility.setTimeout(async () => await this.initializeAsync(onNext, noInitializeSession), 234));
+					await this.configSvc.resetSessionAsync(() => PlatformUtility.invoke(async () => await this.initializeAsync(onNext, noInitializeSession), 234));
 				}
 				else {
 					await this.appFormsSvc.hideLoadingAsync(() => console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error));
@@ -437,7 +437,9 @@ export class AppComponent implements OnInit {
 						};
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
-							console.warn(`<AppComponent>: Redirect to the requested url => ${redirect}`);
+							if (this.configSvc.isDebug) {
+								console.warn(`<AppComponent>: Redirect to the requested url => ${redirect}`);
+							}
 							await this.configSvc.navigateForwardAsync(redirect);
 						}
 						catch (error) {

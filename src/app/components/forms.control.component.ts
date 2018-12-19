@@ -406,7 +406,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this._completerInitialValue;
 	}
 
-	completerOnItemChanged(item) {
+	completerOnItemChanged(item: any) {
 		if (this.control.Options.Type === "Address") {
 			let address = AppUtility.isObject(item, true) ? item.originalObject : undefined;
 			if (address === undefined && this._step === "ngAfterViewInit" && this._completerInitialValue !== undefined) {

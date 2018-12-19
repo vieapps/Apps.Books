@@ -68,11 +68,10 @@ export class UpdateAccountProfilePage implements OnInit {
 	};
 
 	ngOnInit() {
-		this.mode = this.configSvc.requestParams["Mode"] || "profile";
 		this.initializeAsync();
 	}
 
-	onFormInitialized($event) {
+	onFormInitialized($event: any) {
 		if (this.update.config === $event.config) {
 			this.update.form.patchValue(this.profile);
 			this.update.hash = AppCrypto.hash(this.update.form.value);
@@ -124,10 +123,11 @@ export class UpdateAccountProfilePage implements OnInit {
 				if (this.profile === undefined || (this.profile.ID !== this.configSvc.getAccount().id && !this.authSvc.isSystemAdministrator())) {
 					await Promise.all([
 						this.appFormsSvc.showToastAsync("Hmmm..."),
-						this.zone.run(async () => await this.configSvc.navigateHomeAsync())
+						await this.configSvc.navigateHomeAsync()
 					]);
 				}
 				else {
+					this.mode = this.configSvc.requestParams["Mode"] || "profile";
 					switch (this.mode) {
 						case "password":
 							await this.openUpdatePasswordAsync();
@@ -432,7 +432,7 @@ export class UpdateAccountProfilePage implements OnInit {
 		}
 	}
 
-	onPrivilegesChanged($event) {
+	onPrivilegesChanged($event: any) {
 		if (this.configSvc.appConfig.services.main !== "") {
 			this._privileges.value = this._privileges.value.filter(privilege => privilege.ServiceName !== this.configSvc.appConfig.services.main).concat($event.privileges as Array<Privilege>);
 		}
@@ -448,12 +448,12 @@ export class UpdateAccountProfilePage implements OnInit {
 	}
 
 	async showProfileAsync(preProcess?: () => void) {
-		await this.appFormsSvc.hideLoadingAsync(async () => {
+		await this.appFormsSvc.hideLoadingAsync(() => this.zone.run(async () => {
 			if (preProcess !== undefined) {
 				preProcess();
 			}
-			await this.zone.run(async () => await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined));
-		});
+			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined);
+		}));
 	}
 
 }
