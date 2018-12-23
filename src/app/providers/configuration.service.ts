@@ -590,17 +590,17 @@ export class ConfigurationService extends BaseService {
 
 	/** Sends a request to navigates to home screen */
 	public async navigateHomeAsync(url?: string, extras?: { [key: string]: any }) {
-		await this.navController.navigateRoot(url || this.appConfig.url.home, true, extras);
+		await this.navController.navigateRoot(url || this.appConfig.url.home, extras);
 	}
 
 	/** Sends a request to navigates back one step */
 	public async navigateBackAsync(url?: string, extras?: { [key: string]: any }) {
-		await this.navController.navigateBack(url || this.previousUrl, true, extras);
+		await this.navController.navigateBack(url || this.previousUrl, extras);
 	}
 
 	/** Sends a request to navigates forward one step */
 	public async navigateForwardAsync(url: string, extras?: { [key: string]: any }) {
-		await this.navController.navigateForward(url || this.appConfig.url.home, true, extras);
+		await this.navController.navigateForward(url || this.appConfig.url.home, extras);
 	}
 
 	/** Gets the state to determines that navigate to an url */
