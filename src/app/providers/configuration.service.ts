@@ -383,18 +383,40 @@ export class ConfigurationService extends BaseService {
 
 	/** Stores the session into storage */
 	public async storeSessionAsync(onNext?: (data?: any) => void) {
+		if (this.appConfig.app.persistence) {
+			try {
+				await AppStorage.setAsync("VIEApps-Session", JSON.stringify(AppUtility.clone(this.appConfig.session, ["jwt", "captcha"])));
+				if (this.isDebug) {
+					console.log(this.getLogMessage("The session is stored into storage"));
+				}
+				AppEvents.broadcast("Session", { Type: "Updated" });
+			}
+			catch (error) {
+				this.showError("Error occurred while storing the session into storage", error);
+			}
+		}
+		else {
+			AppEvents.broadcast("Session", { Type: "Updated" });
+		}
+		if (onNext !== undefined) {
+			onNext(this.appConfig.session);
+		}
+	}
+
+	/** Deletes the session from storage */
+	public async deleteSessionAsync(onNext?: () => void) {
 		try {
-			await AppStorage.setAsync("VIEApps-Session", JSON.stringify(AppUtility.clone(this.appConfig.session, ["jwt", "captcha"])));
+			await AppStorage.removeAsync("VIEApps-Session");
 			if (this.isDebug) {
-				console.log(this.getLogMessage("The session is stored into storage"));
+				console.log(this.getLogMessage("The session is deleted from storage"));
 			}
 			AppEvents.broadcast("Session", { Type: "Updated" });
 		}
 		catch (error) {
-			this.showError("Error occurred while storing the session into storage", error);
+			this.showError("Error occurred while deleting the session from storage", error);
 		}
 		if (onNext !== undefined) {
-			onNext(this.appConfig.session);
+			onNext();
 		}
 	}
 

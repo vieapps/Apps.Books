@@ -15,7 +15,8 @@
 		<app-form
 			[form]="login.form"
 			[config]="login.config"
-			[controls]="login.controls"></app-form>
+			[controls]="login.controls"
+			(initEvent)="onLoginFormInitialized($event)"></app-form>
 		<ion-buttons padding-horizontal>
 			<ion-button fill="solid" color="primary" (click)="logInAsync()">
 				<ion-icon *ngIf="login.button.icon" [icon]="login.button.icon" slot="start"></ion-icon>

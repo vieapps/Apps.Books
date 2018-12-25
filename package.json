@@ -1,6 +1,6 @@
 {
 	"name": "net.vieapps.books",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"author": "VIEApps.net",
 	"homepage": "https://vieapps.net/",
 	"description": "VIEApps NGX Books",
@@ -92,7 +92,7 @@
 		"karma-coverage-istanbul-reporter": "^2.0.4",
 		"karma-jasmine": "^2.0.1",
 		"karma-jasmine-html-reporter": "^1.4.0",
-		"protractor": "^5.4.1",
+		"protractor": "^5.4.2",
 		"ts-node": "^7.0.1",
 		"tslint": "^5.12.0",
 		"typescript": "^3.1.6"

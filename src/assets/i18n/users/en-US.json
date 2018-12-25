@@ -18,7 +18,8 @@
 				},
 				"controls": {
 					"Email": "Email",
-					"Password": "Password"
+					"Password": "Password",
+					"Persistence": "Persist logins"
 				}
 			},
 			"otp": {

@@ -93,6 +93,17 @@ export class LogInPage implements OnInit, OnDestroy {
 				}
 			}
 		];
+		if (this.configSvc.appConfig.isWebApp) {
+			this.login.config.push({
+				Name: "Persistence",
+				Required: true,
+				Type: "YesNo",
+				Options: {
+					Type: "toggle",
+					Label: await this.configSvc.getResourceAsync("users.login.login.controls.Persistence")
+				}
+			});
+		}
 		this.login.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.login");
 		this.reset.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.forgot");
 		this.mode = "login";
@@ -100,10 +111,20 @@ export class LogInPage implements OnInit, OnDestroy {
 		this.setTitle();
 	}
 
+	onLoginFormInitialized($event: any) {
+		if (this.configSvc.appConfig.isWebApp) {
+			this.login.form.patchValue({ Persistence: this.configSvc.appConfig.app.persistence });
+		}
+	}
+
 	async logInAsync() {
 		if (this.login.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.login.form);
 			return;
+		}
+
+		if (this.configSvc.appConfig.isWebApp) {
+			this.configSvc.appConfig.app.persistence = this.login.form.value.Persistence;
 		}
 
 		await this.appFormsSvc.showLoadingAsync(this.title);

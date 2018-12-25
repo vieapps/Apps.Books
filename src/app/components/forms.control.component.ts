@@ -47,6 +47,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		if (this.isCompleter && this._completerInitialValue !== undefined && this.control.Options.Type === "Address") {
 			this.changeDetector.detectChanges();
 		}
+		else if (this.isControl("YesNo")) {
+			this.changeDetector.detectChanges();
+		}
 	}
 
 	ngOnDestroy() {

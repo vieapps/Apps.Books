@@ -18,7 +18,8 @@
 				},
 				"controls": {
 					"Email": "Email",
-					"Password": "Mật khẩu"
+					"Password": "Mật khẩu",
+					"Persistence": "Lưu đăng nhập"
 				}
 			},
 			"otp": {

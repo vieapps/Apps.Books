@@ -6,7 +6,7 @@
 
 	<ion-label *ngIf="label"
 		[color]="color.label"
-		[position]="position"
+		[position]="isControl('YesNo') ? '' : position"
 		[class]="css.label">{{ label }}</ion-label>
 
 	<ion-input *ngIf="isControl('TextBox')" #elementRef
