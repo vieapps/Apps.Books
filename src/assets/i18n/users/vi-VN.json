@@ -14,12 +14,13 @@
 				"title": "Đăng nhập",
 				"buttons": {
 					"login": "Đăng nhập",
-					"forgot": "Quên mật khẩu"
+					"forgot": "Quên mật khẩu",
+					"register": "Đăng ký tài khoản"
 				},
 				"controls": {
 					"Email": "Email",
 					"Password": "Mật khẩu",
-					"Persistence": "Lưu đăng nhập"
+					"SaveLogins": "Lưu đăng nhập"
 				}
 			},
 			"otp": {

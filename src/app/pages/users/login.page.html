@@ -19,12 +19,16 @@
 			(initEvent)="onLoginFormInitialized($event)"></app-form>
 		<ion-buttons padding-horizontal>
 			<ion-button fill="solid" color="primary" (click)="logInAsync()">
-				<ion-icon *ngIf="login.button.icon" [icon]="login.button.icon" slot="start"></ion-icon>
-				{{ login.button.label }}
+				<ion-icon *ngIf="login.buttons.login.icon" [icon]="login.buttons.login.icon" slot="start"></ion-icon>
+				{{ login.buttons.login.label }}
 			</ion-button>
 			<ion-button fill="clear" color="primary" (click)="openResetPasswordAsync()">
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{ reset.button.label }}
+			</ion-button>
+			<ion-button *ngIf="configSvc.appConfig.accountRegistrations.registrable" fill="clear" color="primary" (click)="registerAsync()" slot="end" float-end>
+				<ion-icon *ngIf="login.buttons.register.icon" [icon]="login.buttons.register.icon" slot="start"></ion-icon>
+				{{ login.buttons.register.label }}
 			</ion-button>
 		</ion-buttons>
 	</div>

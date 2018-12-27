@@ -28,9 +28,15 @@ export class LogInPage implements OnInit, OnDestroy {
 		form: new FormGroup({}),
 		controls: new Array<AppFormsControl>(),
 		config: undefined as Array<any>,
-		button: {
-			label: "Login",
-			icon: undefined as string
+		buttons: {
+			login: {
+				label: "Login",
+				icon: undefined as string
+			},
+			register: {
+				label: "Register",
+				icon: undefined as string
+			}
 		}
 	};
 	otp = {
@@ -100,11 +106,12 @@ export class LogInPage implements OnInit, OnDestroy {
 				Type: "YesNo",
 				Options: {
 					Type: "toggle",
-					Label: await this.configSvc.getResourceAsync("users.login.login.controls.Persistence")
+					Label: await this.configSvc.getResourceAsync("users.login.login.controls.SaveLogins")
 				}
 			});
 		}
-		this.login.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.login");
+		this.login.buttons.login.label = await this.configSvc.getResourceAsync("users.login.login.buttons.login");
+		this.login.buttons.register.label = await this.configSvc.getResourceAsync("users.login.login.buttons.register");
 		this.reset.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.forgot");
 		this.mode = "login";
 		this.title = await this.configSvc.getResourceAsync("users.login.login.title");
@@ -125,6 +132,9 @@ export class LogInPage implements OnInit, OnDestroy {
 
 		if (this.configSvc.appConfig.isWebApp) {
 			this.configSvc.appConfig.app.persistence = this.login.form.value.Persistence;
+			if (!this.configSvc.appConfig.app.persistence) {
+				await this.configSvc.deleteSessionAsync();
+			}
 		}
 
 		await this.appFormsSvc.showLoadingAsync(this.title);
@@ -306,6 +316,10 @@ export class LogInPage implements OnInit, OnDestroy {
 		else {
 			await this.configSvc.navigateBackAsync();
 		}
+	}
+
+	async registerAsync() {
+		await this.configSvc.navigateForwardAsync("/users/register");
 	}
 
 }

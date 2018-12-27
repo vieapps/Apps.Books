@@ -14,12 +14,13 @@
 				"title": "Login",
 				"buttons": {
 					"login": "Login",
-					"forgot": "Forgot password"
+					"forgot": "Forgot password",
+					"register": "Register an account"
 				},
 				"controls": {
 					"Email": "Email",
 					"Password": "Password",
-					"Persistence": "Persist logins"
+					"SaveLogins": "Save logins"
 				}
 			},
 			"otp": {
