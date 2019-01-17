@@ -750,7 +750,7 @@ export class ConfigurationService extends BaseService {
 		}
 		const identity = AppCrypto.md5(path.toLowerCase());
 		if (this._definitions[identity] === undefined) {
-			await this.readAsync(
+			await super.readAsync(
 				path,
 				data => this._definitions[identity] = data,
 				error => this.showError("Error occurred while working with definitions", error)

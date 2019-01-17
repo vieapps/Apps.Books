@@ -43,6 +43,34 @@ export class AppRTU {
 		}
 	}>;
 
+	private static _onOpen: (event: Event) => void = undefined;
+
+	/** Sets the action to fire when the RTU is opened */
+	private static set OnOpen(func: (event: Event) => void) {
+		this._onOpen = func;
+	}
+
+	private static _onClose: (event: CloseEvent) => void = undefined;
+
+	/** Sets the action to fire when the RTU is closed */
+	private static set OnClose(func: (event: CloseEvent) => void) {
+		this._onClose = func;
+	}
+
+	private static _onError: (event: Event) => void = undefined;
+
+	/** Sets the action to fire when the RTU got any error */
+	private static set OnError(func: (event: Event) => void) {
+		this._onError = func;
+	}
+
+	private static _onMessage: (event: MessageEvent) => void = undefined;
+
+	/** Sets the action to fire when the RTU got any error */
+	private static set OnMessage(func: (event: MessageEvent) => void) {
+		this._onMessage = func;
+	}
+
 	private static getServiceHandlers(service: string) {
 		this._serviceScopeHandlers[service] = this._serviceScopeHandlers[service] || [];
 		return this._serviceScopeHandlers[service];
@@ -130,15 +158,15 @@ export class AppRTU {
 	}
 
 	/** Starts the real-time updater */
-	public static start(onCompleted?: () => void, isRestart?: boolean) {
+	public static start(onStarted?: () => void, isRestart?: boolean) {
 		// check
 		if (typeof WebSocket === "undefined") {
 			console.warn("[RTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
-			PlatformUtility.invoke(onCompleted, this.isReady ? 13 : 567);
+			PlatformUtility.invoke(onStarted, this.isReady ? 13 : 567);
 			return;
 		}
 		else if (this._websocket !== undefined) {
-			PlatformUtility.invoke(onCompleted, this.isReady ? 13 : 567);
+			PlatformUtility.invoke(onStarted, this.isReady ? 13 : 567);
 			return;
 		}
 
@@ -198,18 +226,34 @@ export class AppRTU {
 
 		// create WebSocket
 		this._status = "initializing";
-		this._uri = AppConfig.URIs.apis.replace("http://", "ws://").replace("https://", "wss://") + "rtu?x-request=" + AppUtility.toBase64Url(AppConfig.getAuthenticatedHeaders());
+		this._uri = (AppUtility.isNotEmpty(AppConfig.URIs.updates) ? AppConfig.URIs.updates : AppConfig.URIs.apis).replace("http://", "ws://").replace("https://", "wss://") + "rtu?x-request=" + AppUtility.toBase64Url(AppConfig.getAuthenticatedHeaders());
 		this._websocket = new WebSocket(this._uri + (AppUtility.isTrue(isRestart) ? "&x-restart=" : ""));
 
 		// assign event handlers
 		this._websocket.onopen = event => {
 			this._status = "ready";
 			console.log("[RTU]: Opened...");
+			if (this._onOpen !== undefined) {
+				try {
+					this._onOpen(event);
+				}
+				catch (e) {
+					console.error("[RTU]: Error occurred while running the 'on-open' handler", e);
+				}
+			}
 		};
 
 		this._websocket.onclose = event => {
 			this._status = "close";
 			console.log(`[RTU]: Closed [${event.type} => ${event.reason}]`);
+			if (this._onClose !== undefined) {
+				try {
+					this._onClose(event);
+				}
+				catch (e) {
+					console.error("[RTU]: Error occurred while running the 'on-close' handler", e);
+				}
+			}
 			if (AppUtility.isNotEmpty(this._uri) && 1007 !== event.code) {
 				this.restart();
 			}
@@ -218,9 +262,26 @@ export class AppRTU {
 		this._websocket.onerror = event => {
 			this._status = "error";
 			console.warn("[RTU]: Got an error...", AppConfig.isDebug ? event : "");
+			if (this._onError !== undefined) {
+				try {
+					this._onError(event);
+				}
+				catch (e) {
+					console.error("[RTU]: Error occurred while running the 'on-error' handler", e);
+				}
+			}
 		};
 
 		this._websocket.onmessage = event => {
+			if (this._onMessage !== undefined) {
+				try {
+					this._onMessage(event);
+				}
+				catch (e) {
+					console.error("[RTU]: Error occurred while running the 'on-message' handler", e);
+				}
+			}
+
 			const json = JSON.parse(event.data || "{}");
 
 			if ("Error" === json.Type) {
@@ -300,7 +361,7 @@ export class AppRTU {
 		};
 
 		// callback when done
-		PlatformUtility.invoke(onCompleted, this.isReady ? 13 : 567);
+		PlatformUtility.invoke(onStarted, this.isReady ? 13 : 567);
 	}
 
 	/** Restarts the real-time updater */
@@ -318,15 +379,15 @@ export class AppRTU {
 	}
 
 	/** Stops the real-time updater */
-	public static stop(onCompleted?: () => void) {
+	public static stop(onStoped?: () => void) {
 		this._uri = undefined;
 		this._status = "closed";
 		if (this._websocket !== undefined) {
 			this._websocket.close();
 			this._websocket = undefined;
 		}
-		if (onCompleted !== undefined) {
-			onCompleted();
+		if (onStoped !== undefined) {
+			onStoped();
 		}
 	}
 

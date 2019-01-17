@@ -351,22 +351,6 @@ export class AppUtility {
 		}
 	}
 
-	/** Converts this string array/object keys to set */
-	public static toSet(obj: any) {
-		const sets: {
-			[key: string]: boolean
-		} = {};
-		if (this.isNotNull(obj)) {
-			if (this.isArray(obj) && typeof obj[0] === "string") {
-				(obj as Array<string>).forEach(value => sets[value] = true);
-			}
-			else {
-				Object.keys(obj).forEach(value => sets[value] = true);
-			}
-		}
-		return sets;
-	}
-
 	/** Converts object to integer */
 	public static toInt(value: any) {
 		return this.isNotEmpty(value)

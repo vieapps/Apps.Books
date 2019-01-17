@@ -12,6 +12,9 @@ export class AppConfig {
 		/** APIs */
 		apis: "https://apis.vieapps.net/",
 
+		/** Real-time Updater */
+		updates: "",
+
 		/** Files HTTP service */
 		files: "https://fs.vieapps.net/",
 
@@ -24,10 +27,10 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.0.4",
-		copyright: "© 2016 - 2018 VIEApps.net",
+		version: "1.1.0",
+		copyright: "© 2016 - 2019 VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: ".net core 2.2 - ionic 4.0 - angular 7.1 - cordova 8.0",
+		frameworks: ".net core 2.2 - ionic 4.0 - angular 7.2 - cordova 8.0",
 		homepage: "https://viebooks.net",
 		mode: "",
 		platform: "",
@@ -53,6 +56,7 @@ export class AppConfig {
 
 	/** Available services in the app */
 	public static services = {
+		main: "books",
 		all: [
 			{
 				name: "books",
@@ -94,8 +98,7 @@ export class AppConfig {
 				name: "dashboards",
 				objects: []
 			}
-		],
-		main: "books"
+		]
 	};
 
 	/** Available organizations in the app */
@@ -107,8 +110,8 @@ export class AppConfig {
 	/** User account registrations */
 	public static accountRegistrations = {
 		registrable: true,
-		required: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
-		hidden: ["Gender", "BirthDay", "Mobile", "Address", "Addresses"],
+		required: ["Gender", "BirthDay", "Address", "Addresses", "Mobile"],
+		hidden: ["Gender", "BirthDay", "Address", "Addresses", "Mobile"],
 		sendInvitationRole: "Authenticated",
 		setPrivilegsRole: "ServiceAdministrator"
 	};
@@ -151,6 +154,8 @@ export class AppConfig {
 			params: { [key: string]: any }
 		}>(),
 		home: "/home",
+		login: "/users/login",
+		register: "/users/register",
 		base: undefined as string,
 		host: undefined as string,
 		routerParams: undefined as { [key: string]: any },

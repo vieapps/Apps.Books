@@ -245,11 +245,14 @@ export class AppReadyGuardService implements CanActivate {
 
 @Injectable()
 export class AuthenticatedGuardService implements CanActivate {
-	constructor(public router: Router) {
+	constructor(
+		public location: Location,
+		public router: Router
+	) {
 	}
 	canActivate() {
 		if (!AppConfig.isAuthenticated) {
-			this.router.navigateByUrl(AppConfig.url.home);
+			this.router.navigateByUrl(AppConfig.url.login + "?next=" + AppCrypto.urlEncode(this.location.path()));
 		}
 		return AppConfig.isAuthenticated;
 	}

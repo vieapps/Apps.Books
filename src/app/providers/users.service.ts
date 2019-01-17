@@ -133,14 +133,12 @@ export class UsersService extends BaseService {
 	public async activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.readAsync(
 			`users/activate?mode=${mode}&code=${code}&${this.configSvc.relatedQuery}`,
-			async data => {
-				await this.configSvc.updateSessionAsync(data, () => {
-					console.log(this.getLogMessage("Activated..."), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-					if (onNext !== undefined) {
-						onNext(data);
-					}
-				});
-			},
+			async data => await this.configSvc.updateSessionAsync(data, () => {
+				console.log(this.getLogMessage("Activated..."), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+				if (onNext !== undefined) {
+					onNext(data);
+				}
+			}),
 			error => {
 				console.error(this.getErrorMessage(`Error occurred while activating (${mode})`, error));
 				if (onError !== undefined) {

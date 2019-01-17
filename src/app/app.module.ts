@@ -54,7 +54,7 @@ export class HammerConfig extends HammerGestureConfig {
 		HttpClientModule,
 		NgxElectronModule,
 		IonicModule.forRoot(),
-		IonicStorageModule.forRoot({ name: "vieappsDB" }),
+		IonicStorageModule.forRoot({ name: "vieapps-ngx-db" }),
 		TranslateModule.forRoot({ loader: {
 			provide: TranslateLoader,
 			useFactory: HttpLoaderFactory,

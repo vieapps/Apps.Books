@@ -109,7 +109,7 @@
     "directive-selector": [
       true,
       "attribute",
-      ["app", "vie"],
+      ["app"],
       "camelCase"
     ],
     "component-selector": [

@@ -124,7 +124,8 @@ export class BooksService extends BaseService {
 					queryParams: {
 						"x-request": AppUtility.toBase64Url({ Category: category.Name })
 					},
-					detail: category.Children !== undefined && category.Children.length > 0
+					detail: category.Children !== undefined && category.Children.length > 0,
+					direction: "root"
 				};
 			})
 		});

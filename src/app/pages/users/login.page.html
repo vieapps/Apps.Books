@@ -17,7 +17,7 @@
 			[config]="login.config"
 			[controls]="login.controls"
 			(initEvent)="onLoginFormInitialized($event)"></app-form>
-		<ion-buttons padding-horizontal>
+		<ion-buttons padding-horizontal padding-top>
 			<ion-button fill="solid" color="primary" (click)="logInAsync()">
 				<ion-icon *ngIf="login.buttons.login.icon" [icon]="login.buttons.login.icon" slot="start"></ion-icon>
 				{{ login.buttons.login.label }}
@@ -26,7 +26,7 @@
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{ reset.button.label }}
 			</ion-button>
-			<ion-button *ngIf="configSvc.appConfig.accountRegistrations.registrable" fill="clear" color="primary" (click)="registerAsync()" slot="end" float-end>
+			<ion-button *ngIf="configSvc.appConfig.accountRegistrations.registrable" fill="clear" color="primary" (click)="registerAsync()" float-end>
 				<ion-icon *ngIf="login.buttons.register.icon" [icon]="login.buttons.register.icon" slot="start"></ion-icon>
 				{{ login.buttons.register.label }}
 			</ion-button>

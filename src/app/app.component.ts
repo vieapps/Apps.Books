@@ -17,7 +17,7 @@ import { BooksService } from "./providers/books.service";
 
 @Component({
 	selector: "app-root",
-	templateUrl: "app.component.html"
+	templateUrl: "./app.component.html"
 })
 
 export class AppComponent implements OnInit {
@@ -402,6 +402,7 @@ export class AppComponent implements OnInit {
 			if (this.configSvc.isWebApp) {
 				PlatformUtility.preparePWAEnvironment(() => this.configSvc.watchFacebookConnect());
 			}
+
 			if (this.configSvc.isAuthenticated) {
 				this.configSvc.patchAccount(() => this.configSvc.getProfile());
 			}

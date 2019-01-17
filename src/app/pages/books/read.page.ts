@@ -272,11 +272,13 @@ export class ReadBookPage implements OnInit, OnDestroy {
 		if (this.book.TotalChapters > 1) {
 			AppEvents.broadcast("Books", { Type: "OpenBook", ID: this.book.ID, Chapter: this.chapter });
 		}
-		if (this.scrollOffset > 0) {
-			await this.contentCtrl.scrollByPoint(0, this.scrollOffset, 567);
-		}
-		else {
-			await this.contentCtrl.scrollToTop(567);
+		if (this.contentCtrl !== undefined) {
+			if (this.scrollOffset > 0) {
+				await this.contentCtrl.scrollByPoint(0, this.scrollOffset, 567);
+			}
+			else {
+				await this.contentCtrl.scrollToTop(567);
+			}
 		}
 		await Promise.all([
 			this.appFormsSvc.hideLoadingAsync(onNext),

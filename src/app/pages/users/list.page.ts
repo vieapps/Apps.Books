@@ -153,9 +153,13 @@ export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit
 
 	onScroll() {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
-			this.searchAsync(() => this.scrollCtrl.complete());
+			this.searchAsync(() => {
+				if (this.scrollCtrl !== undefined) {
+					this.scrollCtrl.complete();
+				}
+			});
 		}
-		else {
+		else if (this.scrollCtrl !== undefined) {
 			this.scrollCtrl.complete();
 			this.scrollCtrl.disabled = true;
 		}

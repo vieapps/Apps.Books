@@ -1,6 +1,8 @@
 import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
+import { AppCrypto } from "../../components/app.crypto";
+import { AppUtility } from "../../components/app.utility";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
@@ -310,16 +312,27 @@ export class LogInPage implements OnInit, OnDestroy {
 	}
 
 	async closeAsync() {
-		if (this.configSvc.previousUrl.startsWith("/users")) {
-			await this.configSvc.navigateHomeAsync();
+		if (AppUtility.isNotEmpty(this.configSvc.queryParams["next"])) {
+			try {
+				this.configSvc.navigateHomeAsync(AppCrypto.urlDecode(this.configSvc.queryParams["next"]));
+			}
+			catch (error) {
+				console.error("<Login>: Error occurred while redirecting", error);
+				await this.configSvc.navigateHomeAsync();
+			}
 		}
 		else {
-			await this.configSvc.navigateBackAsync();
+			if (this.configSvc.previousUrl.startsWith("/users")) {
+				await this.configSvc.navigateHomeAsync();
+			}
+			else {
+				await this.configSvc.navigateBackAsync();
+			}
 		}
 	}
 
 	async registerAsync() {
-		await this.configSvc.navigateForwardAsync("/users/register");
+		await this.configSvc.navigateForwardAsync(this.configSvc.appConfig.url.register);
 	}
 
 }

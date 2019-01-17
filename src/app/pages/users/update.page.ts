@@ -168,7 +168,6 @@ export class UpdateAccountProfilePage implements OnInit {
 			{
 				Name: "Gender",
 				Type: "Select",
-				Required: true,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Gender.label"),
 					SelectOptions: {
@@ -184,7 +183,6 @@ export class UpdateAccountProfilePage implements OnInit {
 			{
 				Name: "BirthDay",
 				Type: "DatePicker",
-				Required: true,
 				Options: {
 					Type: "date",
 					Label: await this.configSvc.getResourceAsync("users.register.controls.BirthDay"),
@@ -197,7 +195,6 @@ export class UpdateAccountProfilePage implements OnInit {
 			},
 			{
 				Name: "Address",
-				Required: true,
 				Options: {
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Address.label"),
 					MinLength: 1,
@@ -207,7 +204,6 @@ export class UpdateAccountProfilePage implements OnInit {
 			{
 				Name: "Addresses",
 				Type: "Lookup",
-				Required: true,
 				Options: {
 					Type: "Address",
 					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
@@ -216,7 +212,6 @@ export class UpdateAccountProfilePage implements OnInit {
 			},
 			{
 				Name: "Mobile",
-				Required: true,
 				Options: {
 					Type: "tel",
 					Label: await this.configSvc.getResourceAsync("users.register.controls.Mobile"),
@@ -246,12 +241,13 @@ export class UpdateAccountProfilePage implements OnInit {
 				}
 			}
 		] as Array<any>;
-		const required = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.required);
+
 		config.forEach(options => {
-			if (required[options.Key] && !options.Hidden) {
+			if (!options.Required && this.configSvc.appConfig.accountRegistrations.required.findIndex(value => value === options.Name) > -1) {
 				options.Required = true;
 			}
 		});
+
 		this.update.language = this.profile.Language;
 		this.title = await this.configSvc.getResourceAsync("users.profile.update.title");
 		this.configSvc.appTitle = this.title;

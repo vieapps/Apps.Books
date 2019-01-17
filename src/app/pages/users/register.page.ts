@@ -168,14 +168,12 @@ export class RegisterAccountPage implements OnInit {
 			}
 		] as Array<any>;
 
-		const hidden = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.hidden);
-		const required = AppUtility.toSet(this.configSvc.appConfig.accountRegistrations.required);
 		config.forEach(options => {
-			if (hidden[options.Name]) {
+			if (this.configSvc.appConfig.accountRegistrations.hidden.findIndex(value => value === options.Name) > -1) {
 				options.Hidden = true;
 				options.Required = false;
 			}
-			if (required[options.Name] && !options.Hidden) {
+			else if (!options.Required && this.configSvc.appConfig.accountRegistrations.required.findIndex(value => value === options.Name) > -1) {
 				options.Required = true;
 			}
 		});
@@ -201,7 +199,7 @@ export class RegisterAccountPage implements OnInit {
 						await this.configSvc.getResourceAsync("users.register.alert.header"),
 						undefined,
 						await this.configSvc.getResourceAsync("users.register.alert.message", { email: this.register.form.value.Email }),
-						() => this.zone.run(async () => {
+						async () => await this.zone.run(async () => {
 							if (this.configSvc.previousUrl.startsWith("/users")) {
 								await this.configSvc.navigateHomeAsync();
 							}
