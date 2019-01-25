@@ -13,7 +13,7 @@ export class AppConfig {
 		apis: "https://apis.vieapps.net/",
 
 		/** Real-time Updater */
-		updates: "",
+		updates: "https://rt.vieapps.net/",
 
 		/** Files HTTP service */
 		files: "https://fs.vieapps.net/",
@@ -27,10 +27,10 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.1.0",
+		version: "1.2.0",
 		copyright: "© 2016 - 2019 VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: ".net core 2.2 - ionic 4.0 - angular 7.2 - cordova 8.0",
+		frameworks: ".net core 2.2 - ionic 4.0 - angular 7.2 - cordova 8.1",
 		homepage: "https://viebooks.net",
 		mode: "",
 		platform: "",

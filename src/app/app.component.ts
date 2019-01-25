@@ -408,9 +408,7 @@ export class AppComponent implements OnInit {
 			}
 
 			const appConfig = this.configSvc.appConfig;
-			if (this.configSvc.isDebug) {
-				console.log("<AppComponent>: The app is initialized", this.configSvc.isNativeApp ? JSON.stringify(appConfig.app) : appConfig.app);
-			}
+			console.log("<AppComponent>: The app is initialized", this.configSvc.isNativeApp ? JSON.stringify(appConfig.app) : appConfig.app);
 
 			AppEvents.broadcast("App", { Type: "Initialized" });
 			AppEvents.sendToElectron("App", { Type: "Initialized", Data: {

@@ -232,7 +232,7 @@ export class AppRTU {
 		// assign event handlers
 		this._websocket.onopen = event => {
 			this._status = "ready";
-			console.log("[RTU]: Opened...");
+			console.log(`[RTU]: Opened... (${PlatformUtility.parseURI(this._uri).HostURI})`);
 			if (this._onOpen !== undefined) {
 				try {
 					this._onOpen(event);
