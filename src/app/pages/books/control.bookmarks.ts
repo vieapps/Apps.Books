@@ -1,6 +1,6 @@
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
-import { IonList } from "@ionic/angular";
+import { IonList, IonItemSliding } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../providers/configuration.service";
@@ -36,6 +36,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 		}
 	};
 	@ViewChild("list") list: IonList;
+	@ViewChild("slidingitems") slidingitems: IonItemSliding;
 
 	ngOnInit() {
 		this.prepareResourcesAsync();
@@ -66,6 +67,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy() {
+		this.slidingitems.closeOpened();
 		AppEvents.off("App", "LanguageChangedEventHandlerOfBookmarksControl");
 		AppEvents.off("Session", "SessionEventHandlerOfBookmarksControl");
 		AppEvents.off("Books", "BookmarksUpdatedEventHandlerOfBookmarksControl");

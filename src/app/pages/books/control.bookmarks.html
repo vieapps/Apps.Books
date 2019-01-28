@@ -2,7 +2,7 @@
 	<ion-list-header *ngIf="bookmarks.length > 0">
 		{{ resources.header }}
 	</ion-list-header>
-	<ion-item-sliding *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
+	<ion-item-sliding *ngFor="let bookmark of bookmarks; trackBy: trackBookmark" #slidingitems>
 		<ion-item (click)="openAsync(bookmark)">
 			<div>
 				<h2>
