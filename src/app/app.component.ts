@@ -363,14 +363,14 @@ export class AppComponent implements OnInit {
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.isNativeApp ? JSON.stringify(this.configSvc.appConfig.session) : this.configSvc.appConfig.session : "");
-					this.startRTU(onNext);
+					this.finalize(onNext);
 				}
 				else {
 					console.log("<AppComponent>: Register the initialized session (anonymous)", this.configSvc.isDebug ? this.configSvc.isNativeApp ? JSON.stringify(this.configSvc.appConfig.session) : this.configSvc.appConfig.session : "");
 					await this.configSvc.registerSessionAsync(
 						() => {
 							console.log("<AppComponent>: The session is registered (anonymous)", this.configSvc.isDebug ? this.configSvc.isNativeApp ? JSON.stringify(this.configSvc.appConfig.session) : this.configSvc.appConfig.session : "");
-							this.startRTU(onNext);
+							this.finalize(onNext);
 						},
 						async error => {
 							if (AppUtility.isGotSecurityException(error)) {
@@ -397,18 +397,17 @@ export class AppComponent implements OnInit {
 		);
 	}
 
-	private startRTU(onNext?: () => void) {
-		AppRTU.start(() => {
-			if (this.configSvc.isWebApp) {
-				PlatformUtility.preparePWAEnvironment(() => this.configSvc.watchFacebookConnect());
-			}
+	private finalize(onNext?: () => void) {
+		const appConfig = this.configSvc.appConfig;
+		console.log("<AppComponent>: The app is initialized", this.configSvc.isNativeApp ? JSON.stringify(appConfig.app) : appConfig.app);
+		if (this.configSvc.isWebApp) {
+			PlatformUtility.preparePWAEnvironment(() => this.configSvc.watchFacebookConnect());
+		}
 
+		AppRTU.start(() => {
 			if (this.configSvc.isAuthenticated) {
 				this.configSvc.patchAccount(() => this.configSvc.getProfile());
 			}
-
-			const appConfig = this.configSvc.appConfig;
-			console.log("<AppComponent>: The app is initialized", this.configSvc.isNativeApp ? JSON.stringify(appConfig.app) : appConfig.app);
 
 			AppEvents.broadcast("App", { Type: "Initialized" });
 			AppEvents.sendToElectron("App", { Type: "Initialized", Data: {

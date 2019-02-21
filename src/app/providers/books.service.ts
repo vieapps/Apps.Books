@@ -50,7 +50,7 @@ export class BooksService extends BaseService {
 
 		AppEvents.on("App", async info => {
 			if ("Initialized" === info.args.Type) {
-				await this.initializeAsync();
+				await this.initializeAsync(() => console.log("[Books]: The service is initialized"));
 			}
 			if ("LanguageChanged" === info.args.Type) {
 				PlatformUtility.invoke(async () => {
@@ -67,7 +67,7 @@ export class BooksService extends BaseService {
 		});
 
 		AppEvents.on("Session", async info => {
-			if (this.configSvc.isAuthenticated && AppRTU.isReady && "Updated" === info.args.Type) {
+			if ("Updated" === info.args.Type && this.configSvc.isAuthenticated && AppRTU.isReady) {
 				await this.loadBookmarksAsync(() => this.getBookmarks());
 			}}
 		);
@@ -76,7 +76,7 @@ export class BooksService extends BaseService {
 			if ("CategoriesUpdated" === info.args.Type) {
 				await this.updateCategoriesIntoSidebarAsync();
 			}
-			if ("OpenBook" === info.args.Type) {
+			else if ("OpenBook" === info.args.Type) {
 				const book = Book.instances.getValue(info.args.ID);
 				if (book !== undefined && book.TotalChapters > 1) {
 					await this.updateReadingAsync(book, info.args.Chapter || 1);
@@ -91,14 +91,31 @@ export class BooksService extends BaseService {
 		});
 	}
 
-	public async initializeAsync() {
+	public async initializeAsync(onNext?: () => void) {
 		await Promise.all([
 			this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
-			this.loadStatisticsAsync(),
+			this.loadStatisticsAsync(() => {
+				const numberOfCategories = this.configSvc.appConfig.extras["Books-Categories"] !== undefined
+					? (this.configSvc.appConfig.extras["Books-Categories"] as Array<StatisticInfo>).length
+					: 0;
+				let numberOfAuthors = 0;
+				if (this.configSvc.appConfig.extras["Books-Authors"] !== undefined) {
+					(this.configSvc.appConfig.extras["Books-Authors"] as Dictionary<string, Array<StatisticBase>>).values().forEach(info => numberOfAuthors += info.length);
+				}
+				console.log("[Books]: The statistics are loaded" + "\n- " + `Number of categories: ${numberOfCategories}` + "\n- " + `Number of authors: ${numberOfAuthors}`);
+			}),
 			this.updateSearchIntoSidebarAsync()
 		]);
+
 		if (this.configSvc.isAuthenticated) {
-			await this.loadBookmarksAsync();
+			await this.loadBookmarksAsync(() => {
+				const bookmarks = this.configSvc.appConfig.extras["Books-Bookmarks"] as Dictionary<string, Bookmark>;
+				console.log(`[Books]: The bookmarks are loaded - Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size() : 0}`);
+			});
+		}
+
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 
@@ -534,10 +551,10 @@ export class BooksService extends BaseService {
 
 	private async loadAuthorsAsync(onNext?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
 		const authors = new Dictionary<string, Array<StatisticBase>>();
-		AppUtility.getChars().forEach(async char => {
+		await Promise.all(AppUtility.getChars().map(async char => {
 			const authours = (await AppStorage.getAsync(`VIEApps-Books-Authors-${char}`) as Array<any> || []).map(s => StatisticBase.deserialize(s));
 			authors.setValue(char, authours);
-		});
+		}));
 		this.configSvc.appConfig.extras["Books-Authors"] = authors;
 		if (this.authors.size() > 0) {
 			AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: authors });
@@ -566,7 +583,7 @@ export class BooksService extends BaseService {
 		};
 	}
 
-	private async loadStatisticsAsync() {
+	private async loadStatisticsAsync(onNext?: () => void) {
 		await Promise.all([
 			this.loadCategoriesAsync(),
 			this.loadAuthorsAsync()
@@ -582,6 +599,9 @@ export class BooksService extends BaseService {
 			Body: undefined,
 			Extra: undefined
 		});
+		if (onNext !== undefined) {
+			onNext();
+		}
 	}
 
 	private async processUpdateStatisticMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
