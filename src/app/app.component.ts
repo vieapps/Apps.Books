@@ -314,15 +314,13 @@ export class AppComponent implements OnInit {
 			await this.usersSvc.activateAsync(
 				mode,
 				code,
-				async () => await this.initializeAsync(async () => {
-					await Promise.all([
-						TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("common.loading.activate"), `users/activate/${mode}`),
-						this.showActivationResultAsync({
-							Status: "OK",
-							Mode: mode
-						})
-					]);
-				}, true),
+				async () => await this.initializeAsync(async () => await Promise.all([
+					TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("common.loading.activate"), `users/activate/${mode}`),
+					this.showActivationResultAsync({
+						Status: "OK",
+						Mode: mode
+					})
+				]), true),
 				async error => await this.initializeAsync(async () => await this.showActivationResultAsync({
 					Status: "Error",
 					Mode: mode,
