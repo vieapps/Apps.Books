@@ -13,11 +13,6 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 			canActivate: [AppReadyGuardService],
 			children: [
 				{
-					path: "",
-					redirectTo: "/home",
-					pathMatch: "full"
-				},
-				{
 					path: "login",
 					loadChildren: "./pages/users/login.module#LogInPageModule",
 					canActivate: [NotAuthenticatedGuardService]
@@ -51,6 +46,16 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 					path: "search",
 					loadChildren: "./pages/users/list.module#ListAccountProfilesPageModule",
 					canActivate: [AuthenticatedGuardService]
+				},
+				{
+					path: "",
+					redirectTo: "/home",
+					pathMatch: "full"
+				},
+				{
+					path: "**",
+					redirectTo: "/home",
+					pathMatch: "full"
 				}
 			]
 		},
@@ -58,11 +63,6 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 			path: "books",
 			canActivate: [AppReadyGuardService],
 			children: [
-				{
-					path: "",
-					redirectTo: "/home",
-					pathMatch: "full"
-				},
 				{
 					path: "search",
 					loadChildren: "./pages/books/list.module#ListBooksPageModule"
@@ -91,6 +91,16 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 				{
 					path: "options",
 					loadChildren: "./pages/books/options.module#BookReadingOptionsPageModule"
+				},
+				{
+					path: "",
+					redirectTo: "/home",
+					pathMatch: "full"
+				},
+				{
+					path: "**",
+					redirectTo: "/home",
+					pathMatch: "full"
 				}
 			]
 		},
