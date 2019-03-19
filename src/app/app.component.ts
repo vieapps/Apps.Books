@@ -158,21 +158,31 @@ export class AppComponent implements OnInit {
 
 	private updateSidebarItem(menuIndex: number = -1, itemIndex: number = -1, itemInfo: any = {}) {
 		if (menuIndex > -1 && menuIndex < this.sidebar.left.menu.length) {
-			const item = {
-				title: itemInfo.title,
-				url: itemInfo.url,
-				queryParams: itemInfo.queryParams as { [key: string]: any },
-				direction: itemInfo.direction || "forward",
-				icon: itemInfo.icon,
-				thumbnail: itemInfo.thumbnail,
+			const oldItem = itemIndex > -1 && itemIndex < this.sidebar.left.menu[menuIndex].items.length
+				? this.sidebar.left.menu[menuIndex].items[itemIndex]
+				: {
+						title: undefined as string,
+						url: undefined as string,
+						queryParams: undefined as { [key: string]: any },
+						icon: undefined as string,
+						thumbnail: undefined as string,
+						direction: undefined as string
+					};
+			const updatedItem = {
+				title: itemInfo.title || oldItem.title,
+				url: itemInfo.url || oldItem.url,
+				queryParams: itemInfo.queryParams as { [key: string]: any } || oldItem.queryParams,
+				direction: itemInfo.direction || oldItem.direction || "forward",
+				icon: itemInfo.icon || oldItem.icon,
+				thumbnail: itemInfo.thumbnail || oldItem.thumbnail,
 				detail: !!itemInfo.detail,
 				onClick: typeof itemInfo.onClick === "function" ? itemInfo.onClick : () => {}
 			};
 			if (itemIndex > -1 && itemIndex < this.sidebar.left.menu[menuIndex].items.length) {
-				this.sidebar.left.menu[menuIndex].items[itemIndex] = item;
+				this.sidebar.left.menu[menuIndex].items[itemIndex] = updatedItem;
 			}
 			else {
-				AppUtility.insertAt(this.sidebar.left.menu[menuIndex].items, item, itemIndex);
+				AppUtility.insertAt(this.sidebar.left.menu[menuIndex].items, updatedItem, itemIndex);
 			}
 		}
 	}

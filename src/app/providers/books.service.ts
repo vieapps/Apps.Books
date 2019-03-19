@@ -92,6 +92,14 @@ export class BooksService extends BaseService {
 	}
 
 	public async initializeAsync(onNext?: () => void) {
+		if ("initialized" === this.configSvc.appConfig.extras["Books-State"]) {
+			console.log("[Books]: The service is initialized");
+			if (onNext !== undefined) {
+				onNext();
+			}
+			return;
+		}
+
 		await Promise.all([
 			this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
 			this.loadStatisticsAsync(() => {
@@ -114,6 +122,7 @@ export class BooksService extends BaseService {
 			});
 		}
 
+		this.configSvc.appConfig.extras["Books-State"] = "initialized";
 		if (onNext !== undefined) {
 			onNext();
 		}
@@ -503,19 +512,13 @@ export class BooksService extends BaseService {
 	}
 
 	public async fetchIntroductionsAsync(onNext?: () => void) {
-		await super.readAsync(
-			`statics/services/${this.Name.toLowerCase()}/${this.configSvc.appConfig.language}.json`,
-			async data => {
-				this.configSvc.appConfig.extras["Books-Introductions"][this.configSvc.appConfig.language] = data;
-				await this.storeIntroductionsAsync(onNext);
-			},
-			error => {
-				this.showError("Error occurred while reading introductions", error);
-				if (onNext !== undefined) {
-					onNext();
-				}
-			}
-		);
+		try {
+			this.configSvc.appConfig.extras["Books-Introductions"][this.configSvc.appConfig.language] = await this.configSvc.getDefinitionAsync(this.Name.toLowerCase(), "introductions");
+			await this.storeIntroductionsAsync(onNext);
+		}
+		catch (error) {
+			this.showError("Error occurred while reading introductions", error);
+		}
 	}
 
 	public get categories() {
