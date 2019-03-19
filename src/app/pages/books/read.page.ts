@@ -295,7 +295,7 @@ export class ReadBookPage implements OnInit, OnDestroy {
 	}
 
 	openTOCs() {
-		AppEvents.broadcast("OpenMenu", { Type: "start" });
+		AppEvents.broadcast("OpenSidebar", { Type: "start" });
 	}
 
 	async openOptionsAsync() {

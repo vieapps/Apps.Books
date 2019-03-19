@@ -5,11 +5,6 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 @NgModule({
 	imports: [RouterModule.forRoot([
 		{
-			path: "",
-			redirectTo: "home",
-			pathMatch: "full"
-		},
-		{
 			path: "home",
 			loadChildren: "./pages/home/home.module#HomePageModule"
 		},
@@ -99,6 +94,16 @@ import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, 
 				}
 			]
 		},
+		{
+			path: "",
+			redirectTo: "home",
+			pathMatch: "full"
+		},
+		{
+			path: "**",
+			redirectTo: "home",
+			pathMatch: "full"
+		}
 	])],
 	exports: [RouterModule]
 })

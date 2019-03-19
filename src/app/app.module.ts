@@ -21,7 +21,7 @@ import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
 
 import { AppComponent } from "./app.component";
-import { AppRoutingModule } from "./app.routes";
+import { AppRoutingModule } from "./app.router.module";
 import { AppFormsModule } from "./components/forms.module";
 import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "./providers/base.service";
 import { ConfigurationService } from "./providers/configuration.service";

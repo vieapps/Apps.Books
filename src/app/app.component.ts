@@ -267,7 +267,7 @@ export class AppComponent implements OnInit {
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title);
 
-		AppEvents.on("OpenMenu", async info => await this.menuController.open(info.args.Type || "start"));
+		AppEvents.on("OpenSidebar", async info => await this.menuController.open(info.args.Type || "start"));
 		AppEvents.on("Navigate", async info => {
 			const url = "LogIn" === info.args.Type
 				? "/users/login"
