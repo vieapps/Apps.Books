@@ -429,8 +429,8 @@ export class UpdateAccountProfilePage implements OnInit {
 	}
 
 	onPrivilegesChanged($event: any) {
-		if (this.configSvc.appConfig.services.main !== "") {
-			this._privileges.value = this._privileges.value.filter(privilege => privilege.ServiceName !== this.configSvc.appConfig.services.main).concat($event.privileges as Array<Privilege>);
+		if (this.configSvc.appConfig.services.active !== "") {
+			this._privileges.value = this._privileges.value.filter(privilege => privilege.ServiceName !== this.configSvc.appConfig.services.active).concat($event.privileges as Array<Privilege>);
 		}
 		else {
 			this._privileges.value = $event.privileges as Array<Privilege>;
@@ -438,8 +438,8 @@ export class UpdateAccountProfilePage implements OnInit {
 	}
 
 	get privileges() {
-		return this.configSvc.appConfig.services.main !== ""
-			? Account.instances.getValue(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === this.configSvc.appConfig.services.main)
+		return this.configSvc.appConfig.services.active !== ""
+			? Account.instances.getValue(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === this.configSvc.appConfig.services.active)
 			: Account.instances.getValue(this.profile.ID).privileges;
 	}
 

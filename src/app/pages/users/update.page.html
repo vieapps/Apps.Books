@@ -38,7 +38,7 @@
 		[controls]="email.controls"
 		(initEvent)="onFormInitialized($event)"></app-form>	
 
-	<control-book-privileges *ngIf="mode === 'privileges' && configSvc.appConfig.services.main === 'books'"
+	<control-book-privileges *ngIf="mode === 'privileges' && configSvc.appConfig.services.active === 'books'"
 		[privileges]="privileges"
 		(changesEvent)="onPrivilegesChanged($event)"></control-book-privileges>
 

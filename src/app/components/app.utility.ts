@@ -307,12 +307,17 @@ export class AppUtility {
 		return chars;
 	}
 
-	/** Parses the mustache-style (double braces) template to get the params */
-	public static parseTemplate(template: string, onlyNames?: boolean) {
-		const params = template.match(/{{\s*[\w\.]+\s*}}/g);
-		return this.isTrue(onlyNames)
+	/** Parses the mustache-style (double braces) template to get the collection of params */
+	public static parse(template: string, noBraces?: boolean) {
+		const params = template.match(/{{([^{}]*)}}/g);
+		return this.isTrue(noBraces)
 			? params.map(param => param.match(/[\w\.]+/)[0])
 			: params;
+	}
+
+	/** Formats the mustache-style (double braces) template with params */
+	public static format(template: string, params: { [key: string]: any }) {
+		return template.replace(/{{([^{}]*)}}/g, (str, param) => (params[param.trim()] || "").toString());
 	}
 
 	/** Stringifys the JSON and encode as base64-url */

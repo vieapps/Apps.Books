@@ -30,7 +30,7 @@ export class UsersService extends BaseService {
 	}
 
 	public get searchURI() {
-		return `users/profile/search?${this.configSvc.relatedQuery}&x-request=`;
+		return `${this.Name.toLowerCase()}/profile/search?${this.configSvc.relatedQuery}&x-request=`;
 	}
 
 	public get completerDataSource() {
@@ -96,7 +96,7 @@ export class UsersService extends BaseService {
 		body["ReferID"] = this.configSvc.appConfig.refer.id;
 		body["ReferSection"] = this.configSvc.appConfig.refer.section;
 		await super.createAsync(
-			`users/account?${this.configSvc.relatedQuery}&uri=${this.configSvc.activateURI}`,
+			`${this.Name.toLowerCase()}/account?${this.configSvc.relatedQuery}&uri=${this.configSvc.activateURI}`,
 			body,
 			onNext,
 			onError,
@@ -118,7 +118,7 @@ export class UsersService extends BaseService {
 			body["RelatedInfo"] = AppCrypto.aesEncrypt(JSON.stringify(relatedInfo));
 		}
 		await super.createAsync(
-			`users/account/invite?${this.configSvc.relatedQuery}&uri=${this.configSvc.activateURI}`,
+			`${this.Name.toLowerCase()}/account/invite?${this.configSvc.relatedQuery}&uri=${this.configSvc.activateURI}`,
 			body,
 			onNext,
 			error => {
@@ -132,7 +132,7 @@ export class UsersService extends BaseService {
 
 	public async activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.readAsync(
-			`users/activate?mode=${mode}&code=${code}&${this.configSvc.relatedQuery}`,
+			`${this.Name.toLowerCase()}/activate?mode=${mode}&code=${code}&${this.configSvc.relatedQuery}`,
 			async data => await this.configSvc.updateSessionAsync(data, () => {
 				console.log(this.getLogMessage("Activated..."), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 				if (onNext !== undefined) {
@@ -157,7 +157,7 @@ export class UsersService extends BaseService {
 		}
 		else {
 			await super.readAsync(
-				`users/profile/${id}?${this.configSvc.relatedQuery}`,
+				`${this.Name.toLowerCase()}/profile/${id}?${this.configSvc.relatedQuery}`,
 				data => {
 					UserProfile.update(data);
 					if (onNext !== undefined) {
@@ -176,7 +176,7 @@ export class UsersService extends BaseService {
 
 	public async updateProfileAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`users/profile/${body.ID || this.configSvc.getAccount().id}?${this.configSvc.relatedQuery}`,
+			`${this.Name.toLowerCase()}/profile/${body.ID || this.configSvc.getAccount().id}?${this.configSvc.relatedQuery}`,
 			body,
 			data => {
 				UserProfile.update(data);
@@ -195,7 +195,7 @@ export class UsersService extends BaseService {
 
 	public async updatePasswordAsync(password: string, newPassword: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`users/account/password?${this.configSvc.relatedQuery}`,
+			`${this.Name.toLowerCase()}/account/password?${this.configSvc.relatedQuery}`,
 			{
 				OldPassword: AppCrypto.rsaEncrypt(password),
 				Password: AppCrypto.rsaEncrypt(newPassword)
@@ -212,7 +212,7 @@ export class UsersService extends BaseService {
 
 	public async updateEmailAsync(password: string, newEmail: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`users/account/email?${this.configSvc.relatedQuery}`,
+			`${this.Name.toLowerCase()}/account/email?${this.configSvc.relatedQuery}`,
 			{
 				OldPassword: AppCrypto.rsaEncrypt(password),
 				Email: AppCrypto.rsaEncrypt(newEmail)
@@ -229,7 +229,7 @@ export class UsersService extends BaseService {
 
 	public async prepare2FAMethodAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.readAsync(
-			`users/otp?${this.configSvc.relatedQuery}`,
+			`${this.Name.toLowerCase()}/otp?${this.configSvc.relatedQuery}`,
 			onNext,
 			error => {
 				console.error(this.getErrorMessage("Error occurred while preparing an 2FA method", error));
@@ -242,7 +242,7 @@ export class UsersService extends BaseService {
 
 	public async add2FAMethodAsync(password: string, provisioning: string, otp: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`users/otp?${this.configSvc.relatedQuery}`,
+			`${this.Name.toLowerCase()}/otp?${this.configSvc.relatedQuery}`,
 			{
 				Provisioning: provisioning,
 				OTP: otp
@@ -262,7 +262,7 @@ export class UsersService extends BaseService {
 
 	public async delete2FAMethodAsync(password: string, info: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.deleteAsync(
-			`users/otp?info=${info}&${this.configSvc.relatedQuery}`,
+			`${this.Name.toLowerCase()}/otp?info=${info}&${this.configSvc.relatedQuery}`,
 			data => this.configSvc.updateAccount(data, onNext),
 			error => {
 				console.error(this.getErrorMessage("Error occurred while deleting an 2FA method", error));
@@ -284,7 +284,7 @@ export class UsersService extends BaseService {
 		}
 		else {
 			await super.readAsync(
-				`users/account/${id}?${this.configSvc.relatedQuery}`,
+				`${this.Name.toLowerCase()}/account/${id}?${this.configSvc.relatedQuery}`,
 				data => this.configSvc.updateAccount(data, onNext, true),
 				error => {
 					console.error(this.getErrorMessage("Error occurred while reading privileges", error));
@@ -298,7 +298,7 @@ export class UsersService extends BaseService {
 
 	public async updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`users/account/${id}?${this.configSvc.relatedQuery}`,
+			`${this.Name.toLowerCase()}/account/${id}?${this.configSvc.relatedQuery}`,
 			{
 				Privileges: AppCrypto.aesEncrypt(JSON.stringify(privileges))
 			},

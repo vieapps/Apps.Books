@@ -44,14 +44,14 @@ export class AuthenticationService extends BaseService {
 
 	/** Checks to see the account is service administrator or not */
 	public isServiceAdministrator(service?: string, account?: Account) {
-		service = (service || this.configSvc.appConfig.services.main).toLowerCase();
+		service = (service || this.configSvc.appConfig.services.active).toLowerCase();
 		account = account || this.configSvc.getAccount();
 		return this.isGotServiceRole(service, "Administrator", account.privileges) || this.isSystemAdministrator(account);
 	}
 
 	/** Checks to see the account is service moderator or not */
 	public isServiceModerator(service?: string, account?: Account) {
-		service = (service || this.configSvc.appConfig.services.main).toLowerCase();
+		service = (service || this.configSvc.appConfig.services.active).toLowerCase();
 		account = account || this.configSvc.getAccount();
 		return this.isGotServiceRole(service, "Moderator", account.privileges) || this.isServiceAdministrator(service, account);
 	}
@@ -185,19 +185,17 @@ export class AuthenticationService extends BaseService {
 	private async updateSessionAsync(data: any, onNext: (data?: any) => void) {
 		AppEvents.broadcast("Session", { Type: "LogIn" });
 		AppEvents.sendToElectron("Users", { Type: "LogIn", Data: data });
-		await this.configSvc.updateSessionAsync(data, () => {
-			AppRTU.start(() => {
-				this.configSvc.patchSession(() => {
-					this.configSvc.patchAccount(() => {
-						this.configSvc.getProfile(() => {
-							if (onNext !== undefined) {
-								onNext(data);
-							}
-						});
-					});
-				});
-			});
-		});
+		await this.configSvc.updateSessionAsync(data, () => AppRTU.start(() =>
+			this.configSvc.patchSession(() =>
+				this.configSvc.patchAccount(() =>
+					this.configSvc.getProfile(() => {
+						if (onNext !== undefined) {
+							onNext(data);
+						}
+					}))
+				)
+			)
+		);
 	}
 
 }

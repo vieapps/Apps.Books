@@ -69,7 +69,7 @@
 				{{ labels.lastAccess }} {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
 			</ion-item>
 		</ion-list>
-		<control-book-bookmarks *ngIf="configSvc.appConfig.services.main === 'books' && !id"></control-book-bookmarks>
+		<control-book-bookmarks *ngIf="configSvc.appConfig.services.active === 'books' && !id"></control-book-bookmarks>
 	</div>
 
 	<div *ngIf="mode === 'invitation'">
@@ -78,7 +78,7 @@
 			[config]="invitation.config"
 			[controls]="invitation.controls"
 			(initEvent)="onFormInitialized($event)"></app-form>
-		<control-book-privileges *ngIf="configSvc.appConfig.services.main === 'books' && authSvc.canSetPrivileges"
+		<control-book-privileges *ngIf="configSvc.appConfig.services.active === 'books' && authSvc.canSetPrivileges"
 			(changesEvent)="onPrivilegesChanged($event)"></control-book-privileges>
 	</div>
 

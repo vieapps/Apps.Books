@@ -198,7 +198,7 @@ export class BooksService extends BaseService {
 	}
 
 	public get searchURI() {
-		return `books/book/search?${this.configSvc.relatedQuery}&x-request=`;
+		return `${this.Name.toLowerCase()}/book/search?${this.configSvc.relatedQuery}&x-request=`;
 	}
 
 	public get completerDataSource() {
@@ -270,7 +270,7 @@ export class BooksService extends BaseService {
 		}
 		else {
 			await super.readAsync(
-				`books/book/${id}`,
+				`${this.Name.toLowerCase()}/book/${id}`,
 				data => {
 					Book.update(data);
 					if (AppUtility.isFalse(dontUpdateCounter)) {
@@ -304,7 +304,7 @@ export class BooksService extends BaseService {
 		}
 		else {
 			await super.readAsync(
-				`books/book/${id}?chapter=${chapter}`,
+				`${this.Name.toLowerCase()}/book/${id}?chapter=${chapter}`,
 				data => {
 					this.updateChapter(data);
 					this.increaseCounters(id);
@@ -417,7 +417,7 @@ export class BooksService extends BaseService {
 
 	public async requestUpdateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.createAsync(
-			`books/book/${body.ID}`,
+			`${this.Name.toLowerCase()}/book/${body.ID}`,
 			body,
 			onNext,
 			error => {
@@ -431,7 +431,7 @@ export class BooksService extends BaseService {
 
 	public async updateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`books/book/${body.ID}`,
+			`${this.Name.toLowerCase()}/book/${body.ID}`,
 			body,
 			onNext,
 			error => {
@@ -445,7 +445,7 @@ export class BooksService extends BaseService {
 
 	public async deleteAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.deleteAsync(
-			`books/book/${id}`,
+			`${this.Name.toLowerCase()}/book/${id}`,
 			data => {
 				Book.instances.remove(id);
 				if (onNext !== undefined) {
@@ -513,7 +513,8 @@ export class BooksService extends BaseService {
 
 	public async fetchIntroductionsAsync(onNext?: () => void) {
 		try {
-			this.configSvc.appConfig.extras["Books-Introductions"][this.configSvc.appConfig.language] = await this.configSvc.getDefinitionAsync(this.Name.toLowerCase(), "introductions");
+			const introduction = await this.configSvc.getDefinitionAsync(this.Name.toLowerCase(), "introductions");
+			this.configSvc.appConfig.extras["Books-Introductions"][this.configSvc.appConfig.language] = introduction;
 			await this.storeIntroductionsAsync(onNext);
 		}
 		catch (error) {

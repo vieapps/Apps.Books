@@ -730,8 +730,8 @@ export class ConfigurationService extends BaseService {
 		return this.translateSvc.get(key).toPromise<{ [key: string]: string }>();
 	}
 
-	/** Gets definitions (forms, views, resources, ...) */
-	public async getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
+	/** Definitions (forms, views, resources, ...) */
+	private getDefinitionPath(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
 		let path = "discovery/definitions?" + this.relatedQuery;
 		if (AppUtility.isNotEmpty(serviceName)) {
 			path += "&x-service-name=" + serviceName;
@@ -748,6 +748,11 @@ export class ConfigurationService extends BaseService {
 		if (AppUtility.isNotEmpty(entityID)) {
 			path += "&x-entity-id=" + entityID;
 		}
+		return path;
+	}
+
+	public async getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
+		const path = this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID);
 		const identity = AppCrypto.md5(path.toLowerCase());
 		if (this._definitions[identity] === undefined) {
 			await super.readAsync(
@@ -757,6 +762,10 @@ export class ConfigurationService extends BaseService {
 			);
 		}
 		return this._definitions[identity];
+	}
+
+	public setDefinition(definition: any, serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
+		this._definitions[AppCrypto.md5(this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID).toLowerCase())] = definition;
 	}
 
 }

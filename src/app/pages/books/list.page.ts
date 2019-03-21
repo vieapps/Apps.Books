@@ -36,17 +36,23 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	filterBy = {
 		Query: undefined as string,
-		And: {
-			Category: {
-				Equals: undefined as string
+		And: [
+			{
+				Category: {
+					Equals: undefined as string
+				}
 			},
-			Author: {
-				Equals: undefined as string
+			{
+				Author: {
+					Equals: undefined as string
+				}
 			},
-			Status: {
-				NotEquals: "Inactive"
+			{
+				Status: {
+					NotEquals: "Inactive"
+				}
 			}
-		}
+		] as Array<{ [key: string]: { [key: string]: any } }>
 	};
 	sorts = [
 		{
@@ -111,14 +117,16 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 			}, `AccountEventHandlers${this.eventIdentity}`);
 			AppEvents.on("Books", async info => {
+				const category = this.category;
+				const author = this.author;
 				const reprepareResults = "Deleted" === info.args.Type
-					? this.filterBy.And.Category.Equals !== undefined
-						? this.filterBy.And.Category.Equals === info.args.Category
-						: this.filterBy.And.Author.Equals !== undefined
-							? this.filterBy.And.Author.Equals === info.args.Author
+					? category !== undefined
+						? category === info.args.Category
+						: author !== undefined
+							? author === info.args.Author
 							: false
 					: "Moved" === info.args.Type
-						? this.filterBy.And.Category.Equals !== undefined && (this.filterBy.And.Category.Equals === info.args.From || this.filterBy.And.Category.Equals === info.args.To)
+						? category !== undefined && (category === info.args.From || category === info.args.To)
 						: false;
 				if (reprepareResults) {
 					this.prepareResults();
@@ -144,16 +152,37 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 		return { LastUpdated: "Descending" };
 	}
 
+	getFilterElement(name: string) {
+		const element = this.filterBy.And.find(e => e[name] !== undefined);
+		return element !== undefined ? element[name] : undefined;
+	}
+
+	get category() {
+		return this.getFilterElement("Category").Equals as string;
+	}
+
+	set category(value: string) {
+		this.getFilterElement("Category").Equals = value;
+	}
+
+	get author() {
+		return this.getFilterElement("Author").Equals as string;
+	}
+
+	set author(value: string) {
+		this.getFilterElement("Author").Equals = value;
+	}
+
 	get showBackButton() {
-		return this.searching || this.filtering || this.filterBy.And.Author.Equals !== undefined;
+		return this.searching || this.filtering || this.author !== undefined;
 	}
 
 	get hideCategory() {
-		return this.searching ? true : this.filterBy.And.Category.Equals !== undefined;
+		return this.searching ? true : this.category !== undefined;
 	}
 
 	get hideAuthor() {
-		return this.searching ? false : this.filterBy.And.Author.Equals !== undefined;
+		return this.searching ? false : this.author !== undefined;
 	}
 
 	get displayAsGrid() {
@@ -165,7 +194,9 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	get eventIdentity() {
-		return "@Books:" + (this.filterBy.And.Category.Equals !== undefined ? this.filterBy.And.Category.Equals : this.filterBy.And.Author.Equals !== undefined ? this.filterBy.And.Author.Equals : "Search");
+		const category = this.category;
+		const author = this.author;
+		return "@Books:" + (category !== undefined ? category : author !== undefined ? author : "Search");
 	}
 
 	get locale() {
@@ -174,26 +205,26 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 
 	async initializeAsync() {
 		this.requestParams = this.configSvc.requestParams;
-		this.filterBy.And.Category.Equals = this.requestParams["Category"];
-		this.filterBy.And.Author.Equals = this.requestParams["Author"];
 		this.searching = this.configSvc.currentUrl.startsWith("/books/search");
+		const category = this.category = this.requestParams["Category"];
+		const author = this.author = this.requestParams["Author"];
 
 		this.configSvc.appTitle = this.title = this.searching
 			? await this.configSvc.getResourceAsync("books.list.title.search")
-			: this.filterBy.And.Category.Equals !== undefined
-				? await this.configSvc.getResourceAsync("books.list.title.category", { category: this.filterBy.And.Category.Equals })
-				: await this.configSvc.getResourceAsync("books.list.title.author", { author: this.filterBy.And.Author.Equals });
+			: category !== undefined
+				? await this.configSvc.getResourceAsync("books.list.title.category", { category: category })
+				: await this.configSvc.getResourceAsync("books.list.title.author", { author: author });
 
 		this.sorts.forEach(async sort => sort.label = await this.configSvc.getResourceAsync("books.list.sort.labels." + sort.value));
 
 		this.uri = this.searching
 				? "/books/search"
-				: this.filterBy.And.Category.Equals !== undefined
-					? "/books/list-by-category/" + AppUtility.toANSI(this.filterBy.And.Category.Equals, true) + "?x-request="
-					: "/books/list-by-author/" + AppUtility.toANSI(this.filterBy.And.Author.Equals, true) + "?x-request=";
+				: category !== undefined
+					? "/books/list-by-category/" + AppUtility.toANSI(category, true) + "?x-request="
+					: "/books/list-by-author/" + AppUtility.toANSI(author, true) + "?x-request=";
 
 		if (!this.searching) {
-			if (this.filterBy.And.Category.Equals === undefined && this.filterBy.And.Author.Equals === undefined) {
+			if (category === undefined && author === undefined) {
 				await Promise.all([
 					this.appFormsSvc.showToastAsync("Hmmm..."),
 					this.configSvc.navigateHomeAsync()
@@ -304,13 +335,15 @@ export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
 				const query = this.filtering && AppUtility.isNotEmpty(this.filterBy.Query)
 					? AppUtility.toANSI(this.filterBy.Query).trim().toLowerCase()
 					: "";
-				const filterByCategory = AppUtility.isNotEmpty(this.filterBy.And.Category.Equals);
-				const filterByAuthor = AppUtility.isNotEmpty(this.filterBy.And.Author.Equals);
+				const category = this.category;
+				const filterByCategory = AppUtility.isNotEmpty(category);
+				const author = this.author;
+				const filterByAuthor = AppUtility.isNotEmpty(author);
 				if (query !== "" || filterByCategory || filterByAuthor) {
 					objects = objects.Where(o => {
 						return (query !== "" ? o.ansiTitle.indexOf(query) > -1 : true)
-							&& (filterByCategory ? o.Category.startsWith(this.filterBy.And.Category.Equals) : true)
-							&& (filterByAuthor ? o.Author === this.filterBy.And.Author.Equals : true);
+							&& (filterByCategory ? o.Category.startsWith(category) : true)
+							&& (filterByAuthor ? o.Author === author : true);
 					});
 				}
 			}

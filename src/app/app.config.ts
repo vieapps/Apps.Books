@@ -27,7 +27,7 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.3.3",
+		version: "1.4.0",
 		copyright: "© 2016 - 2019 VIEApps.net",
 		license: "Apache-2.0",
 		frameworks: ".net core 2.2 - ionic 4.1 - angular 7.2 - cordova 8.1",
@@ -54,9 +54,9 @@ export class AppConfig {
 		}
 	};
 
-	/** Available services in the app */
+	/** Services in the app */
 	public static services = {
-		main: "books",
+		active: "books",
 		all: [
 			{
 				name: "books",
@@ -64,38 +64,6 @@ export class AppConfig {
 			},
 			{
 				name: "users",
-				objects: []
-			},
-			{
-				name: "portals",
-				objects: []
-			},
-			{
-				name: "cms",
-				objects: []
-			},
-			{
-				name: "utilities",
-				objects: []
-			},
-			{
-				name: "menus",
-				objects: []
-			},
-			{
-				name: "banners",
-				objects: []
-			},
-			{
-				name: "simplecontents",
-				objects: []
-			},
-			{
-				name: "documents",
-				objects: []
-			},
-			{
-				name: "dashboards",
 				objects: []
 			}
 		]
@@ -268,13 +236,10 @@ export class AppConfig {
 	public static getRelatedJson(service?: string, additional?: { [key: string]: string }) {
 		const json: { [key: string]: string } = {
 			"language": this.language,
-			"host": this.url.host
+			"host": this.url.host,
+			"related-service": AppUtility.isNotEmpty(service) ? service : this.services.active
 		};
-		service = service || this.services.main;
-		if (AppUtility.isNotEmpty(service)) {
-			json["related-service"] = service;
-		}
-		if (additional !== undefined) {
+		if (AppUtility.isObject(additional, true)) {
 			Object.keys(additional).forEach(key => json[key] = additional[key]);
 		}
 		return json;
