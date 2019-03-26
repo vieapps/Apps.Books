@@ -122,12 +122,20 @@ export class AppConfig {
 			params: { [key: string]: any }
 		}>(),
 		home: "/home",
-		login: "/users/login",
-		register: "/users/register",
 		base: undefined as string,
 		host: undefined as string,
 		routerParams: undefined as { [key: string]: any },
-		redirectToWhenReady: undefined as string
+		redirectToWhenReady: undefined as string,
+		users: {
+			login: "/users/login",
+			register: "/users/register",
+			profile: "/users/profile",
+			list: "/users/list"
+		},
+		tabs: {
+			previous: undefined as string,
+			current: undefined as string
+		}
 	};
 
 	/** Tracking information */

@@ -23,6 +23,7 @@ import { Clipboard } from "@ionic-native/clipboard/ngx";
 import { AppComponent } from "./app.component";
 import { AppRoutingModule } from "./app.router.module";
 import { AppFormsModule } from "./components/forms.module";
+import { AppConfig } from "./app.config";
 import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "./providers/base.service";
 import { ConfigurationService } from "./providers/configuration.service";
 import { AuthenticationService } from "./providers/authentication.service";
@@ -54,7 +55,7 @@ export class HammerConfig extends HammerGestureConfig {
 		HttpClientModule,
 		NgxElectronModule,
 		IonicModule.forRoot(),
-		IonicStorageModule.forRoot({ name: "vieapps-ngx-db" }),
+		IonicStorageModule.forRoot({ name: AppConfig.app.id + "-db" }),
 		TranslateModule.forRoot({ loader: {
 			provide: TranslateLoader,
 			useFactory: HttpLoaderFactory,

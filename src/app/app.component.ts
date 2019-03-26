@@ -65,14 +65,28 @@ export class AppComponent implements OnInit {
 					onClick: () => void
 				}>
 			}>()
+		},
+		home: {
+			title: "common.sidebar.home",
+			url: this.configSvc.appConfig.url.home,
+			queryParams: undefined as { [key: string]: any },
+			direction: "root",
+			icon: "home",
+			thumbnail: undefined as string,
+			detail: false,
+			onClick: () => {}
 		}
 	};
 
 	ngOnInit() {
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
-				this.configSvc.appConfig.url.routerParams = this.router.routerState.snapshot.root.params;
-				this.configSvc.addUrl((event as NavigationEnd).url, this.router.routerState.snapshot.root.queryParams);
+				const url = (event as NavigationEnd).url;
+				const routerParams = this.router.routerState.snapshot.root.params;
+				const queryParams = this.router.routerState.snapshot.root.queryParams;
+				this.configSvc.appConfig.url.routerParams = routerParams;
+				this.configSvc.addUrl(url, queryParams);
+				AppEvents.broadcast("Navigated", { Url: url, RouterParams: routerParams, QueryParams: queryParams });
 			}
 		});
 
@@ -114,18 +128,18 @@ export class AppComponent implements OnInit {
 	private async getSidebarItemsAsync() {
 		return {
 			home: {
-				title: await this.configSvc.getResourceAsync("common.sidebar.home"),
-				url: "/home",
-				queryParams: undefined as { [key: string]: any },
-				direction: "root",
-				icon: "home",
-				thumbnail: undefined as string,
-				detail: false,
-				onClick: () => {}
+				title: await this.configSvc.getResourceAsync(this.sidebar.home.title),
+				url: this.sidebar.home.url,
+				queryParams: this.sidebar.home.queryParams,
+				direction: this.sidebar.home.direction,
+				icon: this.sidebar.home.icon,
+				thumbnail: this.sidebar.home.thumbnail,
+				detail: this.sidebar.home.detail,
+				onClick: this.sidebar.home.onClick
 			},
 			login: {
 				title: await this.configSvc.getResourceAsync("common.sidebar.login"),
-				url: "/users/login",
+				url: this.configSvc.appConfig.url.users.login,
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "log-in",
@@ -135,7 +149,7 @@ export class AppComponent implements OnInit {
 			},
 			register: {
 				title: await this.configSvc.getResourceAsync("common.sidebar.register"),
-				url: "/users/register",
+				url: this.configSvc.appConfig.url.users.register,
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person-add",
@@ -145,7 +159,7 @@ export class AppComponent implements OnInit {
 			},
 			profile: {
 				title: await this.configSvc.getResourceAsync("common.sidebar.profile"),
-				url: "/users/profile/my",
+				url: this.configSvc.appConfig.url.users.profile + "/my",
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person",
@@ -272,21 +286,24 @@ export class AppComponent implements OnInit {
 	}
 
 	private setupEventHandlers() {
+		AppEvents.on("OpenSidebar", async info => await this.menuController.open(info.args.Type || "start"));
 		AppEvents.on("UpdateSidebar", async info => await this.updateSidebarAsync(info.args));
+
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
-		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title);
 
-		AppEvents.on("OpenSidebar", async info => await this.menuController.open(info.args.Type || "start"));
+		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title);
+		AppEvents.on("UpdateSidebarHome", info => this.sidebar.home = info.args);
+
 		AppEvents.on("Navigate", async info => {
 			const url = "LogIn" === info.args.Type
-				? "/users/login"
+				? this.configSvc.appConfig.url.users.login
 				: "Profile" === info.args.Type
-					? "/users/profile/my"
+					? this.configSvc.appConfig.url.users.profile + "/my"
 					: "Accounts" === info.args.Type
-						? "/users/list"
-						: info.args.url;
-			switch ((info.args.direction as string || "forward").toLowerCase()) {
+						? this.configSvc.appConfig.url.users.list
+						: info.args.Url;
+			switch ((info.args.Direction as string || "Forward").toLowerCase()) {
 				case "home":
 					await this.configSvc.navigateHomeAsync(url);
 					break;
@@ -453,6 +470,7 @@ export class AppComponent implements OnInit {
 						}
 					}
 				}
+				AppEvents.broadcast("App", { Type: "FullyInitialized" });
 			});
 		});
 	}

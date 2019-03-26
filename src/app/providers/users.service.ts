@@ -334,7 +334,7 @@ export class UsersService extends BaseService {
 								await this.configSvc.initializeSessionAsync(async () => {
 									await this.configSvc.registerSessionAsync(() => {
 										console.warn(this.getLogMessage("The session is revoked by the APIs"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-										this.configSvc.patchSession(() => AppEvents.broadcast("Navigate", { direction: "home" } ));
+										this.configSvc.patchSession(() => AppEvents.broadcast("Navigate", { Direction: "Home" } ));
 										AppEvents.sendToElectron("Users", { Type: "LogOut", Data: this.configSvc.appConfig.session });
 									});
 								});

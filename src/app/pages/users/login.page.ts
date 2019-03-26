@@ -332,7 +332,7 @@ export class LogInPage implements OnInit, OnDestroy {
 	}
 
 	async registerAsync() {
-		await this.configSvc.navigateForwardAsync(this.configSvc.appConfig.url.register);
+		await this.configSvc.navigateForwardAsync(this.configSvc.appConfig.url.users.register);
 	}
 
 }

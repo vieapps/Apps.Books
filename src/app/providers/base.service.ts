@@ -252,7 +252,7 @@ export class AuthenticatedGuardService implements CanActivate {
 	}
 	canActivate() {
 		if (!AppConfig.isAuthenticated) {
-			this.router.navigateByUrl(AppConfig.url.login + "?next=" + AppCrypto.urlEncode(this.location.path()));
+			this.router.navigateByUrl(AppConfig.url.users.login + "?next=" + AppCrypto.urlEncode(this.location.path()));
 		}
 		return AppConfig.isAuthenticated;
 	}

@@ -47,8 +47,8 @@ export class AppUtility {
 	}
 
 	/** Checks to see the string is defined and not empty */
-	public static isNotEmpty(obj?: string) {
-		return this.isNotNull(obj) && typeof obj === "string" && obj.trim() !== "";
+	public static isNotEmpty(obj?: any) {
+		return this.isNotNull(obj) && typeof obj === "string" && (obj as string).trim() !== "";
 	}
 
 	/** Gets the state that determines the emai address is valid or not */
@@ -363,6 +363,25 @@ export class AppUtility {
 			: 0;
 	}
 
+	/** Converts the ANSI string to a string that can use in an URI */
+	public static toURI(input?: string): string {
+		if (!this.isNotEmpty(input) || input.trim() === "") {
+			return "";
+		}
+
+		let result = input.trim();
+		result = result.replace(/\s/g, "-").replace(/\&/g, "").replace(/\?/g, "");
+		result = result.replace(/\+/g, "").replace(/\//g, "-").replace(/\'/g, "");
+		result = result.replace(/\\/g, "-").replace(/\=/g, "").replace(/\,/g, "").replace(/\./g, "-");
+		result = result.replace(/\(/g, "").replace(/\)/g, "").replace(/\#/g, "").replace(/\%/g, "");
+		result = result.replace(/\`/g, "").replace(/\!/g, "").replace(/\@/g, "").replace(/\$/g, "");
+		result = result.replace(/\>/g, "").replace(/\</g, "").replace(/\{/g, "").replace(/\}/g, "");
+		result = result.replace(/\[/g, "").replace(/\]/g, "").replace(/\*/g, "").replace(/\^/g, "");
+		result = result.replace(/\:/g, "").replace(/\;/g, "").replace(/\|/g, "").replace(/\"/g, "");
+		result = result.replace(/\_\-\_/g, "-").replace(/\-\_\-/g, "-").replace(/\-\-\-/g, "-").replace(/\-\-/g, "-");
+		return result.toLowerCase();
+	}
+
 	/** Converts the Vietnamese string to ANSI string */
 	public static toANSI(input?: string, asURI?: boolean): string {
 		if (!this.isNotEmpty(input) || input.trim() === "") {
@@ -529,21 +548,9 @@ export class AppUtility {
 		// spaces
 		result = result.replace(/\s\s+/g, " ");
 
-		// as URI
-		if (this.isTrue(asURI)) {
-			result = result.replace(/\s/g, "-").replace(/\&/g, "").replace(/\?/g, "");
-			result = result.replace(/\+/g, "").replace(/\//g, "-").replace(/\'/g, "");
-			result = result.replace(/\\/g, "-").replace(/\=/g, "").replace(/\,/g, "").replace(/\./g, "-");
-			result = result.replace(/\(/g, "").replace(/\)/g, "").replace(/\#/g, "").replace(/\%/g, "");
-			result = result.replace(/\`/g, "").replace(/\!/g, "").replace(/\@/g, "").replace(/\$/g, "");
-			result = result.replace(/\>/g, "").replace(/\</g, "").replace(/\{/g, "").replace(/\}/g, "");
-			result = result.replace(/\[/g, "").replace(/\]/g, "").replace(/\*/g, "").replace(/\^/g, "");
-			result = result.replace(/\:/g, "").replace(/\;/g, "").replace(/\|/g, "").replace(/\"/g, "");
-			result = result.replace(/\_\-\_/g, "-").replace(/\-\_\-/g, "-").replace(/\-\-\-/g, "-").replace(/\-\-/g, "-");
-			result = result.toLowerCase();
-		}
-
-		return result.trim();
+		return this.isTrue(asURI)
+			? this.toURI(result)
+			: result.trim();
 	}
 
 }
