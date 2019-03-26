@@ -26,8 +26,8 @@ import { AuthenticatedGuardService } from "../../providers/base.service";
 		},
 		{
 			path: "update/:data",
-			loadChildren: "./update.module#UpdateBookPageModule",
-			canActivate: [AuthenticatedGuardService]
+			canActivate: [AuthenticatedGuardService],
+			loadChildren: "./update.module#UpdateBookPageModule"
 		},
 		{
 			path: "options",

@@ -6,38 +6,38 @@ import { RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardS
 	imports: [RouterModule.forChild([
 		{
 			path: "login",
-			loadChildren: "./login.module#LogInPageModule",
-			canActivate: [NotAuthenticatedGuardService]
+			canActivate: [NotAuthenticatedGuardService],
+			loadChildren: "./login.module#LogInPageModule"
 		},
 		{
 			path: "register",
-			loadChildren: "./register.module#RegisterAccountPageModule",
-			canActivate: [RegisterGuardService, NotAuthenticatedGuardService]
+			canActivate: [RegisterGuardService, NotAuthenticatedGuardService],
+			loadChildren: "./register.module#RegisterAccountPageModule"
 		},
 		{
 			path: "profile/:data",
-			loadChildren: "./profile.module#ViewAccountProfilePageModule",
-			canActivate: [AuthenticatedGuardService]
+			canActivate: [AuthenticatedGuardService],
+			loadChildren: "./profile.module#ViewAccountProfilePageModule"
 		},
 		{
 			path: "update/:data",
-			loadChildren: "./update.module#UpdateAccountProfilePageModule",
-			canActivate: [AuthenticatedGuardService]
+			canActivate: [AuthenticatedGuardService],
+			loadChildren: "./update.module#UpdateAccountProfilePageModule"
 		},
 		{
 			path: "otp",
-			loadChildren: "./otp.module#UpdateAccount2FAPageModule",
-			canActivate: [AuthenticatedGuardService]
+			canActivate: [AuthenticatedGuardService],
+			loadChildren: "./otp.module#UpdateAccount2FAPageModule"
 		},
 		{
 			path: "list",
-			loadChildren: "./list.module#ListAccountProfilesPageModule",
-			canActivate: [AuthenticatedGuardService]
+			canActivate: [AuthenticatedGuardService],
+			loadChildren: "./list.module#ListAccountProfilesPageModule"
 		},
 		{
 			path: "search",
-			loadChildren: "./list.module#ListAccountProfilesPageModule",
-			canActivate: [AuthenticatedGuardService]
+			canActivate: [AuthenticatedGuardService],
+			loadChildren: "./list.module#ListAccountProfilesPageModule"
 		},
 		{
 			path: "**",
