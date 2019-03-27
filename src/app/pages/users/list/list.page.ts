@@ -8,9 +8,9 @@ import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { PlatformUtility } from "../../../components/app.utility.platform";
 import { AppPagination } from "../../../components/app.pagination";
 import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../providers/configuration.service";
-import { AuthenticationService } from "../../../providers/authentication.service";
-import { UsersService } from "../../../providers/users.service";
+import { ConfigurationService } from "../../../services/configuration.service";
+import { AuthenticationService } from "../../../services/authentication.service";
+import { UsersService } from "../../../services/users.service";
 import { UserProfile } from "../../../models/user";
 import { RatingPoint } from "../../../models/ratingpoint";
 

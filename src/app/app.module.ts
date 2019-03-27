@@ -25,13 +25,13 @@ import { AppFormsModule } from "./components/forms.module";
 import { AppComponent } from "./app.component";
 import { AppModulePreloader } from "./components/app.preloader";
 import { AppRoutingModule } from "./app.routing.module";
-import { AppReadyGuardService, RegisterGuardService } from "./providers/base.service";
-import { AuthenticatedGuardService, NotAuthenticatedGuardService } from "./providers/base.service";
-import { ConfigurationService } from "./providers/configuration.service";
-import { AuthenticationService } from "./providers/authentication.service";
-import { UsersService } from "./providers/users.service";
-import { FilesService } from "./providers/files.service";
-import { BooksService } from "./providers/books.service";
+import { AppReadyGuardService, RegisterGuardService } from "./services/base.service";
+import { AuthenticatedGuardService, NotAuthenticatedGuardService } from "./services/base.service";
+import { ConfigurationService } from "./services/configuration.service";
+import { AuthenticationService } from "./services/authentication.service";
+import { UsersService } from "./services/users.service";
+import { FilesService } from "./services/files.service";
+import { BooksService } from "./services/books.service";
 
 // ngx-translate factories
 export function HttpLoaderFactory(http: HttpClient) {

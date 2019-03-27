@@ -5,8 +5,8 @@ import { AppCrypto } from "../../../components/app.crypto";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../providers/configuration.service";
-import { AuthenticationService } from "../../../providers/authentication.service";
+import { ConfigurationService } from "../../../services/configuration.service";
+import { AuthenticationService } from "../../../services/authentication.service";
 
 @Component({
 	selector: "page-users-login",

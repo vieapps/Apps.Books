@@ -4,8 +4,8 @@ import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../../components/app.crypto";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../providers/configuration.service";
-import { BooksService } from "../../../providers/books.service";
+import { ConfigurationService } from "../../../services/configuration.service";
+import { BooksService } from "../../../services/books.service";
 
 @Component({
 	selector: "page-books-options",

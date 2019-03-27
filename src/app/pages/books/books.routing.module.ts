@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
 import { RouterModule } from "@angular/router";
-import { AuthenticatedGuardService } from "../../providers/base.service";
+import { AuthenticatedGuardService } from "../../services/base.service";
 
 @NgModule({
 	imports: [RouterModule.forChild([

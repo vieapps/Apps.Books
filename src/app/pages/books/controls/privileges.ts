@@ -2,8 +2,8 @@ import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppFormsControl } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../providers/configuration.service";
-import { BooksService } from "../../../providers/books.service";
+import { ConfigurationService } from "../../../services/configuration.service";
+import { BooksService } from "../../../services/books.service";
 import { Privilege } from "../../../models/privileges";
 
 @Component({

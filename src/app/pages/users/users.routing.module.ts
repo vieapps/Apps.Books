@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
-import { RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "../../providers/base.service";
+import { RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "../../services/base.service";
 
 export const routes: Routes = [
 	{

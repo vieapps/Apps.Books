@@ -5,9 +5,9 @@ import { AppEvents } from "../../../components/app.events";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../providers/configuration.service";
-import { AuthenticationService } from "../../../providers/authentication.service";
-import { BooksService } from "../../../providers/books.service";
+import { ConfigurationService } from "../../../services/configuration.service";
+import { AuthenticationService } from "../../../services/authentication.service";
+import { BooksService } from "../../../services/books.service";
 import { Book } from "../../../models/book";
 
 @Component({

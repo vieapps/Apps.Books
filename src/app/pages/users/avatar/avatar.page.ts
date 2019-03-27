@@ -3,9 +3,9 @@ import { ImageCropperComponent, CropperSettings } from "ng2-img-cropper";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../providers/configuration.service";
-import { UsersService } from "../../../providers/users.service";
-import { FilesService } from "../../../providers/files.service";
+import { ConfigurationService } from "../../../services/configuration.service";
+import { UsersService } from "../../../services/users.service";
+import { FilesService } from "../../../services/files.service";
 import { UserProfile } from "../../../models/user";
 
 @Component({

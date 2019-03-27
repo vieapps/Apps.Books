@@ -3,7 +3,7 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { AppEvents } from "../components/app.events";
 import { TrackingUtility } from "../components/app.utility.trackings";
-import { ConfigurationService } from "../providers/configuration.service";
+import { ConfigurationService } from "../services/configuration.service";
 
 @Component({
 	selector: "page-home",

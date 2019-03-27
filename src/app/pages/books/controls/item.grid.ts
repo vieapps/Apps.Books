@@ -1,5 +1,5 @@
 import { Component, Input } from "@angular/core";
-import { ConfigurationService } from "../../../providers/configuration.service";
+import { ConfigurationService } from "../../../services/configuration.service";
 import { Book } from "../../../models/book";
 
 @Component({

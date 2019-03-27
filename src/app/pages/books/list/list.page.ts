@@ -10,9 +10,9 @@ import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { PlatformUtility } from "../../../components/app.utility.platform";
 import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../providers/configuration.service";
-import { AuthenticationService } from "../../../providers/authentication.service";
-import { BooksService } from "../../../providers/books.service";
+import { ConfigurationService } from "../../../services/configuration.service";
+import { AuthenticationService } from "../../../services/authentication.service";
+import { BooksService } from "../../../services/books.service";
 import { Book } from "../../../models/book";
 import { RatingPoint } from "../../../models/ratingpoint";
 

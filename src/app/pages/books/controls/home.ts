@@ -4,8 +4,8 @@ import { Router } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { AppUtility } from "../../../components/app.utility";
 import { AppEvents } from "../../../components/app.events";
-import { ConfigurationService } from "../../../providers/configuration.service";
-import { BooksService } from "../../../providers/books.service";
+import { ConfigurationService } from "../../../services/configuration.service";
+import { BooksService } from "../../../services/books.service";
 import { Book } from "../../../models/book";
 
 @Component({
