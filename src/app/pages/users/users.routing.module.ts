@@ -6,37 +6,38 @@ export const routes: Routes = [
 	{
 		path: "login",
 		canActivate: [NotAuthenticatedGuardService],
-		loadChildren: "./login.module#UsersLogInPageModule"
+		loadChildren: "../users/login/login.module#UsersLogInPageModule"
 	},
 	{
 		path: "register",
 		canActivate: [RegisterGuardService, NotAuthenticatedGuardService],
-		loadChildren: "./register.module#UsersRegisterPageModule"
+		loadChildren: "../users/register/register.module#UsersRegisterPageModule"
 	},
 	{
 		path: "profile/:data",
+		data: { preload: true },
 		canActivate: [AuthenticatedGuardService],
-		loadChildren: "./profile.module#UsersProfilePageModule"
+		loadChildren: "../users/profile/profile.module#UsersProfilePageModule"
 	},
 	{
 		path: "update/:data",
 		canActivate: [AuthenticatedGuardService],
-		loadChildren: "./update.module#UsersUpdatePageModule"
+		loadChildren: "../users/update/update.module#UsersUpdatePageModule"
 	},
 	{
 		path: "otp",
 		canActivate: [AuthenticatedGuardService],
-		loadChildren: "./otp.module#UsersOtpPageModule"
+		loadChildren: "../users/otp/otp.module#UsersOtpPageModule"
 	},
 	{
 		path: "list",
 		canActivate: [AuthenticatedGuardService],
-		loadChildren: "./list.module#UsersListPageModule"
+		loadChildren: "../users/list/list.module#UsersListPageModule"
 	},
 	{
 		path: "search",
 		canActivate: [AuthenticatedGuardService],
-		loadChildren: "./list.module#UsersListPageModule"
+		loadChildren: "../users/list/list.module#UsersListPageModule"
 	},
 	{
 		path: "**",

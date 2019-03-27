@@ -5,33 +5,35 @@ import { AuthenticatedGuardService } from "../../providers/base.service";
 @NgModule({
 	imports: [RouterModule.forChild([
 		{
+			path: "info/:data",
+			loadChildren: "../books/info/info.module#BooksInfoPageModule"
+		},
+		{
 			path: "search",
-			loadChildren: "./list.module#BooksListPageModule"
+			data: { preload: true },
+			loadChildren: "../books/list/list.module#BooksListPageModule"
 		},
 		{
 			path: "list-by-category/:data",
-			loadChildren: "./list.module#BooksListPageModule"
+			loadChildren: "../books/list/list.module#BooksListPageModule"
 		},
 		{
 			path: "list-by-author/:data",
-			loadChildren: "./list.module#BooksListPageModule"
+			loadChildren: "../books/list/list.module#BooksListPageModule"
+		},
+		{
+			path: "options",
+			loadChildren: "../books/options/options.module#BooksOptionsPageModule"
 		},
 		{
 			path: "read/:data",
-			loadChildren: "./read.module#BooksReadPageModule"
-		},
-		{
-			path: "info/:data",
-			loadChildren: "./info.module#BooksInfoPageModule"
+			data: { preload: true },
+			loadChildren: "../books/read/read.module#BooksReadPageModule"
 		},
 		{
 			path: "update/:data",
 			canActivate: [AuthenticatedGuardService],
-			loadChildren: "./update.module#BooksUpdatePageModule"
-		},
-		{
-			path: "options",
-			loadChildren: "./options.module#BooksOptionsPageModule"
+			loadChildren: "../books/update/update.module#BooksUpdatePageModule"
 		},
 		{
 			path: "**",
