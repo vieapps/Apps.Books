@@ -8,12 +8,12 @@ import { AuthenticationService } from "../../providers/authentication.service";
 import { UsersService } from "../../providers/users.service";
 
 @Component({
-	selector: "page-user-register",
+	selector: "page-users-register",
 	templateUrl: "./register.page.html",
 	styleUrls: ["./register.page.scss"]
 })
 
-export class RegisterAccountPage implements OnInit {
+export class UsersRegisterPage implements OnInit {
 
 	constructor (
 		public zone: NgZone,

@@ -3,10 +3,10 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { IonicModule } from "@ionic/angular";
-import { UpdateAccount2FAPage } from "./otp.page";
+import { UsersOtpPage } from "./otp.page";
 
 @NgModule({
-	declarations: [UpdateAccount2FAPage],
+	declarations: [UsersOtpPage],
 	imports: [
 		CommonModule,
 		FormsModule,
@@ -14,10 +14,10 @@ import { UpdateAccount2FAPage } from "./otp.page";
 		RouterModule.forChild([
 			{
 				path: "",
-				component: UpdateAccount2FAPage
+				component: UsersOtpPage
 			}
 		])
 	]
 })
 
-export class UpdateAccount2FAPageModule {}
+export class UsersOtpPageModule {}

@@ -4,10 +4,10 @@ import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../components/forms.module";
 import { BookControlsModule } from "../books/controls.module";
-import { UpdateAccountProfilePage } from "./update.page";
+import { UsersUpdatePage } from "./update.page";
 
 @NgModule({
-	declarations: [UpdateAccountProfilePage],
+	declarations: [UsersUpdatePage],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -16,10 +16,10 @@ import { UpdateAccountProfilePage } from "./update.page";
 		RouterModule.forChild([
 			{
 				path: "",
-				component: UpdateAccountProfilePage
+				component: UsersUpdatePage
 			}
 		])
 	]
 })
 
-export class UpdateAccountProfilePageModule {}
+export class UsersUpdatePageModule {}

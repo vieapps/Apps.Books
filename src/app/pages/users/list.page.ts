@@ -15,12 +15,12 @@ import { UserProfile } from "../../models/user";
 import { RatingPoint } from "../../models/ratingpoint";
 
 @Component({
-	selector: "page-user-profiles",
+	selector: "page-users-list",
 	templateUrl: "./list.page.html",
 	styleUrls: ["./list.page.scss"]
 })
 
-export class ListAccountProfilesPage implements OnInit, OnDestroy, AfterViewInit {
+export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor (
 		public appFormsSvc: AppFormsService,

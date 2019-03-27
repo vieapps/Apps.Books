@@ -3,25 +3,25 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../components/forms.module";
-import { AccountAvatarPageModule } from "./avatar.module";
-import { ViewAccountProfilePage } from "./profile.page";
+import { UsersAvatarPageModule } from "./avatar.module";
+import { UsersProfilePage } from "./profile.page";
 import { BookControlsModule } from "../books/controls.module";
 
 @NgModule({
-	declarations: [ViewAccountProfilePage],
+	declarations: [UsersProfilePage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		AppFormsModule,
-		AccountAvatarPageModule,
+		UsersAvatarPageModule,
 		BookControlsModule,
 		RouterModule.forChild([
 			{
 				path: "",
-				component: ViewAccountProfilePage
+				component: UsersProfilePage
 			}
 		])
 	]
 })
 
-export class ViewAccountProfilePageModule {}
+export class UsersProfilePageModule {}

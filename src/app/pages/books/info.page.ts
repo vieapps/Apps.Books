@@ -12,12 +12,12 @@ import { Book } from "../../models/book";
 import { CounterInfo } from "./../../models/counters";
 
 @Component({
-	selector: "page-book-info",
+	selector: "page-books-info",
 	templateUrl: "./info.page.html",
 	styleUrls: ["./info.page.scss"]
 })
 
-export class ViewBookInfoPage implements OnInit, OnDestroy {
+export class BooksInfoPage implements OnInit, OnDestroy {
 	constructor(
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,

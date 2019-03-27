@@ -140,6 +140,12 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
+	/** Removes the current url from the stack, also pop the current view */
+	public async popUrlAsync() {
+		await this.navController.pop();
+		this.appConfig.url.stack.pop();
+	}
+
 	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUrl?: string) {
 		return info !== undefined
 			? PlatformUtility.getURI(info.url, info.params)
@@ -731,6 +737,14 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Definitions (forms, views, resources, ...) */
+	public getDefinition(path: string) {
+		return this._definitions[AppCrypto.md5(path.toLowerCase())];
+	}
+
+	public addDefinition(definition: any, path: string) {
+		this._definitions[AppCrypto.md5(path.toLowerCase())] = definition;
+	}
+
 	private getDefinitionPath(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
 		let path = "discovery/definitions?" + this.relatedQuery;
 		if (AppUtility.isNotEmpty(serviceName)) {
@@ -751,21 +765,20 @@ export class ConfigurationService extends BaseService {
 		return path;
 	}
 
+	public setDefinition(definition: any, serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
+		this.addDefinition(definition, this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID));
+	}
+
 	public async getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
 		const path = this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID);
-		const identity = AppCrypto.md5(path.toLowerCase());
-		if (this._definitions[identity] === undefined) {
+		if (this.getDefinition(path) === undefined) {
 			await super.readAsync(
 				path,
-				data => this._definitions[identity] = data,
+				data => this.addDefinition(data, path),
 				error => this.showError("Error occurred while working with definitions", error)
 			);
 		}
-		return this._definitions[identity];
-	}
-
-	public setDefinition(definition: any, serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
-		this._definitions[AppCrypto.md5(this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID).toLowerCase())] = definition;
+		return this.getDefinition(path);
 	}
 
 }

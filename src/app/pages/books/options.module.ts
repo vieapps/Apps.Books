@@ -3,10 +3,10 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../components/forms.module";
-import { BookReadingOptionsPage } from "./options.page";
+import { BooksOptionsPage } from "./options.page";
 
 @NgModule({
-	declarations: [BookReadingOptionsPage],
+	declarations: [BooksOptionsPage],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -14,10 +14,10 @@ import { BookReadingOptionsPage } from "./options.page";
 		RouterModule.forChild([
 			{
 				path: "",
-				component: BookReadingOptionsPage
+				component: BooksOptionsPage
 			}
 		])
 	]
 })
 
-export class BookReadingOptionsPageModule {}
+export class BooksOptionsPageModule {}

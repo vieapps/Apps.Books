@@ -22,7 +22,7 @@ import { RatingPoint } from "../../models/ratingpoint";
 	styleUrls: ["./list.page.scss"]
 })
 
-export class ListBooksPage implements OnInit, OnDestroy, AfterViewInit {
+export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	constructor(
 		public zone: NgZone,
 		public router: Router,

@@ -11,12 +11,12 @@ import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
 
 @Component({
-	selector: "page-book-read",
+	selector: "page-books-read",
 	templateUrl: "./read.page.html",
 	styleUrls: ["./read.page.scss"]
 })
 
-export class ReadBookPage implements OnInit, OnDestroy {
+export class BooksReadPage implements OnInit, OnDestroy {
 	constructor(
 		public zone: NgZone,
 		public appFormsSvc: AppFormsService,

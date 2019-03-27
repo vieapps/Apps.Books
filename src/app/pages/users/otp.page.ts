@@ -8,12 +8,12 @@ import { AuthenticationService } from "../../providers/authentication.service";
 import { UsersService } from "../../providers/users.service";
 
 @Component({
-	selector: "page-user-otp",
+	selector: "page-users-otp",
 	templateUrl: "./otp.page.html",
 	styleUrls: ["./otp.page.scss"]
 })
 
-export class UpdateAccount2FAPage implements OnInit {
+export class UsersOtpPage implements OnInit {
 
 	constructor (
 		public appFormsSvc: AppFormsService,

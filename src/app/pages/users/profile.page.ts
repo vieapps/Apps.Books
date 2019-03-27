@@ -8,15 +8,15 @@ import { AuthenticationService } from "../../providers/authentication.service";
 import { UsersService } from "../../providers/users.service";
 import { UserProfile } from "../../models/user";
 import { Privilege } from "./../../models/privileges";
-import { AccountAvatarPage } from "./avatar.page";
+import { UsersAvatarPage } from "./avatar.page";
 
 @Component({
-	selector: "page-user-profile",
+	selector: "page-users-profile",
 	templateUrl: "./profile.page.html",
 	styleUrls: ["./profile.page.scss"]
 })
 
-export class ViewAccountProfilePage implements OnInit {
+export class UsersProfilePage implements OnInit {
 
 	constructor (
 		public zone: NgZone,
@@ -112,7 +112,7 @@ export class ViewAccountProfilePage implements OnInit {
 
 			if (this.profile.ID === this.configSvc.getAccount().id) {
 				[
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.avatar"), "camera", () => this.zone.run(async () => await this.appFormsSvc.showModalAsync(AccountAvatarPage))),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.avatar"), "camera", () => this.zone.run(async () => await this.appFormsSvc.showModalAsync(UsersAvatarPage))),
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", () => this.zone.run(async () => await this.openUpdateAsync("profile"))),
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", () => this.zone.run(async () => await this.openUpdateAsync("password"))),
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "at", () => this.zone.run(async () => await this.openUpdateAsync("email"))),

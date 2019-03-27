@@ -3,10 +3,10 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { BookControlsModule } from "./controls.module";
-import { ListBooksPage } from "./list.page";
+import { BooksListPage } from "./list.page";
 
 @NgModule({
-	declarations: [ListBooksPage],
+	declarations: [BooksListPage],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -14,10 +14,10 @@ import { ListBooksPage } from "./list.page";
 		RouterModule.forChild([
 			{
 				path: "",
-				component: ListBooksPage
+				component: BooksListPage
 			}
 		])
 	]
 })
 
-export class ListBooksPageModule {}
+export class BooksListPageModule {}

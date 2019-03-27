@@ -3,21 +3,21 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../components/forms.module";
-import { UpdateBookPage } from "./update.page";
+import { BooksUpdatePage } from "./update.page";
 
 @NgModule({
-	declarations: [UpdateBookPage],
+	declarations: [BooksUpdatePage],
 	imports: [
 		CommonModule,
-		AppFormsModule,
 		IonicModule,
+		AppFormsModule,
 		RouterModule.forChild([
 			{
 				path: "",
-				component: UpdateBookPage
+				component: BooksUpdatePage
 			}
 		])
 	]
 })
 
-export class UpdateBookPageModule {}
+export class BooksUpdatePageModule {}

@@ -2,20 +2,20 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
-import { ListAccountProfilesPage } from "./list.page";
+import { UsersListPage } from "./list.page";
 
 @NgModule({
-	declarations: [ListAccountProfilesPage],
+	declarations: [UsersListPage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		RouterModule.forChild([
 			{
 				path: "",
-				component: ListAccountProfilesPage
+				component: UsersListPage
 			}
 		])
 	]
 })
 
-export class ListAccountProfilesPageModule {}
+export class UsersListPageModule {}

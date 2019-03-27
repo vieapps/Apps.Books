@@ -55,11 +55,11 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.refreshCaptchaEvent.unsubscribe();
 	}
 
-	onRefreshCaptcha($event) {
+	onRefreshCaptcha($event: any) {
 		this.refreshCaptchaEvent.emit($event);
 	}
 
-	onLastFocus($event) {
+	onLastFocus($event: any) {
 		PlatformUtility.focus(this.lastFocus);
 	}
 

@@ -2,16 +2,16 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { IonicModule } from "@ionic/angular";
 import { ImageCropperModule } from "ng2-img-cropper";
-import { AccountAvatarPage } from "./avatar.page";
+import { UsersAvatarPage } from "./avatar.page";
 
 @NgModule({
-	declarations: [AccountAvatarPage],
+	declarations: [UsersAvatarPage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		ImageCropperModule
 	],
-	entryComponents: [AccountAvatarPage]
+	entryComponents: [UsersAvatarPage]
 })
 
-export class AccountAvatarPageModule {}
+export class UsersAvatarPageModule {}

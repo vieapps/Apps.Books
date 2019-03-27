@@ -1,6 +1,5 @@
 import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { AppUtility } from "../../components/app.utility";
 import { AppCrypto } from "../../components/app.crypto";
 import { TrackingUtility } from "../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
@@ -12,12 +11,12 @@ import { Account } from "../../models/account";
 import { Privilege } from "./../../models/privileges";
 
 @Component({
-	selector: "page-user-update",
+	selector: "page-users-update",
 	templateUrl: "./update.page.html",
 	styleUrls: ["./update.page.scss"]
 })
 
-export class UpdateAccountProfilePage implements OnInit {
+export class UsersUpdatePage implements OnInit {
 
 	constructor (
 		public zone: NgZone,

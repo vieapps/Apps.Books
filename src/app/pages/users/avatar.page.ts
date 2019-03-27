@@ -9,12 +9,12 @@ import { FilesService } from "../../providers/files.service";
 import { UserProfile } from "../../models/user";
 
 @Component({
-	selector: "page-user-avatar",
+	selector: "page-users-avatar",
 	templateUrl: "./avatar.page.html",
 	styleUrls: ["./avatar.page.scss"]
 })
 
-export class AccountAvatarPage implements OnInit {
+export class UsersAvatarPage implements OnInit {
 
 	constructor (
 		public appFormsSvc: AppFormsService,

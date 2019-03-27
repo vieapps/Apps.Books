@@ -3,21 +3,21 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { QRCodeModule } from "angular2-qrcode";
-import { ViewBookInfoPage } from "./info.page";
+import { BooksInfoPage } from "./info.page";
 
 @NgModule({
-	declarations: [ViewBookInfoPage],
+	declarations: [BooksInfoPage],
 	imports: [
 		CommonModule,
-		QRCodeModule,
 		IonicModule,
+		QRCodeModule,
 		RouterModule.forChild([
 			{
 				path: "",
-				component: ViewBookInfoPage
+				component: BooksInfoPage
 			}
 		])
 	]
 })
 
-export class ViewBookInfoPageModule {}
+export class BooksInfoPageModule {}

@@ -8,12 +8,12 @@ import { ConfigurationService } from "../../providers/configuration.service";
 import { BooksService } from "../../providers/books.service";
 
 @Component({
-	selector: "page-book-options",
+	selector: "page-books-options",
 	templateUrl: "./options.page.html",
 	styleUrls: ["./options.page.scss"]
 })
 
-export class BookReadingOptionsPage implements OnInit, OnDestroy {
+export class BooksOptionsPage implements OnInit, OnDestroy {
 	constructor(
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,

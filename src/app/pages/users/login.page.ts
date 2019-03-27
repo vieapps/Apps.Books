@@ -9,12 +9,12 @@ import { ConfigurationService } from "../../providers/configuration.service";
 import { AuthenticationService } from "../../providers/authentication.service";
 
 @Component({
-	selector: "page-user-login",
+	selector: "page-users-login",
 	templateUrl: "./login.page.html",
 	styleUrls: ["./login.page.scss"]
 })
 
-export class LogInPage implements OnInit, OnDestroy {
+export class UsersLogInPage implements OnInit, OnDestroy {
 
 	constructor (
 		public zone: NgZone,

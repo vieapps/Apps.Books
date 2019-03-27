@@ -61,6 +61,8 @@ export class AppFormsControl {
 		SelectOptions: {
 			Values: undefined as Array<{ Value: string, Label: string }>,
 			RemoteURI: undefined as string,
+			RemoteURIConverter: undefined as (data: any) => { Value: string, Label: string },
+			RemoteURIProcessor: undefined as (uri: string, converter?: (data: any) => { Value: string, Label: string }) => Promise<Array<{ Value: string, Label: string }>>,
 			Multiple: false,
 			AsBoxes: false,
 			Interface: "alert",
@@ -218,22 +220,22 @@ export class AppFormsControl {
 			if (selectOptions !== undefined) {
 				const selectValues = selectOptions.Values || selectOptions.values;
 				control.Options.SelectOptions = {
-					Values: AppUtility.isArray(selectValues, true)
-						? selectValues.length > 0 && typeof selectValues[0] === "string"
-							? (selectValues as Array<string>).map(value => {
-									return {
-										Value: value,
-										Label: value
-									};
-								})
-							: (selectValues as Array<any> || []).map(kvp => {
-								return {
-									Value: kvp.Value || kvp.value,
-									Label: kvp.Label || kvp.label || kvp.Value || kvp.value
-								};
+					Values: AppUtility.isNotEmpty(selectValues)
+						? (AppUtility.toArray(selectValues) as Array<string>).map(value => {
+								return { Value: value, Label: value };
 							})
-						: undefined,
+						: AppUtility.isArray(selectValues, true)
+							? selectValues.length > 0 && typeof selectValues[0] === "string"
+								? (selectValues as Array<string>).map(value => {
+										return { Value: value, Label: value };
+									})
+								: (selectValues as Array<any>).map(data => {
+										return { Value: data.Value || data.value, Label: data.Label || data.label || data.Value || data.value };
+									})
+							: undefined,
 					RemoteURI: selectOptions.RemoteURI || selectOptions.remoteuri,
+					RemoteURIConverter: selectOptions.RemoteURIConverter || selectOptions.remoteuriconverter,
+					RemoteURIProcessor: selectOptions.RemoteURIProcessor || selectOptions.remoteuriprocessor,
 					Multiple: !!(selectOptions.Multiple || selectOptions.multiple),
 					AsBoxes: !!(selectOptions.AsBoxes || selectOptions.asboxes),
 					Interface: selectOptions.Interface || selectOptions.interface || "alert",
@@ -384,28 +386,33 @@ export class AppFormsService {
 					}
 					uri += (uri.indexOf("?") < 0 ? "?" : "&") + AppConfig.getRelatedQuery();
 					try {
-						const selectValues = (await AppAPI.send("GET", uri).toPromise()).json();
-						control.Options.SelectOptions.Values = AppUtility.isArray(selectValues, true) && selectValues.length > 0 && typeof selectValues[0] === "string"
-							? (selectValues as Array<string>).map(value => {
-									return {
-										Value: value,
-										Label: value
-									};
-								})
-							: (selectValues as Array<any> || []).map(kvp => {
-									return {
-										Value: kvp.Value || kvp.value,
-										Label: kvp.Label || kvp.label || kvp.Value || kvp.value
-									};
-								});
-						control.Options.SelectOptions.Values.forEach(async selectValue => {
-							selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
-							selectValue.Label = await this.normalizeResourceAsync(selectValue.Label);
-						});
+						if (control.Options.SelectOptions.RemoteURIProcessor !== undefined) {
+							control.Options.SelectOptions.Values = await control.Options.SelectOptions.RemoteURIProcessor(uri, control.Options.SelectOptions.RemoteURIConverter);
+						}
+						else {
+							const response = await AppAPI.sendAsync("GET", uri);
+							const values = response.json();
+							control.Options.SelectOptions.Values = AppUtility.isArray(values, true)
+								? values.length > 0 && typeof values[0] === "string"
+									? (values as Array<string>).map(value => {
+											return { Value: value, Label: value };
+										})
+									: (values as Array<any>).map(data => {
+											return control.Options.SelectOptions.RemoteURIConverter !== undefined
+												? control.Options.SelectOptions.RemoteURIConverter(data)
+												: { Value: data.Value || data.value, Label: data.Label || data.label || data.Value || data.value };
+										})
+								: [];
+						}
 					}
 					catch (error) {
-						console.error("[Forms]: Error occurred while preparing select values", error);
+						console.error("[Forms]: Error occurred while preparing the values from a remote URI", error);
+						control.Options.SelectOptions.Values = [];
 					}
+					control.Options.SelectOptions.Values.forEach(async selectValue => {
+						selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
+						selectValue.Label = await this.normalizeResourceAsync(selectValue.Label);
+					});
 				}
 				control.Options.SelectOptions.OkText = await this.normalizeResourceAsync(control.Options.SelectOptions.OkText);
 				control.Options.SelectOptions.CancelText = await this.normalizeResourceAsync(control.Options.SelectOptions.CancelText);

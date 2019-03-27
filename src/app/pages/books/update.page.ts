@@ -12,12 +12,12 @@ import { BooksService } from "../../providers/books.service";
 import { Book } from "../../models/book";
 
 @Component({
-	selector: "page-book-update",
+	selector: "page-books-update",
 	templateUrl: "./update.page.html",
 	styleUrls: ["./update.page.scss"]
 })
 
-export class UpdateBookPage implements OnInit {
+export class BooksUpdatePage implements OnInit {
 	constructor(
 		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
