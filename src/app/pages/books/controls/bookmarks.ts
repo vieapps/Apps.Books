@@ -10,8 +10,8 @@ import { Book, Bookmark } from "../../../models/book";
 
 @Component({
 	selector: "control-book-bookmarks",
-	templateUrl: "./control.bookmarks.html",
-	styleUrls: ["./control.bookmarks.scss"]
+	templateUrl: "./bookmarks.html",
+	styleUrls: ["./bookmarks.scss"]
 })
 
 export class BookmarksControl implements OnInit, OnDestroy {

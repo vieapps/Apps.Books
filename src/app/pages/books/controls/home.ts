@@ -10,8 +10,8 @@ import { Book } from "../../../models/book";
 
 @Component({
 	selector: "control-book-home-screen",
-	templateUrl: "./control.home.html",
-	styleUrls: ["./control.home.scss"]
+	templateUrl: "./home.html",
+	styleUrls: ["./home.scss"]
 })
 
 export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {

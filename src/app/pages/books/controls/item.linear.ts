@@ -5,8 +5,8 @@ import { Book } from "../../../models/book";
 
 @Component({
 	selector: "control-book-linear-item",
-	templateUrl: "./control.item.linear.html",
-	styleUrls: ["./control.item.linear.scss"]
+	templateUrl: "./item.linear.html",
+	styleUrls: ["./item.linear.scss"]
 })
 
 export class BookLinearItemControl {

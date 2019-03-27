@@ -8,8 +8,8 @@ import { Privilege } from "../../../models/privileges";
 
 @Component({
 	selector: "control-book-privileges",
-	templateUrl: "./control.privileges.html",
-	styleUrls: ["./control.privileges.scss"]
+	templateUrl: "./privileges.html",
+	styleUrls: ["./privileges.scss"]
 })
 
 export class BookPrivilegesControl implements OnInit, OnDestroy {

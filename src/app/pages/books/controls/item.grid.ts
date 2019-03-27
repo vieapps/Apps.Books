@@ -4,8 +4,8 @@ import { Book } from "../../../models/book";
 
 @Component({
 	selector: "control-book-grid-item",
-	templateUrl: "./control.item.grid.html",
-	styleUrls: ["./control.item.grid.scss"]
+	templateUrl: "./item.grid.html",
+	styleUrls: ["./item.grid.scss"]
 })
 
 export class BookGridItemControl {

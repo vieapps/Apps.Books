@@ -3,11 +3,11 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../components/forms.module";
-import { BookHomeScreenControl } from "./controls/control.home";
-import { BookLinearItemControl } from "./controls/control.item.linear";
-import { BookGridItemControl } from "./controls/control.item.grid";
-import { BookmarksControl } from "./controls/control.bookmarks";
-import { BookPrivilegesControl } from "./controls/control.privileges";
+import { BookHomeScreenControl } from "./controls/home";
+import { BookLinearItemControl } from "./controls/item.linear";
+import { BookGridItemControl } from "./controls/item.grid";
+import { BookmarksControl } from "./controls/bookmarks";
+import { BookPrivilegesControl } from "./controls/privileges";
 
 @NgModule({
 	declarations: [
