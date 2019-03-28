@@ -31,7 +31,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 	@Output() lastFocusEvent: EventEmitter<any> = new EventEmitter();
 
-	@ViewChild("elementRef") elementRef;
+	@ViewChild("elementRef") elementRef: any;
 
 	ngOnInit() {
 		this._step = "ngOnInit";
@@ -208,7 +208,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get value() {
-		return this.formControl.value;
+		return "datetime-local" === this.control.Options.Type || "date" === this.control.Options.Type
+			? AppUtility.toIsoDateTime(new Date(this.formControl.value), true)
+			: this.formControl.value;
 	}
 
 	onValueChanged($event: any) {
@@ -225,7 +227,9 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get datetimeValue() {
-		return this.value !== undefined ? new Date(this.value).toJSON() : undefined;
+		return this.formControl.value !== undefined
+			? AppUtility.toIsoDateTime(new Date(this.formControl.value), true)
+			: undefined;
 	}
 
 	datetimeOnValueChanged($event: any) {

@@ -135,7 +135,7 @@ export class AppComponent implements OnInit {
 				icon: this.sidebar.home.icon,
 				thumbnail: this.sidebar.home.thumbnail,
 				detail: this.sidebar.home.detail,
-				onClick: this.sidebar.home.onClick
+				onClick: this.sidebar.home.onClick !== undefined && typeof this.sidebar.home.onClick === "function" ? this.sidebar.home.onClick : () => {}
 			},
 			login: {
 				title: await this.configSvc.getResourceAsync("common.sidebar.login"),
@@ -190,7 +190,7 @@ export class AppComponent implements OnInit {
 				icon: itemInfo.icon || oldItem.icon,
 				thumbnail: itemInfo.thumbnail || oldItem.thumbnail,
 				detail: !!itemInfo.detail,
-				onClick: typeof itemInfo.onClick === "function" ? itemInfo.onClick : () => {}
+				onClick: itemInfo.onClick !== undefined && typeof itemInfo.onClick === "function" ? itemInfo.onClick : () => {}
 			};
 			if (itemIndex > -1 && itemIndex < this.sidebar.left.menu[menuIndex].items.length) {
 				this.sidebar.left.menu[menuIndex].items[itemIndex] = updatedItem;

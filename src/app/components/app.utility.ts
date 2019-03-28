@@ -121,15 +121,18 @@ export class AppUtility {
 	/**
 	 * Cleans undefined properties from the object
 	 * @param obj The instance of an object to process
+	 * @param excluded The collection of excluded properties are not be deleted event value is undefined
 	 * @param onCompleted The handler to run when cleaning process is completed
 	*/
-	public static clean(obj: any, onCompleted?: (obj: any) => void) {
+	public static clean(obj: any, excluded?: Array<string>, onCompleted?: (obj: any) => void) {
 		Object.getOwnPropertyNames(obj).forEach(name => {
 			if (this.isNull(obj[name])) {
-				delete obj[name];
+				if (excluded === undefined || excluded.indexOf(name) < 0) {
+					delete obj[name];
+				}
 			}
 			else if (this.isObject(obj[name])) {
-				this.clean(obj[name]);
+				this.clean(obj[name], excluded);
 				if (Object.getOwnPropertyNames(obj[name]).length < 1) {
 					delete obj[name];
 				}
@@ -142,15 +145,16 @@ export class AppUtility {
 	}
 
 	/**
-	  * Clones the object (means do stringify the source object and re-parse via JSON
-	  * @param source The source object for cloning
-	  * @param beRemovedOrCleanUndefined The array of attributes of the cloning object to be removed before returing or the boolean value to specified to clean undefined properties
-	 	* @param onCompleted The handler to run when process is completed
+	 * Clones the object (means do stringify the source object and re-parse via JSON
+	 * @param source The source object for cloning
+	 * @param beRemovedOrCleanUndefined The array of attributes of the cloning object to be removed before returing or the boolean value to specified to clean undefined properties
+	 * @param excluded The collection of excluded properties are not be deleted event value is undefined
+	 * @param onCompleted The handler to run when process is completed
 	*/
-	public static clone(source?: any, beRemovedOrCleanUndefined?: Array<string> | boolean, onCompleted?: (obj: any) => void) {
+	public static clone(source?: any, beRemovedOrCleanUndefined?: Array<string> | boolean, excluded?: Array<string>, onCompleted?: (obj: any) => void) {
 		// clone
 		const exists = [];
-		const json = JSON.stringify(source, (key: string, value: any) => {
+		const obj = JSON.parse(JSON.stringify(source, (key: string, value: any) => {
 			if (this.isObject(value, true)) {
 				if (exists.indexOf(value) !== -1) {
 					return;
@@ -158,8 +162,7 @@ export class AppUtility {
 				exists.push(value);
 			}
 			return value;
-		});
-		const obj = JSON.parse(json);
+		}));
 
 		// remove the specified properties
 		if (this.isArray(beRemovedOrCleanUndefined, true)) {
@@ -171,7 +174,7 @@ export class AppUtility {
 
 		// clean undefined
 		else if (this.isTrue(beRemovedOrCleanUndefined)) {
-			this.clean(obj, onCompleted);
+			this.clean(obj, excluded, onCompleted);
 		}
 
 		// return clone object
@@ -361,6 +364,21 @@ export class AppUtility {
 		return this.isNotEmpty(value)
 			? parseInt(value, 0)
 			: 0;
+	}
+
+	/** Converts date-time object to ISO string to use with date-picker */
+	public static toIsoDateTime(date: Date, seconds: boolean = false, miliseconds: boolean = false, useLocalTimezone: boolean = true) {
+		const datetime = new Date(date);
+		if (useLocalTimezone) {
+			const timeOffsetInHours = (datetime.getTimezoneOffset() / 60) * (-1);
+			datetime.setHours(datetime.getHours() + timeOffsetInHours);
+		}
+		let iso = datetime.toJSON().replace("Z", "");
+		if (miliseconds) {
+			return iso;
+		}
+		iso = iso.substr(0, 19);
+		return seconds ? iso : iso.substr(0, 16);
 	}
 
 	/** Converts the ANSI string to a string that can use in an URI */

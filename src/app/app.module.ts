@@ -21,10 +21,10 @@ import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
 
 import { AppConfig } from "./app.config";
-import { AppFormsModule } from "./components/forms.module";
 import { AppComponent } from "./app.component";
-import { AppModulePreloader } from "./components/app.preloader";
 import { AppRoutingModule } from "./app.routing.module";
+import { AppFormsModule } from "./components/forms.module";
+import { AppModulePreloader } from "./components/app.preloader";
 import { AppReadyGuardService, RegisterGuardService } from "./services/base.service";
 import { AuthenticatedGuardService, NotAuthenticatedGuardService } from "./services/base.service";
 import { ConfigurationService } from "./services/configuration.service";
