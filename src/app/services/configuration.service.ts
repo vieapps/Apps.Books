@@ -366,9 +366,9 @@ export class ConfigurationService extends BaseService {
 	/** Loads the session from storage */
 	public async loadSessionAsync(onNext?: (data?: any) => void) {
 		try {
-			const session = await AppStorage.getAsync("VIEApps-Session");
-			if (AppUtility.isNotEmpty(session) && session !== "{}") {
-				this.appConfig.session = JSON.parse(session as string);
+			const session = await AppStorage.getAsync(`${this.appConfig.app.id}-Session`);
+			if (AppUtility.isObject(session, true)) {
+				this.appConfig.session = JSON.parse(JSON.stringify(session));
 				this.appConfig.session.account = Account.deserialize(this.appConfig.session.account);
 				if (this.appConfig.session.account.id !== undefined) {
 					Account.instances.setValue(this.appConfig.session.account.id, this.appConfig.session.account);
@@ -391,7 +391,7 @@ export class ConfigurationService extends BaseService {
 	public async storeSessionAsync(onNext?: (data?: any) => void) {
 		if (this.appConfig.app.persistence) {
 			try {
-				await AppStorage.setAsync("VIEApps-Session", JSON.stringify(AppUtility.clone(this.appConfig.session, ["jwt", "captcha"])));
+				await AppStorage.setAsync(`${this.appConfig.app.id}-Session`, AppUtility.clone(this.appConfig.session, ["jwt", "captcha"]));
 				if (this.isDebug) {
 					console.log(this.getLogMessage("The session is stored into storage"));
 				}
@@ -412,7 +412,7 @@ export class ConfigurationService extends BaseService {
 	/** Deletes the session from storage */
 	public async deleteSessionAsync(onNext?: () => void) {
 		try {
-			await AppStorage.removeAsync("VIEApps-Session");
+			await AppStorage.removeAsync(`${this.appConfig.app.id}-Session`);
 			if (this.isDebug) {
 				console.log(this.getLogMessage("The session is deleted from storage"));
 			}
@@ -631,15 +631,10 @@ export class ConfigurationService extends BaseService {
 		await this.navController.navigateForward(url || this.appConfig.url.home, extras);
 	}
 
-	/** Gets the state to determines that navigate to an url */
-	public isNavigateTo(url: string, navigateToUrl: string, direction?: string) {
-		return url === navigateToUrl || ("Back" === direction && this.previousUrl.startsWith(url));
-	}
-
 	private async loadGeoMetaAsync() {
-		this.appConfig.geoMeta.country = await AppStorage.getAsync("VIEApps-GeoMeta-Country") || "VN";
-		this.appConfig.geoMeta.countries = await AppStorage.getAsync("VIEApps-GeoMeta-Countries") || [];
-		this.appConfig.geoMeta.provinces = await AppStorage.getAsync("VIEApps-GeoMeta-Provinces") || {};
+		this.appConfig.geoMeta.country = await AppStorage.getAsync(`${this.appConfig.app.id}-GeoMeta-Country`) || "VN";
+		this.appConfig.geoMeta.countries = await AppStorage.getAsync(`${this.appConfig.app.id}-GeoMeta-Countries`) || [];
+		this.appConfig.geoMeta.provinces = await AppStorage.getAsync(`${this.appConfig.app.id}-GeoMeta-Provinces`) || {};
 
 		if (this.appConfig.geoMeta.provinces[this.appConfig.geoMeta.country] !== undefined) {
 			AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
@@ -669,9 +664,9 @@ export class ConfigurationService extends BaseService {
 		}
 
 		await Promise.all([
-			AppStorage.setAsync("VIEApps-GeoMeta-Country", this.appConfig.geoMeta.country),
-			AppStorage.setAsync("VIEApps-GeoMeta-Countries", this.appConfig.geoMeta.countries),
-			AppStorage.setAsync("VIEApps-GeoMeta-Provinces", this.appConfig.geoMeta.provinces)
+			AppStorage.setAsync(`${this.appConfig.app.id}-GeoMeta-Country`, this.appConfig.geoMeta.country),
+			AppStorage.setAsync(`${this.appConfig.app.id}-GeoMeta-Countries`, this.appConfig.geoMeta.countries),
+			AppStorage.setAsync(`${this.appConfig.app.id}-GeoMeta-Provinces`, this.appConfig.geoMeta.provinces)
 		]);
 
 		AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
@@ -682,7 +677,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Loads the options of the app */
 	public async loadOptionsAsync(onNext?: () => void) {
-		const options = await AppStorage.getAsync("VIEApps-Options") || {};
+		const options = await AppStorage.getAsync(`${this.appConfig.app.id}-Options`) || {};
 		if (options.i18n !== undefined && options.timezone !== undefined && options.extras !== undefined) {
 			this.appConfig.options = options;
 			await this.storeOptionsAsync(onNext);
@@ -694,7 +689,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Stores the options of the app */
 	public async storeOptionsAsync(onNext?: () => void) {
-		await AppStorage.setAsync("VIEApps-Options", this.appConfig.options);
+		await AppStorage.setAsync(`${this.appConfig.app.id}-Options`, this.appConfig.options);
 		AppEvents.broadcast("App", { Type: "OptionsUpdated" });
 		if (this.isDebug) {
 			console.log(this.getLogMessage("Options are updated"), this.appConfig.options);

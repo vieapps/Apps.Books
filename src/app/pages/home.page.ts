@@ -23,6 +23,7 @@ export class HomePage implements OnInit, OnDestroy {
 	titleResource = "homepage.title";
 	routerSubscription: Subscription;
 	changes: any;
+	url = this.configSvc.appConfig.url.home;
 
 	ngOnInit() {
 		if (this.configSvc.isReady) {
@@ -48,7 +49,7 @@ export class HomePage implements OnInit, OnDestroy {
 
 		this.routerSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd) {
-				if (this.configSvc.isNavigateTo(this.configSvc.appConfig.url.home, this.configSvc.currentUrl)) {
+				if (this.url === this.configSvc.currentUrl) {
 					AppEvents.broadcast("App", { Type: "HomePageIsOpened" });
 					this.changes = new Date();
 					await this.setTitleAsync();

@@ -82,11 +82,10 @@ export class AppComponent implements OnInit {
 		this.router.events.subscribe(event => {
 			if (event instanceof NavigationEnd) {
 				const url = (event as NavigationEnd).url;
-				const routerParams = this.router.routerState.snapshot.root.params;
-				const queryParams = this.router.routerState.snapshot.root.queryParams;
-				this.configSvc.appConfig.url.routerParams = routerParams;
-				this.configSvc.addUrl(url, queryParams);
-				AppEvents.broadcast("Navigated", { Url: url, RouterParams: routerParams, QueryParams: queryParams });
+				const params = this.router.routerState.snapshot.root.queryParams;
+				this.configSvc.appConfig.url.routerParams = this.router.routerState.snapshot.root.params;
+				this.configSvc.addUrl(url, params);
+				AppEvents.broadcast("Navigated", { Url: url, Params: params });
 			}
 		});
 
