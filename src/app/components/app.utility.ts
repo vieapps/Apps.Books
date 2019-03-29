@@ -330,8 +330,8 @@ export class AppUtility {
 			: "";
 	}
 
-	/** Splits the string into the array of strings */
-	public static toArray(obj: any, separator?: any): Array<string> | Array<any> | Array<{ name: string, value: any }> {
+	/** Converts the string/object to an array of strings/key-value pair/value of objects' properties */
+	public static toArray(obj: any, separator?: any): Array<string> | Array<any> | Array<{ key: string, value: any }> {
 		if (this.isArray(obj)) {
 			return obj as Array<any>;
 		}
@@ -345,7 +345,7 @@ export class AppUtility {
 			if (this.isTrue(separator)) {
 				return Object.keys(obj).map(name => {
 					return {
-						name: name,
+						key: name,
 						value: obj[name]
 					};
 				});
@@ -357,6 +357,16 @@ export class AppUtility {
 		else {
 			return [obj];
 		}
+	}
+
+	/** Converts the array of objects to a string */
+	public static toString(array: Array<any> | Array<string>, separator?: string) {
+		if (!this.isArray(array, true)) {
+			return "";
+		}
+		let string = "";
+		array.forEach(item => string += (string !== "" ? (separator || "") : "") + item.toString());
+		return string;
 	}
 
 	/** Converts object to integer */

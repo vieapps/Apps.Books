@@ -5,12 +5,13 @@ import { ImageCropperModule } from "ng2-img-cropper";
 import { UsersAvatarPage } from "./avatar.page";
 
 @NgModule({
-	declarations: [UsersAvatarPage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		ImageCropperModule
 	],
+	exports: [],
+	declarations: [UsersAvatarPage],
 	entryComponents: [UsersAvatarPage]
 })
 

@@ -6,13 +6,14 @@ import { IonicModule } from "@ionic/angular";
 import { UsersOtpPage } from "./otp.page";
 
 @NgModule({
-	declarations: [UsersOtpPage],
 	imports: [
 		CommonModule,
 		FormsModule,
 		IonicModule,
 		RouterModule.forChild([{ path: "", component: UsersOtpPage }])
-	]
+	],
+	exports: [],
+	declarations: [UsersOtpPage]
 })
 
 export class UsersOtpPageModule {}

@@ -59,14 +59,14 @@ export class AppConfig {
 		active: "books",
 		all: [
 			{
-				name: "books",
-				objects: ["book", "category", "statistic"]
-			},
-			{
 				name: "users",
 				objects: []
+			},
+			{
+				name: "books",
+				objects: ["book", "category", "statistic"]
 			}
-		]
+		] as Array<{ name: string, objects: Array<string> }>
 	};
 
 	/** Available organizations in the app */

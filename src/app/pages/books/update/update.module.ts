@@ -6,13 +6,14 @@ import { AppFormsModule } from "../../../components/forms.module";
 import { BooksUpdatePage } from "./update.page";
 
 @NgModule({
-	declarations: [BooksUpdatePage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		AppFormsModule,
 		RouterModule.forChild([{ path: "", component: BooksUpdatePage }])
-	]
+	],
+	exports: [],
+	declarations: [BooksUpdatePage]
 })
 
 export class BooksUpdatePageModule {}

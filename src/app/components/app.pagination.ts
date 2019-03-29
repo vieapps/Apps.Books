@@ -75,17 +75,25 @@ export class AppPagination {
 	/** Builds the well-formed request (contains filter, sort and pagination) for working with remote APIs */
 	public static buildRequest(filterBy?: { [key: string]: any }, sortBy?: { [key: string]: any }, pagination?: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }, onCompleted?: (request: { FilterBy: { [key: string]: any }, SortBy: { [key: string]: any }, Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } }) => void) {
 		const request = {
-			FilterBy: AppUtility.clone(filterBy || {}, true, obj => Object.getOwnPropertyNames(obj).filter(name => AppUtility.isArray(obj[name], true)).map(name => obj[name] as Array<any>).forEach(array => {
-				let index = 0;
-				while (index < array.length) {
-					if (AppUtility.isNull(array[index])) {
-						array.splice(index, 1);
-					}
-					else {
-						index++;
-					}
-				}
-			})) as { [key: string]: any },
+			FilterBy: AppUtility.clone(
+				filterBy || {},
+				true,
+				["IsNull", "IsNotNull", "IsEmpty", "IsNotEmpty"],
+				obj => Object.getOwnPropertyNames(obj)
+					.filter(name => AppUtility.isArray(obj[name], true))
+					.map(name => obj[name] as Array<any>)
+					.forEach(array => {
+						let index = 0;
+						while (index < array.length) {
+							if (AppUtility.isNull(array[index])) {
+								array.splice(index, 1);
+							}
+							else {
+								index++;
+							}
+						}
+					})
+			) as { [key: string]: any },
 			SortBy: AppUtility.clone(sortBy || {}, true) as { [key: string]: any },
 			Pagination: this.getDefault({ Pagination: pagination })
 		};

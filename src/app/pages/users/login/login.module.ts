@@ -6,12 +6,13 @@ import { AppFormsModule } from "../../../components/forms.module";
 import { UsersLogInPage } from "./login.page";
 
 @NgModule({
-	declarations: [UsersLogInPage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		AppFormsModule,
 		RouterModule.forChild([{ path: "", component: UsersLogInPage }])
-	]
+	],
+	exports: [],
+	declarations: [UsersLogInPage]
 })
 export class UsersLogInPageModule {}

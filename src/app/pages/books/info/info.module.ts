@@ -6,13 +6,14 @@ import { QRCodeModule } from "angular2-qrcode";
 import { BooksInfoPage } from "./info.page";
 
 @NgModule({
-	declarations: [BooksInfoPage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		QRCodeModule,
 		RouterModule.forChild([{ path: "", component: BooksInfoPage }])
-	]
+	],
+	exports: [],
+	declarations: [BooksInfoPage]
 })
 
 export class BooksInfoPageModule {}

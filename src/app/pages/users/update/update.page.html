@@ -1,12 +1,12 @@
 <ion-header>
 	<ion-toolbar>
-		<ion-buttons slot="start">
-			<ion-button *ngIf="buttons.cancel" color="secondary" (click)="buttons.cancel.handler()">
+		<ion-buttons *ngIf="buttons.cancel !== undefined" slot="start">
+			<ion-button color="secondary" (click)="buttons.cancel.handler()">
 				<ion-icon *ngIf="buttons.cancel.icon" [name]="buttons.cancel.icon" slot="start"></ion-icon>
 				{{ buttons.cancel.text }}
 			</ion-button>
 		</ion-buttons>
-		<ion-buttons *ngIf="buttons.ok" slot="end">
+		<ion-buttons *ngIf="buttons.ok !== undefined" slot="end">
 			<ion-button color="primary" (click)="buttons.ok.handler()">
 				<ion-icon *ngIf="buttons.ok.icon" [name]="buttons.ok.icon" slot="start"></ion-icon>
 				{{ buttons.ok.text }}
@@ -20,23 +20,23 @@
 
 <ion-content padding>
 
-	<app-form *ngIf="mode === 'profile' && update.config"
+	<app-form *ngIf="mode === 'profile' && update.config !== undefined"
 		[form]="update.form"
 		[config]="update.config"
 		[controls]="update.controls"
 		(initEvent)="onFormInitialized($event)"></app-form>
 
-	<app-form *ngIf="mode === 'password' && password.config"
+	<app-form *ngIf="mode === 'password' && password.config !== undefined"
 		[form]="password.form"
 		[config]="password.config"
 		[controls]="password.controls"
 		(initEvent)="onFormInitialized($event)"></app-form>
 
-	<app-form *ngIf="mode === 'email' && email.config"
+	<app-form *ngIf="mode === 'email' && email.config !== undefined"
 		[form]="email.form"
 		[config]="email.config"
 		[controls]="email.controls"
-		(initEvent)="onFormInitialized($event)"></app-form>	
+		(initEvent)="onFormInitialized($event)"></app-form>
 
 	<control-book-privileges *ngIf="mode === 'privileges' && configSvc.appConfig.services.active === 'books'"
 		[privileges]="privileges"

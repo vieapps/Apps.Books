@@ -20,6 +20,7 @@ export class HomePage implements OnInit, OnDestroy {
 	}
 
 	title = "Home";
+	titleResource = "homepage.title";
 	routerSubscription: Subscription;
 	changes: any;
 
@@ -41,6 +42,10 @@ export class HomePage implements OnInit, OnDestroy {
 			}
 		}, "LanguageChangedEventHandlerOfHomePage");
 
+		AppEvents.on("SetHomepageTitleResource", info => {
+			this.titleResource = info.args.ResourceID || "homepage.title";
+		}, "SetTitleResourceEventHandlerOfHomePage");
+
 		this.routerSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd) {
 				if (this.configSvc.isNavigateTo(this.configSvc.appConfig.url.home, this.configSvc.currentUrl)) {
@@ -56,6 +61,7 @@ export class HomePage implements OnInit, OnDestroy {
 	ngOnDestroy() {
 		AppEvents.off("App", "AppReadyEventHandlerOfHomePage");
 		AppEvents.off("App", "LanguageChangedEventHandlerOfHomePage");
+		AppEvents.off("SetHomepageTitleResource", "SetTitleResourceEventHandlerOfHomePage");
 		this.routerSubscription.unsubscribe();
 	}
 
@@ -65,7 +71,7 @@ export class HomePage implements OnInit, OnDestroy {
 	}
 
 	async setTitleAsync() {
-		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("homepage.title");
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync(this.titleResource);
 	}
 
 	async trackAsync(section?: string) {

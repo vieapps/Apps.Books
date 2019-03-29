@@ -6,13 +6,14 @@ import { AppFormsModule } from "../../../components/forms.module";
 import { UsersRegisterPage } from "./register.page";
 
 @NgModule({
-	declarations: [UsersRegisterPage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		AppFormsModule,
 		RouterModule.forChild([{ path: "", component: UsersRegisterPage }])
-	]
+	],
+	exports: [],
+	declarations: [UsersRegisterPage]
 })
 
 export class UsersRegisterPageModule {}

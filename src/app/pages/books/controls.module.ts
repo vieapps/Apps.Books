@@ -10,13 +10,6 @@ import { BookmarksControl } from "./controls/bookmarks";
 import { BookPrivilegesControl } from "./controls/privileges";
 
 @NgModule({
-	declarations: [
-		BookLinearItemControl,
-		BookGridItemControl,
-		BookHomeScreenControl,
-		BookmarksControl,
-		BookPrivilegesControl
-	],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -24,6 +17,13 @@ import { BookPrivilegesControl } from "./controls/privileges";
 		AppFormsModule
 	],
 	exports: [
+		BookLinearItemControl,
+		BookGridItemControl,
+		BookHomeScreenControl,
+		BookmarksControl,
+		BookPrivilegesControl
+	],
+	declarations: [
 		BookLinearItemControl,
 		BookGridItemControl,
 		BookHomeScreenControl,

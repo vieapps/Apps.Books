@@ -5,12 +5,13 @@ import { IonicModule } from "@ionic/angular";
 import { UsersListPage } from "./list.page";
 
 @NgModule({
-	declarations: [UsersListPage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		RouterModule.forChild([{ path: "", component: UsersListPage }])
-	]
+	],
+	exports: [],
+	declarations: [UsersListPage]
 })
 
 export class UsersListPageModule {}

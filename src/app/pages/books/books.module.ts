@@ -1,6 +1,8 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { RouterModule, Routes } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
+import { AuthenticatedGuardService } from "../../services/base.service";
 
 import { BookControlsModule } from "./controls.module";
 import { BooksInfoPageModule } from "./info/info.module";
@@ -8,7 +10,45 @@ import { BooksListPageModule } from "./list/list.module";
 import { BooksOptionsPageModule } from "./options/options.module";
 import { BooksReadPageModule } from "./read/read.module";
 import { BooksUpdatePageModule } from "./update/update.module";
-import { BooksRoutingModule } from "./books.routing.module";
+
+const routes: Routes = [
+	{
+		path: "info/:data",
+		loadChildren: "../books/info/info.module#BooksInfoPageModule"
+	},
+	{
+		path: "search",
+		data: { preload: true },
+		loadChildren: "../books/list/list.module#BooksListPageModule"
+	},
+	{
+		path: "list-by-category/:data",
+		loadChildren: "../books/list/list.module#BooksListPageModule"
+	},
+	{
+		path: "list-by-author/:data",
+		loadChildren: "../books/list/list.module#BooksListPageModule"
+	},
+	{
+		path: "options",
+		loadChildren: "../books/options/options.module#BooksOptionsPageModule"
+	},
+	{
+		path: "read/:data",
+		data: { preload: true },
+		loadChildren: "../books/read/read.module#BooksReadPageModule"
+	},
+	{
+		path: "update/:data",
+		canActivate: [AuthenticatedGuardService],
+		loadChildren: "../books/update/update.module#BooksUpdatePageModule"
+	},
+	{
+		path: "**",
+		redirectTo: "search",
+		pathMatch: "full"
+	}
+];
 
 @NgModule({
 	imports: [
@@ -20,8 +60,9 @@ import { BooksRoutingModule } from "./books.routing.module";
 		BooksOptionsPageModule,
 		BooksReadPageModule,
 		BooksUpdatePageModule,
-		BooksRoutingModule,
+		RouterModule.forChild(routes)
 	],
+	exports: [RouterModule],
 	declarations: []
 })
 

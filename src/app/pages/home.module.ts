@@ -6,13 +6,14 @@ import { BookControlsModule } from "./books/controls.module";
 import { HomePage } from "./home.page";
 
 @NgModule({
-	declarations: [HomePage],
 	imports: [
 		CommonModule,
 		IonicModule,
 		BookControlsModule,
 		RouterModule.forChild([{ path: "", component: HomePage }])
-	]
+	],
+	exports: [],
+	declarations: [HomePage]
 })
 
 export class HomePageModule {}

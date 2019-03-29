@@ -8,7 +8,6 @@ import { UsersAvatarPageModule } from "../avatar/avatar.module";
 import { UsersProfilePage } from "./profile.page";
 
 @NgModule({
-	declarations: [UsersProfilePage],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -16,7 +15,9 @@ import { UsersProfilePage } from "./profile.page";
 		UsersAvatarPageModule,
 		BookControlsModule,
 		RouterModule.forChild([{ path: "", component: UsersProfilePage }])
-	]
+	],
+	exports: [],
+	declarations: [UsersProfilePage]
 })
 
 export class UsersProfilePageModule {}
