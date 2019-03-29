@@ -172,11 +172,6 @@
 				"sent": "Update request has been sent...",
 				"sync": "Readings sync successful..."
 			}
-		},
-		"privileges": {
-			"role": "Acting role in the app",
-			"other": "Other roles",
-			"object": "Acting role of {{object}}"
 		}
 	}
 }

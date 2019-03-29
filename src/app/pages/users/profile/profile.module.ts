@@ -4,6 +4,7 @@ import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../../components/forms.module";
 import { BookControlsModule } from "../../books/controls.module";
+import { UserControlsModule } from "../controls.module";
 import { UsersAvatarPageModule } from "../avatar/avatar.module";
 import { UsersProfilePage } from "./profile.page";
 
@@ -12,8 +13,9 @@ import { UsersProfilePage } from "./profile.page";
 		CommonModule,
 		IonicModule,
 		AppFormsModule,
-		UsersAvatarPageModule,
 		BookControlsModule,
+		UserControlsModule,
+		UsersAvatarPageModule,
 		RouterModule.forChild([{ path: "", component: UsersProfilePage }])
 	],
 	exports: [],

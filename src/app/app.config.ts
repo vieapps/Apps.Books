@@ -59,10 +59,6 @@ export class AppConfig {
 		active: "books",
 		all: [
 			{
-				name: "users",
-				objects: []
-			},
-			{
 				name: "books",
 				objects: ["book", "category", "statistic"]
 			}

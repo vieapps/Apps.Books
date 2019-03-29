@@ -296,7 +296,7 @@ export class UsersService extends BaseService {
 		}
 	}
 
-	public async updatePrivilegesAsync(id: string, privileges: Array<Privilege>, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async updatePrivilegesAsync(id: string, privileges: { [key: string]: Array<Privilege> }, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
 			`${this.Name.toLowerCase()}/account/${id}?${this.configSvc.relatedQuery}`,
 			{

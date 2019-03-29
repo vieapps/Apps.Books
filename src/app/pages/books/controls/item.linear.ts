@@ -21,16 +21,12 @@ export class BookLinearItemControl {
 	@Input() hideAuthor: boolean;
 	@Input() hideCategory: boolean;
 
-	get routerLink() {
-		return this.book.routerLink;
-	}
-
-	get queryParams() {
-		return this.book.routerParams;
-	}
-
 	get locale() {
 		return this.configSvc.locale;
+	}
+
+	async openAsync() {
+		await this.configSvc.navigateForwardAsync(this.book.routerURI || (this.book.routerLink + "?x-request=" + this.book.routerParams["x-request"]));
 	}
 
 }

@@ -26,6 +26,7 @@
 		"messages": {
 			"loading": "Tải dữ liệu...",
 			"activating": "Kích hoạt...",
+			"processing": "Xử lý...",
 			"errors": {
 				"general": "Đã xảy ra lỗi!",
 				"wrongAccountOrPassword": "Tài khoản hoặc mật khẩu không đúng!",

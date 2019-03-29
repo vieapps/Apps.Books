@@ -3,7 +3,7 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../../components/forms.module";
-import { BookControlsModule } from "../../books/controls.module";
+import { UserControlsModule } from "../controls.module";
 import { UsersUpdatePage } from "./update.page";
 
 @NgModule({
@@ -11,7 +11,7 @@ import { UsersUpdatePage } from "./update.page";
 		CommonModule,
 		IonicModule,
 		AppFormsModule,
-		BookControlsModule,
+		UserControlsModule,
 		RouterModule.forChild([{ path: "", component: UsersUpdatePage }])
 	],
 	exports: [],

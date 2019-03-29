@@ -56,16 +56,28 @@ export class AuthenticationService extends BaseService {
 		return this.isGotServiceRole(service, "Moderator", account.privileges) || this.isServiceAdministrator(service, account);
 	}
 
-	private canDo(role: string) {
+	private canDo(role: string, service?: string, account?: Account) {
+		service = (service || this.configSvc.appConfig.services.active).toLowerCase();
+		account = account || this.configSvc.getAccount();
 		return role === "SystemAdministrator"
-			? this.isSystemAdministrator()
+			? this.isSystemAdministrator(account)
 			: role === "ServiceAdministrator"
-				? this.isServiceAdministrator()
+				? this.isServiceAdministrator(service, account)
 				: role === "ServiceModerator"
-					? this.isServiceModerator()
+					? this.isServiceModerator(service, account)
 					: role === "Authenticated"
 						? this.configSvc.isAuthenticated
 						: role === "All";
+	}
+
+	/** Checks to see the user can send invitations or not */
+	public canDoSendInvitations(service?: string, account?: Account) {
+		return this.canDo(this.configSvc.appConfig.accountRegistrations.sendInvitationRole, service, account);
+	}
+
+	/** Checks to see the user can set privileges or not */
+	public canDoSetPrivileges(service?: string, account?: Account) {
+		return this.canDo(this.configSvc.appConfig.accountRegistrations.setPrivilegsRole, service, account);
 	}
 
 	/** Checks to see the visitor can register new account or not */
@@ -75,12 +87,12 @@ export class AuthenticationService extends BaseService {
 
 	/** Checks to see the user can send invitations or not */
 	public get canSendInvitations() {
-		return this.canDo(this.configSvc.appConfig.accountRegistrations.sendInvitationRole);
+		return this.canDoSendInvitations();
 	}
 
 	/** Checks to see the user can set privileges or not */
 	public get canSetPrivileges() {
-		return this.canDo(this.configSvc.appConfig.accountRegistrations.setPrivilegsRole);
+		return this.canDoSetPrivileges();
 	}
 
 	public async logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {

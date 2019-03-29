@@ -172,11 +172,6 @@
 				"sent": "Yêu cầu cập nhật sách đã được gửi tới quản trị...",
 				"sync": "Đã đồng bộ sách đang đọc..."
 			}
-		},
-		"privileges": {
-			"role": "Vai trò chung trong app",
-			"other": "Vai trò khác",
-			"object": "Vai trò đối với {{object}}"
 		}
 	}
 }

@@ -38,8 +38,11 @@
 		[controls]="email.controls"
 		(initEvent)="onFormInitialized($event)"></app-form>
 
-	<control-book-privileges *ngIf="mode === 'privileges' && configSvc.appConfig.services.active === 'books'"
-		[privileges]="privileges"
-		(changesEvent)="onPrivilegesChanged($event)"></control-book-privileges>
+	<div *ngIf="mode === 'privileges' && services !== undefined">
+		<control-user-service-privileges *ngFor="let service of services; let idx=index; trackBy: trackPrivileges"
+			[serviceName]="service"
+			[privileges]="getPrivileges(service)"
+			(changesEvent)="onPrivilegesChanged($event)"></control-user-service-privileges>
+	</div>
 
 </ion-content>

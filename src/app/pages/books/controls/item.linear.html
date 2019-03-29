@@ -1,4 +1,4 @@
-<ion-item [routerLink]="routerLink" [queryParams]="queryParams" routerDirection="forward" detail="false">
+<ion-item (click)="openAsync()" detail="false">
 	<ion-label>
 		<ion-thumbnail float-start padding-end>
 			<img [src]="book.Cover" />

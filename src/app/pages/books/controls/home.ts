@@ -1,6 +1,5 @@
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, OnChanges, Input } from "@angular/core";
-import { Router } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { AppUtility } from "../../../components/app.utility";
 import { AppEvents } from "../../../components/app.events";
@@ -17,7 +16,6 @@ import { Book } from "../../../models/book";
 export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
 	constructor (
-		public router: Router,
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {

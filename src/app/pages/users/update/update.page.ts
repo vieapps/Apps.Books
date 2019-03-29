@@ -1,6 +1,7 @@
 import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../../components/app.crypto";
+import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
@@ -61,8 +62,9 @@ export class UsersUpdatePage implements OnInit {
 		config: undefined as Array<any>
 	};
 
+	services: Array<string>;
 	private _privileges = {
-		value: undefined as Array<Privilege>,
+		privileges: {} as { [key: string]: Array<Privilege> },
 		hash: ""
 	};
 
@@ -405,16 +407,32 @@ export class UsersUpdatePage implements OnInit {
 		this.title = await this.configSvc.getResourceAsync("users.profile.privileges.title") + ` [${this.profile.Name}]`;
 		this.configSvc.appTitle = this.title;
 		await this.prepareButtonsAsync();
-		this._privileges.value = Account.instances.getValue(this.profile.ID).privileges;
-		this._privileges.hash = AppCrypto.hash(this._privileges.value);
+		this.services = this.authSvc.isSystemAdministrator()
+			? this.configSvc.appConfig.services.all.map(service => service.name)
+			: this.configSvc.appConfig.services.all.filter(service => this.authSvc.isServiceAdministrator(service.name)).map(service => service.name);
+		const privileges = Account.instances.getValue(this.profile.ID).privileges;
+		this.services.forEach(service => this._privileges.privileges[service] = privileges.filter(privilege => privilege.ServiceName === service));
+		this._privileges.hash = AppCrypto.hash(this._privileges.privileges);
+	}
+
+	onPrivilegesChanged($event: any) {
+		this._privileges.privileges[$event.service] = $event.privileges as Array<Privilege>;
+	}
+
+	trackPrivileges(index: number, service: string) {
+		return `${service}@${index}`;
+	}
+
+	getPrivileges(service: string) {
+		return Account.instances.getValue(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === service);
 	}
 
 	async updatePrivilegesAsync() {
-		if (this._privileges.hash !== AppCrypto.hash(this._privileges.value)) {
+		if (this._privileges.hash !== AppCrypto.hash(this._privileges.privileges)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.usersSvc.updatePrivilegesAsync(
 				this.profile.ID,
-				this._privileges.value,
+				this._privileges.privileges,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/privileges"),
 					this.showProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.privileges.message", { name: this.profile.Name })))
@@ -427,27 +445,12 @@ export class UsersUpdatePage implements OnInit {
 		}
 	}
 
-	onPrivilegesChanged($event: any) {
-		if (this.configSvc.appConfig.services.active !== "") {
-			this._privileges.value = this._privileges.value.filter(privilege => privilege.ServiceName !== this.configSvc.appConfig.services.active).concat($event.privileges as Array<Privilege>);
-		}
-		else {
-			this._privileges.value = $event.privileges as Array<Privilege>;
-		}
-	}
-
-	get privileges() {
-		return this.configSvc.appConfig.services.active !== ""
-			? Account.instances.getValue(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === this.configSvc.appConfig.services.active)
-			: Account.instances.getValue(this.profile.ID).privileges;
-	}
-
 	async showProfileAsync(preProcess?: () => void) {
 		await this.appFormsSvc.hideLoadingAsync(() => this.zone.run(async () => {
 			if (preProcess !== undefined) {
 				preProcess();
 			}
-			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith("/users/profile") ? "/users/profile/my" : undefined);
+			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.users.profile) ? this.configSvc.appConfig.url.users.profile + "/my" : undefined);
 		}));
 	}
 

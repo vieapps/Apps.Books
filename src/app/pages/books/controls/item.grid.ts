@@ -24,7 +24,7 @@ export class BookGridItemControl {
 	}
 
 	async openAsync() {
-		await this.configSvc.navigateForwardAsync(this.book.routerURI || this.book.routerLink + "?x-request=" + this.book.routerParams["x-request"]);
+		await this.configSvc.navigateForwardAsync(this.book.routerURI || (this.book.routerLink + "?x-request=" + this.book.routerParams["x-request"]));
 	}
 
 }

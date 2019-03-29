@@ -26,6 +26,7 @@
 		"messages": {
 			"loading": "Loading...",
 			"activating": "Activating...",
+			"processing": "Processing...",
 			"errors": {
 				"general": "Unexpected error!",
 				"wrongAccountOrPassword": "Wrong account or password!",

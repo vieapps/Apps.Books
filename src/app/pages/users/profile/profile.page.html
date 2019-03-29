@@ -42,12 +42,14 @@
 <ion-content>
 
 	<div *ngIf="mode === 'profile' && profile">
+
 		<figure>
 			<img [src]="profile.avatarURI" />
 		</figure>
 		<h1>
 			{{ profile.Name }}
 		</h1>
+
 		<ion-list padding-end>
 			<ion-list-header>
 				{{ labels.header }}
@@ -69,17 +71,20 @@
 				{{ labels.lastAccess }} {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
 			</ion-item>
 		</ion-list>
+
 		<control-book-bookmarks *ngIf="configSvc.appConfig.services.active === 'books' && !id"></control-book-bookmarks>
+		
 	</div>
 
 	<div *ngIf="mode === 'invitation'" padding>
-		<app-form *ngIf="invitation.config"
+		<app-form *ngIf="invitation.config !== undefined"
 			[form]="invitation.form"
 			[config]="invitation.config"
 			[controls]="invitation.controls"
 			(initEvent)="onFormInitialized($event)"></app-form>
-		<control-book-privileges *ngIf="configSvc.appConfig.services.active === 'books' && authSvc.canSetPrivileges"
-			(changesEvent)="onPrivilegesChanged($event)"></control-book-privileges>
+		<control-user-service-privileges *ngIf="authSvc.canSetPrivileges"
+			[serviceName]="configSvc.appConfig.services.active"
+			(changesEvent)="onPrivilegesChanged($event)"></control-user-service-privileges>
 	</div>
 
 </ion-content>
