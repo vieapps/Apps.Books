@@ -133,7 +133,7 @@
 		[class]="css.label">{{ label }}</ion-list-header>
 	<ion-item *ngFor="let option of selectOptions">
 		<ion-label>{{ option.Label }}</ion-label>
-		<ion-radio [value]="option.Value"></ion-radio>
+		<ion-radio [value]="option.Value" [checked]="selectOptionIsChecked(option.Value)"></ion-radio>
 	</ion-item>
 </ion-radio-group>
 
