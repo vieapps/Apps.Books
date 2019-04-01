@@ -42,7 +42,7 @@ export class AppAPI {
 	/**
 		* Sends a request to APIs
 		* @param method HTTP verb to perform the request
-		* @param uri Full URI of the end-point API"s uri to perform the request
+		* @param uri Full URI of the end-point API's uri to perform the request
 		* @param headers Additional headers to perform the request
 		* @param body The JSON object that contains the body to perform the request
 	*/
@@ -71,7 +71,7 @@ export class AppAPI {
 	/**
 		* Sends a request to APIs
 		* @param method HTTP verb to perform the request
-		* @param uri Full URI of the end-point API"s uri to perform the request
+		* @param uri Full URI of the end-point API's uri to perform the request
 		* @param headers Additional headers to perform the request
 		* @param body The JSON object that contains the body to perform the request
 	*/
@@ -80,17 +80,26 @@ export class AppAPI {
 	}
 
 	/**
-		* Performs a request to APIs with "GET" verb
-		* @param path Path of the end-point API"s uri to perform the request
-		* @param headers Additional headers to perform the request
+		* Gets the URI to send a request to APIs
+		* @param path Path of the end-point API's uri to perform the request
+		* @param endpoint URI of the end-point API's uri to perform the request
 	*/
-	public static get(path: string, headers?: any) {
-		return this.send("GET", AppConfig.URIs.apis + path, headers);
+	public static getURI(path: string, endpoint?: string) {
+		return (path.startsWith("http://") || path.startsWith("https://") ? "" : endpoint || AppConfig.URIs.apis) + path;
 	}
 
 	/**
 		* Performs a request to APIs with "GET" verb
-		* @param path Path of the end-point API"s uri to perform the request
+		* @param path Path of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static get(path: string, headers?: any) {
+		return this.send("GET", this.getURI(path), headers);
+	}
+
+	/**
+		* Performs a request to APIs with "GET" verb
+		* @param path Path of the end-point API's uri to perform the request
 		* @param headers Additional headers to perform the request
 	*/
 	public static getAsync(path: string, headers?: any) {
@@ -99,17 +108,17 @@ export class AppAPI {
 
 	/**
 		* Performs a request to APIs with "POST" verb
-		* @param path Path of the end-point API"s uri to perform the request
+		* @param path Path of the end-point API's uri to perform the request
 		* @param body The JSON object that contains the body to perform the request
 		* @param headers Additional headers to perform the request
 	*/
 	public static post(path: string, body: any, headers?: any) {
-		return this.send("POST", AppConfig.URIs.apis + path, headers, body);
+		return this.send("POST", this.getURI(path), headers, body);
 	}
 
 	/**
 		* Performs a request to APIs with "POST" verb
-		* @param path Path of the end-point API"s uri to perform the request
+		* @param path Path of the end-point API's uri to perform the request
 		* @param body The JSON object that contains the body to perform the request
 		* @param headers Additional headers to perform the request
 	*/
@@ -119,17 +128,17 @@ export class AppAPI {
 
 	/**
 		* Performs a request to APIs with "PUT" verb
-		* @param path Path of the end-point API"s uri to perform the request
+		* @param path Path of the end-point API's uri to perform the request
 		* @param body The JSON object that contains the body to perform the request
 		* @param headers Additional headers to perform the request
 	*/
 	public static put(path: string, body: any, headers?: any) {
-		return this.send("PUT", AppConfig.URIs.apis + path, headers, body);
+		return this.send("PUT", this.getURI(path), headers, body);
 	}
 
 	/**
 		* Performs a request to APIs with "PUT" verb
-		* @param path Path of the end-point API"s uri to perform the request
+		* @param path Path of the end-point API's uri to perform the request
 		* @param body The JSON object that contains the body to perform the request
 		* @param headers Additional headers to perform the request
 	*/
@@ -139,16 +148,16 @@ export class AppAPI {
 
 	/**
 		* Performs a request to APIs with "DELETE" verb
-		* @param path Path of the end-point API"s uri to perform the request
+		* @param path Path of the end-point API's uri to perform the request
 		* @param headers Additional headers to perform the request
 	*/
 	public static delete(path: string, headers?: any) {
-		return this.send("DELETE", AppConfig.URIs.apis + path, headers);
+		return this.send("DELETE", this.getURI(path), headers);
 	}
 
 	/**
 		* Performs a request to APIs with "DELETE" verb
-		* @param path Path of the end-point API"s uri to perform the request
+		* @param path Path of the end-point API's uri to perform the request
 		* @param headers Additional headers to perform the request
 	*/
 	public static deleteAsync(path: string, headers?: any) {

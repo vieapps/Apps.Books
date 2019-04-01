@@ -177,6 +177,10 @@ export class AppUtility {
 			this.clean(obj, excluded, onCompleted);
 		}
 
+		else if (onCompleted !== undefined) {
+			onCompleted(obj);
+		}
+
 		// return clone object
 		return obj;
 	}

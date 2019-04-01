@@ -8,11 +8,40 @@ export class AppPagination {
 	/** All pagination instances */
 	public static instances = new Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
 
+	private static cloneFilterBy(filterBy: { [key: string]: any }) {
+		const filter = AppUtility.clone(
+			filterBy || {},
+			true,
+			["IsNull", "IsNotNull", "IsEmpty", "IsNotEmpty"],
+			obj => Object.getOwnPropertyNames(obj)
+				.filter(name => AppUtility.isArray(obj[name], true))
+				.map(name => obj[name] as Array<any>)
+				.forEach(array => {
+					let index = 0;
+					while (index < array.length) {
+						if (AppUtility.isNull(array[index])) {
+							array.splice(index, 1);
+						}
+						else {
+							index++;
+						}
+					}
+				})
+		) as { [key: string]: any };
+		if (filter.Query === undefined) {
+			delete filter.Query;
+		}
+		if (filter.And === undefined && filter.Or === undefined) {
+			filter["And"] = [];
+		}
+		return filter;
+	}
+
 	private static getKey(info?: any, prefix?: string) {
-		const filterBy = info !== undefined ? AppUtility.clone(info.FilterBy || {}, true) : undefined;
+		const filterBy = info !== undefined ? this.cloneFilterBy(info.FilterBy) : undefined;
 		return filterBy !== undefined && AppUtility.isNotEmpty(filterBy.Query)
 			? undefined
-			: (AppUtility.isNotEmpty(prefix) ? prefix + ":" : "") + AppCrypto.md5((JSON.stringify(filterBy || {}) + JSON.stringify(info !== undefined ? AppUtility.clone(info.SortBy || {}, true) : {})).toLowerCase());
+			: (AppUtility.isNotEmpty(prefix) ? prefix + ":" : "") + AppCrypto.md5((JSON.stringify(filterBy || {}) + JSON.stringify(info !== undefined ? info.SortBy || {} : {})).toLowerCase());
 	}
 
 	/** Gets the default pagination */
@@ -75,25 +104,7 @@ export class AppPagination {
 	/** Builds the well-formed request (contains filter, sort and pagination) for working with remote APIs */
 	public static buildRequest(filterBy?: { [key: string]: any }, sortBy?: { [key: string]: any }, pagination?: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }, onCompleted?: (request: { FilterBy: { [key: string]: any }, SortBy: { [key: string]: any }, Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } }) => void) {
 		const request = {
-			FilterBy: AppUtility.clone(
-				filterBy || {},
-				true,
-				["IsNull", "IsNotNull", "IsEmpty", "IsNotEmpty"],
-				obj => Object.getOwnPropertyNames(obj)
-					.filter(name => AppUtility.isArray(obj[name], true))
-					.map(name => obj[name] as Array<any>)
-					.forEach(array => {
-						let index = 0;
-						while (index < array.length) {
-							if (AppUtility.isNull(array[index])) {
-								array.splice(index, 1);
-							}
-							else {
-								index++;
-							}
-						}
-					})
-			) as { [key: string]: any },
+			FilterBy: this.cloneFilterBy(filterBy),
 			SortBy: AppUtility.clone(sortBy || {}, true) as { [key: string]: any },
 			Pagination: this.getDefault({ Pagination: pagination })
 		};

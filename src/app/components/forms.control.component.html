@@ -49,10 +49,11 @@
 		[interfaceOptions]="selectInterfaceOptions"
 		[cancelText]="selectCancelText"
 		[okText]="selectOkText"
+		[value]="value"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
 		(ionChange)="onValueChanged($event)">
-		<ion-select-option *ngFor="let select of selectValues" [value]="select.Value" [selected]="select.Value === value">{{ select.Label }}</ion-select-option>
+		<ion-select-option *ngFor="let option of selectOptions" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</ion-select-option>
 	</ion-select>
 
 	<div *ngIf="selectAsDropdown">
@@ -61,9 +62,8 @@
 			[name]="name"
 			[class]="css.control"
 			(change)="formControl.setValue(this.value)">
-			<option *ngFor="let select of selectValues" [value]="select.Value" [selected]="select.Value === value">{{ select.Label }}</option>
+			<option *ngFor="let option of selectOptions" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</option>
 		</select>
-		<div></div>
 	</div>
 
 	<ion-datetime *ngIf="isControl('DatePicker')" #elementRef
@@ -131,9 +131,9 @@
 	<ion-list-header *ngIf="label"
 		[color]="color.label"
 		[class]="css.label">{{ label }}</ion-list-header>
-	<ion-item *ngFor="let select of selectValues">
-		<ion-label>{{ select.Label }}</ion-label>
-		<ion-radio [value]="select.Value"></ion-radio>
+	<ion-item *ngFor="let option of selectOptions">
+		<ion-label>{{ option.Label }}</ion-label>
+		<ion-radio [value]="option.Value"></ion-radio>
 	</ion-item>
 </ion-radio-group>
 

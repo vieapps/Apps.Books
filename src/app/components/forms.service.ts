@@ -362,28 +362,25 @@ export class AppFormsService {
 			: resource;
 	}
 
-	private prepareControls(controls: Array<AppFormsControl>, modifyDatePickers?: boolean) {
+	private async prepareControlsAsync(controls: Array<AppFormsControl>, modifyDatePickers?: boolean) {
 		controls.forEach((control, index) => {
 			if (index < controls.length - 1) {
 				control.next = controls[index + 1];
 			}
 		});
-		controls.filter(control => !control.Hidden).forEach(async control => {
+		await Promise.all(controls.filter(control => !control.Hidden).map(async control => {
 			control.Options.Label = await this.normalizeResourceAsync(control.Options.Label);
 			control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
 			control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
 			if (control.Type === "Select") {
 				if (AppUtility.isArray(control.Options.SelectOptions.Values, true)) {
-					control.Options.SelectOptions.Values.forEach(async selectValue => {
+					await Promise.all(control.Options.SelectOptions.Values.map(async selectValue => {
 						selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
 						selectValue.Label = await this.normalizeResourceAsync(selectValue.Label);
-					});
+					}));
 				}
 				else if (AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
-					let uri = control.Options.SelectOptions.RemoteURI as string;
-					if (!uri.startsWith("http://") && !uri.startsWith("https://")) {
-						uri = AppConfig.URIs.apis + uri;
-					}
+					let uri = AppAPI.getURI(control.Options.SelectOptions.RemoteURI as string);
 					uri += (uri.indexOf("?") < 0 ? "?" : "&") + AppConfig.getRelatedQuery();
 					try {
 						if (control.Options.SelectOptions.RemoteURIProcessor !== undefined) {
@@ -409,10 +406,10 @@ export class AppFormsService {
 						console.error("[Forms]: Error occurred while preparing the values from a remote URI", error);
 						control.Options.SelectOptions.Values = [];
 					}
-					control.Options.SelectOptions.Values.forEach(async selectValue => {
+					await Promise.all(control.Options.SelectOptions.Values.map(async selectValue => {
 						selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
 						selectValue.Label = await this.normalizeResourceAsync(selectValue.Label);
-					});
+					}));
 				}
 				control.Options.SelectOptions.OkText = await this.normalizeResourceAsync(control.Options.SelectOptions.OkText);
 				control.Options.SelectOptions.CancelText = await this.normalizeResourceAsync(control.Options.SelectOptions.CancelText);
@@ -436,10 +433,14 @@ export class AppFormsService {
 				control.Options.LookupOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.LookupOptions.NoResultsText);
 			}
 			if (control.SubControls !== undefined) {
-				this.prepareControls(control.SubControls.Controls, modifyDatePickers);
+				await this.prepareControlsAsync(control.SubControls.Controls, modifyDatePickers);
 				control.SubControls.Controls.forEach(subcontrol => subcontrol.parent = control);
 			}
-		});
+		}));
+	}
+
+	private prepareControls(controls: Array<AppFormsControl>, modifyDatePickers?: boolean) {
+		this.prepareControlsAsync(controls, modifyDatePickers);
 	}
 
 	/** Gets the definition of all controls */

@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter, ViewChild, ChangeDetectorRef } from "@angular/core";
 import { FormGroup, FormArray } from "@angular/forms";
 import { CompleterService } from "ng2-completer";
-import { AppFormsControl, AppFormsService } from "./forms.service";
 import { AppUtility } from "./app.utility";
+import { AppFormsControl, AppFormsService } from "./forms.service";
 
 @Component({
 	selector: "app-form-control",
@@ -18,9 +18,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	) {
 	}
 
-	private _style: string = undefined;
+	private _style: string;
 	private _step = "";
-	private _completerInitialValue: any = undefined;
+	private _completerInitialValue: any;
+	private _selectValues: Array<string>;
 
 	public show = false;
 
@@ -215,6 +216,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	onValueChanged($event: any) {
 		this.formControl.setValue($event.detail.value);
+		this._selectValues = undefined;
 		if (!this.isControl("Range")) {
 			this.focusNext();
 		}
@@ -295,10 +297,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.control.Options.DatePickerOptions.DoneText;
 	}
 
-	get selectValues() {
-		return this.control.Options.SelectOptions.Values;
-	}
-
 	get selectAsRadioBoxes() {
 		return this.isControl("Select") && !this.control.Options.SelectOptions.Multiple && this.control.Options.SelectOptions.AsBoxes;
 	}
@@ -325,6 +323,29 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	get selectOkText() {
 		return this.control.Options.SelectOptions.OkText;
+	}
+
+	get selectOptions() {
+		return this.control.Options.SelectOptions.Values || new Array<{ Value: string, Label: string }>();
+	}
+
+	selectOptionIsChecked(value: string) {
+		if (this._selectValues === undefined) {
+			const values = this.formControl.value;
+			if (AppUtility.isNotEmpty(values)) {
+				this._selectValues = AppUtility.toArray(values) as Array<string>;
+			}
+			else if (AppUtility.isArray(values, true)) {
+				this._selectValues = (values as Array<any>).map(v => v + "");
+			}
+			else if (AppUtility.isObject(values, true)) {
+				this._selectValues = (AppUtility.toArray(values) as Array<any>).map(v => v + "");
+			}
+			else {
+				this._selectValues = [values + ""];
+			}
+		}
+		return this._selectValues.indexOf(value) > -1;
 	}
 
 	get checked() {
