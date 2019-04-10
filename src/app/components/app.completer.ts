@@ -26,7 +26,7 @@ export class AppCustomCompleter extends Subject<CompleterItem[]> implements Comp
 	public search(term: string) {
 		this._unsubscribe();
 		this._subscription = AppAPI.get(this.onRequest(term)).subscribe(
-			response => this.next(this.onConvert(response.json())),
+			response => this.next(this.onConvert(response)),
 			error => console.error("[Custom Completer]: Error occurred while fetching remote data => " + AppUtility.getErrorMessage(error), error)
 		);
 	}

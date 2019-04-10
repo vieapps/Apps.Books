@@ -1,7 +1,7 @@
 import { Dictionary } from "typescript-collections";
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
-import { Http } from "@angular/http";
+import { HttpClient } from "@angular/common/http";
 import { AppStorage } from "../components/app.storage";
 import { AppRTU } from "../components/app.rtu";
 import { AppEvents } from "../components/app.events";
@@ -19,7 +19,7 @@ import { ConfigurationService } from "./configuration.service";
 export class BooksService extends BaseService {
 
 	constructor (
-		public http: Http,
+		public http: HttpClient,
 		public configSvc: ConfigurationService
 	) {
 		super(http, "Books");
@@ -118,7 +118,7 @@ export class BooksService extends BaseService {
 		if (this.configSvc.isAuthenticated) {
 			await this.loadBookmarksAsync(() => {
 				const bookmarks = this.configSvc.appConfig.extras["Books-Bookmarks"] as Dictionary<string, Bookmark>;
-				console.log(`[Books]: The bookmarks are loaded - Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size() : 0}`);
+				console.log("[Books]: The bookmarks are loaded" + `Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size() : 0}`);
 			});
 		}
 

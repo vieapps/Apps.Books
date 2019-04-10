@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Http } from "@angular/http";
+import { HttpClient } from "@angular/common/http";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "../components/app.api";
 import { AppUtility } from "../components/app.utility";
@@ -9,7 +9,7 @@ import { Base as BaseService } from "./base.service";
 export class FilesService extends BaseService {
 
 	constructor (
-		public http: Http
+		public http: HttpClient
 	) {
 		super(http, "Files");
 	}
@@ -20,9 +20,9 @@ export class FilesService extends BaseService {
 		} as { [key: string]: string };
 		Object.keys(header || {}).forEach(key => headers[key] = header[key]);
 		try {
-			const response = await AppAPI.sendAsync("POST", AppConfig.URIs.files + path, headers, { Data: data });
+			const response = await AppAPI.sendAsync("POST", AppAPI.getURI(path, AppConfig.URIs.files), headers, { Data: data });
 			if (onNext !== undefined) {
-				onNext(response.json());
+				onNext(response);
 			}
 		}
 		catch (error) {

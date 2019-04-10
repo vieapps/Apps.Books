@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router, CanActivate } from "@angular/router";
-import { Http } from "@angular/http";
+import { HttpClient } from "@angular/common/http";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "../components/app.api";
 import { AppRTU } from "../components/app.rtu";
@@ -13,7 +13,7 @@ import { AppUtility } from "../components/app.utility";
 export class Base {
 
 	constructor (
-		http: Http,
+		http: HttpClient,
 		name?: string
 	) {
 		AppAPI.initialize(http);
@@ -40,7 +40,7 @@ export class Base {
 		try {
 			const response = await AppAPI.postAsync(path, body, headers);
 			if (onNext !== undefined) {
-				onNext(response.json());
+				onNext(response);
 			}
 		}
 		catch (error) {
@@ -64,7 +64,7 @@ export class Base {
 		try {
 			const response = await AppAPI.getAsync(path, headers);
 			if (onNext !== undefined) {
-				onNext(response.json());
+				onNext(response);
 			}
 		}
 		catch (error) {
@@ -89,7 +89,7 @@ export class Base {
 		try {
 			const response = await AppAPI.putAsync(path, body, headers);
 			if (onNext !== undefined) {
-				onNext(response.json());
+				onNext(response);
 			}
 		}
 		catch (error) {
@@ -113,7 +113,7 @@ export class Base {
 		try {
 			const response = await AppAPI.deleteAsync(path, headers);
 			if (onNext !== undefined) {
-				onNext(response.json());
+				onNext(response);
 			}
 		}
 		catch (error) {
@@ -150,12 +150,11 @@ export class Base {
 				}
 				const response = await AppAPI.getAsync(path + AppUtility.toBase64Url(request));
 				if (processPagination || onNext !== undefined) {
-					const data = response.json();
 					if (processPagination) {
-						AppPagination.set(data, this.serviceName);
+						AppPagination.set(response, this.serviceName);
 					}
 					if (onNext !== undefined) {
-						onNext(data);
+						onNext(response);
 					}
 				}
 			}
@@ -182,12 +181,11 @@ export class Base {
 		return AppAPI.get(path + AppUtility.toBase64Url(request)).subscribe(
 			response => {
 				if (AppUtility.isFalse(dontProcessPagination) || onNext !== undefined) {
-					const data = response.json();
 					if (AppUtility.isFalse(dontProcessPagination)) {
-						AppPagination.set(data, this.serviceName);
+						AppPagination.set(response, this.serviceName);
 					}
 					if (onNext !== undefined) {
-						onNext(data);
+						onNext(response);
 					}
 				}
 			},

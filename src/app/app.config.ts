@@ -30,7 +30,7 @@ export class AppConfig {
 		version: "1.0.1",
 		copyright: "© 2016 - 2019 VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: ".net core 2.2 - ionic 4.1 - angular 7.2 - cordova 8.1",
+		frameworks: ".net core 2.2 - ionic 4.2 - angular 7.2 - cordova 8.1",
 		homepage: "https://viebooks.net",
 		mode: "",
 		platform: "",
@@ -257,7 +257,7 @@ export class AppConfig {
 	/** Gets the authenticated headers (JSON) for making requests to APIs */
 	public static getAuthenticatedHeaders(addToken: boolean = true, addAppInfo: boolean = true, addDeviceID: boolean = true) {
 		const headers: {
-			[key: string]: string
+			[header: string]: string
 		} = {};
 
 		if (addToken && AppUtility.isObject(this.session.token, true) && AppUtility.isObject(this.session.keys, true) && AppUtility.isNotEmpty(this.session.keys.jwt)) {

@@ -1,6 +1,5 @@
 import { NgModule } from "@angular/core";
 import { BrowserModule, HammerGestureConfig, HAMMER_GESTURE_CONFIG } from "@angular/platform-browser";
-import { HttpModule } from "@angular/http";
 import { HttpClient, HttpClientModule } from "@angular/common/http";
 import { RouteReuseStrategy } from "@angular/router";
 
@@ -53,7 +52,6 @@ export class HammerConfig extends HammerGestureConfig {
 	declarations: [AppComponent],
 	imports: [
 		BrowserModule,
-		HttpModule,
 		HttpClientModule,
 		NgxElectronModule,
 		IonicModule.forRoot(),

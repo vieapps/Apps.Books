@@ -1,41 +1,32 @@
-import { Http, Headers } from "@angular/http";
+import { HttpClient } from "@angular/common/http";
 import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
 
 /** Servicing component for working with remote APIs */
 export class AppAPI {
 
-	private static _http: Http = undefined;
+	private static _http: HttpClient = undefined;
 
 	/** Initializes the instance of the Angular Http service */
-	public static initialize(http: Http) {
+	public static initialize(http: HttpClient) {
 		if (this._http === undefined && AppUtility.isNotNull(http)) {
 			this._http = http;
 		}
 	}
 
 	/** Gets the headers for making requests to APIs */
-	public static getHeaders(additional?: any, addContentType?: boolean) {
-		const headers = new Headers();
-
-		const authHeaders = AppConfig.getAuthenticatedHeaders();
-		Object.keys(authHeaders).forEach(name => headers.append(name, authHeaders[name]));
-
+	public static getHeaders(additional?: any) {
+		const headers = AppConfig.getAuthenticatedHeaders();
 		if (AppUtility.isArray(additional, true)) {
 			(additional as Array<any>).forEach(header => {
 				if (AppUtility.isObject(header, true) && AppUtility.isNotEmpty(header.name) && AppUtility.isNotEmpty(header.value)) {
-					headers.append(header.name as string, header.value as string);
+					headers[header.name as string] = header.value as string;
 				}
 			});
 		}
 		else if (AppUtility.isObject(additional, true)) {
-			Object.keys(additional).forEach(name => headers.append(name, additional[name]));
+			Object.keys(additional).forEach(name => headers[name] = additional[name].toString());
 		}
-
-		if (AppUtility.isTrue(addContentType)) {
-			headers.append("content-type", "application/json");
-		}
-
 		return headers;
 	}
 
@@ -52,9 +43,9 @@ export class AppAPI {
 		}
 		switch ((method || "GET").toUpperCase()) {
 			case "POST":
-				return this._http.post(uri, JSON.stringify(body || {}), { headers: this.getHeaders(headers, true) });
+				return this._http.post(uri, body, { headers: this.getHeaders(headers) });
 			case "PUT":
-				return this._http.put(uri, JSON.stringify(body || {}), { headers: this.getHeaders(headers, true) });
+				return this._http.put(uri, body, { headers: this.getHeaders(headers) });
 			case "DELETE":
 				return this._http.delete(uri, { headers: this.getHeaders(headers) });
 			case "PATCH":

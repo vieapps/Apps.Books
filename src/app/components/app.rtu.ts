@@ -46,28 +46,28 @@ export class AppRTU {
 	private static _onOpen: (event: Event) => void = undefined;
 
 	/** Sets the action to fire when the RTU is opened */
-	private static set OnOpen(func: (event: Event) => void) {
+	public static set OnOpen(func: (event: Event) => void) {
 		this._onOpen = func;
 	}
 
 	private static _onClose: (event: CloseEvent) => void = undefined;
 
 	/** Sets the action to fire when the RTU is closed */
-	private static set OnClose(func: (event: CloseEvent) => void) {
+	public static set OnClose(func: (event: CloseEvent) => void) {
 		this._onClose = func;
 	}
 
 	private static _onError: (event: Event) => void = undefined;
 
 	/** Sets the action to fire when the RTU got any error */
-	private static set OnError(func: (event: Event) => void) {
+	public static set OnError(func: (event: Event) => void) {
 		this._onError = func;
 	}
 
 	private static _onMessage: (event: MessageEvent) => void = undefined;
 
 	/** Sets the action to fire when the RTU got any error */
-	private static set OnMessage(func: (event: MessageEvent) => void) {
+	public static set OnMessage(func: (event: MessageEvent) => void) {
 		this._onMessage = func;
 	}
 
@@ -316,31 +316,19 @@ export class AppRTU {
 					console.log("[RTU]: Got a message", AppConfig.isNativeApp ? JSON.stringify(message) : message);
 				}
 
-				if (message.Type.Service === "Pong") {
+				if (message.Type.Service === "Ping") {
 					if (AppConfig.isDebug) {
-						console.log("[RTU]: Got a heartbeat");
+						console.log("[RTU]: Got a heartbeat signal => response with PONG and update online status, run scheduler, ...");
 					}
 					this.send({
 						ServiceName: "rtu",
 						ObjectName: "session",
-						Verb: "PING",
+						Verb: "PONG",
 						Query: undefined,
 						Header: undefined,
 						Body: undefined,
 						Extra: undefined
 					});
-				}
-
-				else if (message.Type.Service === "Knock") {
-					if (AppConfig.isDebug) {
-						console.log(`[RTU]: Knock, Knock, Knock ... => Yes, I'm right here (${new Date().toJSON()})`);
-					}
-				}
-
-				else if (message.Type.Service === "OnlineStatus") {
-					if (AppConfig.isDebug) {
-						console.log("[RTU]: Got a flag to update status & run scheduler");
-					}
 					this.send({
 						ServiceName: "users",
 						ObjectName: "status",
@@ -352,6 +340,12 @@ export class AppRTU {
 					});
 					if (this._serviceScopeHandlers["Scheduler"]) {
 						this._serviceScopeSubject.next({ "service": "Scheduler", "message": message });
+					}
+				}
+
+				else if (message.Type.Service === "Knock") {
+					if (AppConfig.isDebug) {
+						console.log(`[RTU]: Knock, Knock, Knock ... => Yes, I'm right here (${new Date().toJSON()})`);
 					}
 				}
 
@@ -387,24 +381,21 @@ export class AppRTU {
 	}
 
 	/** Stops the real-time updater */
-	public static stop(onStoped?: () => void) {
+	public static stop(onStopped?: () => void) {
 		this._uri = undefined;
 		this._status = "closed";
 		if (this._websocket !== undefined) {
 			this._websocket.close();
 			this._websocket = undefined;
 		}
-		if (onStoped !== undefined) {
-			onStoped();
+		if (onStopped !== undefined) {
+			onStopped();
 		}
 	}
 
 	/** Sends a request to a service */
 	public static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: { [key: string]: any }, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
 		if (this.isReady) {
-			if (request.Body !== undefined && typeof request.Body === "object") {
-				request.Body = JSON.stringify(request.Body);
-			}
 			this._websocket.send(JSON.stringify(request));
 		}
 		else {
@@ -422,12 +413,14 @@ export class AppRTU {
 			}
 			AppAPI.send(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body)
 				.toPromise()
-				.then(response => {
-					if (whenNotReady !== undefined) {
-						whenNotReady(response.json());
-					}
-				})
-				.catch(error => console.error("[RTU]: Error occurred while sending request => " + AppUtility.getErrorMessage(error), error));
+				.then(
+					response => {
+						if (whenNotReady !== undefined) {
+							whenNotReady(response);
+						}
+					},
+					error => console.error("[RTU]: Error occurred while sending request => " + AppUtility.getErrorMessage(error), error)
+				);
 		}
 	}
 

@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Http } from "@angular/http";
+import { HttpClient } from "@angular/common/http";
 import { AppRTU } from "../components/app.rtu";
 import { AppEvents } from "../components/app.events";
 import { AppCrypto } from "../components/app.crypto";
@@ -16,7 +16,7 @@ import { ConfigurationService } from "./configuration.service";
 export class UsersService extends BaseService {
 
 	constructor (
-		public http: Http,
+		public http: HttpClient,
 		public configSvc: ConfigurationService
 	) {
 		super(http, "Users");

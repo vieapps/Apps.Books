@@ -2,7 +2,7 @@ declare var FB: any;
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { PlatformLocation } from "@angular/common";
-import { Http } from "@angular/http";
+import { HttpClient } from "@angular/common/http";
 import { Title as BrowserTitle } from "@angular/platform-browser";
 import { Platform, NavController } from "@ionic/angular";
 import { Storage } from "@ionic/storage";
@@ -30,7 +30,7 @@ import { Base as BaseService } from "./base.service";
 export class ConfigurationService extends BaseService {
 
 	constructor (
-		public http: Http,
+		public http: HttpClient,
 		public platformLocation: PlatformLocation,
 		public platform: Platform,
 		public navController: NavController,

@@ -1,6 +1,6 @@
 import { Set } from "typescript-collections";
 import { Injectable } from "@angular/core";
-import { Http } from "@angular/http";
+import { HttpClient } from "@angular/common/http";
 import { AppRTU } from "./../components/app.rtu";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
@@ -14,7 +14,7 @@ import { ConfigurationService } from "./configuration.service";
 export class AuthenticationService extends BaseService {
 
 	constructor(
-		public http: Http,
+		public http: HttpClient,
 		public configSvc: ConfigurationService
 	) {
 		super(http, "Authentication");
