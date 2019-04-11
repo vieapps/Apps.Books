@@ -1,5 +1,4 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
 import { AppRTU } from "../components/app.rtu";
 import { AppEvents } from "../components/app.events";
 import { AppCrypto } from "../components/app.crypto";
@@ -15,11 +14,8 @@ import { ConfigurationService } from "./configuration.service";
 @Injectable()
 export class UsersService extends BaseService {
 
-	constructor (
-		public http: HttpClient,
-		public configSvc: ConfigurationService
-	) {
-		super(http, "Users");
+	constructor(public configSvc: ConfigurationService) {
+		super("Users");
 		AppRTU.registerAsServiceScopeProcessor(this.Name, message => this.processUpdateMessageAsync(message));
 		if (this.configSvc.isDebug) {
 			AppRTU.registerAsObjectScopeProcessor(this.Name, "Session", () => {});

@@ -1,6 +1,5 @@
 import { Set } from "typescript-collections";
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
 import { AppRTU } from "./../components/app.rtu";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
@@ -13,11 +12,8 @@ import { ConfigurationService } from "./configuration.service";
 @Injectable()
 export class AuthenticationService extends BaseService {
 
-	constructor(
-		public http: HttpClient,
-		public configSvc: ConfigurationService
-	) {
-		super(http, "Authentication");
+	constructor(public configSvc: ConfigurationService) {
+		super("Authentication");
 	}
 
 	private isGotRole(role: string, roles: any) {

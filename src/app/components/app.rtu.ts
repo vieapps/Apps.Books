@@ -323,20 +323,12 @@ export class AppRTU {
 					this.send({
 						ServiceName: "rtu",
 						ObjectName: "session",
-						Verb: "PONG",
-						Query: undefined,
-						Header: undefined,
-						Body: undefined,
-						Extra: undefined
+						Verb: "PONG"
 					});
 					this.send({
 						ServiceName: "users",
 						ObjectName: "status",
-						Verb: "GET",
-						Query: undefined,
-						Header: undefined,
-						Body: undefined,
-						Extra: undefined
+						Verb: "GET"
 					});
 					if (this._serviceScopeHandlers["Scheduler"]) {
 						this._serviceScopeSubject.next({ "service": "Scheduler", "message": message });
@@ -393,8 +385,8 @@ export class AppRTU {
 		}
 	}
 
-	/** Sends a request to a service */
-	public static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: { [key: string]: any }, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
+	/** Sends a request to a service via WebSocket connection */
+	public static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query?: { [key: string]: any }, Header?: any, Body?: any, Extra?: any }, whenNotReady?: (data?: any) => void) {
 		if (this.isReady) {
 			this._websocket.send(JSON.stringify(request));
 		}
@@ -411,7 +403,7 @@ export class AppRTU {
 			if (AppUtility.isObject(request.Extra, true)) {
 				query += "&extras=" + AppUtility.toBase64Url(request.Extra);
 			}
-			AppAPI.send(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body)
+			AppAPI.sendRequest(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body)
 				.toPromise()
 				.then(
 					response => {

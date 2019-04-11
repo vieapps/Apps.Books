@@ -1,7 +1,6 @@
 import { Dictionary } from "typescript-collections";
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
 import { AppStorage } from "../components/app.storage";
 import { AppRTU } from "../components/app.rtu";
 import { AppEvents } from "../components/app.events";
@@ -18,11 +17,8 @@ import { ConfigurationService } from "./configuration.service";
 @Injectable()
 export class BooksService extends BaseService {
 
-	constructor (
-		public http: HttpClient,
-		public configSvc: ConfigurationService
-	) {
-		super(http, "Books");
+	constructor(public configSvc: ConfigurationService) {
+		super("Books");
 		this.initialize();
 	}
 
@@ -337,10 +333,7 @@ export class BooksService extends BaseService {
 						"object-identity": "chapter",
 						"id": id,
 						"chapter": chapter
-					},
-					Header: undefined,
-					Body: undefined,
-					Extra: undefined
+					}
 				}, data => this.updateChapter(data));
 			}
 			this.increaseCounters(id, "view", onNext);
@@ -364,10 +357,7 @@ export class BooksService extends BaseService {
 					"object-identity": "counters",
 					"id": id,
 					"action": action || "view"
-				},
-				Header: undefined,
-				Body: undefined,
-				Extra: undefined
+				}
 			}, data => this.updateCounters(data));
 		}
 		if (onNext !== undefined) {
@@ -397,10 +387,7 @@ export class BooksService extends BaseService {
 				Query: {
 					"object-identity": "files",
 					"id": id
-				},
-				Header: undefined,
-				Body: undefined,
-				Extra: undefined
+				}
 			}, data => this.updateFiles(data));
 		}
 	}
@@ -598,10 +585,7 @@ export class BooksService extends BaseService {
 			Verb: "GET",
 			Query: {
 				"object-identity": "all"
-			},
-			Header: undefined,
-			Body: undefined,
-			Extra: undefined
+			}
 		});
 		if (onNext !== undefined) {
 			onNext();
@@ -676,11 +660,7 @@ export class BooksService extends BaseService {
 		super.send({
 			ServiceName: this.Name,
 			ObjectName: "bookmarks",
-			Verb: "GET",
-			Query: undefined,
-			Header: undefined,
-			Body: undefined,
-			Extra: undefined
+			Verb: "GET"
 		});
 		if (onNext !== undefined) {
 			onNext();
@@ -692,10 +672,7 @@ export class BooksService extends BaseService {
 			ServiceName: this.Name,
 			ObjectName: "bookmarks",
 			Verb: "POST",
-			Query: undefined,
-			Header: undefined,
-			Body: new List(this.bookmarks.values()).OrderByDescending(b => b.Time).Take(30).ToArray(),
-			Extra: undefined
+			Body: new List(this.bookmarks.values()).OrderByDescending(b => b.Time).Take(30).ToArray()
 		});
 		if (onNext !== undefined) {
 			onNext();
@@ -726,10 +703,7 @@ export class BooksService extends BaseService {
 						Verb: "GET",
 						Query: {
 							"object-identity": bookmark.ID
-						},
-						Header: undefined,
-						Body: undefined,
-						Extra: undefined
+						}
 					});
 				}
 			}, 456 + (index * 10));
@@ -753,10 +727,7 @@ export class BooksService extends BaseService {
 			Verb: "DELETE",
 			Query: {
 				"object-identity": id
-			},
-			Header: undefined,
-			Body: undefined,
-			Extra: undefined
+			}
 		});
 		this.bookmarks.remove(id);
 		if (onNext !== undefined) {
@@ -787,10 +758,7 @@ export class BooksService extends BaseService {
 			Verb: "GET",
 			Query: {
 				url: url
-			},
-			Header: undefined,
-			Body: undefined,
-			Extra: undefined
+			}
 		});
 		if (onNext !== undefined) {
 			onNext();
@@ -807,10 +775,7 @@ export class BooksService extends BaseService {
 				"id": id,
 				"url": url,
 				"full": "full" === mode
-			},
-			Header: undefined,
-			Body: undefined,
-			Extra: undefined
+			}
 		});
 	}
 

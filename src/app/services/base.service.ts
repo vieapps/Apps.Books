@@ -1,7 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router, CanActivate } from "@angular/router";
-import { HttpClient } from "@angular/common/http";
 import { AppConfig } from "../app.config";
 import { AppAPI } from "../components/app.api";
 import { AppRTU } from "../components/app.rtu";
@@ -12,11 +11,7 @@ import { AppUtility } from "../components/app.utility";
 /** Base of all providers/services */
 export class Base {
 
-	constructor (
-		http: HttpClient,
-		name?: string
-	) {
-		AppAPI.initialize(http);
+	constructor (name?: string) {
 		this.Name = name || "";
 	}
 
@@ -201,7 +196,7 @@ export class Base {
 	}
 
 	/** Sends a request/info to remote API via WebSocket connection (of the real-time update component) */
-	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query: { [key: string]: any }, Header: any, Body: any, Extra: any }, whenNotReady?: (data?: any) => void) {
+	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query?: { [key: string]: any }, Header?: any, Body?: any, Extra?: any }, whenNotReady?: (data?: any) => void) {
 		AppRTU.send(request, whenNotReady);
 	}
 

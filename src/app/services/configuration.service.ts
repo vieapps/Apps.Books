@@ -2,7 +2,6 @@ declare var FB: any;
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { PlatformLocation } from "@angular/common";
-import { HttpClient } from "@angular/common/http";
 import { Title as BrowserTitle } from "@angular/platform-browser";
 import { Platform, NavController } from "@ionic/angular";
 import { Storage } from "@ionic/storage";
@@ -30,7 +29,6 @@ import { Base as BaseService } from "./base.service";
 export class ConfigurationService extends BaseService {
 
 	constructor (
-		public http: HttpClient,
 		public platformLocation: PlatformLocation,
 		public platform: Platform,
 		public navController: NavController,
@@ -45,7 +43,7 @@ export class ConfigurationService extends BaseService {
 		public translateSvc: TranslateService,
 		public electronSvc: ElectronService
 	) {
-		super(http, "Configuration");
+		super("Configuration");
 		AppStorage.initializeAsync(storage, () => console.log(this.getLogMessage("KVP storage is ready")));
 		AppEvents.on("App", async info => {
 			if ("Initialized" === info.args.Type) {
@@ -366,7 +364,7 @@ export class ConfigurationService extends BaseService {
 	/** Loads the session from storage */
 	public async loadSessionAsync(onNext?: (data?: any) => void) {
 		try {
-			const session = await AppStorage.getAsync(`${this.appConfig.app.id}-Session`);
+			const session = await AppStorage.getAsync("Session");
 			if (AppUtility.isObject(session, true)) {
 				this.appConfig.session = JSON.parse(JSON.stringify(session));
 				this.appConfig.session.account = Account.deserialize(this.appConfig.session.account);
@@ -391,7 +389,7 @@ export class ConfigurationService extends BaseService {
 	public async storeSessionAsync(onNext?: (data?: any) => void) {
 		if (this.appConfig.app.persistence) {
 			try {
-				await AppStorage.setAsync(`${this.appConfig.app.id}-Session`, AppUtility.clone(this.appConfig.session, ["jwt", "captcha"]));
+				await AppStorage.setAsync("Session", AppUtility.clone(this.appConfig.session, ["jwt", "captcha"]));
 				if (this.isDebug) {
 					console.log(this.getLogMessage("The session is stored into storage"));
 				}
@@ -412,7 +410,7 @@ export class ConfigurationService extends BaseService {
 	/** Deletes the session from storage */
 	public async deleteSessionAsync(onNext?: () => void) {
 		try {
-			await AppStorage.removeAsync(`${this.appConfig.app.id}-Session`);
+			await AppStorage.removeAsync("Session");
 			if (this.isDebug) {
 				console.log(this.getLogMessage("The session is deleted from storage"));
 			}
@@ -441,9 +439,7 @@ export class ConfigurationService extends BaseService {
 			ServiceName: "users",
 			ObjectName: "session",
 			Verb: "PATCH",
-			Query: undefined,
 			Header: this.appConfig.getAuthenticatedHeaders(),
-			Body: undefined,
 			Extra: {
 				"x-session": this.appConfig.session.id
 			}
@@ -530,10 +526,7 @@ export class ConfigurationService extends BaseService {
 			Verb: "GET",
 			Query: {
 				"x-status": ""
-			},
-			Header: undefined,
-			Body: undefined,
-			Extra: undefined
+			}
 		});
 		if (onNext !== undefined) {
 			PlatformUtility.invoke(onNext, defer || 234);
@@ -546,10 +539,7 @@ export class ConfigurationService extends BaseService {
 			ServiceName: "users",
 			ObjectName: "profile",
 			Verb: "GET",
-			Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.getAccount().id }),
-			Header: undefined,
-			Body: undefined,
-			Extra: undefined
+			Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.getAccount().id })
 		});
 		if (onNext !== undefined) {
 			PlatformUtility.invoke(onNext, defer || 234);
@@ -632,9 +622,9 @@ export class ConfigurationService extends BaseService {
 	}
 
 	private async loadGeoMetaAsync() {
-		this.appConfig.geoMeta.country = await AppStorage.getAsync(`${this.appConfig.app.id}-GeoMeta-Country`) || "VN";
-		this.appConfig.geoMeta.countries = await AppStorage.getAsync(`${this.appConfig.app.id}-GeoMeta-Countries`) || [];
-		this.appConfig.geoMeta.provinces = await AppStorage.getAsync(`${this.appConfig.app.id}-GeoMeta-Provinces`) || {};
+		this.appConfig.geoMeta.country = await AppStorage.getAsync("GeoMeta-Country") || "VN";
+		this.appConfig.geoMeta.countries = await AppStorage.getAsync("GeoMeta-Countries") || [];
+		this.appConfig.geoMeta.provinces = await AppStorage.getAsync("GeoMeta-Provinces") || {};
 
 		if (this.appConfig.geoMeta.provinces[this.appConfig.geoMeta.country] !== undefined) {
 			AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
@@ -664,9 +654,9 @@ export class ConfigurationService extends BaseService {
 		}
 
 		await Promise.all([
-			AppStorage.setAsync(`${this.appConfig.app.id}-GeoMeta-Country`, this.appConfig.geoMeta.country),
-			AppStorage.setAsync(`${this.appConfig.app.id}-GeoMeta-Countries`, this.appConfig.geoMeta.countries),
-			AppStorage.setAsync(`${this.appConfig.app.id}-GeoMeta-Provinces`, this.appConfig.geoMeta.provinces)
+			AppStorage.setAsync("GeoMeta-Country", this.appConfig.geoMeta.country),
+			AppStorage.setAsync("GeoMeta-Countries", this.appConfig.geoMeta.countries),
+			AppStorage.setAsync("GeoMeta-Provinces", this.appConfig.geoMeta.provinces)
 		]);
 
 		AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
@@ -677,7 +667,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Loads the options of the app */
 	public async loadOptionsAsync(onNext?: () => void) {
-		const options = await AppStorage.getAsync(`${this.appConfig.app.id}-Options`) || {};
+		const options = await AppStorage.getAsync("Options") || {};
 		if (options.i18n !== undefined && options.timezone !== undefined && options.extras !== undefined) {
 			this.appConfig.options = options;
 			await this.storeOptionsAsync(onNext);
@@ -689,7 +679,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Stores the options of the app */
 	public async storeOptionsAsync(onNext?: () => void) {
-		await AppStorage.setAsync(`${this.appConfig.app.id}-Options`, this.appConfig.options);
+		await AppStorage.setAsync("Options", this.appConfig.options);
 		AppEvents.broadcast("App", { Type: "OptionsUpdated" });
 		if (this.isDebug) {
 			console.log(this.getLogMessage("Options are updated"), this.appConfig.options);

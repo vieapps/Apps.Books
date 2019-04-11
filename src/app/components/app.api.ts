@@ -1,11 +1,16 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { AppConfig } from "../app.config";
 import { AppUtility } from "./app.utility";
 
-/** Servicing component for working with remote APIs */
+/** Servicing component for working with remote APIs via XMLHttpRequest (XHR) */
 export class AppAPI {
 
 	private static _http: HttpClient = undefined;
+
+	/** Gets the HttpClient instance */
+	public static get http() {
+		return this._http;
+	}
 
 	/** Initializes the instance of the Angular Http service */
 	public static initialize(http: HttpClient) {
@@ -14,60 +19,78 @@ export class AppAPI {
 		}
 	}
 
-	/** Gets the headers for making requests to APIs */
-	public static getHeaders(additional?: any) {
-		const headers = AppConfig.getAuthenticatedHeaders();
-		if (AppUtility.isArray(additional, true)) {
-			(additional as Array<any>).forEach(header => {
-				if (AppUtility.isObject(header, true) && AppUtility.isNotEmpty(header.name) && AppUtility.isNotEmpty(header.value)) {
-					headers[header.name as string] = header.value as string;
-				}
-			});
-		}
-		else if (AppUtility.isObject(additional, true)) {
-			Object.keys(additional).forEach(name => headers[name] = additional[name].toString());
-		}
-		return headers;
-	}
-
 	/**
-		* Sends a request to APIs
-		* @param method HTTP verb to perform the request
-		* @param uri Full URI of the end-point API's uri to perform the request
-		* @param headers Additional headers to perform the request
-		* @param body The JSON object that contains the body to perform the request
+		* Makes a request to an endpoint API
+		* @param verb HTTP verb to perform the request
+		* @param uri Full URI of the end-point API's uri to make the request
+		* @param body The JSON object that contains the body to make the request
+		* @param options The options to make the request
 	*/
-	public static send(method: string = "GET", uri: string, headers?: any, body?: any) {
+	public static makeRequest(
+		verb: string,
+		uri: string,
+		body: any | null,
+		options?: {
+			headers?: HttpHeaders | { [header: string]: string | string[] };
+			observe?: "body";
+			params?: HttpParams | { [param: string]: string | string[] };
+			reportProgress?: boolean;
+			responseType?: "json";
+			withCredentials?: boolean;
+		}
+	) {
 		if (this._http === undefined) {
 			throw new Error("[AppAPI]: Call initialize first");
 		}
-		switch ((method || "GET").toUpperCase()) {
+		switch ((verb || "GET").toUpperCase()) {
 			case "POST":
-				return this._http.post(uri, body, { headers: this.getHeaders(headers) });
+				return this._http.post(uri, body, options);
 			case "PUT":
-				return this._http.put(uri, body, { headers: this.getHeaders(headers) });
+				return this._http.put(uri, body, options);
 			case "DELETE":
-				return this._http.delete(uri, { headers: this.getHeaders(headers) });
+				return this._http.delete(uri, options);
 			case "PATCH":
-				return this._http.patch(uri, { headers: this.getHeaders(headers) });
+				return this._http.patch(uri, options);
 			case "HEAD":
-				return this._http.head(uri, { headers: this.getHeaders(headers) });
+				return this._http.head(uri, options);
 			case "OPTIONS":
-				return this._http.options(uri, { headers: this.getHeaders(headers) });
+				return this._http.options(uri, options);
 			default:
-				return this._http.get(uri, { headers: this.getHeaders(headers) });
+				return this._http.get(uri, options);
 		}
 	}
 
 	/**
-		* Sends a request to APIs
+		* Sends a request to an endpoint API
+		* @param verb HTTP verb to perform the request
+		* @param uri Full URI of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+		* @param body The JSON object that contains the body to perform the request
+	*/
+	public static sendRequest(verb: string = "GET", uri: string, headers?: any, body?: any) {
+		const httpHeaders = AppConfig.getAuthenticatedHeaders();
+		if (AppUtility.isArray(headers, true)) {
+			(headers as Array<any>).forEach(header => {
+				if (AppUtility.isObject(header, true) && AppUtility.isNotEmpty(header.name) && AppUtility.isNotEmpty(header.value)) {
+					httpHeaders[header.name as string] = header.value as string;
+				}
+			});
+		}
+		else if (AppUtility.isObject(headers, true)) {
+			Object.keys(headers).forEach(name => httpHeaders[name] = headers[name].toString());
+		}
+		return this.makeRequest(verb, uri, body, { headers: httpHeaders });
+	}
+
+	/**
+		* Sends a request to an endpoint API
 		* @param method HTTP verb to perform the request
 		* @param uri Full URI of the end-point API's uri to perform the request
 		* @param headers Additional headers to perform the request
 		* @param body The JSON object that contains the body to perform the request
 	*/
-	public static sendAsync(method: string = "GET", uri: string, headers?: any, body?: any) {
-		return this.send(method, uri, headers).toPromise();
+	public static sendRequestAsync(method: string, uri: string, headers?: any, body?: any) {
+		return this.sendRequest(method, uri, headers).toPromise();
 	}
 
 	/**
@@ -85,7 +108,7 @@ export class AppAPI {
 		* @param headers Additional headers to perform the request
 	*/
 	public static get(path: string, headers?: any) {
-		return this.send("GET", this.getURI(path), headers);
+		return this.sendRequest("GET", this.getURI(path), headers);
 	}
 
 	/**
@@ -104,7 +127,7 @@ export class AppAPI {
 		* @param headers Additional headers to perform the request
 	*/
 	public static post(path: string, body: any, headers?: any) {
-		return this.send("POST", this.getURI(path), headers, body);
+		return this.sendRequest("POST", this.getURI(path), headers, body);
 	}
 
 	/**
@@ -124,7 +147,7 @@ export class AppAPI {
 		* @param headers Additional headers to perform the request
 	*/
 	public static put(path: string, body: any, headers?: any) {
-		return this.send("PUT", this.getURI(path), headers, body);
+		return this.sendRequest("PUT", this.getURI(path), headers, body);
 	}
 
 	/**
@@ -143,7 +166,7 @@ export class AppAPI {
 		* @param headers Additional headers to perform the request
 	*/
 	public static delete(path: string, headers?: any) {
-		return this.send("DELETE", this.getURI(path), headers);
+		return this.sendRequest("DELETE", this.getURI(path), headers);
 	}
 
 	/**

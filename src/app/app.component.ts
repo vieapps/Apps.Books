@@ -1,8 +1,10 @@
 import { Component, OnInit } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
+import { HttpClient } from "@angular/common/http";
 import { Platform, MenuController } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
+import { AppAPI } from "./components/app.api";
 import { AppRTU } from "./components/app.rtu";
 import { AppEvents } from "./components/app.events";
 import { AppCrypto } from "./components/app.crypto";
@@ -24,6 +26,7 @@ export class AppComponent implements OnInit {
 
 	constructor(
 		public router: Router,
+		public http: HttpClient,
 		public platform: Platform,
 		public menuController: MenuController,
 		public splashScreen: SplashScreen,
@@ -37,6 +40,7 @@ export class AppComponent implements OnInit {
 		if (this.configSvc.isDebug) {
 			console.log("<AppComponent>: Initializing...");
 		}
+		AppAPI.initialize(http);
 	}
 
 	sidebar = {

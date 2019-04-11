@@ -387,7 +387,7 @@ export class AppFormsService {
 							control.Options.SelectOptions.Values = await control.Options.SelectOptions.RemoteURIProcessor(uri, control.Options.SelectOptions.RemoteURIConverter);
 						}
 						else {
-							const values = await AppAPI.sendAsync("GET", uri);
+							const values = await AppAPI.sendRequestAsync("GET", uri);
 							control.Options.SelectOptions.Values = AppUtility.isArray(values, true)
 								? (values as Array<string>).length > 0 && typeof values[0] === "string"
 									? (values as Array<string>).map(value => {
