@@ -114,7 +114,7 @@ export class BooksService extends BaseService {
 		if (this.configSvc.isAuthenticated) {
 			await this.loadBookmarksAsync(() => {
 				const bookmarks = this.configSvc.appConfig.extras["Books-Bookmarks"] as Dictionary<string, Bookmark>;
-				console.log("[Books]: The bookmarks are loaded" + `Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size() : 0}`);
+				console.log("[Books]: The bookmarks are loaded\n" + `Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size() : 0}`);
 			});
 		}
 
