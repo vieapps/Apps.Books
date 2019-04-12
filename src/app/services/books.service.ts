@@ -332,7 +332,7 @@ export class BooksService extends BaseService {
 					Query: {
 						"object-identity": "chapter",
 						"id": id,
-						"chapter": chapter
+						"chapter": chapter + ""
 					}
 				}, data => this.updateChapter(data));
 			}
@@ -774,7 +774,7 @@ export class BooksService extends BaseService {
 				"object-identity": "recrawl",
 				"id": id,
 				"url": url,
-				"full": "full" === mode
+				"full": ("full" === mode) + ""
 			}
 		});
 	}

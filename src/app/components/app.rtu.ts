@@ -42,6 +42,10 @@ export class AppRTU {
 			Data: any
 		}
 	}>;
+	private static _callback = {
+		counter: 0,
+		handlers: {} as { [identity: string]: (data: any) => void }
+	};
 
 	private static _onOpen: (event: Event) => void = undefined;
 
@@ -292,7 +296,20 @@ export class AppRTU {
 
 			const json = JSON.parse(event.data || "{}");
 
-			if ("Error" === json.Type) {
+			if (AppUtility.isNotEmpty(json.Callback)) {
+				const callback = this._callback.handlers[json.Callback];
+				if (callback !== undefined) {
+					try {
+						callback(json.Data || {});
+					}
+					catch (error) {
+						console.error("[RTU]: Callback error", error, json);
+					}
+				}
+				delete this._callback.handlers[json.Callback];
+			}
+
+			else if ("Error" === json.Type) {
 				if (AppUtility.isGotSecurityException(json.Data)) {
 					console.warn(`[RTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 					this.stop();
@@ -385,36 +402,36 @@ export class AppRTU {
 		}
 	}
 
-	/** Sends a request to a service via WebSocket connection */
-	public static send(request: { ServiceName: string, ObjectName: string, Verb: string, Query?: { [key: string]: any }, Header?: any, Body?: any, Extra?: any }, whenNotReady?: (data?: any) => void) {
-		if (this.isReady) {
-			request.Body = JSON.stringify(request.Body || {});
-			this._websocket.send(JSON.stringify(request));
+	/**
+	 * Sends a request to perform an action of a specified service
+	 * @param request The request to send
+	 * @param callback The callback function to handle the returning data
+	*/
+	public static send(request: {
+			ServiceName: string,
+			ObjectName: string,
+			Verb: string,
+			Query?: { [key: string]: string },
+			Body?: any,
+			Header?: { [key: string]: string },
+			Extra?: { [key: string]: string }
+		},
+		callback?: (data: any) => void
+	) {
+		if (callback !== undefined) {
+			this._callback.counter++;
+			this._callback.handlers[`func-${this._callback.counter}`] = callback;
 		}
-		else {
-			let path = `${request.ServiceName.toLowerCase()}/${request.ObjectName.toLowerCase()}`;
-			let query = AppConfig.getRelatedQuery();
-			if (AppUtility.isObject(request.Query, true)) {
-				if (request.Query["object-identity"]) {
-					path += "/" + request.Query["object-identity"];
-					delete request.Query["object-identity"];
-				}
-				query += "&" + AppUtility.getQueryOfJson(request.Query);
-			}
-			if (AppUtility.isObject(request.Extra, true)) {
-				query += "&extras=" + AppUtility.toBase64Url(request.Extra);
-			}
-			AppAPI.sendRequest(request.Verb, AppConfig.URIs.apis + path + "?" + query, request.Header, request.Body)
-				.toPromise()
-				.then(
-					response => {
-						if (whenNotReady !== undefined) {
-							whenNotReady(response);
-						}
-					},
-					error => console.error("[RTU]: Error occurred while sending request => " + AppUtility.getErrorMessage(error), error)
-				);
-		}
+		this._websocket.send(JSON.stringify({
+			ServiceName: request.ServiceName,
+			ObjectName: request.ObjectName,
+			Verb: request.Verb,
+			Query: request.Query || {},
+			Body: request.Body || {},
+			Header: request.Header || {},
+			Extra: request.Extra || {},
+			Callback: callback !== undefined ? `func-${this._callback.counter}` : undefined
+		}));
 	}
 
 }

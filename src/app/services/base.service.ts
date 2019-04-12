@@ -195,9 +195,23 @@ export class Base {
 		);
 	}
 
-	/** Sends a request/info to remote API via WebSocket connection (of the real-time update component) */
-	protected send(request: { ServiceName: string, ObjectName: string, Verb: string, Query?: { [key: string]: any }, Header?: any, Body?: any, Extra?: any }, whenNotReady?: (data?: any) => void) {
-		AppRTU.send(request, whenNotReady);
+	/**
+	 * Sends a request to remote API to perform an action of a specified service
+	 * @param request The request to send
+	 * @param callback The callback function to handle the returning data
+	*/
+	protected send(request: {
+			ServiceName: string,
+			ObjectName: string,
+			Verb: string,
+			Query?: { [key: string]: string },
+			Body?: any,
+			Header?: { [key: string]: string },
+			Extra?: { [key: string]: string }
+		},
+		callback?: (data: any) => void
+	) {
+		AppRTU.send(request, callback);
 	}
 
 	/** Gets the message for working with console/log file */
