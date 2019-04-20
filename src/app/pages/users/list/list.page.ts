@@ -91,7 +91,7 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 			: await this.configSvc.getResourceAsync("users.list.title.list");
 		if (!this.searching) {
 			this.ratings = {};
-			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.usersSvc.serviceName) || AppPagination.getDefault();
+			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.usersSvc.name) || AppPagination.getDefault();
 			this.pagination.PageNumber = this.pageNumber;
 			await this.searchAsync();
 		}
@@ -169,7 +169,7 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		const onNextAsync = async (data: any) => {
 			this.pageNumber++;
-			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.usersSvc.serviceName);
+			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.usersSvc.name);
 			this.pagination.PageNumber = this.pageNumber;
 			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
 			await TrackingUtility.trackAsync(this.title + ` [${this.pageNumber}]`, this.configSvc.currentUrl);

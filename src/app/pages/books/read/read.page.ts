@@ -210,7 +210,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 			}
 		}
 
-		if (this.authSvc.isServiceModerator(this.booksSvc.serviceName)) {
+		if (this.authSvc.isServiceModerator(this.booksSvc.name)) {
 			[
 				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", () => this.zone.run(async () => await this.openUpdateAsync())),
 				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.delete"), "trash", () => this.zone.run(async () => await this.deleteAsync()))

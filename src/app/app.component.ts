@@ -4,8 +4,7 @@ import { HttpClient } from "@angular/common/http";
 import { Platform, MenuController } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
-import { AppAPI } from "./components/app.api";
-import { AppRTU } from "./components/app.rtu";
+import { AppRTU, AppXHR } from "./components/app.apis";
 import { AppEvents } from "./components/app.events";
 import { AppCrypto } from "./components/app.crypto";
 import { AppUtility } from "./components/app.utility";
@@ -40,7 +39,7 @@ export class AppComponent implements OnInit {
 		if (this.configSvc.isDebug) {
 			console.log("<AppComponent>: Initializing...");
 		}
-		AppAPI.initialize(http);
+		AppXHR.initialize(http);
 	}
 
 	sidebar = {
@@ -88,7 +87,7 @@ export class AppComponent implements OnInit {
 				const url = (event as NavigationEnd).url;
 				const params = this.router.routerState.snapshot.root.queryParams;
 				this.configSvc.appConfig.url.routerParams = this.router.routerState.snapshot.root.params;
-				this.configSvc.addUrl(url, params);
+				this.configSvc.pushUrl(url, params);
 				AppEvents.broadcast("Navigated", { Url: url, Params: params });
 			}
 		});

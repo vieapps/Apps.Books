@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { AppConfig } from "../app.config";
-import { AppAPI } from "../components/app.api";
+import { AppXHR } from "../components/app.apis";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseService } from "./base.service";
 
@@ -17,7 +17,7 @@ export class FilesService extends BaseService {
 		} as { [key: string]: string };
 		Object.keys(header || {}).forEach(key => headers[key] = header[key]);
 		try {
-			const response = await AppAPI.sendRequestAsync("POST", AppAPI.getURI(path, AppConfig.URIs.files), headers, { Data: data });
+			const response = await AppXHR.sendRequestAsync("POST", AppXHR.getURI(path, AppConfig.URIs.files), headers, { Data: data });
 			if (onNext !== undefined) {
 				onNext(response);
 			}

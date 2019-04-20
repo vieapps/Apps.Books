@@ -118,8 +118,8 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.url.stack.length > 1 ? this.appConfig.url.stack[this.appConfig.url.stack.length - 2] : undefined;
 	}
 
-	/** Adds an url into stack of routes */
-	public addUrl(url: string, params: { [key: string]: any }) {
+	/** Pushs/Adds an url into stack of routes */
+	public pushUrl(url: string, params: { [key: string]: any }) {
 		url = url.indexOf("?") > 0 ? url.substr(0, url.indexOf("?")) : url;
 		this.appConfig.url.stack = url !== this.appConfig.url.home ? this.appConfig.url.stack : [];
 		const previous = this.getPreviousUrl();
@@ -139,9 +139,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Removes the current url from the stack, also pop the current view */
-	public async popUrlAsync() {
-		await this.navController.pop();
-		this.appConfig.url.stack.pop();
+	public popUrl() {
+		this.navController.pop().then(() => this.appConfig.url.stack.pop());
 	}
 
 	private getUrl(info: { url: string, params: { [key: string]: any } }, alternativeUrl?: string) {
@@ -279,8 +278,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Initializes the session with REST API */
-	public async initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.readAsync(
+	public initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.readAsync(
 			"users/session",
 			async data => {
 				if (this.isDebug) {
@@ -297,13 +296,15 @@ export class ConfigurationService extends BaseService {
 					}
 				});
 			},
-			error => this.showError("Error occurred while initializing the session", error, onError)
+			error => this.showError("Error occurred while initializing the session", error, onError),
+			undefined,
+			true
 		);
 	}
 
 	/** Registers the initialized session (anonymous) with REST API */
-	public async registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.readAsync(
+	public registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.readAsync(
 			`users/session?register=${this.appConfig.session.id}`,
 			async () => {
 				this.appConfig.session.account = this.getAccount(true);
@@ -313,7 +314,9 @@ export class ConfigurationService extends BaseService {
 				AppEvents.broadcast("Session", { Type: "Registered" });
 				await this.storeSessionAsync(onNext);
 			},
-			error => this.showError("Error occurred while registering the session", error, onError)
+			error => this.showError("Error occurred while registering the session", error, onError),
+			undefined,
+			true
 		);
 	}
 
@@ -547,8 +550,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Store the information of current account profile into storage */
-	public async storeProfileAsync(onNext?: (data?: any) => void) {
-		await this.storeSessionAsync(onNext);
+	public storeProfileAsync(onNext?: (data?: any) => void) {
+		return this.storeSessionAsync(onNext);
 	}
 
 	/** Watch the connection of Facebook */
@@ -607,18 +610,18 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Sends a request to navigates to home screen */
-	public async navigateHomeAsync(url?: string, extras?: { [key: string]: any }) {
-		await this.navController.navigateRoot(url || this.appConfig.url.home, extras);
+	public navigateHomeAsync(url?: string, extras?: { [key: string]: any }) {
+		return this.navController.navigateRoot(url || this.appConfig.url.home, extras);
 	}
 
 	/** Sends a request to navigates back one step */
-	public async navigateBackAsync(url?: string, extras?: { [key: string]: any }) {
-		await this.navController.navigateBack(url || this.previousUrl, extras);
+	public navigateBackAsync(url?: string, extras?: { [key: string]: any }) {
+		return this.navController.navigateBack(url || this.previousUrl, extras);
 	}
 
 	/** Sends a request to navigates forward one step */
-	public async navigateForwardAsync(url: string, extras?: { [key: string]: any }) {
-		await this.navController.navigateForward(url || this.appConfig.url.home, extras);
+	public navigateForwardAsync(url: string, extras?: { [key: string]: any }) {
+		return this.navController.navigateForward(url || this.appConfig.url.home, extras);
 	}
 
 	private async loadGeoMetaAsync() {
@@ -630,11 +633,11 @@ export class ConfigurationService extends BaseService {
 			AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
 		}
 
-		await super.readAsync(
+		await super.fetchAsync(
 			`statics/geo/provinces/${this.appConfig.geoMeta.country}.json`,
 			async countries => await this.saveGeoMetaAsync(countries, async () => {
 				if (this.appConfig.geoMeta.countries.length < 1) {
-					await super.readAsync(
+					await super.fetchAsync(
 						"statics/geo/countries.json",
 						async provinces => await this.saveGeoMetaAsync(provinces),
 						error => this.showError("Error occurred while fetching the meta countries", error)
@@ -690,10 +693,10 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Prepares the UI languages */
-	public async prepareLanguagesAsync() {
+	public prepareLanguagesAsync() {
 		this.translateSvc.addLangs(this.languages.map(language => language.Value));
 		this.translateSvc.setDefaultLang(this.appConfig.language);
-		await this.setResourceLanguageAsync(this.appConfig.language);
+		return this.setResourceLanguageAsync(this.appConfig.language);
 	}
 
 	/** Changes the language & locale of resources to use in the app */
@@ -707,8 +710,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Sets the language & locale of resources to use in the app */
-	public async setResourceLanguageAsync(language: string) {
-		await this.translateSvc.use(language).toPromise();
+	public setResourceLanguageAsync(language: string) {
+		return this.translateSvc.use(language).toPromise<void>();
 	}
 
 	/** Gets the resource (of the current language) by a key */
@@ -757,7 +760,7 @@ export class ConfigurationService extends BaseService {
 	public async getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
 		const path = this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID);
 		if (this.getDefinition(path) === undefined) {
-			await super.readAsync(
+			await super.fetchAsync(
 				path,
 				data => this.addDefinition(data, path),
 				error => this.showError("Error occurred while working with definitions", error)

@@ -230,6 +230,7 @@ export class PlatformUtility {
 			HostNames: hostnames,
 			Port: port,
 			Path: path,
+			Paths: path.split("/"),
 			Query: query,
 			QueryParams: queryParams,
 			Hash: hash,

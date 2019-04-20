@@ -1,5 +1,5 @@
 import { List } from "linqts";
-import { Response } from "@angular/http";
+import { HttpErrorResponse } from "@angular/common/http";
 import { AppCrypto } from "./app.crypto";
 
 /** Servicing component for working with app */
@@ -286,8 +286,8 @@ export class AppUtility {
 	/** Parses the error */
 	public static parseError(error: any) {
 		try {
-			return error !== undefined && error instanceof Response
-				? error.json()
+			return error !== undefined && error instanceof HttpErrorResponse
+				? error.error
 				: error;
 		}
 		catch (e) {

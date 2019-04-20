@@ -1,6 +1,6 @@
 import { Subject, Subscription } from "rxjs";
 import { CompleterData, CompleterItem } from "ng2-completer";
-import { AppAPI } from "./app.api";
+import { AppXHR } from "./app.apis";
 import { AppUtility } from "./app.utility";
 
 /** Custom searching service of ng-completer */
@@ -25,7 +25,7 @@ export class AppCustomCompleter extends Subject<CompleterItem[]> implements Comp
 
 	public search(term: string) {
 		this._unsubscribe();
-		this._subscription = AppAPI.get(this.onRequest(term)).subscribe(
+		this._subscription = AppXHR.get(this.onRequest(term)).subscribe(
 			response => this.next(this.onConvert(response)),
 			error => console.error("[Custom Completer]: Error occurred while fetching remote data => " + AppUtility.getErrorMessage(error), error)
 		);

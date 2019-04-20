@@ -5,7 +5,7 @@ import { LoadingController, AlertController, ActionSheetController, ModalControl
 import { TranslateService } from "@ngx-translate/core";
 import { CompleterData } from "ng2-completer";
 import { AppConfig } from "../app.config";
-import { AppAPI } from "./app.api";
+import { AppXHR } from "./app.apis";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 
@@ -380,14 +380,14 @@ export class AppFormsService {
 					}));
 				}
 				else if (AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
-					let uri = AppAPI.getURI(control.Options.SelectOptions.RemoteURI as string);
+					let uri = AppXHR.getURI(control.Options.SelectOptions.RemoteURI as string);
 					uri += (uri.indexOf("?") < 0 ? "?" : "&") + AppConfig.getRelatedQuery();
 					try {
 						if (control.Options.SelectOptions.RemoteURIProcessor !== undefined) {
 							control.Options.SelectOptions.Values = await control.Options.SelectOptions.RemoteURIProcessor(uri, control.Options.SelectOptions.RemoteURIConverter);
 						}
 						else {
-							const values = await AppAPI.sendRequestAsync("GET", uri);
+							const values = await AppXHR.sendRequestAsync("GET", uri);
 							control.Options.SelectOptions.Values = AppUtility.isArray(values, true)
 								? (values as Array<string>).length > 0 && typeof values[0] === "string"
 									? (values as Array<string>).map(value => {

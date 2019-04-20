@@ -51,7 +51,7 @@ export class BooksUpdatePage implements OnInit {
 	};
 
 	ngOnInit() {
-		this.update.requestOnly = !this.authSvc.isServiceModerator(this.booksSvc.serviceName);
+		this.update.requestOnly = !this.authSvc.isServiceModerator(this.booksSvc.name);
 		this.initializeFormAsync();
 	}
 
@@ -74,7 +74,7 @@ export class BooksUpdatePage implements OnInit {
 			await this.configSvc.navigateBackAsync();
 		}
 		else {
-			const config = await this.configSvc.getDefinitionAsync(this.booksSvc.serviceName.toLowerCase(), "book", "form-controls") as Array<any>;
+			const config = await this.configSvc.getDefinitionAsync(this.booksSvc.name.toLowerCase(), "book", "form-controls") as Array<any>;
 			const languageCtrl = config.find(control => control.Name === "Language");
 			if (languageCtrl !== undefined && languageCtrl.Type === "TextBox") {
 				languageCtrl.Type = "Select";

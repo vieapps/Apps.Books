@@ -30,7 +30,7 @@ export class AppConfig {
 		version: "1.0.1",
 		copyright: "© 2016 - 2019 VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: ".net core 2.2 - ionic 4.2 - angular 7.2 - cordova 8.1",
+		frameworks: "ionic 4.3 - angular 7.2 - cordova 8.1",
 		homepage: "https://viebooks.net",
 		mode: "",
 		platform: "",
@@ -256,9 +256,7 @@ export class AppConfig {
 
 	/** Gets the authenticated headers (JSON) for making requests to APIs */
 	public static getAuthenticatedHeaders(addToken: boolean = true, addAppInfo: boolean = true, addDeviceID: boolean = true) {
-		const headers: {
-			[header: string]: string
-		} = {};
+		const headers: { [header: string]: string } = {};
 
 		if (addToken && AppUtility.isObject(this.session.token, true) && AppUtility.isObject(this.session.keys, true) && AppUtility.isNotEmpty(this.session.keys.jwt)) {
 			headers["x-app-token"] = AppCrypto.jwtEncode(this.session.token, this.session.keys.jwt);
@@ -282,7 +280,7 @@ export class AppConfig {
 			"x-captcha": "true",
 			"x-captcha-registered": AppCrypto.aesEncrypt(this.session.captcha.code),
 			"x-captcha-input": AppCrypto.aesEncrypt(captcha)
-		};
+		} as { [header: string]: string };
 	}
 
 }

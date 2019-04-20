@@ -232,7 +232,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 			}
 			else {
 				this.ratings = {};
-				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName) || AppPagination.getDefault();
+				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.name) || AppPagination.getDefault();
 				this.pagination.PageNumber = this.pageNumber;
 				await this.searchAsync(async () => await this.prepareActionsAsync());
 			}
@@ -295,7 +295,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		const onNextAsync = async (data: any) => {
 			this.pageNumber++;
-			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.serviceName);
+			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.name);
 			this.pagination.PageNumber = this.pageNumber;
 			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
 			await TrackingUtility.trackAsync(this.title + ` [${this.pageNumber}]`, this.uri);
@@ -390,10 +390,10 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.sort"), "list-box", () => this.zone.run(async () => await this.showSortsAsync()))
 		];
 
-		const pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
+		const pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.name);
 		if (pagination !== undefined && this.pageNumber < pagination.PageNumber) {
 			this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.show", { totalRecords: AppPagination.computeTotal(pagination.PageNumber, pagination) }), "eye", () => this.zone.run(() => {
-				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.serviceName);
+				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.name);
 				this.pageNumber = this.pagination.PageNumber;
 				this.prepareResults(async () => await this.prepareActionsAsync());
 			})));

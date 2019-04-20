@@ -1,6 +1,6 @@
 import { Set } from "typescript-collections";
 import { Injectable } from "@angular/core";
-import { AppRTU } from "./../components/app.rtu";
+import { AppRTU } from "../components/app.apis";
 import { AppCrypto } from "../components/app.crypto";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
@@ -91,8 +91,8 @@ export class AuthenticationService extends BaseService {
 		return this.canDoSetPrivileges();
 	}
 
-	public async logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.createAsync(
+	public logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.createAsync(
 			"users/session",
 			{
 				Email: AppCrypto.rsaEncrypt(email),
@@ -112,21 +112,21 @@ export class AuthenticationService extends BaseService {
 			},
 			async error => {
 				if (AppUtility.isGotSecurityException(error)) {
-					await this.configSvc.resetSessionAsync(async () => {
-						await this.configSvc.initializeSessionAsync(async () => {
-							await this.configSvc.registerSessionAsync(() => {
-								console.log(this.getLogMessage("The session is re-registered (anonymous)"));
-							});
-						});
-					});
+					await this.configSvc.resetSessionAsync(async () =>
+						await this.configSvc.initializeSessionAsync(async () =>
+							await this.configSvc.registerSessionAsync(() => console.log(this.getLogMessage("The session is re-registered (anonymous)")))
+						)
+					);
 				}
 				this.showError("Error occurred while logging in", error, onError);
-			}
+			},
+			undefined,
+			true
 		);
 	}
 
-	public async logInOTPAsync(userID: string, otpProvider: string, otpCode: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.updateAsync(
+	public logInOTPAsync(userID: string, otpProvider: string, otpCode: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.updateAsync(
 			`users/session?${this.configSvc.relatedQuery}`,
 			{
 				ID: AppCrypto.rsaEncrypt(userID),
@@ -137,12 +137,14 @@ export class AuthenticationService extends BaseService {
 				console.log(this.getLogMessage("Log in with OTP successful"));
 				await this.updateSessionAsync(data, onNext);
 			},
-			error => this.showError("Error occurred while logging in with OTP", error, onError)
+			error => this.showError("Error occurred while logging in with OTP", error, onError),
+			undefined,
+			true
 		);
 	}
 
-	public async logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.deleteAsync(
+	public logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.deleteAsync(
 			"users/session",
 			async data => {
 				AppEvents.broadcast("Session", { Type: "LogOut" });
@@ -158,24 +160,27 @@ export class AuthenticationService extends BaseService {
 					}, onError);
 				}, true);
 			},
-			error => this.showError("Error occurred while logging out", error, onError)
+			error => this.showError("Error occurred while logging out", error, onError),
+			undefined,
+			true
 		);
 	}
 
-	public async resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.updateAsync(
+	public resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.updateAsync(
 			`users/account/reset?${this.configSvc.relatedQuery}&uri=${this.configSvc.activateURI}`,
 			{
 				Email: AppCrypto.rsaEncrypt(email)
 			},
 			onNext,
 			error => this.showError("Error occurred while requesting new password", error, onError),
-			this.configSvc.appConfig.getCaptchaHeaders(captcha)
+			this.configSvc.appConfig.getCaptchaHeaders(captcha),
+			true
 		);
 	}
 
-	public async registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.readAsync(
+	public registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.readAsync(
 			`users/captcha?register=${this.configSvc.appConfig.session.id}`,
 			data => {
 				this.configSvc.appConfig.session.captcha = {
@@ -190,10 +195,10 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	private async updateSessionAsync(data: any, onNext: (data?: any) => void) {
+	private updateSessionAsync(data: any, onNext: (data?: any) => void) {
 		AppEvents.broadcast("Session", { Type: "LogIn" });
 		AppEvents.sendToElectron("Users", { Type: "LogIn", Data: data });
-		await this.configSvc.updateSessionAsync(data, () => AppRTU.start(() =>
+		return this.configSvc.updateSessionAsync(data, () => AppRTU.start(() =>
 			this.configSvc.patchSession(() =>
 				this.configSvc.patchAccount(() =>
 					this.configSvc.getProfile(() => {

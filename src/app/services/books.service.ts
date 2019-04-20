@@ -2,7 +2,7 @@ import { Dictionary } from "typescript-collections";
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { AppStorage } from "../components/app.storage";
-import { AppRTU } from "../components/app.rtu";
+import { AppRTU } from "../components/app.apis";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
 import { PlatformUtility } from "../components/app.utility.platform";
@@ -31,17 +31,17 @@ export class BooksService extends BaseService {
 	};
 
 	private initialize() {
-		AppRTU.registerAsObjectScopeProcessor(this.Name, "Book", message => this.processUpdateBookMessage(message));
-		AppRTU.registerAsObjectScopeProcessor(this.Name, "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
-		AppRTU.registerAsObjectScopeProcessor(this.Name, "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
+		AppRTU.registerAsObjectScopeProcessor(this.name, "Book", message => this.processUpdateBookMessage(message));
+		AppRTU.registerAsObjectScopeProcessor(this.name, "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
+		AppRTU.registerAsObjectScopeProcessor(this.name, "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
 		AppRTU.registerAsServiceScopeProcessor("Scheduler", () => {
 			if (this.configSvc.isAuthenticated) {
 				this.sendBookmarks();
 			}
 		});
 		if (this.configSvc.isDebug) {
-			AppRTU.registerAsServiceScopeProcessor(this.Name, () => {});
-			AppRTU.registerAsObjectScopeProcessor(this.Name, "Crawl", () => {});
+			AppRTU.registerAsServiceScopeProcessor(this.name, () => {});
+			AppRTU.registerAsObjectScopeProcessor(this.name, "Crawl", () => {});
 		}
 
 		AppEvents.on("App", async info => {
@@ -193,13 +193,9 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public get searchURI() {
-		return `${this.Name.toLowerCase()}/book/search?${this.configSvc.relatedQuery}&x-request=`;
-	}
-
 	public get completerDataSource() {
 		return new AppCustomCompleter(
-			term => this.searchURI + AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })),
+			term => AppUtility.format(super.getSearchURI("book", this.configSvc.relatedQuery), { request: AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })) }),
 			data => (data.Objects as Array<any> || []).map(o => {
 				const book = Book.deserialize(o);
 				return {
@@ -214,7 +210,7 @@ export class BooksService extends BaseService {
 
 	public search(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return super.search(
-			this.searchURI,
+			super.getSearchURI("book", this.configSvc.relatedQuery),
 			request,
 			AppUtility.isNotNull(onNext)
 				? data => {
@@ -233,9 +229,9 @@ export class BooksService extends BaseService {
 		);
 	}
 
-	public async searchAsync(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.searchAsync(
-			this.searchURI,
+	public searchAsync(request: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.searchAsync(
+			super.getSearchURI("book", this.configSvc.relatedQuery),
 			request,
 			AppUtility.isNotNull(onNext)
 				? data => {
@@ -266,7 +262,7 @@ export class BooksService extends BaseService {
 		}
 		else {
 			await super.readAsync(
-				`${this.Name.toLowerCase()}/book/${id}`,
+				`${this.name}/book/${id}`,
 				data => {
 					Book.update(data);
 					if (AppUtility.isFalse(dontUpdateCounter)) {
@@ -300,7 +296,7 @@ export class BooksService extends BaseService {
 		}
 		else {
 			await super.readAsync(
-				`${this.Name.toLowerCase()}/book/${id}?chapter=${chapter}`,
+				`${this.name}/book/${id}?chapter=${chapter}`,
 				data => {
 					this.updateChapter(data);
 					this.increaseCounters(id);
@@ -326,7 +322,7 @@ export class BooksService extends BaseService {
 		if (chapter <= book.TotalChapters) {
 			if (book.Chapters[chapter - 1] === "" || book.Chapters[chapter - 1].startsWith("https://") || book.Chapters[chapter - 1].startsWith("http://")) {
 				super.send({
-					ServiceName: this.Name,
+					ServiceName: this.name,
 					ObjectName: "book",
 					Verb: "GET",
 					Query: {
@@ -350,7 +346,7 @@ export class BooksService extends BaseService {
 	public increaseCounters(id: string, action?: string, onNext?: () => void) {
 		if (Book.instances.containsKey(id)) {
 			super.send({
-				ServiceName: this.Name,
+				ServiceName: this.name,
 				ObjectName: "book",
 				Verb: "GET",
 				Query: {
@@ -381,7 +377,7 @@ export class BooksService extends BaseService {
 	public generateFiles(id: string) {
 		if (Book.instances.containsKey(id)) {
 			super.send({
-				ServiceName: this.Name,
+				ServiceName: this.name,
 				ObjectName: "book",
 				Verb: "GET",
 				Query: {
@@ -404,7 +400,7 @@ export class BooksService extends BaseService {
 
 	public async requestUpdateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.createAsync(
-			`${this.Name.toLowerCase()}/book/${body.ID}`,
+			`${this.name}/book/${body.ID}`,
 			body,
 			onNext,
 			error => {
@@ -418,7 +414,7 @@ export class BooksService extends BaseService {
 
 	public async updateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`${this.Name.toLowerCase()}/book/${body.ID}`,
+			`${this.name}/book/${body.ID}`,
 			body,
 			onNext,
 			error => {
@@ -432,7 +428,7 @@ export class BooksService extends BaseService {
 
 	public async deleteAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.deleteAsync(
-			`${this.Name.toLowerCase()}/book/${id}`,
+			`${this.name}/book/${id}`,
 			data => {
 				Book.instances.remove(id);
 				if (onNext !== undefined) {
@@ -500,7 +496,7 @@ export class BooksService extends BaseService {
 
 	public async fetchIntroductionsAsync(onNext?: () => void) {
 		try {
-			const introduction = await this.configSvc.getDefinitionAsync(this.Name.toLowerCase(), "introductions");
+			const introduction = await this.configSvc.getDefinitionAsync(this.name.toLowerCase(), "introductions");
 			this.configSvc.appConfig.extras["Books-Introductions"][this.configSvc.appConfig.language] = introduction;
 			await this.storeIntroductionsAsync(onNext);
 		}
@@ -580,7 +576,7 @@ export class BooksService extends BaseService {
 			this.loadAuthorsAsync()
 		]);
 		super.send({
-			ServiceName: this.Name,
+			ServiceName: this.name,
 			ObjectName: "statistic",
 			Verb: "GET",
 			Query: {
@@ -620,15 +616,15 @@ export class BooksService extends BaseService {
 	}
 
 	public get readingOptions() {
-		this.configSvc.appConfig.options.extras[this.Name] =
-			this.configSvc.appConfig.options.extras[this.Name] || {
+		this.configSvc.appConfig.options.extras[this.name] =
+			this.configSvc.appConfig.options.extras[this.name] || {
 				font: "default",
 				size: "normal",
 				color: "white",
 				paragraph: "one",
 				align: "align-left"
 			};
-		return this.configSvc.appConfig.options.extras[this.Name] as { font: string, size: string, color: string, paragraph: string, align: string };
+		return this.configSvc.appConfig.options.extras[this.name] as { font: string, size: string, color: string, paragraph: string, align: string };
 	}
 
 	public get bookmarks() {
@@ -658,7 +654,7 @@ export class BooksService extends BaseService {
 
 	private getBookmarks(onNext?: () => void) {
 		super.send({
-			ServiceName: this.Name,
+			ServiceName: this.name,
 			ObjectName: "bookmarks",
 			Verb: "GET"
 		});
@@ -669,7 +665,7 @@ export class BooksService extends BaseService {
 
 	public sendBookmarks(onNext?: () => void) {
 		super.send({
-			ServiceName: this.Name,
+			ServiceName: this.name,
 			ObjectName: "bookmarks",
 			Verb: "POST",
 			Body: new List(this.bookmarks.values()).OrderByDescending(b => b.Time).Take(30).ToArray()
@@ -698,7 +694,7 @@ export class BooksService extends BaseService {
 			PlatformUtility.invoke(() => {
 				if (!Book.instances.containsKey(bookmark.ID)) {
 					super.send({
-						ServiceName: this.Name,
+						ServiceName: this.name,
 						ObjectName: "book",
 						Verb: "GET",
 						Query: {
@@ -722,7 +718,7 @@ export class BooksService extends BaseService {
 
 	public deleteBookmark(id: string, onNext?: () => void) {
 		super.send({
-			ServiceName: this.Name,
+			ServiceName: this.name,
 			ObjectName: "bookmarks",
 			Verb: "DELETE",
 			Query: {
@@ -753,7 +749,7 @@ export class BooksService extends BaseService {
 
 	public sendRequestToCrawl(url: string, onNext?: () => void) {
 		super.send({
-			ServiceName: this.Name,
+			ServiceName: this.name,
 			ObjectName: "crawl",
 			Verb: "GET",
 			Query: {
@@ -767,7 +763,7 @@ export class BooksService extends BaseService {
 
 	public sendRequestToReCrawl(id: string, url: string, mode: string) {
 		super.send({
-			ServiceName: this.Name,
+			ServiceName: this.name,
 			ObjectName: "book",
 			Verb: "GET",
 			Query: {

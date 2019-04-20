@@ -1,50 +1,62 @@
 import { Subject } from "rxjs";
+import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { AppConfig } from "../app.config";
-import { AppAPI } from "./app.api";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 
-/** Servicing component for working with real-time update (RTU) */
+/** Presents the struct of a message type */
+export interface AppMessageType {
+	Service: string;
+	Object: string;
+	Event: string;
+}
+
+/** Presents the struct of a message */
+export interface AppMessage {
+	Type: AppMessageType;
+	Data: any;
+}
+
+/** Presents the struct of a request information */
+export interface AppRequestInfo {
+	ServiceName: string;
+	ObjectName: string;
+	Verb?: string;
+	Query?: { [key: string]: string };
+	Body?: any;
+	Header?: { [key: string]: string };
+	Extra?: { [key: string]: string };
+}
+
+/** Servicing component for working with the remote APIs via WebSocket */
 export class AppRTU {
 
 	private static _status = "initializing";
 	private static _uri: string = undefined;
 	private static _websocket: WebSocket = undefined;
 	private static _types: {
-		[key: string]: { Service: string, Object: string, Event: string }
+		[key: string]: AppMessageType
 	} = {};
 	private static _serviceScopeHandlers: {
-		[key: string]: Array<{ func: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity: string }>
+		[key: string]: Array<{ func: (message: AppMessage) => void, identity: string }>
 	} = {};
 	private static _objectScopeHandlers: {
-		[key: string]: Array<{ func: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity: string }>
+		[key: string]: Array<{ func: (message: AppMessage) => void, identity: string }>
 	} = {};
 	private static _serviceScopeSubject: Subject<{
 		service: string,
-		message: {
-			Type: {
-				Service: string,
-				Object: string,
-				Event: string
-			},
-			Data: any
-		}
+		message: AppMessage
 	}>;
 	private static _objectScopeSubject: Subject<{
 		service: string,
 		object: string,
-		message: {
-			Type: {
-				Service: string,
-				Object: string,
-				Event: string
-			},
-			Data: any
-		}
+		message: AppMessage
 	}>;
-	private static _callback = {
+	private static _queue = {
 		counter: 0,
-		handlers: {} as { [identity: string]: (data: any) => void }
+		commands: {} as { [id: string]: string },
+		successCallbacks: {} as { [id: string]: (data?: any) => void },
+		errorCallbacks: {} as { [id: string]: (error?: any) => void }
 	};
 
 	private static _onOpen: (event: Event) => void = undefined;
@@ -97,7 +109,7 @@ export class AppRTU {
 	  * @param handler The function for processing when got a message from APIs
 	  * @param identity The string that presents identity of the handler for unregistering later
 	*/
-	public static registerAsServiceScopeProcessor(service: string, handler: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity?: string) {
+	public static registerAsServiceScopeProcessor(service: string, handler: (message: AppMessage) => void, identity?: string) {
 		if (AppUtility.isNotEmpty(service) && handler !== undefined) {
 			this.getServiceHandlers(service).push({
 				func: handler,
@@ -113,7 +125,7 @@ export class AppRTU {
 	  * @param handler The function for processing when got a message from APIs
 	  * @param identity The string that presents identity of the handler for unregistering later
 	*/
-	public static registerAsObjectScopeProcessor(service: string, object: string, handler: (message: { Type: { Service: string, Object: string, Event: string }, Data: any }) => void, identity?: string) {
+	public static registerAsObjectScopeProcessor(service: string, object: string, handler: (message: AppMessage) => void, identity?: string) {
 		if (AppUtility.isNotEmpty(service) && handler !== undefined) {
 			this.getObjectHandlers(service, object).push({
 				func: handler,
@@ -145,10 +157,10 @@ export class AppRTU {
 		}
 	}
 
-	/** Parses the message */
+	/** Parses the message to get type */
 	public static parse(type: string) {
-		let info = this._types[type];
-		if (info === undefined) {
+		let msgType = this._types[type];
+		if (msgType === undefined) {
 			let pos = AppUtility.indexOf(type, "#"), object = "", event = "";
 			const service = pos > 0 ? type.substring(0, pos) : type;
 			if (pos > 0) {
@@ -159,14 +171,14 @@ export class AppRTU {
 					object = object.substring(0, pos);
 				}
 			}
-			info = {
+			msgType = {
 				Service: service,
 				Object:  object,
 				Event: event
 			};
-			this._types[type] = info;
+			this._types[type] = msgType;
 		}
-		return info;
+		return msgType;
 	}
 
 	/** Starts the real-time updater */
@@ -186,14 +198,7 @@ export class AppRTU {
 		if (this._serviceScopeSubject === undefined) {
 			this._serviceScopeSubject = new Subject<{
 				service: string,
-				message: {
-					Type: {
-						Service: string,
-						Object: string,
-						Event: string
-					},
-					Data: any
-				}
+				message: AppMessage
 			}>();
 			this._serviceScopeSubject.subscribe(
 				({ service, message }) => {
@@ -213,14 +218,7 @@ export class AppRTU {
 			this._objectScopeSubject = new Subject<{
 				service: string,
 				object: string,
-				message: {
-					Type: {
-						Service: string,
-						Object: string,
-						Event: string
-					},
-					Data: any
-				}
+				message: AppMessage
 			}>();
 			this._objectScopeSubject.subscribe(
 				({ service, object, message }) => {
@@ -238,7 +236,7 @@ export class AppRTU {
 
 		// create WebSocket
 		this._status = "initializing";
-		this._uri = (AppUtility.isNotEmpty(AppConfig.URIs.updates) ? AppConfig.URIs.updates : AppConfig.URIs.apis).replace("http://", "ws://").replace("https://", "wss://") + "u?x-request=" + AppUtility.toBase64Url(AppConfig.getAuthenticatedHeaders());
+		this._uri = (AppUtility.isNotEmpty(AppConfig.URIs.updates) ? AppConfig.URIs.updates : AppConfig.URIs.apis).replace("http://", "ws://").replace("https://", "wss://") + "v?x-request=" + AppUtility.toBase64Url(AppConfig.getAuthenticatedHeaders());
 		this._websocket = new WebSocket(this._uri + (AppUtility.isTrue(isRestart) ? "&x-restart=" : ""));
 
 		// assign event handlers
@@ -253,6 +251,13 @@ export class AppRTU {
 					console.error("[RTU]: Error occurred while running the 'on-open' handler", e);
 				}
 			}
+			PlatformUtility.invoke(() => {
+				const identities = Object.keys(this._queue.commands);
+				if (this.isReady && identities.length > 0) {
+					console.log(`[RTU]: Send ${identities.length} queued request(s)...`);
+					identities.forEach(id => this._websocket.send(this._queue.commands[id]));
+				}
+			}, 789);
 		};
 
 		this._websocket.onclose = event => {
@@ -295,18 +300,26 @@ export class AppRTU {
 			}
 
 			const json = JSON.parse(event.data || "{}");
+			const successCallback = AppUtility.isNotEmpty(json.ID) ? this._queue.successCallbacks[json.ID] : undefined;
+			const errorCallback = AppUtility.isNotEmpty(json.ID) ? this._queue.errorCallbacks[json.ID] : undefined;
 
-			if (AppUtility.isNotEmpty(json.Callback)) {
-				const callback = this._callback.handlers[json.Callback];
-				if (callback !== undefined) {
-					try {
-						callback(json.Data || {});
+			if (successCallback !== undefined || errorCallback !== undefined) {
+				try {
+					if ("Error" === json.Type) {
+						if (errorCallback !== undefined) {
+							errorCallback(json);
+						}
+						else {
+							console.error("[RTU]: Got an error while processing", json);
+						}
 					}
-					catch (error) {
-						console.error("[RTU]: Callback error", error, json);
+					else if (successCallback !== undefined) {
+						successCallback(json.Data || {});
 					}
 				}
-				delete this._callback.handlers[json.Callback];
+				catch (error) {
+					console.error("[RTU]: Error occurred while running the callback handler", error, json);
+				}
 			}
 
 			else if ("Error" === json.Type) {
@@ -324,7 +337,7 @@ export class AppRTU {
 			}
 
 			else {
-				const message = {
+				const message: AppMessage = {
 					Type: this.parse(json.Type),
 					Data: json.Data || {}
 				};
@@ -365,9 +378,14 @@ export class AppRTU {
 				}
 
 				else {
-					this._serviceScopeSubject.next({ "service": message.Type.Service, "message": message });
-					this._objectScopeSubject.next({ "service": message.Type.Service, "object": message.Type.Object, "message": message });
+					this.publish(message);
 				}
+			}
+
+			if (AppUtility.isNotEmpty(json.ID)) {
+				delete this._queue.commands[json.ID];
+				delete this._queue.successCallbacks[json.ID];
+				delete this._queue.errorCallbacks[json.ID];
 			}
 		};
 
@@ -402,36 +420,217 @@ export class AppRTU {
 		}
 	}
 
+	/** Publishs a message */
+	public static publish(message: AppMessage) {
+		this._serviceScopeSubject.next({ "service": message.Type.Service, "message": message });
+		this._objectScopeSubject.next({ "service": message.Type.Service, "object": message.Type.Object, "message": message });
+	}
+
 	/**
 	 * Sends a request to perform an action of a specified service
-	 * @param request The request to send
-	 * @param callback The callback function to handle the returning data
+	 * @param request The request to send to remote APIs
+	 * @param onSuccess The callback function to handle the returning data
+	 * @param onError The callback function to handle the returning error
 	*/
-	public static send(request: {
-			ServiceName: string,
-			ObjectName: string,
-			Verb: string,
-			Query?: { [key: string]: string },
-			Body?: any,
-			Header?: { [key: string]: string },
-			Extra?: { [key: string]: string }
-		},
-		callback?: (data: any) => void
-	) {
-		if (callback !== undefined) {
-			this._callback.counter++;
-			this._callback.handlers[`func-${this._callback.counter}`] = callback;
-		}
-		this._websocket.send(JSON.stringify({
+	public static send(request: AppRequestInfo, onSuccess?: (data?: any) => void, onError?: (error?: any) => void) {
+		const id = `r-${this._queue.counter}`;
+		this._queue.counter++;
+		this._queue.commands[id] = JSON.stringify({
+			ID: id,
 			ServiceName: request.ServiceName,
 			ObjectName: request.ObjectName,
-			Verb: request.Verb,
+			Verb: request.Verb || "GET",
 			Query: request.Query || {},
 			Body: request.Body || {},
 			Header: request.Header || {},
-			Extra: request.Extra || {},
-			Callback: callback !== undefined ? `func-${this._callback.counter}` : undefined
-		}));
+			Extra: request.Extra || {}
+		});
+		this._queue.successCallbacks[id] = onSuccess;
+		this._queue.errorCallbacks[id] = onError;
+		if (this.isReady) {
+			this._websocket.send(this._queue.commands[id]);
+		}
+	}
+
+}
+
+/** Servicing component for working with remote APIs via XMLHttpRequest (XHR) */
+export class AppXHR {
+
+	private static _http: HttpClient = undefined;
+
+	/** Gets the HttpClient instance */
+	public static get http() {
+		return this._http;
+	}
+
+	/** Initializes the instance of the Angular Http service */
+	public static initialize(http: HttpClient) {
+		if (this._http === undefined && AppUtility.isNotNull(http)) {
+			this._http = http;
+		}
+	}
+
+	/**
+		* Makes a request to an endpoint API
+		* @param verb HTTP verb to perform the request
+		* @param uri Full URI of the end-point API's uri to make the request
+		* @param body The JSON object that contains the body to make the request
+		* @param options The options to make the request
+	*/
+	public static makeRequest(
+		verb: string,
+		uri: string,
+		body: any | null,
+		options?: {
+			headers?: HttpHeaders | { [header: string]: string | string[] };
+			observe?: "body";
+			params?: HttpParams | { [param: string]: string | string[] };
+			reportProgress?: boolean;
+			responseType?: "json";
+			withCredentials?: boolean;
+		}
+	) {
+		if (this._http === undefined) {
+			throw new Error("[AppAPI]: Call initialize first");
+		}
+		switch ((verb || "GET").toUpperCase()) {
+			case "POST":
+				return this._http.post(uri, body, options);
+			case "PUT":
+				return this._http.put(uri, body, options);
+			case "DELETE":
+				return this._http.delete(uri, options);
+			case "PATCH":
+				return this._http.patch(uri, options);
+			case "HEAD":
+				return this._http.head(uri, options);
+			case "OPTIONS":
+				return this._http.options(uri, options);
+			default:
+				return this._http.get(uri, options);
+		}
+	}
+
+	/**
+		* Sends a request to an endpoint API
+		* @param verb HTTP verb to perform the request
+		* @param uri Full URI of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+		* @param body The JSON object that contains the body to perform the request
+	*/
+	public static sendRequest(verb: string = "GET", uri: string, headers?: any, body?: any) {
+		const httpHeaders = AppConfig.getAuthenticatedHeaders();
+		if (AppUtility.isArray(headers, true)) {
+			(headers as Array<any>).forEach(header => {
+				if (AppUtility.isObject(header, true) && AppUtility.isNotEmpty(header.name) && AppUtility.isNotEmpty(header.value)) {
+					httpHeaders[header.name as string] = header.value as string;
+				}
+			});
+		}
+		else if (AppUtility.isObject(headers, true)) {
+			Object.keys(headers).forEach(name => {
+				const value = headers[name];
+				httpHeaders[name] = value !== undefined ? value.toString() : undefined;
+			});
+		}
+		return this.makeRequest(verb, uri, body, { headers: httpHeaders });
+	}
+
+	/**
+		* Sends a request to an endpoint API
+		* @param method HTTP verb to perform the request
+		* @param uri Full URI of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+		* @param body The JSON object that contains the body to perform the request
+	*/
+	public static sendRequestAsync(method: string = "GET", uri: string, headers?: any, body?: any) {
+		return this.sendRequest(method, uri, headers, body).toPromise();
+	}
+
+	/**
+		* Gets the URI to send a request to APIs
+		* @param path Path of the end-point API's uri to perform the request
+		* @param endpoint URI of the end-point API's uri to perform the request
+	*/
+	public static getURI(path: string, endpoint?: string) {
+		return (path.startsWith("http://") || path.startsWith("https://") ? "" : endpoint || AppConfig.URIs.apis) + path;
+	}
+
+	/**
+		* Performs a request to APIs with "GET" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static get(path: string, headers?: any) {
+		return this.sendRequest("GET", this.getURI(path), headers);
+	}
+
+	/**
+		* Performs a request to APIs with "GET" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static getAsync(path: string, headers?: any) {
+		return this.get(path, headers).toPromise();
+	}
+
+	/**
+		* Performs a request to APIs with "POST" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param body The JSON object that contains the body to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static post(path: string, body: any, headers?: any) {
+		return this.sendRequest("POST", this.getURI(path), headers, body);
+	}
+
+	/**
+		* Performs a request to APIs with "POST" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param body The JSON object that contains the body to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static postAsync(path: string, body: any, headers?: any) {
+		return this.post(path, body, headers).toPromise();
+	}
+
+	/**
+		* Performs a request to APIs with "PUT" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param body The JSON object that contains the body to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static put(path: string, body: any, headers?: any) {
+		return this.sendRequest("PUT", this.getURI(path), headers, body);
+	}
+
+	/**
+		* Performs a request to APIs with "PUT" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param body The JSON object that contains the body to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static putAsync(path: string, body: any, headers?: any) {
+		return this.put(path, body, headers).toPromise();
+	}
+
+	/**
+		* Performs a request to APIs with "DELETE" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static delete(path: string, headers?: any) {
+		return this.sendRequest("DELETE", this.getURI(path), headers);
+	}
+
+	/**
+		* Performs a request to APIs with "DELETE" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static deleteAsync(path: string, headers?: any) {
+		return this.delete(path, headers).toPromise();
 	}
 
 }

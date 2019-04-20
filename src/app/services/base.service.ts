@@ -2,166 +2,134 @@ import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router, CanActivate } from "@angular/router";
 import { AppConfig } from "../app.config";
-import { AppAPI } from "../components/app.api";
-import { AppRTU } from "../components/app.rtu";
+import { AppRTU, AppXHR, AppRequestInfo } from "../components/app.apis";
 import { AppCrypto } from "../components/app.crypto";
 import { AppPagination } from "../components/app.pagination";
 import { AppUtility } from "../components/app.utility";
+import { PlatformUtility } from "../components/app.utility.platform";
 
-/** Base of all providers/services */
+/** Base class of all services */
 export class Base {
 
-	constructor (name?: string) {
-		this.Name = name || "";
-	}
+	private _name = "";
 
-	/** Name of the service (for working with paginations as prefix, display logs/errors, ...) */
-	protected Name = "";
+	constructor (name?: string) {
+		this._name = name || this.constructor.name;
+	}
 
 	/** Gets name of the service (for working with paginations as prefix, display logs/errors, ...) */
-	public get serviceName() {
-		return AppUtility.isNotEmpty(this.Name) ? this.Name : this.constructor.name;
+	public get name() {
+		return this._name;
 	}
 
 	/**
-	 * Creates an instance
-	 * @param path The URI path of the remote API to send the request to
-	 * @param body The JSON body to send the request
-	 * @param onNext The handler to run when the process is completed
-	 * @param onError The handler to run when got any error
-	 * @param headers The additional headers to send the request
+	 * Sends a request to the remote API to perform an action of a specified service (using WebSocket)
+	 * @param request The request to send
+	 * @param onSuccess The callback function to handle the returning data
+	 * @param onError The callback function to handle the returning error
 	*/
-	protected async createAsync(path: string, body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: any) {
-		try {
-			const response = await AppAPI.postAsync(path, body, headers);
-			if (onNext !== undefined) {
-				onNext(response);
-			}
-		}
-		catch (error) {
-			if (onError !== undefined) {
-				onError(AppUtility.parseError(error));
-			}
-			else {
-				this.showError("Error occurred while creating", error);
-			}
-		}
+	protected send(request: AppRequestInfo, onSuccess?: (data?: any) => void, onError?: (error?: any) => void) {
+		AppRTU.send(request, onSuccess, onError);
 	}
 
 	/**
-	 * Reads an instance
-	 * @param path The URI path of the remote API to send the request to
-	 * @param onNext The handler to run when the process is completed
-	 * @param onError The handler to run when got any error
-	 * @param headers The additional headers to send the request
+	 * Sends a request to the remote API to perform an action of a specified service (try to use WebSocket first, if not available then use XHR)
+	 * @param request The request to perform
+	 * @param onSuccess The callback function to handle the returning data
+	 * @param onError The callback function to handle the returning error
 	*/
-	protected async readAsync(path: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: any) {
-		try {
-			const response = await AppAPI.getAsync(path, headers);
-			if (onNext !== undefined) {
-				onNext(response);
+	protected async sendAsync(request: {
+			Path: string,
+			Verb?: string,
+			Body?: any,
+			Header?: { [key: string]: string },
+			Extra?: { [key: string]: string }
+		},
+		onSuccess?: (data?: any) => void,
+		onError?: (error?: any) => void,
+		useXHR: boolean = false
+	) {
+		if (AppRTU.isReady && !useXHR) {
+			const uri = PlatformUtility.parseURI(request.Path);
+			const serviceName = uri.Paths[0];
+			const objectName = uri.Paths.length > 1 ? uri.Paths[1] : "";
+			const query = uri.QueryParams;
+			if (uri.Paths.length > 2) {
+				query["object-identity"] = uri.Paths[2];
 			}
-		}
-		catch (error) {
-			if (onError !== undefined) {
-				onError(AppUtility.parseError(error));
-			}
-			else {
-				this.showError("Error occurred while reading", error);
-			}
-		}
-	}
-
-	/**
-	 * Updates an instance
-	 * @param path The URI path of the remote API to send the request to
-	 * @param body The JSON body to send the request
-	 * @param onNext The handler to run when the process is completed
-	 * @param onError The handler to run when got any error
-	 * @param headers The additional headers to send the request
-	*/
-	protected async updateAsync(path: string, body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: any) {
-		try {
-			const response = await AppAPI.putAsync(path, body, headers);
-			if (onNext !== undefined) {
-				onNext(response);
-			}
-		}
-		catch (error) {
-			if (onError !== undefined) {
-				onError(AppUtility.parseError(error));
-			}
-			else {
-				this.showError("Error occurred while updating", error);
-			}
-		}
-	}
-
-	/**
-	 * Deletes an instance
-	 * @param path The URI path of the remote API to send the request to
-	 * @param onNext The handler to run when the process is completed
-	 * @param onError The handler to run when got any error
-	 * @param headers The additional headers to send the request
-	*/
-	protected async deleteAsync(path: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: any) {
-		try {
-			const response = await AppAPI.deleteAsync(path, headers);
-			if (onNext !== undefined) {
-				onNext(response);
-			}
-		}
-		catch (error) {
-			if (onError !== undefined) {
-				onError(AppUtility.parseError(error));
-			}
-			else {
-				this.showError("Error occurred while deleting", error);
-			}
-		}
-	}
-
-	/**
-	 * Searchs for instances (sends a request to remote API for searching with GET verb and "x-request" of query parameter)
-	 * @param path The URI path of the remote API to send the request to (with 'x-request' query string)
-	 * @param request The request to search (contains filter, sort and pagination)
-	 * @param onNext The handler to run when the process is completed
-	 * @param onError The handler to run when got any error
-	 * @param dontProcessPagination Set to true to by-pass process pagination
-	*/
-	protected async searchAsync(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean) {
-		const processPagination = AppUtility.isFalse(dontProcessPagination);
-		const pagination = processPagination ? AppPagination.get(request, this.serviceName) : undefined;
-		const pageNumber = processPagination && request.Pagination !== undefined ? request.Pagination.PageNumber : pagination !== undefined ? pagination.PageNumber : 0;
-		if (pagination !== undefined && (pageNumber < pagination.PageNumber || pagination.TotalPages <= pagination.PageNumber)) {
-			if (onNext !== undefined) {
-				onNext();
-			}
+			this.send({
+				ServiceName: serviceName,
+				ObjectName: objectName,
+				Verb: request.Verb,
+				Query: query,
+				Body: request.Body,
+				Header: request.Header,
+				Extra: request.Extra
+			}, onSuccess, onError);
 		}
 		else {
 			try {
-				if (request.Pagination !== undefined && request.Pagination.PageNumber !== undefined) {
-					request.Pagination.PageNumber++;
+				let path = AppXHR.getURI(request.Path);
+				if (request.Extra !== undefined) {
+					path += (path.indexOf("?") ? "&" : "?") + "extras=" + AppUtility.toBase64Url(request.Extra);
 				}
-				const response = await AppAPI.getAsync(path + AppUtility.toBase64Url(request));
-				if (processPagination || onNext !== undefined) {
-					if (processPagination) {
-						AppPagination.set(response, this.serviceName);
-					}
-					if (onNext !== undefined) {
-						onNext(response);
-					}
+				const data = await AppXHR.sendRequestAsync(request.Verb || "GET", path, request.Header, request.Body);
+				if (onSuccess !== undefined) {
+					onSuccess(data);
 				}
 			}
 			catch (error) {
 				if (onError !== undefined) {
-					onError(AppUtility.parseError(error));
-				}
-				else {
-					this.showError("Error occurred while searching", error);
+					onError(error);
 				}
 			}
 		}
+	}
+
+	/**
+	 * Sends a request to fetch data from the remote API (using XHR with GET verb)
+	 * @param path The URI path of the remote API to send the request to
+	 * @param onNext The handler to run when the process is completed
+	 * @param onError The handler to run when got any error
+	 * @param headers The additional headers to send the request
+	*/
+	protected fetchAsync(path: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: { [header: string]: string }) {
+		return this.sendAsync(
+			{
+				Path: path,
+				Verb: "GET",
+				Header: headers
+			},
+			onNext,
+			error => {
+				if (onError !== undefined) {
+					onError(AppUtility.parseError(error));
+				}
+				else {
+					this.showError("Error occurred while reading", error);
+				}
+			},
+			true
+		);
+	}
+
+	/**
+	 * Gets the URI for working with the remote API
+	 * @param objectName The name of the object
+	 * @param objectID The identity of the object
+	 * @param query The additional query
+	*/
+	protected getURI(objectName: string, objectID?: string, query?: string) {
+		return `${this.name.toLowerCase()}/${objectName.toLowerCase()}` + (AppUtility.isNotEmpty(objectID) ? "/" + objectID : "") + (AppUtility.isNotEmpty(query) ? "?" + query : "");
+	}
+
+	/**
+	 * Gets the URI for searching (with 'x-request' parameter in the query)
+	 * @param objectName The name of the object for searching
+	 * @param query The additional query
+	*/
+	protected getSearchURI(objectName: string, query?: string) {
+		return this.getURI(objectName, "search", "x-request={{request}}" + (query !== undefined ? "&" + query : ""));
 	}
 
 	/**
@@ -173,14 +141,14 @@ export class Base {
 	 * @param dontProcessPagination Set to true to by-pass process pagination
 	*/
 	protected search(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean) {
-		return AppAPI.get(path + AppUtility.toBase64Url(request)).subscribe(
-			response => {
+		return AppXHR.get(AppUtility.format(path, { request: AppUtility.toBase64Url(request) })).subscribe(
+			data => {
 				if (AppUtility.isFalse(dontProcessPagination) || onNext !== undefined) {
 					if (AppUtility.isFalse(dontProcessPagination)) {
-						AppPagination.set(response, this.serviceName);
+						AppPagination.set(data, this.name);
 					}
 					if (onNext !== undefined) {
-						onNext(response);
+						onNext(data);
 					}
 				}
 			},
@@ -196,27 +164,167 @@ export class Base {
 	}
 
 	/**
-	 * Sends a request to remote API to perform an action of a specified service
-	 * @param request The request to send
-	 * @param callback The callback function to handle the returning data
+	 * Searchs for instances (sends a request to remote API for searching with GET verb and "x-request" of query parameter)
+	 * @param path The URI path of the remote API to send the request to (with 'x-request' query string)
+	 * @param request The request to search (contains filter, sort and pagination)
+	 * @param onNext The handler to run when the process is completed
+	 * @param onError The handler to run when got any error
+	 * @param dontProcessPagination Set to true to by-pass process pagination
 	*/
-	protected send(request: {
-			ServiceName: string,
-			ObjectName: string,
-			Verb: string,
-			Query?: { [key: string]: string },
-			Body?: any,
-			Header?: { [key: string]: string },
-			Extra?: { [key: string]: string }
-		},
-		callback?: (data: any) => void
-	) {
-		AppRTU.send(request, callback);
+	protected searchAsync(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean, useXHR: boolean = false) {
+		const processPagination = AppUtility.isFalse(dontProcessPagination);
+		const pagination = processPagination ? AppPagination.get(request, this.name) : undefined;
+		const pageNumber = processPagination && request.Pagination !== undefined ? request.Pagination.PageNumber : pagination !== undefined ? pagination.PageNumber : 0;
+		if (pagination !== undefined && (pageNumber < pagination.PageNumber || pagination.TotalPages <= pagination.PageNumber)) {
+			return new Promise<void>(onNext !== undefined ? () => onNext() : () => {});
+		}
+		else {
+			if (request.Pagination !== undefined && request.Pagination.PageNumber !== undefined) {
+				request.Pagination.PageNumber++;
+			}
+			return this.sendAsync(
+				{
+					Path: AppUtility.format(path, { request: AppUtility.toBase64Url(request) }),
+					Verb: "GET"
+				},
+				data => {
+					if (processPagination || onNext !== undefined) {
+						if (processPagination) {
+							AppPagination.set(data, this.name);
+						}
+						if (onNext !== undefined) {
+							onNext(data);
+						}
+					}
+				},
+				error => {
+					if (onError !== undefined) {
+						onError(AppUtility.parseError(error));
+					}
+					else {
+						this.showError("Error occurred while searching", error);
+					}
+				},
+				useXHR
+			);
+		}
+	}
+
+	/**
+	 * Creates an instance
+	 * @param path The URI path of the remote API to send the request to
+	 * @param body The JSON body to send the request
+	 * @param onNext The handler to run when the process is completed
+	 * @param onError The handler to run when got any error
+	 * @param headers The additional headers to send the request
+	*/
+	protected createAsync(path: string, body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: { [header: string]: string }, useXHR: boolean = false) {
+		return this.sendAsync(
+			{
+				Path: path,
+				Verb: "POST",
+				Body: body,
+				Header: headers
+			},
+			onNext,
+			error => {
+				if (onError !== undefined) {
+					onError(AppUtility.parseError(error));
+				}
+				else {
+					this.showError("Error occurred while creating", error);
+				}
+			},
+			useXHR
+		);
+	}
+
+	/**
+	 * Reads an instance
+	 * @param path The URI path of the remote API to send the request to
+	 * @param onNext The handler to run when the process is completed
+	 * @param onError The handler to run when got any error
+	 * @param headers The additional headers to send the request
+	*/
+	protected readAsync(path: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: { [header: string]: string }, useXHR: boolean = false) {
+		return this.sendAsync(
+			{
+				Path: path,
+				Verb: "GET",
+				Header: headers
+			},
+			onNext,
+			error => {
+				if (onError !== undefined) {
+					onError(AppUtility.parseError(error));
+				}
+				else {
+					this.showError("Error occurred while reading", error);
+				}
+			},
+			useXHR
+		);
+	}
+
+	/**
+	 * Updates an instance
+	 * @param path The URI path of the remote API to send the request to
+	 * @param body The JSON body to send the request
+	 * @param onNext The handler to run when the process is completed
+	 * @param onError The handler to run when got any error
+	 * @param headers The additional headers to send the request
+	*/
+	protected updateAsync(path: string, body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: { [header: string]: string }, useXHR: boolean = false) {
+		return this.sendAsync(
+			{
+				Path: path,
+				Verb: "PUT",
+				Body: body,
+				Header: headers
+			},
+			onNext,
+			error => {
+				if (onError !== undefined) {
+					onError(AppUtility.parseError(error));
+				}
+				else {
+					this.showError("Error occurred while updating", error);
+				}
+			},
+			useXHR
+		);
+	}
+
+	/**
+	 * Deletes an instance
+	 * @param path The URI path of the remote API to send the request to
+	 * @param onNext The handler to run when the process is completed
+	 * @param onError The handler to run when got any error
+	 * @param headers The additional headers to send the request
+	*/
+	protected deleteAsync(path: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: { [header: string]: string }, useXHR: boolean = false) {
+		return this.sendAsync(
+			{
+				Path: path,
+				Verb: "DELETE",
+				Header: headers
+			},
+			onNext,
+			error => {
+				if (onError !== undefined) {
+					onError(AppUtility.parseError(error));
+				}
+				else {
+					this.showError("Error occurred while deleting", error);
+				}
+			},
+			useXHR
+		);
 	}
 
 	/** Gets the message for working with console/log file */
 	protected getLogMessage(message: string) {
-		return `[${this.serviceName}]: ${message}`;
+		return `[${this.name}]: ${message}`;
 	}
 
 	/** Prints the error message to console/log file and run the next action */
