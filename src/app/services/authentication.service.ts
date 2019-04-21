@@ -118,7 +118,12 @@ export class AuthenticationService extends BaseService {
 						)
 					);
 				}
-				this.showError("Error occurred while logging in", error, onError);
+				if (onError !== undefined) {
+					onError(error);
+				}
+				else {
+					super.showError("Error occurred while logging in", error);
+				}
 			},
 			undefined,
 			true
@@ -127,7 +132,7 @@ export class AuthenticationService extends BaseService {
 
 	public logInOTPAsync(userID: string, otpProvider: string, otpCode: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return super.updateAsync(
-			`users/session?${this.configSvc.relatedQuery}`,
+			"users/session",
 			{
 				ID: AppCrypto.rsaEncrypt(userID),
 				Info: AppCrypto.rsaEncrypt(otpProvider),
@@ -137,7 +142,14 @@ export class AuthenticationService extends BaseService {
 				console.log(this.getLogMessage("Log in with OTP successful"));
 				await this.updateSessionAsync(data, onNext);
 			},
-			error => this.showError("Error occurred while logging in with OTP", error, onError),
+			error => {
+				if (onError !== undefined) {
+					onError(error);
+				}
+				else {
+					super.showError("Error occurred while logging in with OTP", error);
+				}
+			},
 			undefined,
 			true
 		);
@@ -160,7 +172,14 @@ export class AuthenticationService extends BaseService {
 					}, onError);
 				}, true);
 			},
-			error => this.showError("Error occurred while logging out", error, onError),
+			error => {
+				if (onError !== undefined) {
+					onError(error);
+				}
+				else {
+					super.showError("Error occurred while logging out", error);
+				}
+			},
 			undefined,
 			true
 		);
@@ -168,14 +187,20 @@ export class AuthenticationService extends BaseService {
 
 	public resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return super.updateAsync(
-			`users/account/reset?${this.configSvc.relatedQuery}&uri=${this.configSvc.activateURI}`,
+			`users/account/reset?uri=${this.configSvc.activateURI}&${this.configSvc.relatedQuery}`,
 			{
 				Email: AppCrypto.rsaEncrypt(email)
 			},
 			onNext,
-			error => this.showError("Error occurred while requesting new password", error, onError),
-			this.configSvc.appConfig.getCaptchaHeaders(captcha),
-			true
+			error => {
+				if (onError !== undefined) {
+					onError(error);
+				}
+				else {
+					super.showError("Error occurred while requesting new password", error);
+				}
+			},
+			this.configSvc.appConfig.getCaptchaHeaders(captcha)
 		);
 	}
 
@@ -191,7 +216,14 @@ export class AuthenticationService extends BaseService {
 					onNext(data);
 				}
 			},
-			error => this.showError("Error occurred while registering session captcha", error, onError)
+			error => {
+				if (onError !== undefined) {
+					onError(error);
+				}
+				else {
+					super.showError("Error occurred while registering session captcha", error);
+				}
+			}
 		);
 	}
 

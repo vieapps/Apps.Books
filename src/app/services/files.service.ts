@@ -11,15 +11,15 @@ export class FilesService extends BaseService {
 		super("Files");
 	}
 
-	public async uploadBase64DataAsync(path: string, data: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, header?: { [key: string]: string }) {
-		const headers = {
+	public async uploadBase64DataAsync(path: string, base64Data: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, header?: { [key: string]: string }) {
+		const headers: { [key: string]: string } = {
 			"x-as-base64": "yes"
-		} as { [key: string]: string };
+		};
 		Object.keys(header || {}).forEach(key => headers[key] = header[key]);
 		try {
-			const response = await AppXHR.sendRequestAsync("POST", AppXHR.getURI(path, AppConfig.URIs.files), headers, { Data: data });
+			const data = await AppXHR.sendRequestAsync("POST", AppXHR.getURI(path, AppConfig.URIs.files), headers, { Data: base64Data });
 			if (onNext !== undefined) {
-				onNext(response);
+				onNext(data);
 			}
 		}
 		catch (error) {
@@ -32,8 +32,8 @@ export class FilesService extends BaseService {
 		}
 	}
 
-	public async uploadAvatarAsync(base64Data: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await this.uploadBase64DataAsync("avatars", base64Data, onNext, onError);
+	public uploadAvatarAsync(base64Data: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return this.uploadBase64DataAsync("avatars", base64Data, onNext, onError);
 	}
 
 }

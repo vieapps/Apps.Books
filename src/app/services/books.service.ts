@@ -31,6 +31,52 @@ export class BooksService extends BaseService {
 	};
 
 	private initialize() {
+		AppEvents.on("App", async info => {
+			if ("Initialized" === info.args.Type) {
+				await this.initializeAsync(() => console.log(`[${this.name}]: The service is initialized`));
+			}
+		});
+		this.registerEventHandlers();
+	}
+
+	public async initializeAsync(onNext?: () => void) {
+		if ("initialized" === this.configSvc.appConfig.extras["Books-State"]) {
+			console.log(`[${this.name}]: The service is initialized`);
+			if (onNext !== undefined) {
+				onNext();
+			}
+			return;
+		}
+
+		await Promise.all([
+			this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
+			this.loadStatisticsAsync(() => {
+				const numberOfCategories = this.configSvc.appConfig.extras["Books-Categories"] !== undefined
+					? (this.configSvc.appConfig.extras["Books-Categories"] as Array<StatisticInfo>).length
+					: 0;
+				let numberOfAuthors = 0;
+				if (this.configSvc.appConfig.extras["Books-Authors"] !== undefined) {
+					(this.configSvc.appConfig.extras["Books-Authors"] as Dictionary<string, Array<StatisticBase>>).values().forEach(info => numberOfAuthors += info.length);
+				}
+				console.log(`[${this.name}]: The statistics are loaded` + "\n- " + `Number of categories: ${numberOfCategories}` + "\n- " + `Number of authors: ${numberOfAuthors}`);
+			}),
+			this.updateSearchIntoSidebarAsync()
+		]);
+
+		if (this.configSvc.isAuthenticated) {
+			await this.loadBookmarksAsync(() => {
+				const bookmarks = this.configSvc.appConfig.extras["Books-Bookmarks"] as Dictionary<string, Bookmark>;
+				console.log(`[${this.name}]: The bookmarks are loaded` + "\n- " + `Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size() : 0}`);
+			});
+		}
+
+		this.configSvc.appConfig.extras["Books-State"] = "initialized";
+		if (onNext !== undefined) {
+			onNext();
+		}
+	}
+
+	public registerEventHandlers() {
 		AppRTU.registerAsObjectScopeProcessor(this.name, "Book", message => this.processUpdateBookMessage(message));
 		AppRTU.registerAsObjectScopeProcessor(this.name, "Statistic", async message => await this.processUpdateStatisticMessageAsync(message));
 		AppRTU.registerAsObjectScopeProcessor(this.name, "Bookmarks", async message => await this.processUpdateBookmarkMessageAsync(message));
@@ -45,16 +91,11 @@ export class BooksService extends BaseService {
 		}
 
 		AppEvents.on("App", async info => {
-			if ("Initialized" === info.args.Type) {
-				await this.initializeAsync(() => console.log("[Books]: The service is initialized"));
-			}
 			if ("LanguageChanged" === info.args.Type) {
-				PlatformUtility.invoke(async () => {
-					await this.updateSearchIntoSidebarAsync();
-					if (this._reading.ID === undefined) {
-						await this.updateCategoriesIntoSidebarAsync();
-					}
-				}, 234);
+				PlatformUtility.invoke(async () => await Promise.all([
+					this.updateSearchIntoSidebarAsync(),
+					this._reading.ID === undefined ? this.updateCategoriesIntoSidebarAsync() : new Promise<void>(() => {})
+				]), 234);
 			}
 			if ("HomePageIsOpened" === info.args.Type && this._reading.ID !== undefined) {
 				await this.updateCategoriesIntoSidebarAsync();
@@ -63,10 +104,10 @@ export class BooksService extends BaseService {
 		});
 
 		AppEvents.on("Session", async info => {
-			if ("Updated" === info.args.Type && this.configSvc.isAuthenticated && AppRTU.isReady) {
+			if ("Updated" === info.args.Type && this.configSvc.isAuthenticated) {
 				await this.loadBookmarksAsync(() => this.getBookmarks());
-			}}
-		);
+			}
+		});
 
 		AppEvents.on("Books", async info => {
 			if ("CategoriesUpdated" === info.args.Type) {
@@ -85,43 +126,6 @@ export class BooksService extends BaseService {
 				this._reading.Chapter.Previous = undefined;
 			}
 		});
-	}
-
-	public async initializeAsync(onNext?: () => void) {
-		if ("initialized" === this.configSvc.appConfig.extras["Books-State"]) {
-			console.log("[Books]: The service is initialized");
-			if (onNext !== undefined) {
-				onNext();
-			}
-			return;
-		}
-
-		await Promise.all([
-			this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
-			this.loadStatisticsAsync(() => {
-				const numberOfCategories = this.configSvc.appConfig.extras["Books-Categories"] !== undefined
-					? (this.configSvc.appConfig.extras["Books-Categories"] as Array<StatisticInfo>).length
-					: 0;
-				let numberOfAuthors = 0;
-				if (this.configSvc.appConfig.extras["Books-Authors"] !== undefined) {
-					(this.configSvc.appConfig.extras["Books-Authors"] as Dictionary<string, Array<StatisticBase>>).values().forEach(info => numberOfAuthors += info.length);
-				}
-				console.log("[Books]: The statistics are loaded" + "\n- " + `Number of categories: ${numberOfCategories}` + "\n- " + `Number of authors: ${numberOfAuthors}`);
-			}),
-			this.updateSearchIntoSidebarAsync()
-		]);
-
-		if (this.configSvc.isAuthenticated) {
-			await this.loadBookmarksAsync(() => {
-				const bookmarks = this.configSvc.appConfig.extras["Books-Bookmarks"] as Dictionary<string, Bookmark>;
-				console.log("[Books]: The bookmarks are loaded\n" + `Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size() : 0}`);
-			});
-		}
-
-		this.configSvc.appConfig.extras["Books-State"] = "initialized";
-		if (onNext !== undefined) {
-			onNext();
-		}
 	}
 
 	private async updateSearchIntoSidebarAsync() {
@@ -212,14 +216,14 @@ export class BooksService extends BaseService {
 		return super.search(
 			super.getSearchURI("book", this.configSvc.relatedQuery),
 			request,
-			AppUtility.isNotNull(onNext)
-				? data => {
-					if (data !== undefined) {
-						(data.Objects as Array<any> || []).forEach(o => Book.update(o));
-					}
+			data => {
+				if (data !== undefined && AppUtility.isArray(data.Objects, true)) {
+					(data.Objects as Array<any>).forEach(o => Book.update(o));
+				}
+				if (onNext !== undefined) {
 					onNext(data);
 				}
-				: undefined,
+			},
 			error => {
 				console.error(this.getErrorMessage("Error occurred while searching", error));
 				if (onError !== undefined) {
@@ -233,14 +237,14 @@ export class BooksService extends BaseService {
 		return super.searchAsync(
 			super.getSearchURI("book", this.configSvc.relatedQuery),
 			request,
-			AppUtility.isNotNull(onNext)
-				? data => {
-					if (data !== undefined) {
-						(data.Objects as Array<any> || []).forEach(o => Book.update(o));
-					}
+			data => {
+				if (data !== undefined && AppUtility.isArray(data.Objects, true)) {
+					(data.Objects as Array<any>).forEach(o => Book.update(o));
+				}
+				if (onNext !== undefined) {
 					onNext(data);
 				}
-				: undefined,
+			},
 			error => {
 				console.error(this.getErrorMessage("Error occurred while searching", error));
 				if (onError !== undefined) {
@@ -250,19 +254,17 @@ export class BooksService extends BaseService {
 		);
 	}
 
-	public async getAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontUpdateCounter?: boolean) {
+	public getAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontUpdateCounter?: boolean) {
 		const book = Book.instances.getValue(id);
 		if (book !== undefined && (book.TOCs.length > 0 || book.Body !== "")) {
 			if (AppUtility.isFalse(dontUpdateCounter)) {
 				this.increaseCounters(id);
 			}
-			if (onNext !== undefined) {
-				onNext();
-			}
+			return new Promise<void>(onNext !== undefined ? () => onNext() : () => {});
 		}
 		else {
-			await super.readAsync(
-				`${this.name}/book/${id}`,
+			return super.readAsync(
+				super.getURI("book", id),
 				data => {
 					Book.update(data);
 					if (AppUtility.isFalse(dontUpdateCounter)) {
@@ -282,39 +284,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public async getChapterAsync(id: string, chapter: number, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const book = Book.instances.getValue(id);
-		if (book === undefined || book.TOCs.length < 1) {
-			if (onError !== undefined) {
-				onError();
-			}
-		}
-		else if (chapter < 1 || chapter > book.Chapters.length || book.Chapters[chapter - 1] !== "") {
-			if (onNext !== undefined) {
-				onNext();
-			}
-		}
-		else {
-			await super.readAsync(
-				`${this.name}/book/${id}?chapter=${chapter}`,
-				data => {
-					this.updateChapter(data);
-					this.increaseCounters(id);
-					if (onNext !== undefined) {
-						onNext(data);
-					}
-				},
-				error => {
-					console.error(this.getErrorMessage("Error occurred while reading a chapter", error));
-					if (onError !== undefined) {
-						onError(error);
-					}
-				}
-			);
-		}
-	}
-
-	public async fetchChapterAsync(id: string, chapter: number, onNext?: () => void) {
+	public getChapter(id: string, chapter: number, onNext?: () => void) {
 		const book = Book.instances.getValue(id);
 		while (chapter <= book.TotalChapters && book.Chapters[chapter - 1] !== "") {
 			chapter++;
@@ -333,6 +303,37 @@ export class BooksService extends BaseService {
 				}, data => this.updateChapter(data));
 			}
 			this.increaseCounters(id, "view", onNext);
+		}
+		else if (onNext !== undefined) {
+			onNext();
+		}
+	}
+
+	public getChapterAsync(id: string, chapter: number, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		const book = Book.instances.getValue(id);
+		if (book === undefined || book.TOCs.length < 1) {
+			return new Promise<void>(onNext !== undefined ? () => onNext() : () => {});
+		}
+		else if (chapter < 1 || chapter > book.Chapters.length || book.Chapters[chapter - 1] !== "") {
+			return new Promise<void>(onNext !== undefined ? () => onNext() : () => {});
+		}
+		else {
+			return super.readAsync(
+				super.getURI("book", id, `chapter=${chapter}`),
+				data => {
+					this.updateChapter(data);
+					this.increaseCounters(id);
+					if (onNext !== undefined) {
+						onNext(data);
+					}
+				},
+				error => {
+					console.error(this.getErrorMessage("Error occurred while reading a chapter", error));
+					if (onError !== undefined) {
+						onError(error);
+					}
+				}
+			);
 		}
 	}
 
@@ -398,9 +399,9 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public async requestUpdateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		await super.createAsync(
-			`${this.name}/book/${body.ID}`,
+	public requestUpdateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.createAsync(
+			super.getURI("book", body.ID),
 			body,
 			onNext,
 			error => {
@@ -414,7 +415,7 @@ export class BooksService extends BaseService {
 
 	public async updateAsync(body: any, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.updateAsync(
-			`${this.name}/book/${body.ID}`,
+			super.getURI("book", body.ID),
 			body,
 			onNext,
 			error => {
@@ -428,7 +429,7 @@ export class BooksService extends BaseService {
 
 	public async deleteAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		await super.deleteAsync(
-			`${this.name}/book/${id}`,
+			super.getURI("book", id),
 			data => {
 				Book.instances.remove(id);
 				if (onNext !== undefined) {
@@ -706,14 +707,14 @@ export class BooksService extends BaseService {
 		});
 	}
 
-	public async updateBookmarkAsync(id: string, chapter: number, position: number, onNext?: () => void) {
+	public updateBookmarkAsync(id: string, chapter: number, position: number, onNext?: () => void) {
 		const bookmark = this.bookmarks.getValue(id) || new Bookmark();
 		bookmark.ID = id;
 		bookmark.Chapter = chapter;
 		bookmark.Position = position;
 		bookmark.Time = new Date();
 		this.bookmarks.setValue(bookmark.ID, bookmark);
-		await this.storeBookmarksAsync(onNext);
+		return this.storeBookmarksAsync(onNext);
 	}
 
 	public deleteBookmark(id: string, onNext?: () => void) {

@@ -173,9 +173,9 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		}
 		else {
 			this.scrollOffset = 0;
-			await this.scrollAsync(async () => {
+			await this.scrollAsync(() => {
 				if (this.book.TotalChapters > 1 && this.chapter < this.book.TotalChapters) {
-					await this.booksSvc.fetchChapterAsync(this.book.ID, this.chapter + 1);
+					this.booksSvc.getChapter(this.book.ID, this.chapter + 1);
 				}
 			});
 		}
@@ -231,12 +231,12 @@ export class BooksReadPage implements OnInit, OnDestroy {
 			await this.booksSvc.getChapterAsync(
 				this.book.ID,
 				this.chapter,
-				async () => await this.scrollAsync(async () => await this.booksSvc.fetchChapterAsync(this.book.ID, direction === "previous" ? this.chapter - 1 : this.chapter + 1)),
+				async () => await this.scrollAsync(() => this.booksSvc.getChapter(this.book.ID, direction === "previous" ? this.chapter - 1 : this.chapter + 1)),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			);
 		}
 		else {
-			await this.scrollAsync(async () => await this.booksSvc.fetchChapterAsync(this.book.ID, this.chapter + 1));
+			await this.scrollAsync(() => this.booksSvc.getChapter(this.book.ID, this.chapter + 1));
 		}
 	}
 

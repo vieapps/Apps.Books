@@ -5,7 +5,7 @@ import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { IonContent, IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
 import { AppEvents } from "../../../components/app.events";
-import { AppPagination } from "../../../components/app.pagination";
+import { AppPagination, AppDataPagination, AppDataRequest } from "../../../components/app.pagination";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { PlatformUtility } from "../../../components/app.utility.platform";
@@ -52,7 +52,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 					NotEquals: "Inactive"
 				}
 			}
-		] as Array<{ [key: string]: { [key: string]: any } }>
+		] as Array<{ [key: string]: any }>
 	};
 	sorts = [
 		{
@@ -70,13 +70,9 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	];
 	sort = this.sorts[0].value;
 	pageNumber = 0;
-	pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number };
+	pagination: AppDataPagination;
+	request: AppDataRequest;
 	requestParams: { [key: string]: any };
-	request: {
-		FilterBy: { [key: string]: any },
-		SortBy: { [key: string]: any },
-		Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }
-	};
 
 	books = new Array<Book>();
 	ratings: { [key: string]: RatingPoint };

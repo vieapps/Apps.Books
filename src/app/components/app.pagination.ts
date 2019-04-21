@@ -2,11 +2,26 @@ import { Dictionary } from "typescript-collections";
 import { AppCrypto } from "./app.crypto";
 import { AppUtility } from "./app.utility";
 
+/** Presents a data pagination */
+export interface AppDataPagination {
+	TotalRecords: number;
+	TotalPages: number;
+	PageSize: number;
+	PageNumber: number;
+}
+
+/** Presents a data request */
+export interface AppDataRequest {
+	FilterBy?: { [key: string]: any };
+	SortBy?: { [key: string]: any };
+	Pagination?: AppDataPagination;
+}
+
 /** Servicing component for working with paginations */
 export class AppPagination {
 
 	/** All pagination instances */
-	public static instances = new Dictionary<string, { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }>();
+	public static instances = new Dictionary<string, AppDataPagination>();
 
 	private static cloneFilterBy(filterBy: { [key: string]: any }) {
 		const filter = AppUtility.clone(
@@ -45,7 +60,7 @@ export class AppPagination {
 	}
 
 	/** Gets the default pagination */
-	public static getDefault(info?: any): { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } {
+	public static getDefault(info?: any): AppDataPagination {
 		const pagination = info !== undefined ? info.Pagination : undefined;
 		return AppUtility.isObject(pagination, true)
 			? {
@@ -63,7 +78,7 @@ export class AppPagination {
 	}
 
 	/** Gets a pagination */
-	public static get(info?: any, prefix?: string) {
+	public static get(info?: any, prefix?: string): AppDataPagination {
 		const key = this.getKey(info, prefix);
 		const pagination = AppUtility.isNotEmpty(key) ? this.instances.getValue(key) : undefined;
 		return pagination !== undefined
@@ -93,7 +108,7 @@ export class AppPagination {
 	}
 
 	/** Computes the total of records */
-	public static computeTotal(pageNumber: number, pagination?: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }) {
+	public static computeTotal(pageNumber: number, pagination?: AppDataPagination) {
 		let totalRecords = pageNumber * (AppUtility.isObject(pagination, true) ? pagination.PageSize : 20);
 		if (AppUtility.isObject(pagination, true) && totalRecords > pagination.TotalRecords) {
 			totalRecords = pagination.TotalRecords;
@@ -102,8 +117,8 @@ export class AppPagination {
 	}
 
 	/** Builds the well-formed request (contains filter, sort and pagination) for working with remote APIs */
-	public static buildRequest(filterBy?: { [key: string]: any }, sortBy?: { [key: string]: any }, pagination?: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }, onCompleted?: (request: { FilterBy: { [key: string]: any }, SortBy: { [key: string]: any }, Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number } }) => void) {
-		const request = {
+	public static buildRequest(filterBy?: { [key: string]: any }, sortBy?: { [key: string]: any }, pagination?: AppDataPagination, onCompleted?: (request: AppDataRequest) => void) {
+		const request: AppDataRequest = {
 			FilterBy: this.cloneFilterBy(filterBy),
 			SortBy: AppUtility.clone(sortBy || {}, true) as { [key: string]: any },
 			Pagination: this.getDefault({ Pagination: pagination })

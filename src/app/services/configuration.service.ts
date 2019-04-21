@@ -428,12 +428,12 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Resets session information and re-store into storage */
-	public async resetSessionAsync(onNext?: (data?: any) => void) {
+	public resetSessionAsync(onNext?: (data?: any) => void) {
 		this.appConfig.session.id = undefined;
 		this.appConfig.session.token = undefined;
 		this.appConfig.session.keys = undefined;
 		this.appConfig.session.account = this.getAccount(true);
-		await this.storeSessionAsync(onNext);
+		return this.storeSessionAsync(onNext);
 	}
 
 	/** Send request to patch the session */
@@ -635,11 +635,11 @@ export class ConfigurationService extends BaseService {
 
 		await super.fetchAsync(
 			`statics/geo/provinces/${this.appConfig.geoMeta.country}.json`,
-			async countries => await this.saveGeoMetaAsync(countries, async () => {
+			async provinces => await this.saveGeoMetaAsync(provinces, async () => {
 				if (this.appConfig.geoMeta.countries.length < 1) {
 					await super.fetchAsync(
 						"statics/geo/countries.json",
-						async provinces => await this.saveGeoMetaAsync(provinces),
+						async countries => await this.saveGeoMetaAsync(countries),
 						error => this.showError("Error occurred while fetching the meta countries", error)
 					);
 				}

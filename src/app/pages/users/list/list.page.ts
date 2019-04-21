@@ -6,7 +6,7 @@ import { IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { PlatformUtility } from "../../../components/app.utility.platform";
-import { AppPagination } from "../../../components/app.pagination";
+import { AppPagination, AppDataPagination, AppDataRequest } from "../../../components/app.pagination";
 import { AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
 import { AuthenticationService } from "../../../services/authentication.service";
@@ -37,14 +37,11 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 	searching = false;
 	filtering = false;
 	pageNumber = 0;
-	pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number };
+	pagination: AppDataPagination;
+	request: AppDataRequest;
 	filterBy = {
-		Query: undefined as string
-	};
-	request: {
-		FilterBy: { [key: string]: any },
-		SortBy: { [key: string]: any },
-		Pagination: { TotalRecords: number, TotalPages: number, PageSize: number, PageNumber: number }
+		Query: undefined as string,
+		And: new Array<{ [key: string]: any }>()
 	};
 	subscription: Subscription;
 	@ViewChild(IonSearchbar) searchCtrl: IonSearchbar;

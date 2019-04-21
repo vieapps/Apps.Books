@@ -92,8 +92,7 @@ export class UsersService extends BaseService {
 			body,
 			onNext,
 			onError,
-			this.configSvc.appConfig.getCaptchaHeaders(captcha),
-			true
+			this.configSvc.appConfig.getCaptchaHeaders(captcha)
 		);
 	}
 
@@ -119,9 +118,7 @@ export class UsersService extends BaseService {
 				if (onError !== undefined) {
 					onError(error);
 				}
-			},
-			undefined,
-			true
+			}
 		);
 	}
 
@@ -145,7 +142,7 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public async getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		id = id || this.configSvc.getAccount().id;
 		return UserProfile.instances.containsKey(id)
 			? new Promise<void>(onNext !== undefined ? () => onNext() : () => {})
@@ -198,9 +195,7 @@ export class UsersService extends BaseService {
 				if (onError !== undefined) {
 					onError(error);
 				}
-			},
-			undefined,
-			true
+			}
 		);
 	}
 
@@ -217,9 +212,7 @@ export class UsersService extends BaseService {
 				if (onError !== undefined) {
 					onError(error);
 				}
-			},
-			undefined,
-			true
+			}
 		);
 	}
 
@@ -268,12 +261,11 @@ export class UsersService extends BaseService {
 			},
 			{
 				"x-password": AppCrypto.rsaEncrypt(password),
-			},
-			true
+			}
 		);
 	}
 
-	public async getPrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public getPrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return Account.instances.containsKey(id)
 			? new Promise<void>(onNext !== undefined ? () => onNext() : () => {})
 			: super.readAsync(
@@ -300,9 +292,7 @@ export class UsersService extends BaseService {
 				if (onError !== undefined) {
 					onError(error);
 				}
-			},
-			undefined,
-			true
+			}
 		);
 	}
 
@@ -310,7 +300,9 @@ export class UsersService extends BaseService {
 		const account = this.configSvc.getAccount();
 		switch (message.Type.Object) {
 			case "Session":
-				const isCurrentSession = this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.isAuthenticated && account.id === message.Data.UserID;
+				const isCurrentSession = message.Data.ID !== undefined
+					? this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.isAuthenticated && account.id === message.Data.UserID
+					: AppUtility.isGotSecurityException(message.Data);
 				switch (message.Type.Event) {
 					case "Update":
 						if (isCurrentSession) {

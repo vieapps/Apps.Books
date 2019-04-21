@@ -52,9 +52,10 @@ export class AppRTU {
 		object: string,
 		message: AppMessage
 	}>;
-	private static _queue = {
+	private static _requests = {
 		counter: 0,
-		commands: {} as { [id: string]: string },
+		nocallbackRequests: {} as { [id: string]: string },
+		callbackableRequests: {} as { [id: string]: string },
 		successCallbacks: {} as { [id: string]: (data?: any) => void },
 		errorCallbacks: {} as { [id: string]: (error?: any) => void }
 	};
@@ -158,27 +159,27 @@ export class AppRTU {
 	}
 
 	/** Parses the message to get type */
-	public static parse(type: string) {
-		let msgType = this._types[type];
-		if (msgType === undefined) {
-			let pos = AppUtility.indexOf(type, "#"), object = "", event = "";
-			const service = pos > 0 ? type.substring(0, pos) : type;
+	public static parse(identity: string) {
+		let type = this._types[identity];
+		if (type === undefined) {
+			let pos = AppUtility.indexOf(identity, "#"), object = "", event = "";
+			const service = pos > 0 ? identity.substring(0, pos) : identity;
 			if (pos > 0) {
-				object = type.substring(pos + 1);
+				object = identity.substring(pos + 1);
 				pos = AppUtility.indexOf(object, "#");
 				if (pos > 0) {
 					event = object.substring(pos + 1);
 					object = object.substring(0, pos);
 				}
 			}
-			msgType = {
+			type = {
 				Service: service,
 				Object:  object,
 				Event: event
 			};
-			this._types[type] = msgType;
+			this._types[identity] = type;
 		}
-		return msgType;
+		return type;
 	}
 
 	/** Starts the real-time updater */
@@ -252,12 +253,10 @@ export class AppRTU {
 				}
 			}
 			PlatformUtility.invoke(() => {
-				const identities = Object.keys(this._queue.commands);
-				if (this.isReady && identities.length > 0) {
-					console.log(`[RTU]: Send ${identities.length} queued request(s)...`);
-					identities.forEach(id => this._websocket.send(this._queue.commands[id]));
+				if (this.isReady) {
+					this.sendRequests(true);
 				}
-			}, 789);
+			}, 567);
 		};
 
 		this._websocket.onclose = event => {
@@ -300,8 +299,8 @@ export class AppRTU {
 			}
 
 			const json = JSON.parse(event.data || "{}");
-			const successCallback = AppUtility.isNotEmpty(json.ID) ? this._queue.successCallbacks[json.ID] : undefined;
-			const errorCallback = AppUtility.isNotEmpty(json.ID) ? this._queue.errorCallbacks[json.ID] : undefined;
+			const successCallback = AppUtility.isNotEmpty(json.ID) ? this._requests.successCallbacks[json.ID] : undefined;
+			const errorCallback = AppUtility.isNotEmpty(json.ID) ? this._requests.errorCallbacks[json.ID] : undefined;
 
 			if (successCallback !== undefined || errorCallback !== undefined) {
 				try {
@@ -325,14 +324,24 @@ export class AppRTU {
 			else if ("Error" === json.Type) {
 				if (AppUtility.isGotSecurityException(json.Data)) {
 					console.warn(`[RTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
-					this.stop();
-				}
-				else if (AppUtility.isObject(json.Data, true) && "InvalidRequestException" === json.Data.Type) {
-					console.warn(`[RTU]: Got an invalid requesting data: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
-					this.stop();
+					this.stop(() => {
+						if ("TokenExpiredException" === json.Data.Type) {
+							this.restart("Re-start because the JWT is expired");
+						}
+						else {
+							this.publish({
+								Type: {
+									Service: "Users",
+									Object: "Session",
+									Event: "Revoke"
+								},
+								Data: json.Data
+							});
+						}
+					});
 				}
 				else {
-					console.warn(`[RTU]: Got an error: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
+					console.warn(`[RTU]: ${("InvalidRequestException" === json.Data.Type ? "Got an invalid requesting data" : "Got an error")}: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 				}
 			}
 
@@ -383,9 +392,9 @@ export class AppRTU {
 			}
 
 			if (AppUtility.isNotEmpty(json.ID)) {
-				delete this._queue.commands[json.ID];
-				delete this._queue.successCallbacks[json.ID];
-				delete this._queue.errorCallbacks[json.ID];
+				delete this._requests.callbackableRequests[json.ID];
+				delete this._requests.successCallbacks[json.ID];
+				delete this._requests.errorCallbacks[json.ID];
 			}
 		};
 
@@ -428,28 +437,47 @@ export class AppRTU {
 
 	/**
 	 * Sends a request to perform an action of a specified service
-	 * @param request The request to send to remote APIs
+	 * @param requestInfo The request to send to remote APIs
 	 * @param onSuccess The callback function to handle the returning data
 	 * @param onError The callback function to handle the returning error
 	*/
-	public static send(request: AppRequestInfo, onSuccess?: (data?: any) => void, onError?: (error?: any) => void) {
-		const id = `r-${this._queue.counter}`;
-		this._queue.counter++;
-		this._queue.commands[id] = JSON.stringify({
+	public static send(requestInfo: AppRequestInfo, onSuccess?: (data?: any) => void, onError?: (error?: any) => void) {
+		const id = `cmd-${this._requests.counter}`;
+		const request = JSON.stringify({
 			ID: id,
-			ServiceName: request.ServiceName,
-			ObjectName: request.ObjectName,
-			Verb: request.Verb || "GET",
-			Query: request.Query || {},
-			Body: request.Body || {},
-			Header: request.Header || {},
-			Extra: request.Extra || {}
+			ServiceName: requestInfo.ServiceName,
+			ObjectName: requestInfo.ObjectName,
+			Verb: requestInfo.Verb || "GET",
+			Query: requestInfo.Query || {},
+			Body: requestInfo.Body || {},
+			Header: requestInfo.Header || {},
+			Extra: requestInfo.Extra || {}
 		});
-		this._queue.successCallbacks[id] = onSuccess;
-		this._queue.errorCallbacks[id] = onError;
-		if (this.isReady) {
-			this._websocket.send(this._queue.commands[id]);
+		this._requests.counter++;
+		if (onSuccess !== undefined || onError !== undefined) {
+			this._requests.callbackableRequests[id] = request;
+			this._requests.successCallbacks[id] = onSuccess;
+			this._requests.errorCallbacks[id] = onError;
 		}
+		if (this.isReady) {
+			this.sendRequests(false, request);
+		}
+		else if (onSuccess === undefined && onError === undefined) {
+			this._requests.nocallbackRequests[id] = request;
+		}
+	}
+
+	private static sendRequests(sendCallbackables: boolean, additionalRequest?: string) {
+		const requests = new Array<string>();
+		Object.keys(this._requests.nocallbackRequests).sort().forEach(id => requests.push(this._requests.nocallbackRequests[id]));
+		this._requests.nocallbackRequests = {};
+		if (sendCallbackables) {
+			Object.keys(this._requests.callbackableRequests).sort().forEach(id => requests.push(this._requests.callbackableRequests[id]));
+		}
+		if (AppUtility.isNotEmpty(additionalRequest)) {
+			requests.push(additionalRequest);
+		}
+		requests.forEach(request => this._websocket.send(request));
 	}
 
 }
@@ -539,13 +567,13 @@ export class AppXHR {
 
 	/**
 		* Sends a request to an endpoint API
-		* @param method HTTP verb to perform the request
+		* @param verb HTTP verb to perform the request
 		* @param uri Full URI of the end-point API's uri to perform the request
 		* @param headers Additional headers to perform the request
 		* @param body The JSON object that contains the body to perform the request
 	*/
-	public static sendRequestAsync(method: string = "GET", uri: string, headers?: any, body?: any) {
-		return this.sendRequest(method, uri, headers, body).toPromise();
+	public static sendRequestAsync(verb: string = "GET", uri: string, headers?: any, body?: any) {
+		return this.sendRequest(verb, uri, headers, body).toPromise();
 	}
 
 	/**

@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router, CanActivate } from "@angular/router";
 import { AppConfig } from "../app.config";
-import { AppRTU, AppXHR, AppRequestInfo } from "../components/app.apis";
+import { AppRTU, AppXHR, AppRequestInfo, AppMessage } from "../components/app.apis";
 import { AppCrypto } from "../components/app.crypto";
 import { AppPagination } from "../components/app.pagination";
 import { AppUtility } from "../components/app.utility";
@@ -20,6 +20,11 @@ export class Base {
 	/** Gets name of the service (for working with paginations as prefix, display logs/errors, ...) */
 	public get name() {
 		return this._name;
+	}
+
+	/** Publishs a message to all subscribers */
+	public publish(message: AppMessage) {
+		AppRTU.publish(message);
 	}
 
 	/**
@@ -57,7 +62,7 @@ export class Base {
 			if (uri.Paths.length > 2) {
 				query["object-identity"] = uri.Paths[2];
 			}
-			this.send({
+			AppRTU.send({
 				ServiceName: serviceName,
 				ObjectName: objectName,
 				Verb: request.Verb,
@@ -71,7 +76,7 @@ export class Base {
 			try {
 				let path = AppXHR.getURI(request.Path);
 				if (request.Extra !== undefined) {
-					path += (path.indexOf("?") ? "&" : "?") + "extras=" + AppUtility.toBase64Url(request.Extra);
+					path += (path.indexOf("?") > 0 ? "&" : "?") + "extra=" + AppUtility.toBase64Url(request.Extra);
 				}
 				const data = await AppXHR.sendRequestAsync(request.Verb || "GET", path, request.Header, request.Body);
 				if (onSuccess !== undefined) {
@@ -94,23 +99,7 @@ export class Base {
 	 * @param headers The additional headers to send the request
 	*/
 	protected fetchAsync(path: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, headers?: { [header: string]: string }) {
-		return this.sendAsync(
-			{
-				Path: path,
-				Verb: "GET",
-				Header: headers
-			},
-			onNext,
-			error => {
-				if (onError !== undefined) {
-					onError(AppUtility.parseError(error));
-				}
-				else {
-					this.showError("Error occurred while reading", error);
-				}
-			},
-			true
-		);
+		return this.sendAsync({ Path: path, Header: headers }, onNext, onError, true);
 	}
 
 	/**
@@ -124,7 +113,7 @@ export class Base {
 	}
 
 	/**
-	 * Gets the URI for searching (with 'x-request' parameter in the query)
+	 * Gets the URI for searching (with "x-request" parameter in the query string)
 	 * @param objectName The name of the object for searching
 	 * @param query The additional query
 	*/
@@ -133,8 +122,8 @@ export class Base {
 	}
 
 	/**
-	 * Searchs for instances (sends a request to remote API for searching with GET verb and "x-request" of query parameter)
-	 * @param path The URI path of the remote API to send the request to (with 'x-request' query string)
+	 * Sends a request to remote API to search for instances (with GET verb and "x-request" of query parameter)
+	 * @param path The URI path of the remote API to send the request to
 	 * @param request The request to search (contains filter, sort and pagination)
 	 * @param onNext The handler to run when the process is completed
 	 * @param onError The handler to run when got any error
@@ -143,13 +132,11 @@ export class Base {
 	protected search(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean) {
 		return AppXHR.get(AppUtility.format(path, { request: AppUtility.toBase64Url(request) })).subscribe(
 			data => {
-				if (AppUtility.isFalse(dontProcessPagination) || onNext !== undefined) {
-					if (AppUtility.isFalse(dontProcessPagination)) {
-						AppPagination.set(data, this.name);
-					}
-					if (onNext !== undefined) {
-						onNext(data);
-					}
+				if (AppUtility.isFalse(dontProcessPagination)) {
+					AppPagination.set(data, this.name);
+				}
+				if (onNext !== undefined) {
+					onNext(data);
 				}
 			},
 			error => {
@@ -164,8 +151,8 @@ export class Base {
 	}
 
 	/**
-	 * Searchs for instances (sends a request to remote API for searching with GET verb and "x-request" of query parameter)
-	 * @param path The URI path of the remote API to send the request to (with 'x-request' query string)
+	 * Sends a request to remote API to search for instances (with GET verb and "x-request" of query parameter)
+	 * @param path The URI path of the remote API to send the request to
 	 * @param request The request to search (contains filter, sort and pagination)
 	 * @param onNext The handler to run when the process is completed
 	 * @param onError The handler to run when got any error
@@ -188,13 +175,11 @@ export class Base {
 					Verb: "GET"
 				},
 				data => {
-					if (processPagination || onNext !== undefined) {
-						if (processPagination) {
-							AppPagination.set(data, this.name);
-						}
-						if (onNext !== undefined) {
-							onNext(data);
-						}
+					if (processPagination) {
+						AppPagination.set(data, this.name);
+					}
+					if (onNext !== undefined) {
+						onNext(data);
 					}
 				},
 				error => {
@@ -211,7 +196,7 @@ export class Base {
 	}
 
 	/**
-	 * Creates an instance
+	 * Sends a request to remote API to create new an instance
 	 * @param path The URI path of the remote API to send the request to
 	 * @param body The JSON body to send the request
 	 * @param onNext The handler to run when the process is completed
@@ -240,7 +225,7 @@ export class Base {
 	}
 
 	/**
-	 * Reads an instance
+	 * Sends a request to remote API to read an instance
 	 * @param path The URI path of the remote API to send the request to
 	 * @param onNext The handler to run when the process is completed
 	 * @param onError The handler to run when got any error
@@ -267,7 +252,7 @@ export class Base {
 	}
 
 	/**
-	 * Updates an instance
+	 * Sends a request to remote API to update an instance
 	 * @param path The URI path of the remote API to send the request to
 	 * @param body The JSON body to send the request
 	 * @param onNext The handler to run when the process is completed
@@ -296,7 +281,7 @@ export class Base {
 	}
 
 	/**
-	 * Deletes an instance
+	 * Sends a request to remote API to delete an instance
 	 * @param path The URI path of the remote API to send the request to
 	 * @param onNext The handler to run when the process is completed
 	 * @param onError The handler to run when got any error

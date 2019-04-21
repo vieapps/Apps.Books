@@ -148,7 +148,7 @@ export class PlatformUtility {
 
 	/** Parses an uri */
 	public static parseURI(uri?: string) {
-		uri = uri || (window && window.location ? window.location.href : "scheme://service-as-host/path?query=#?hash=");
+		uri = uri || (window && window.location ? window.location.href : "scheme://service.as.host/path?query=#?hash=");
 
 		let scheme = "http", host = "local", relativeURI = "";
 
@@ -172,8 +172,6 @@ export class PlatformUtility {
 			port = host.substr(pos + 1);
 			host = host.substr(0, pos);
 		}
-
-		const hostnames = AppUtility.toArray(host, ".") as Array<string>;
 
 		let path = "", query = "", hash = "";
 		pos = relativeURI.indexOf("?");
@@ -227,10 +225,10 @@ export class PlatformUtility {
 			HostURI: scheme + "://" + host + (port !== "" ? ":" + port : ""),
 			Scheme: scheme,
 			Host: host,
-			HostNames: hostnames,
+			HostNames: AppUtility.toArray(host, ".") as Array<string>,
 			Port: port,
 			Path: path,
-			Paths: path.split("/"),
+			Paths: AppUtility.toArray(path, "/") as Array<string>,
 			Query: query,
 			QueryParams: queryParams,
 			Hash: hash,

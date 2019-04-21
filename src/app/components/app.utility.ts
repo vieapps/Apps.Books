@@ -75,7 +75,7 @@ export class AppUtility {
 	/** Checks the error to see that is captcha exception or not */
 	public static isGotCaptchaException(error?: any) {
 		return this.isObject(error, true) && this.isNotEmpty(error.Type) && this.isNotEmpty(error.Message)
-			? error.Type === "InformationInvalidException" && error.Message.indexOf("Captcha code is invalid") > -1
+			? error.Message.indexOf("Captcha code is invalid") > -1
 			: false;
 	}
 
@@ -286,9 +286,9 @@ export class AppUtility {
 	/** Parses the error */
 	public static parseError(error: any) {
 		try {
-			return error !== undefined && error instanceof HttpErrorResponse
+			return error instanceof HttpErrorResponse
 				? error.error
-				: error;
+				: "Error" === error.Type && error.Data !== undefined ? error.Data : error;
 		}
 		catch (e) {
 			return error;
