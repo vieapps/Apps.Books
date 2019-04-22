@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { AppRTU, AppMessage } from "../components/app.apis";
+import { AppXHR, AppRTU, AppMessage } from "../components/app.apis";
 import { AppEvents } from "../components/app.events";
 import { AppCrypto } from "../components/app.crypto";
 import { AppUtility } from "../components/app.utility";
@@ -16,7 +16,7 @@ export class UsersService extends BaseService {
 
 	constructor(public configSvc: ConfigurationService) {
 		super("Users");
-		AppRTU.registerAsServiceScopeProcessor(this.name, message => this.processUpdateMessageAsync(message));
+		AppRTU.registerAsServiceScopeProcessor(this.name, async message => await this.processUpdateMessageAsync(message));
 		if (this.configSvc.isDebug) {
 			AppRTU.registerAsObjectScopeProcessor(this.name, "Session", () => {});
 			AppRTU.registerAsObjectScopeProcessor(this.name, "Account", () => {});
@@ -122,24 +122,23 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.readAsync(
-			super.getURI("activate", undefined, `mode=${mode}&code=${code}&${this.configSvc.relatedQuery}`),
-			async data => await this.configSvc.updateSessionAsync(data, () => {
+	public async activateAsync(mode: string, code: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		try {
+			const uri = this.configSvc.appConfig.URIs.apis + super.getURI("activate", undefined, `mode=${mode}&code=${code}&${this.configSvc.relatedQuery}`);
+			const data = await AppXHR.makeRequest("GET", uri).toPromise();
+			await this.configSvc.updateSessionAsync(data, () => {
 				console.log(this.getLogMessage("Activated..."), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 				if (onNext !== undefined) {
 					onNext(data);
 				}
-			}),
-			error => {
-				console.error(this.getErrorMessage(`Error occurred while activating (${mode})`, error));
-				if (onError !== undefined) {
-					onError(error);
-				}
-			},
-			undefined,
-			true
-		);
+			});
+		}
+		catch (error) {
+			console.error(this.getErrorMessage(`Error occurred while activating (${mode})`, error));
+			if (onError !== undefined) {
+				onError(error);
+			}
+		}
 	}
 
 	public getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {

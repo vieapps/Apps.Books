@@ -32,8 +32,8 @@ export interface AppRequestInfo {
 export class AppRTU {
 
 	private static _status = "initializing";
-	private static _uri: string = undefined;
-	private static _websocket: WebSocket = undefined;
+	private static _uri: string;
+	private static _websocket: WebSocket;
 	private static _types: {
 		[key: string]: AppMessageType
 	} = {};
@@ -60,28 +60,28 @@ export class AppRTU {
 		errorCallbacks: {} as { [id: string]: (error?: any) => void }
 	};
 
-	private static _onOpen: (event: Event) => void = undefined;
+	private static _onOpen: (event: Event) => void;
 
 	/** Sets the action to fire when the RTU is opened */
 	public static set OnOpen(func: (event: Event) => void) {
 		this._onOpen = func;
 	}
 
-	private static _onClose: (event: CloseEvent) => void = undefined;
+	private static _onClose: (event: CloseEvent) => void;
 
 	/** Sets the action to fire when the RTU is closed */
 	public static set OnClose(func: (event: CloseEvent) => void) {
 		this._onClose = func;
 	}
 
-	private static _onError: (event: Event) => void = undefined;
+	private static _onError: (event: Event) => void;
 
 	/** Sets the action to fire when the RTU got any error */
 	public static set OnError(func: (event: Event) => void) {
 		this._onError = func;
 	}
 
-	private static _onMessage: (event: MessageEvent) => void = undefined;
+	private static _onMessage: (event: MessageEvent) => void;
 
 	/** Sets the action to fire when the RTU got any error */
 	public static set OnMessage(func: (event: MessageEvent) => void) {
@@ -186,7 +186,7 @@ export class AppRTU {
 	public static start(onStarted?: () => void, isRestart?: boolean) {
 		// check
 		if (typeof WebSocket === "undefined") {
-			console.warn("[RTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
+			console.warn("[AppRTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
 			PlatformUtility.invoke(onStarted, this.isReady ? 13 : 567);
 			return;
 		}
@@ -208,10 +208,10 @@ export class AppRTU {
 						handlers.forEach(handler => handler.func(message));
 					}
 					else if (AppConfig.isDebug) {
-						console.warn(`[RTU]: No suitable service scope handler is found (${service})`);
+						console.warn(`[AppRTU]: No suitable service scope handler is found (${service})`);
 					}
 				},
-				error => console.warn("[RTU]: Got an error", AppConfig.isNativeApp ? JSON.stringify(error) : error)
+				error => console.warn("[AppRTU]: Got an error", AppConfig.isNativeApp ? JSON.stringify(error) : error)
 			);
 		}
 
@@ -228,10 +228,10 @@ export class AppRTU {
 						handlers.forEach(handler => handler.func(message));
 					}
 					else if (AppConfig.isDebug) {
-						console.warn(`[RTU]: No suitable object scope handler is found (${service}#${object})`);
+						console.warn(`[AppRTU]: No suitable object scope handler is found (${service}#${object})`);
 					}
 				},
-				error => console.error("[RTU]: Got an error => " + AppUtility.getErrorMessage(error), error)
+				error => console.error("[AppRTU]: Got an error => " + AppUtility.getErrorMessage(error), error)
 			);
 		}
 
@@ -243,13 +243,13 @@ export class AppRTU {
 		// assign event handlers
 		this._websocket.onopen = event => {
 			this._status = "ready";
-			console.log(`[RTU]: Opened... (${PlatformUtility.parseURI(this._uri).HostURI})`);
+			console.log(`[AppRTU]: Opened... (${PlatformUtility.parseURI(this._uri).HostURI})`);
 			if (this._onOpen !== undefined) {
 				try {
 					this._onOpen(event);
 				}
 				catch (e) {
-					console.error("[RTU]: Error occurred while running the 'on-open' handler", e);
+					console.error("[AppRTU]: Error occurred while running the 'on-open' handler", e);
 				}
 			}
 			PlatformUtility.invoke(() => {
@@ -261,13 +261,13 @@ export class AppRTU {
 
 		this._websocket.onclose = event => {
 			this._status = "close";
-			console.log(`[RTU]: Closed [${event.type} => ${event.reason}]`);
+			console.log(`[AppRTU]: Closed [${event.type} => ${event.reason}]`);
 			if (this._onClose !== undefined) {
 				try {
 					this._onClose(event);
 				}
 				catch (e) {
-					console.error("[RTU]: Error occurred while running the 'on-close' handler", e);
+					console.error("[AppRTU]: Error occurred while running the 'on-close' handler", e);
 				}
 			}
 			if (AppUtility.isNotEmpty(this._uri) && 1007 !== event.code) {
@@ -277,13 +277,13 @@ export class AppRTU {
 
 		this._websocket.onerror = event => {
 			this._status = "error";
-			console.warn("[RTU]: Got an error...", AppConfig.isDebug ? event : "");
+			console.warn("[AppRTU]: Got an error...", AppConfig.isDebug ? event : "");
 			if (this._onError !== undefined) {
 				try {
 					this._onError(event);
 				}
 				catch (e) {
-					console.error("[RTU]: Error occurred while running the 'on-error' handler", e);
+					console.error("[AppRTU]: Error occurred while running the 'on-error' handler", e);
 				}
 			}
 		};
@@ -294,7 +294,7 @@ export class AppRTU {
 					this._onMessage(event);
 				}
 				catch (e) {
-					console.error("[RTU]: Error occurred while running the 'on-message' handler", e);
+					console.error("[AppRTU]: Error occurred while running the 'on-message' handler", e);
 				}
 			}
 
@@ -309,7 +309,7 @@ export class AppRTU {
 							errorCallback(json);
 						}
 						else {
-							console.error("[RTU]: Got an error while processing", json);
+							console.error("[AppRTU]: Got an error while processing", json);
 						}
 					}
 					else if (successCallback !== undefined) {
@@ -317,13 +317,13 @@ export class AppRTU {
 					}
 				}
 				catch (error) {
-					console.error("[RTU]: Error occurred while running the callback handler", error, json);
+					console.error("[AppRTU]: Error occurred while running the callback handler", error, json);
 				}
 			}
 
 			else if ("Error" === json.Type) {
 				if (AppUtility.isGotSecurityException(json.Data)) {
-					console.warn(`[RTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
+					console.warn(`[AppRTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 					this.stop(() => {
 						if ("TokenExpiredException" === json.Data.Type) {
 							this.restart("Re-start because the JWT is expired");
@@ -341,7 +341,7 @@ export class AppRTU {
 					});
 				}
 				else {
-					console.warn(`[RTU]: ${("InvalidRequestException" === json.Data.Type ? "Got an invalid requesting data" : "Got an error")}: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
+					console.warn(`[AppRTU]: ${("InvalidRequestException" === json.Data.Type ? "Got an invalid requesting data" : "Got an error")}: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 				}
 			}
 
@@ -352,12 +352,12 @@ export class AppRTU {
 				};
 
 				if (AppConfig.isDebug) {
-					console.log("[RTU]: Got a message", AppConfig.isNativeApp ? JSON.stringify(message) : message);
+					console.log("[AppRTU]: Got a message", AppConfig.isNativeApp ? JSON.stringify(message) : message);
 				}
 
 				if (message.Type.Service === "Ping") {
 					if (AppConfig.isDebug) {
-						console.log("[RTU]: Got a heartbeat signal => response with PONG and update online status, run scheduler, ...");
+						console.log("[AppRTU]: Got a heartbeat signal => response with PONG and update online status, run scheduler, ...");
 					}
 					this.send({
 						ServiceName: "rtu",
@@ -376,13 +376,13 @@ export class AppRTU {
 
 				else if (message.Type.Service === "Knock") {
 					if (AppConfig.isDebug) {
-						console.log(`[RTU]: Knock, Knock, Knock ... => Yes, I'm right here (${new Date().toJSON()})`);
+						console.log(`[AppRTU]: Knock, Knock, Knock ... => Yes, I'm right here (${new Date().toJSON()})`);
 					}
 				}
 
 				else if (AppConfig.session.device === json.ExcludedDeviceID) {
 					if (AppConfig.isDebug) {
-						console.warn("[RTU]: The device is excluded", AppConfig.session.device);
+						console.warn("[AppRTU]: The device is excluded", AppConfig.session.device);
 					}
 				}
 
@@ -405,14 +405,14 @@ export class AppRTU {
 	/** Restarts the real-time updater */
 	public static restart(reason?: string, defer?: number) {
 		this._status = "restarting";
-		console.warn(`[RTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
+		console.warn(`[AppRTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
 		PlatformUtility.invoke(() => {
-			console.log("[RTU]: Re-starting...");
+			console.log("[AppRTU]: Re-starting...");
 			if (this._websocket !== undefined) {
 				this._websocket.close();
 				this._websocket = undefined;
 			}
-			this.start(() => console.log("[RTU]: Re-started..."), true);
+			this.start(() => console.log("[AppRTU]: Re-started..."), true);
 		}, defer || 123);
 	}
 
@@ -485,7 +485,7 @@ export class AppRTU {
 /** Servicing component for working with remote APIs via XMLHttpRequest (XHR) */
 export class AppXHR {
 
-	private static _http: HttpClient = undefined;
+	private static _http: HttpClient;
 
 	/** Gets the HttpClient instance */
 	public static get http() {
@@ -509,7 +509,7 @@ export class AppXHR {
 	public static makeRequest(
 		verb: string,
 		uri: string,
-		body: any | null,
+		body?: any,
 		options?: {
 			headers?: HttpHeaders | { [header: string]: string | string[] };
 			observe?: "body";
@@ -520,7 +520,7 @@ export class AppXHR {
 		}
 	) {
 		if (this._http === undefined) {
-			throw new Error("[AppAPI]: Call initialize first");
+			throw new Error("[AppXHR]: Call initialize first");
 		}
 		switch ((verb || "GET").toUpperCase()) {
 			case "POST":
@@ -547,7 +547,7 @@ export class AppXHR {
 		* @param headers Additional headers to perform the request
 		* @param body The JSON object that contains the body to perform the request
 	*/
-	public static sendRequest(verb: string = "GET", uri: string, headers?: any, body?: any) {
+	public static sendRequest(verb: string, uri: string, headers?: any, body?: any) {
 		const httpHeaders = AppConfig.getAuthenticatedHeaders();
 		if (AppUtility.isArray(headers, true)) {
 			(headers as Array<any>).forEach(header => {
@@ -572,7 +572,7 @@ export class AppXHR {
 		* @param headers Additional headers to perform the request
 		* @param body The JSON object that contains the body to perform the request
 	*/
-	public static sendRequestAsync(verb: string = "GET", uri: string, headers?: any, body?: any) {
+	public static sendRequestAsync(verb: string, uri: string, headers?: any, body?: any) {
 		return this.sendRequest(verb, uri, headers, body).toPromise();
 	}
 

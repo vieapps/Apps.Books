@@ -76,7 +76,7 @@ export class Base {
 			try {
 				let path = AppXHR.getURI(request.Path);
 				if (request.Extra !== undefined) {
-					path += (path.indexOf("?") > 0 ? "&" : "?") + "extra=" + AppUtility.toBase64Url(request.Extra);
+					path += (path.indexOf("?") > 0 ? "&" : "?") + "x-request-extra=" + AppUtility.toBase64Url(request.Extra);
 				}
 				const data = await AppXHR.sendRequestAsync(request.Verb || "GET", path, request.Header, request.Body);
 				if (onSuccess !== undefined) {
