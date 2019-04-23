@@ -279,7 +279,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Initializes the session with REST API */
 	public initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.readAsync(
+		return super.fetchAsync(
 			"users/session",
 			async data => {
 				if (this.isDebug) {
@@ -296,15 +296,13 @@ export class ConfigurationService extends BaseService {
 					}
 				});
 			},
-			error => this.showError("Error occurred while initializing the session", error, onError),
-			undefined,
-			true
+			error => this.showError("Error occurred while initializing the session", error, onError)
 		);
 	}
 
 	/** Registers the initialized session (anonymous) with REST API */
 	public registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.readAsync(
+		return super.fetchAsync(
 			`users/session?register=${this.appConfig.session.id}`,
 			async () => {
 				this.appConfig.session.account = this.getAccount(true);
@@ -314,9 +312,7 @@ export class ConfigurationService extends BaseService {
 				AppEvents.broadcast("Session", { Type: "Registered" });
 				await this.storeSessionAsync(onNext);
 			},
-			error => this.showError("Error occurred while registering the session", error, onError),
-			undefined,
-			true
+			error => this.showError("Error occurred while registering the session", error, onError)
 		);
 	}
 
@@ -436,22 +432,6 @@ export class ConfigurationService extends BaseService {
 		return this.storeSessionAsync(onNext);
 	}
 
-	/** Send request to patch the session */
-	public patchSession(onNext?: () => void, defer?: number): void {
-		super.send({
-			ServiceName: "users",
-			ObjectName: "session",
-			Verb: "PATCH",
-			Header: this.appConfig.getAuthenticatedHeaders(),
-			Extra: {
-				"x-session": this.appConfig.session.id
-			}
-		});
-		if (onNext !== undefined) {
-			PlatformUtility.invoke(onNext, defer || 234);
-		}
-	}
-
 	/** Gets the information of the current/default account */
 	public getAccount(getDefault?: boolean) {
 		const account = AppUtility.isTrue(getDefault) || this.appConfig.session.account === undefined
@@ -521,29 +501,31 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
-	/** Send request to patch information of the account */
-	public patchAccount(onNext?: () => void, defer?: number) {
-		super.send({
-			ServiceName: "users",
-			ObjectName: "account",
-			Verb: "GET",
-			Query: {
-				"x-status": ""
-			}
-		});
+	/** Send request to fetch information of the current account */
+	public fetchAccount(onNext?: () => void, defer?: number) {
+		if (this.isAuthenticated) {
+			super.send({
+				ServiceName: "users",
+				ObjectName: "account",
+				Query: {
+					"x-status": ""
+				}
+			});
+		}
 		if (onNext !== undefined) {
 			PlatformUtility.invoke(onNext, defer || 234);
 		}
 	}
 
-	/** Sends the request to get profile information of current account via WebSocket connection */
+	/** Sends the request to fetch profile of the current account */
 	public getProfile(onNext?: () => void, defer?: number) {
-		super.send({
-			ServiceName: "users",
-			ObjectName: "profile",
-			Verb: "GET",
-			Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.getAccount().id })
-		});
+		if (this.isAuthenticated) {
+			super.send({
+				ServiceName: "users",
+				ObjectName: "profile",
+				Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.getAccount().id })
+			});
+		}
 		if (onNext !== undefined) {
 			PlatformUtility.invoke(onNext, defer || 234);
 		}

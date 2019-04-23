@@ -432,9 +432,8 @@ export class AppComponent implements OnInit {
 		}
 
 		AppRTU.start(() => {
-			if (this.configSvc.isAuthenticated) {
-				this.configSvc.patchAccount(() => this.configSvc.getProfile());
-			}
+			this.configSvc.fetchAccount();
+			this.configSvc.getProfile();
 
 			AppEvents.broadcast("App", { Type: "Initialized" });
 			AppEvents.sendToElectron("App", { Type: "Initialized", Data: {

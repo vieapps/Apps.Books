@@ -299,15 +299,13 @@ export class UsersService extends BaseService {
 		const account = this.configSvc.getAccount();
 		switch (message.Type.Object) {
 			case "Session":
-				const isCurrentSession = message.Data.ID !== undefined
-					? this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.isAuthenticated && account.id === message.Data.UserID
-					: AppUtility.isGotSecurityException(message.Data);
+				const isCurrentSession = this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.isAuthenticated && account.id === message.Data.UserID;
 				switch (message.Type.Event) {
 					case "Update":
 						if (isCurrentSession) {
 							await this.configSvc.updateSessionAsync(message.Data, () => {
 								console.warn(this.getLogMessage("The session is updated with new token"), this.configSvc.appConfig.session);
-								this.configSvc.patchSession(() => this.configSvc.patchAccount());
+								this.configSvc.fetchAccount();
 								AppEvents.sendToElectron(this.name, { Type: "Session", Data: this.configSvc.appConfig.session });
 							});
 						}
@@ -319,7 +317,7 @@ export class UsersService extends BaseService {
 								await this.configSvc.initializeSessionAsync(async () => {
 									await this.configSvc.registerSessionAsync(() => {
 										console.warn(this.getLogMessage("The session is revoked by the APIs"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-										this.configSvc.patchSession(() => AppEvents.broadcast("Navigate", { Direction: "Home" } ));
+										AppEvents.broadcast("Navigate", { Direction: "Home" } );
 										AppEvents.sendToElectron(this.name, { Type: "LogOut", Data: this.configSvc.appConfig.session });
 									});
 								});
