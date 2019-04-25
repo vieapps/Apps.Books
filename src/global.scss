@@ -19,7 +19,8 @@ ion-content {
 
 /* side menu */
 @media only screen and (min-width: 1280px) {
-	.split-pane.split-pane-visible ion-menu.split-pane-side {
+	.split-pane-md.split-pane-visible > .split-pane-side,
+	.split-pane-ios.split-pane-visible > .split-pane-side {
 		max-width: 320px;
 	}
 }

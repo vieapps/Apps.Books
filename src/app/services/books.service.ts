@@ -294,7 +294,6 @@ export class BooksService extends BaseService {
 				super.send({
 					ServiceName: this.name,
 					ObjectName: "book",
-					Verb: "GET",
 					Query: {
 						"object-identity": "chapter",
 						"id": id,
@@ -322,10 +321,7 @@ export class BooksService extends BaseService {
 				super.getURI("book", id, `chapter=${chapter}`),
 				data => {
 					this.updateChapter(data);
-					this.increaseCounters(id);
-					if (onNext !== undefined) {
-						onNext(data);
-					}
+					this.increaseCounters(id, "view", onNext);
 				},
 				error => {
 					console.error(this.getErrorMessage("Error occurred while reading a chapter", error));
@@ -344,7 +340,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public increaseCounters(id: string, action?: string, onNext?: () => void) {
+	public increaseCounters(id: string, action?: string, onNext?: (data?: any) => void) {
 		if (Book.instances.containsKey(id)) {
 			super.send({
 				ServiceName: this.name,
@@ -355,14 +351,14 @@ export class BooksService extends BaseService {
 					"id": id,
 					"action": action || "view"
 				}
-			}, data => this.updateCounters(data));
+			}, data => this.updateCounters(data, onNext));
 		}
-		if (onNext !== undefined) {
+		else if (onNext !== undefined) {
 			onNext();
 		}
 	}
 
-	private updateCounters(data: any, onNext?: () => void) {
+	private updateCounters(data: any, onNext?: (data?: any) => void) {
 		const book = AppUtility.isObject(data, true)
 			? Book.instances.getValue(data.ID)
 			: undefined;
@@ -371,7 +367,7 @@ export class BooksService extends BaseService {
 			AppEvents.broadcast("Books", { Type: "StatisticsUpdated", ID: book.ID });
 		}
 		if (onNext !== undefined) {
-			onNext();
+			onNext(data);
 		}
 	}
 
@@ -589,30 +585,24 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	private async processUpdateStatisticMessageAsync(message: AppMessage) {
+	private processUpdateStatisticMessageAsync(message: AppMessage) {
 		switch (message.Type.Event) {
 			case "Categories":
 				this.configSvc.appConfig.extras["Books-Categories"] = (message.Data.Objects as Array<any>).map(s => StatisticInfo.deserialize(s));
-				await this.storeCategoriesAsync();
-				break;
+				return this.storeCategoriesAsync();
 
 			case "Authors":
 				const authors = this.authors;
 				authors.setValue(message.Data.Char, (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s)));
 				this.configSvc.appConfig.extras["Books-Authors"] = authors;
-				await this.storeAuthorsAsync();
+				return this.storeAuthorsAsync();
 				break;
 
 			case "Status":
-				this.configSvc.appConfig.extras["Books-Status"] = (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s));
-				break;
-
-			case "All":
-				break;
+				return new Promise<void>(() => this.configSvc.appConfig.extras["Books-Status"] = (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s)));
 
 			default:
-				console.warn(this.getLogMessage("Got an update message"), message);
-				break;
+				return new Promise<void>(message.Type.Event === "All" ? () => {} : () => console.warn(this.getLogMessage("Got an update message"), message));
 		}
 	}
 
@@ -664,16 +654,13 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public sendBookmarks(onNext?: () => void) {
+	public sendBookmarks(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		super.send({
 			ServiceName: this.name,
 			ObjectName: "bookmarks",
 			Verb: "POST",
 			Body: new List(this.bookmarks.values()).OrderByDescending(b => b.Time).Take(30).ToArray()
-		});
-		if (onNext !== undefined) {
-			onNext();
-		}
+		}, onNext, onError);
 	}
 
 	private async updateBookmarksAsync(data: any, onNext?: () => void) {
@@ -691,20 +678,13 @@ export class BooksService extends BaseService {
 		});
 		await this.storeBookmarksAsync(onNext);
 
-		this.bookmarks.values().forEach((bookmark, index)  => {
-			PlatformUtility.invoke(() => {
-				if (!Book.instances.containsKey(bookmark.ID)) {
-					super.send({
-						ServiceName: this.name,
-						ObjectName: "book",
-						Verb: "GET",
-						Query: {
-							"object-identity": bookmark.ID
-						}
-					});
-				}
-			}, 456 + (index * 10));
-		});
+		this.bookmarks.values().filter(bookmark => !Book.instances.containsKey(bookmark.ID)).forEach(bookmark => super.send({
+			ServiceName: this.name,
+			ObjectName: "book",
+			Query: {
+				"object-identity": bookmark.ID
+			}
+		}));
 	}
 
 	public updateBookmarkAsync(id: string, chapter: number, position: number, onNext?: () => void) {
@@ -752,7 +732,6 @@ export class BooksService extends BaseService {
 		super.send({
 			ServiceName: this.name,
 			ObjectName: "crawl",
-			Verb: "GET",
 			Query: {
 				url: url
 			}
@@ -766,7 +745,6 @@ export class BooksService extends BaseService {
 		super.send({
 			ServiceName: this.name,
 			ObjectName: "book",
-			Verb: "GET",
 			Query: {
 				"object-identity": "recrawl",
 				"id": id,

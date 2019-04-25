@@ -609,11 +609,11 @@ export class ConfigurationService extends BaseService {
 			AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
 		}
 
-		await super.fetchAsync(
+		await super.readAsync(
 			`statics/geo/provinces/${this.appConfig.geoMeta.country}.json`,
 			async provinces => await this.saveGeoMetaAsync(provinces, async () => {
 				if (this.appConfig.geoMeta.countries.length < 1) {
-					await super.fetchAsync(
+					await super.readAsync(
 						"statics/geo/countries.json",
 						async countries => await this.saveGeoMetaAsync(countries),
 						error => this.showError("Error occurred while fetching the meta countries", error)
