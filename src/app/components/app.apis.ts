@@ -7,8 +7,8 @@ import { PlatformUtility } from "./app.utility.platform";
 /** Presents the struct of a message type */
 export interface AppMessageType {
 	Service: string;
-	Object: string;
-	Event: string;
+	Object?: string;
+	Event?: string;
 }
 
 /** Presents the struct of a message */
@@ -59,6 +59,12 @@ export class AppRTU {
 		successCallbacks: {} as { [id: string]: (data?: any) => void },
 		errorCallbacks: {} as { [id: string]: (error?: any) => void }
 	};
+	private static _pingTime = new Date().getTime();
+
+	/** Gets the last time when got PING */
+	public static get PingTime() {
+		return this._pingTime;
+	}
 
 	private static _onOpen: (event: Event) => void;
 
@@ -235,15 +241,16 @@ export class AppRTU {
 			);
 		}
 
-		// create WebSocket
+		// create new instance of WebSocket
 		this._status = "initializing";
-		this._uri = (AppUtility.isNotEmpty(AppConfig.URIs.updates) ? AppConfig.URIs.updates : AppConfig.URIs.apis).replace("http://", "ws://").replace("https://", "wss://") + "v?x-request=" + AppUtility.toBase64Url(AppConfig.getAuthenticatedHeaders());
-		this._websocket = new WebSocket(this._uri + (AppUtility.isTrue(isRestart) ? "&x-restart=" : ""));
+		this._uri = (AppUtility.isNotEmpty(AppConfig.URIs.updates) ? AppConfig.URIs.updates : AppConfig.URIs.apis).replace("http://", "ws://").replace("https://", "wss://");
+		this._websocket = new WebSocket(this._uri + "v?x-request=" + AppUtility.toBase64Url(AppConfig.getAuthenticatedHeaders()) + (AppUtility.isTrue(isRestart) ? "&x-restart=" : ""));
+		this._pingTime = new Date().getTime();
 
-		// assign event handlers
+		// assign 'on-open' event handler
 		this._websocket.onopen = event => {
 			this._status = "ready";
-			console.log(`[AppRTU]: Opened... (${PlatformUtility.parseURI(this._uri).HostURI})`);
+			console.log(`[AppRTU]: Opened... (${PlatformUtility.parseURI(this._uri).HostURI})`, AppUtility.toIsoDateTime(new Date(), true));
 			if (this._onOpen !== undefined) {
 				try {
 					this._onOpen(event);
@@ -259,9 +266,10 @@ export class AppRTU {
 			}, 567);
 		};
 
+		// assign 'on-close' event handler
 		this._websocket.onclose = event => {
 			this._status = "close";
-			console.log(`[AppRTU]: Closed [${event.type} => ${event.reason}]`);
+			console.log(`[AppRTU]: Closed [${event.reason}]`, AppUtility.toIsoDateTime(new Date(), true));
 			if (this._onClose !== undefined) {
 				try {
 					this._onClose(event);
@@ -275,6 +283,7 @@ export class AppRTU {
 			}
 		};
 
+		// assign 'on-error' event handler
 		this._websocket.onerror = event => {
 			this._status = "error";
 			console.warn("[AppRTU]: Got an error...", AppConfig.isDebug ? event : "");
@@ -288,7 +297,9 @@ export class AppRTU {
 			}
 		};
 
+		// assign 'on-message' event handler
 		this._websocket.onmessage = event => {
+			// run the dedicated handler first
 			if (this._onMessage !== undefined) {
 				try {
 					this._onMessage(event);
@@ -298,13 +309,18 @@ export class AppRTU {
 				}
 			}
 
+			// prepare
 			const json = JSON.parse(event.data || "{}");
 			const successCallback = AppUtility.isNotEmpty(json.ID) ? this._requests.successCallbacks[json.ID] : undefined;
 			const errorCallback = AppUtility.isNotEmpty(json.ID) ? this._requests.errorCallbacks[json.ID] : undefined;
 
+			// got a callback
 			if (successCallback !== undefined || errorCallback !== undefined) {
 				try {
 					if ("Error" === json.Type) {
+						if (AppUtility.isGotSecurityException(json.Data)) {
+							this.restartOnSecurityError(json.Data);
+						}
 						if (errorCallback !== undefined) {
 							errorCallback(json);
 						}
@@ -321,31 +337,20 @@ export class AppRTU {
 				}
 			}
 
+			// got an error
 			else if ("Error" === json.Type) {
 				if (AppUtility.isGotSecurityException(json.Data)) {
 					console.warn(`[AppRTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
-					this.stop(() => {
-						if ("TokenExpiredException" === json.Data.Type) {
-							this.restart("Re-start because the JWT is expired");
-						}
-						else {
-							this.publish({
-								Type: {
-									Service: "Users",
-									Object: "Session",
-									Event: "Revoke"
-								},
-								Data: json.Data
-							});
-						}
-					});
+					this.restartOnSecurityError(json.Data);
 				}
 				else {
 					console.warn(`[AppRTU]: ${("InvalidRequestException" === json.Data.Type ? "Got an invalid requesting data" : "Got an error")}: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 				}
 			}
 
+			// got a message
 			else {
+				// prepare
 				const message: AppMessage = {
 					Type: this.parse(json.Type),
 					Data: json.Data || {}
@@ -355,37 +360,44 @@ export class AppRTU {
 					console.log("[AppRTU]: Got a message", AppConfig.isNativeApp ? JSON.stringify(message) : message);
 				}
 
+				// send PONG
 				if (message.Type.Service === "Ping") {
 					if (AppConfig.isDebug) {
-						console.log("[AppRTU]: Got a heartbeat signal => response with PONG and update online status, run scheduler, ...");
+						console.log("[AppRTU]: Got a heartbeat signal => response with PONG", AppUtility.toIsoDateTime(new Date(), true));
 					}
+					this._pingTime = new Date().getTime();
 					this.send({
-						ServiceName: "rtu",
-						ObjectName: "session",
+						ServiceName: "RTU",
+						ObjectName: "Session",
 						Verb: "PONG"
 					});
-					this.send({
-						ServiceName: "users",
-						ObjectName: "status",
-						Verb: "GET"
-					});
-					if (this._serviceScopeHandlers["Scheduler"]) {
-						this._serviceScopeSubject.next({ "service": "Scheduler", "message": message });
-					}
 				}
 
+				// run schedulers
+				else if (message.Type.Service === "Scheduler") {
+					if (AppConfig.isDebug) {
+						console.log("[AppRTU]: Got a signal to update online status, run scheduler, ...", AppUtility.toIsoDateTime(new Date(), true));
+					}
+					this.send({
+						ServiceName: "Users",
+						ObjectName: "Status"
+					});
+					this.publish({
+						Type: {
+							Service: "Scheduler"
+						},
+						Data: message.Data
+					});
+				}
+
+				// response to knocking message when re-start
 				else if (message.Type.Service === "Knock") {
 					if (AppConfig.isDebug) {
-						console.log(`[AppRTU]: Knock, Knock, Knock ... => Yes, I'm right here (${new Date().toJSON()})`);
+						console.log("[AppRTU]: Knock, Knock, Knock ... => Yes, I'm right here", AppUtility.toIsoDateTime(new Date(), true));
 					}
 				}
 
-				else if (AppConfig.session.device === json.ExcludedDeviceID) {
-					if (AppConfig.isDebug) {
-						console.warn("[AppRTU]: The device is excluded", AppConfig.session.device);
-					}
-				}
-
+				// publish the messags to all subscribers
 				else {
 					this.publish(message);
 				}
@@ -402,37 +414,57 @@ export class AppRTU {
 		PlatformUtility.invoke(onStarted, this.isReady ? 13 : 567);
 	}
 
-	/** Restarts the real-time updater */
-	public static restart(reason?: string, defer?: number) {
-		this._status = "restarting";
-		console.warn(`[AppRTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
-		PlatformUtility.invoke(() => {
-			console.log("[AppRTU]: Re-starting...");
-			if (this._websocket !== undefined) {
-				this._websocket.close();
-				this._websocket = undefined;
-			}
-			this.start(() => console.log("[AppRTU]: Re-started..."), true);
-		}, defer || 123);
+	private static close() {
+		if (this._websocket !== undefined) {
+			this._websocket.close();
+			this._websocket = undefined;
+		}
 	}
 
 	/** Stops the real-time updater */
 	public static stop(onStopped?: () => void) {
 		this._uri = undefined;
-		this._status = "closed";
-		if (this._websocket !== undefined) {
-			this._websocket.close();
-			this._websocket = undefined;
-		}
+		this._status = "close";
+		this.close();
 		if (onStopped !== undefined) {
 			onStopped();
+		}
+	}
+
+	/** Restarts the real-time updater */
+	public static restart(reason?: string, defer?: number) {
+		this._status = "restarting";
+		this.close();
+		console.warn(`[AppRTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
+		PlatformUtility.invoke(() => {
+			console.log("[AppRTU]: Re-starting...");
+			this.start(() => console.log("[AppRTU]: Re-started..."), true);
+		}, defer || 123);
+	}
+
+	/** Restarts the real-time updater when got an error */
+	public static restartOnSecurityError(error?: any) {
+		if (error !== undefined && "TokenExpiredException" === error.Type) {
+			this.restart("Re-start because the JWT is expired");
+		}
+		else {
+			this.publish({
+				Type: {
+					Service: "Users",
+					Object: "Session",
+					Event: "Revoke"
+				},
+				Data: error
+			});
 		}
 	}
 
 	/** Publishs a message */
 	public static publish(message: AppMessage) {
 		this._serviceScopeSubject.next({ "service": message.Type.Service, "message": message });
-		this._objectScopeSubject.next({ "service": message.Type.Service, "object": message.Type.Object, "message": message });
+		if (AppUtility.isNotEmpty(message.Type.Object)) {
+			this._objectScopeSubject.next({ "service": message.Type.Service, "object": message.Type.Object, "message": message });
+		}
 	}
 
 	/**

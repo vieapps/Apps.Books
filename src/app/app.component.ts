@@ -89,6 +89,9 @@ export class AppComponent implements OnInit {
 				this.configSvc.appConfig.url.routerParams = this.router.routerState.snapshot.root.params;
 				this.configSvc.pushUrl(url, params);
 				AppEvents.broadcast("Navigated", { Url: url, Params: params });
+				if (new Date().getTime() - AppRTU.PingTime > 130000) {
+					AppRTU.restart("Ping period is too large...");
+				}
 			}
 		});
 
@@ -318,8 +321,8 @@ export class AppComponent implements OnInit {
 			}
 		});
 
-		AppEvents.on("Session", async info => {
-			if ("Loaded" === info.args.Type || "Updated" === info.args.Type) {
+		AppEvents.on("Profile", async info => {
+			if ("Updated" === info.args.Type) {
 				const profile = this.configSvc.getAccount().profile;
 				this.sidebar.left.title = profile !== undefined ? profile.Name : this.configSvc.appConfig.app.name;
 				this.sidebar.left.avatar = profile !== undefined ? profile.avatarURI : undefined;
@@ -432,9 +435,6 @@ export class AppComponent implements OnInit {
 		}
 
 		AppRTU.start(() => {
-			this.configSvc.fetchAccount();
-			this.configSvc.getProfile();
-
 			AppEvents.broadcast("App", { Type: "Initialized" });
 			AppEvents.sendToElectron("App", { Type: "Initialized", Data: {
 				URIs: appConfig.URIs,
@@ -446,7 +446,6 @@ export class AppComponent implements OnInit {
 				options: appConfig.options,
 				languages: appConfig.languages
 			}});
-
 			this.appFormsSvc.hideLoadingAsync(async () => {
 				if (onNext !== undefined) {
 					onNext();

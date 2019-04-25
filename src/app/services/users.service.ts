@@ -299,29 +299,35 @@ export class UsersService extends BaseService {
 		const account = this.configSvc.getAccount();
 		switch (message.Type.Object) {
 			case "Session":
-				const isCurrentSession = this.configSvc.appConfig.session.id === message.Data.ID && this.configSvc.isAuthenticated && account.id === message.Data.UserID;
 				switch (message.Type.Event) {
 					case "Update":
-						if (isCurrentSession) {
-							await this.configSvc.updateSessionAsync(message.Data, () => {
-								console.warn(this.getLogMessage("The session is updated with new token"), this.configSvc.appConfig.session);
-								this.configSvc.fetchAccount();
-								AppEvents.sendToElectron(this.name, { Type: "Session", Data: this.configSvc.appConfig.session });
-							});
-						}
+						await this.configSvc.updateSessionAsync(message.Data, () => {
+							console.warn(this.getLogMessage("The session is updated"), this.configSvc.appConfig.session);
+							AppEvents.broadcast("Account", { Type: "Updated" });
+							AppEvents.sendToElectron(this.name, { Type: "Session", Data: this.configSvc.appConfig.session });
+						});
 						break;
 
 					case "Revoke":
-						if (isCurrentSession) {
-							await this.configSvc.resetSessionAsync(async () => {
-								await this.configSvc.initializeSessionAsync(async () => {
-									await this.configSvc.registerSessionAsync(() => {
-										console.warn(this.getLogMessage("The session is revoked by the APIs"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-										AppEvents.broadcast("Navigate", { Direction: "Home" } );
-										AppEvents.sendToElectron(this.name, { Type: "LogOut", Data: this.configSvc.appConfig.session });
-									});
-								});
-							});
+						if (AppUtility.isGotSecurityException(message.Data)) {
+							console.warn(this.getLogMessage("Revoke the session and register new when got a security issue"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+							await this.configSvc.resetSessionAsync(async () => await this.configSvc.initializeSessionAsync(async () =>
+								await this.configSvc.registerSessionAsync(() => {
+									AppEvents.broadcast("Account", { Type: "Updated" });
+									AppEvents.broadcast("Profile", { Type: "Updated" });
+									AppRTU.restart("Restart when got a security issue");
+									AppEvents.sendToElectron(this.name, { Type: "LogOut" });
+								})
+							), false);
+						}
+						else {
+							await this.configSvc.updateSessionAsync(message.Data, async () => await this.configSvc.registerSessionAsync(() => {
+								console.warn(this.getLogMessage("The session is revoked by the APIs"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
+								AppEvents.broadcast("Account", { Type: "Updated" });
+								AppEvents.broadcast("Profile", { Type: "Updated" });
+								AppRTU.restart("Restart when the session is revoked by the APIs");
+								AppEvents.sendToElectron(this.name, { Type: "LogOut" });
+							}));
 						}
 						break;
 
@@ -362,7 +368,7 @@ export class UsersService extends BaseService {
 					account.profile = UserProfile.get(message.Data.ID);
 					account.profile.IsOnline = true;
 					account.profile.LastAccess = new Date();
-					await this.configSvc.storeProfileAsync(async () => {
+					await this.configSvc.storeSessionAsync(async () => {
 						if (this.configSvc.appConfig.options.i18n !== account.profile.Language) {
 							await this.configSvc.changeLanguageAsync(account.profile.Language);
 						}

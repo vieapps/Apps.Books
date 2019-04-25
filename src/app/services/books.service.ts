@@ -2,7 +2,7 @@ import { Dictionary } from "typescript-collections";
 import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { AppStorage } from "../components/app.storage";
-import { AppRTU } from "../components/app.apis";
+import { AppRTU, AppMessage } from "../components/app.apis";
 import { AppEvents } from "../components/app.events";
 import { AppUtility } from "../components/app.utility";
 import { PlatformUtility } from "../components/app.utility.platform";
@@ -103,7 +103,7 @@ export class BooksService extends BaseService {
 			}
 		});
 
-		AppEvents.on("Session", async info => {
+		AppEvents.on("Account", async info => {
 			if ("Updated" === info.args.Type && this.configSvc.isAuthenticated) {
 				await this.loadBookmarksAsync(() => this.getBookmarks());
 			}
@@ -445,7 +445,7 @@ export class BooksService extends BaseService {
 		);
 	}
 
-	private processUpdateBookMessage(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
+	private processUpdateBookMessage(message: AppMessage) {
 		switch (message.Type.Event) {
 			case "Counters":
 				this.updateCounters(message.Data);
@@ -589,7 +589,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	private async processUpdateStatisticMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
+	private async processUpdateStatisticMessageAsync(message: AppMessage) {
 		switch (message.Type.Event) {
 			case "Categories":
 				this.configSvc.appConfig.extras["Books-Categories"] = (message.Data.Objects as Array<any>).map(s => StatisticInfo.deserialize(s));
@@ -732,7 +732,7 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	private async processUpdateBookmarkMessageAsync(message: { Type: { Service: string, Object: string, Event: string }, Data: any }) {
+	private async processUpdateBookmarkMessageAsync(message: AppMessage) {
 		if (!this.configSvc.isAuthenticated || this.configSvc.getAccount().id !== message.Data.ID) {
 			return;
 		}

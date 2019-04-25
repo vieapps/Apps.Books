@@ -160,15 +160,15 @@ export class AuthenticationService extends BaseService {
 			"users/session",
 			async data => {
 				AppEvents.broadcast("Session", { Type: "LogOut" });
-				AppEvents.sendToElectron("Users", { Type: "LogOut", Data: data });
-				await this.configSvc.updateSessionAsync(data, async () => {
-					await this.configSvc.registerSessionAsync(() => {
-						console.log(this.getLogMessage("Log out successful"), this.configSvc.isDebug ? data : "");
-						if (onNext !== undefined) {
-							onNext(data);
-						}
-					}, onError);
-				}, true);
+				AppEvents.sendToElectron("Users", { Type: "LogOut" });
+				await this.configSvc.updateSessionAsync(data, async () => await this.configSvc.registerSessionAsync(() => {
+					console.log(this.getLogMessage("Log out successful"), this.configSvc.isDebug ? data : "");
+					AppEvents.broadcast("Account", { Type: "Updated" });
+					AppEvents.broadcast("Profile", { Type: "Updated" });
+					if (onNext !== undefined) {
+						onNext(data);
+					}
+				}, onError), true);
 			},
 			error => {
 				if (onError !== undefined) {
@@ -229,8 +229,6 @@ export class AuthenticationService extends BaseService {
 		AppEvents.broadcast("Session", { Type: "LogIn" });
 		AppEvents.sendToElectron("Users", { Type: "LogIn", Data: data });
 		return this.configSvc.updateSessionAsync(data, () => AppRTU.start(() => {
-			this.configSvc.fetchAccount();
-			this.configSvc.getProfile();
 			if (onNext !== undefined) {
 				onNext(data);
 			}

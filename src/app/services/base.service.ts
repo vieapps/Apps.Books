@@ -27,6 +27,18 @@ export class Base {
 		AppRTU.publish(message);
 	}
 
+	/** Forwards a message to all subscribers */
+	public forward(message: any, serviceName: string, objectName?: string, event?: string) {
+		this.publish({
+			Type: {
+				Service: serviceName,
+				Object: objectName,
+				Event: event
+			},
+			Data: message
+		});
+	}
+
 	/**
 	 * Sends a request to the remote API to perform an action of a specified service (using WebSocket)
 	 * @param request The request to send
@@ -54,13 +66,24 @@ export class Base {
 		onError?: (error?: any) => void,
 		useXHR: boolean = false
 	) {
-		if (AppRTU.isReady && !useXHR) {
+		let useWebSockets = AppRTU.isReady && !useXHR;
+		if (useWebSockets) {
+			if (new Date().getTime() - AppRTU.PingTime > 130000) {
+				useWebSockets = false;
+				AppRTU.restart("Ping period is too large...");
+			}
+		}
+		if (useWebSockets) {
 			const uri = PlatformUtility.parseURI(request.Path);
 			const serviceName = uri.Paths[0];
 			const objectName = uri.Paths.length > 1 ? uri.Paths[1] : "";
 			const query = uri.QueryParams;
 			if (uri.Paths.length > 2) {
-				query["object-identity"] = uri.Paths[2];
+				let objectIdentity = "";
+				for (let index = 2; index < uri.Paths.length; index++) {
+					objectIdentity += (objectIdentity !== "" ? "/" : "") + uri.Paths[index];
+				}
+				query["object-identity"] = objectIdentity;
 			}
 			AppRTU.send({
 				ServiceName: serviceName,

@@ -348,6 +348,36 @@ export class ConfigurationService extends BaseService {
 		this.appConfig.session.account = this.getAccount(!this.isAuthenticated);
 		if (this.isAuthenticated) {
 			this.appConfig.session.account.id = this.appConfig.session.token.uid;
+			super.send({
+				ServiceName: "Users",
+				ObjectName: "Account",
+				Query: {
+					"x-status": ""
+				}
+			}, data => {
+				super.publish({
+					Type: {
+						Service: "Users",
+						Object: "Account"
+					},
+					Data: data
+				});
+				AppEvents.broadcast("Account", { Type: "Updated" });
+			});
+			super.send({
+				ServiceName: "Users",
+				ObjectName: "Profile",
+				Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.appConfig.session.account.id })
+			}, data => {
+				super.publish({
+					Type: {
+						Service: "Users",
+						Object: "Profile"
+					},
+					Data: data
+				});
+				AppEvents.broadcast("Profile", { Type: "Updated" });
+			});
 		}
 
 		if (AppUtility.isTrue(dontStore)) {
@@ -392,15 +422,12 @@ export class ConfigurationService extends BaseService {
 				if (this.isDebug) {
 					console.log(this.getLogMessage("The session is stored into storage"));
 				}
-				AppEvents.broadcast("Session", { Type: "Updated" });
 			}
 			catch (error) {
 				this.showError("Error occurred while storing the session into storage", error);
 			}
 		}
-		else {
-			AppEvents.broadcast("Session", { Type: "Updated" });
-		}
+		AppEvents.broadcast("Session", { Type: "Updated" });
 		if (onNext !== undefined) {
 			onNext(this.appConfig.session);
 		}
@@ -424,12 +451,14 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Resets session information and re-store into storage */
-	public resetSessionAsync(onNext?: (data?: any) => void) {
+	public resetSessionAsync(onNext?: (data?: any) => void, doStore: boolean = true) {
 		this.appConfig.session.id = undefined;
 		this.appConfig.session.token = undefined;
 		this.appConfig.session.keys = undefined;
 		this.appConfig.session.account = this.getAccount(true);
-		return this.storeSessionAsync(onNext);
+		return doStore
+			? this.storeSessionAsync(onNext)
+			: new Promise<void>(onNext !== undefined ? () => onNext(this.appConfig.session) : () => {});
 	}
 
 	/** Gets the information of the current/default account */
@@ -501,41 +530,6 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
-	/** Send request to fetch information of the current account */
-	public fetchAccount(onNext?: () => void, defer?: number) {
-		if (this.isAuthenticated) {
-			super.send({
-				ServiceName: "users",
-				ObjectName: "account",
-				Query: {
-					"x-status": ""
-				}
-			});
-		}
-		if (onNext !== undefined) {
-			PlatformUtility.invoke(onNext, defer || 234);
-		}
-	}
-
-	/** Sends the request to fetch profile of the current account */
-	public getProfile(onNext?: () => void, defer?: number) {
-		if (this.isAuthenticated) {
-			super.send({
-				ServiceName: "users",
-				ObjectName: "profile",
-				Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.getAccount().id })
-			});
-		}
-		if (onNext !== undefined) {
-			PlatformUtility.invoke(onNext, defer || 234);
-		}
-	}
-
-	/** Store the information of current account profile into storage */
-	public storeProfileAsync(onNext?: (data?: any) => void) {
-		return this.storeSessionAsync(onNext);
-	}
-
 	/** Watch the connection of Facebook */
 	public watchFacebookConnect() {
 		FB.Event.subscribe(
@@ -567,7 +561,7 @@ export class ConfigurationService extends BaseService {
 					profileUrl: `https://www.facebook.com/app_scoped_user_id/${response.id}`,
 					pictureUrl: undefined
 				};
-				this.storeProfileAsync(() => {
+				this.storeSessionAsync(() => {
 					console.log(this.getLogMessage("Account is updated with information of Facebook profile"), this.appConfig.isDebug ? this.appConfig.session.account : "");
 				});
 				this.getFacebookAvatar();
@@ -583,7 +577,7 @@ export class ConfigurationService extends BaseService {
 				`/${this.appConfig.facebook.version}/${this.appConfig.session.account.facebook.id}/picture?type=large&redirect=false&access_token=${this.appConfig.facebook.token}`,
 				response => {
 					this.appConfig.session.account.facebook.pictureUrl = response.data.url;
-					this.storeProfileAsync(() => {
+					this.storeSessionAsync(() => {
 						console.log(this.getLogMessage("Account is updated with information of Facebook profile (large profile picture)"), this.appConfig.isDebug ? response : "");
 					});
 				}
