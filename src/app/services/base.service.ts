@@ -22,14 +22,14 @@ export class Base {
 		return this._name;
 	}
 
-	/** Publishs a message to all subscribers */
-	public publish(message: AppMessage) {
-		AppRTU.publish(message);
+	/** Broadcasts a message to all subscribers */
+	public broadcast(message: AppMessage) {
+		AppRTU.broadcast(message);
 	}
 
 	/** Forwards a message to all subscribers */
 	public forward(message: any, serviceName: string, objectName?: string, event?: string) {
-		this.publish({
+		this.broadcast({
 			Type: {
 				Service: serviceName,
 				Object: objectName,
@@ -50,7 +50,7 @@ export class Base {
 	}
 
 	/**
-	 * Sends a request to the remote API to perform an action of a specified service (try to use WebSocket first, if not available then use XHR)
+	 * Sends a request to the remote API to perform an action of a specified service (use WebSocket first, if not available then use XHR)
 	 * @param request The request to perform
 	 * @param onSuccess The callback function to handle the returning data
 	 * @param onError The callback function to handle the returning error
@@ -85,7 +85,7 @@ export class Base {
 				}
 				query["object-identity"] = objectIdentity;
 			}
-			AppRTU.send({
+			this.send({
 				ServiceName: serviceName,
 				ObjectName: objectName,
 				Verb: request.Verb,

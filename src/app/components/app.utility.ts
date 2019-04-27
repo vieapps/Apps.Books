@@ -60,6 +60,7 @@ export class AppUtility {
 
 	/** Checks the error to see that is security exception or not */
 	public static isGotSecurityException(error?: any) {
+		error = this.parseError(error);
 		return this.isObject(error, true) && this.isNotEmpty(error.Type)
 			? this._exceptions.find(e => e === error.Type) !== undefined
 			: false;

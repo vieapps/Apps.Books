@@ -354,29 +354,11 @@ export class ConfigurationService extends BaseService {
 				Query: {
 					"x-status": ""
 				}
-			}, data => {
-				super.publish({
-					Type: {
-						Service: "Users",
-						Object: "Account"
-					},
-					Data: data
-				});
-				AppEvents.broadcast("Account", { Type: "Updated" });
 			});
 			super.send({
 				ServiceName: "Users",
 				ObjectName: "Profile",
 				Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.appConfig.session.account.id })
-			}, data => {
-				super.publish({
-					Type: {
-						Service: "Users",
-						Object: "Profile"
-					},
-					Data: data
-				});
-				AppEvents.broadcast("Profile", { Type: "Updated" });
 			});
 		}
 
@@ -434,19 +416,18 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Deletes the session from storage */
-	public async deleteSessionAsync(onNext?: () => void) {
+	public async deleteSessionAsync(onNext?: (data?: any) => void) {
 		try {
 			await AppStorage.removeAsync("Session");
 			if (this.isDebug) {
 				console.log(this.getLogMessage("The session is deleted from storage"));
 			}
-			AppEvents.broadcast("Session", { Type: "Updated" });
 		}
 		catch (error) {
 			this.showError("Error occurred while deleting the session from storage", error);
 		}
 		if (onNext !== undefined) {
-			onNext();
+			onNext(this.appConfig.session);
 		}
 	}
 
@@ -456,9 +437,7 @@ export class ConfigurationService extends BaseService {
 		this.appConfig.session.token = undefined;
 		this.appConfig.session.keys = undefined;
 		this.appConfig.session.account = this.getAccount(true);
-		return doStore
-			? this.storeSessionAsync(onNext)
-			: new Promise<void>(onNext !== undefined ? () => onNext(this.appConfig.session) : () => {});
+		return this.deleteSessionAsync(doStore ? () => this.storeSessionAsync(onNext) : onNext);
 	}
 
 	/** Gets the information of the current/default account */
@@ -518,7 +497,12 @@ export class ConfigurationService extends BaseService {
 				console.log(this.getLogMessage("Account is updated"), this.appConfig.session.account);
 			}
 			Account.instances.setValue(account.id, account);
-			this.storeSessionAsync(onNext);
+			if (this.appConfig.app.persistence) {
+				this.storeSessionAsync(onNext);
+			}
+			else if (onNext !== undefined) {
+				onNext(data);
+			}
 		}
 		else {
 			if (account.id !== undefined && (AppUtility.isTrue(updateInstances) || Account.instances.containsKey(account.id))) {
@@ -561,9 +545,7 @@ export class ConfigurationService extends BaseService {
 					profileUrl: `https://www.facebook.com/app_scoped_user_id/${response.id}`,
 					pictureUrl: undefined
 				};
-				this.storeSessionAsync(() => {
-					console.log(this.getLogMessage("Account is updated with information of Facebook profile"), this.appConfig.isDebug ? this.appConfig.session.account : "");
-				});
+				this.storeSessionAsync(() => console.log(this.getLogMessage("Account is updated with information of Facebook profile"), this.appConfig.isDebug ? this.appConfig.session.account : ""));
 				this.getFacebookAvatar();
 			}
 		);
@@ -577,9 +559,7 @@ export class ConfigurationService extends BaseService {
 				`/${this.appConfig.facebook.version}/${this.appConfig.session.account.facebook.id}/picture?type=large&redirect=false&access_token=${this.appConfig.facebook.token}`,
 				response => {
 					this.appConfig.session.account.facebook.pictureUrl = response.data.url;
-					this.storeSessionAsync(() => {
-						console.log(this.getLogMessage("Account is updated with information of Facebook profile (large profile picture)"), this.appConfig.isDebug ? response : "");
-					});
+					this.storeSessionAsync(() => console.log(this.getLogMessage("Account is updated with information of Facebook profile (large profile picture)"), this.appConfig.isDebug ? response : ""));
 				}
 			);
 		}
@@ -645,26 +625,26 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Loads the options of the app */
-	public async loadOptionsAsync(onNext?: () => void) {
+	public async loadOptionsAsync(onNext?: (data?: any) => void) {
 		const options = await AppStorage.getAsync("Options") || {};
 		if (options.i18n !== undefined && options.timezone !== undefined && options.extras !== undefined) {
 			this.appConfig.options = options;
 			await this.storeOptionsAsync(onNext);
 		}
 		else if (onNext !== undefined) {
-			onNext();
+			onNext(options);
 		}
 	}
 
 	/** Stores the options of the app */
-	public async storeOptionsAsync(onNext?: () => void) {
+	public async storeOptionsAsync(onNext?: (data?: any) => void) {
 		await AppStorage.setAsync("Options", this.appConfig.options);
 		AppEvents.broadcast("App", { Type: "OptionsUpdated" });
 		if (this.isDebug) {
 			console.log(this.getLogMessage("Options are updated"), this.appConfig.options);
 		}
 		if (onNext !== undefined) {
-			onNext();
+			onNext(this.appConfig.options);
 		}
 	}
 

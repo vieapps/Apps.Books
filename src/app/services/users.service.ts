@@ -303,7 +303,6 @@ export class UsersService extends BaseService {
 					case "Update":
 						await this.configSvc.updateSessionAsync(message.Data, () => {
 							console.warn(this.getLogMessage("The session is updated"), this.configSvc.appConfig.session);
-							AppEvents.broadcast("Account", { Type: "Updated" });
 							AppEvents.sendToElectron(this.name, { Type: "Session", Data: this.configSvc.appConfig.session });
 						});
 						break;
@@ -313,25 +312,22 @@ export class UsersService extends BaseService {
 							console.warn(this.getLogMessage("Revoke the session and register new when got a security issue"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
 							await this.configSvc.resetSessionAsync(async () => await this.configSvc.initializeSessionAsync(async () =>
 								await this.configSvc.registerSessionAsync(() => {
-									AppEvents.broadcast("Account", { Type: "Updated" });
-									AppEvents.broadcast("Profile", { Type: "Updated" });
 									AppRTU.restart("Restart when got a security issue");
-									AppEvents.sendToElectron(this.name, { Type: "LogOut" });
 								})
 							), false);
 						}
 						else {
 							await this.configSvc.updateSessionAsync(message.Data, async () => await this.configSvc.registerSessionAsync(() => {
 								console.warn(this.getLogMessage("The session is revoked by the APIs"), this.configSvc.isDebug ? this.configSvc.appConfig.session : "");
-								AppEvents.broadcast("Account", { Type: "Updated" });
-								AppEvents.broadcast("Profile", { Type: "Updated" });
 								AppRTU.restart("Restart when the session is revoked by the APIs");
-								AppEvents.sendToElectron(this.name, { Type: "LogOut" });
 							}));
 						}
+						AppEvents.broadcast("Account", { Type: "Updated" });
+						AppEvents.broadcast("Profile", { Type: "Updated" });
+						AppEvents.sendToElectron(this.name, { Type: "LogOut" });
 						break;
 
-					case "Status":
+					case "State":
 						const userProfile = UserProfile.get(message.Data.UserID);
 						if (userProfile !== undefined) {
 							userProfile.IsOnline = this.configSvc.isAuthenticated && account.id === userProfile.ID ? true : message.Data.IsOnline;
@@ -346,18 +342,10 @@ export class UsersService extends BaseService {
 				}
 				break;
 
-			case "Status":
-				const accountProfile = UserProfile.get(message.Data.UserID);
-				if (accountProfile !== undefined) {
-					accountProfile.IsOnline = this.configSvc.isAuthenticated && account.id === accountProfile.ID ? true : message.Data.IsOnline;
-					accountProfile.LastAccess = new Date();
-					AppEvents.sendToElectron(this.name, message);
-				}
-				break;
-
 			case "Account":
 				this.configSvc.updateAccount(message.Data);
 				if (this.configSvc.isAuthenticated && account.id === message.Data.ID) {
+					AppEvents.broadcast("Account", { Type: "Updated" });
 					AppEvents.sendToElectron(this.name, message);
 				}
 				break;
@@ -368,21 +356,23 @@ export class UsersService extends BaseService {
 					account.profile = UserProfile.get(message.Data.ID);
 					account.profile.IsOnline = true;
 					account.profile.LastAccess = new Date();
-					await this.configSvc.storeSessionAsync(async () => {
-						if (this.configSvc.appConfig.options.i18n !== account.profile.Language) {
-							await this.configSvc.changeLanguageAsync(account.profile.Language);
-						}
-						else {
-							await this.configSvc.storeOptionsAsync();
-						}
-						if (this.configSvc.appConfig.facebook.token !== undefined && this.configSvc.appConfig.facebook.id !== undefined) {
-							this.configSvc.getFacebookProfile();
-						}
-						AppEvents.sendToElectron(this.name, message);
-						if (this.configSvc.isDebug) {
-							console.log(this.getLogMessage("User profile is updated"), account.profile);
-						}
-					});
+					if (this.configSvc.isDebug) {
+						console.log(this.getLogMessage("User profile is updated"), account.profile);
+					}
+					if (this.configSvc.appConfig.options.i18n !== account.profile.Language) {
+						await this.configSvc.changeLanguageAsync(account.profile.Language);
+					}
+					else {
+						await this.configSvc.storeOptionsAsync();
+					}
+					if (this.configSvc.appConfig.facebook.token !== undefined && this.configSvc.appConfig.facebook.id !== undefined) {
+						this.configSvc.getFacebookProfile();
+					}
+					AppEvents.broadcast("Profile", { Type: "Updated" });
+					AppEvents.sendToElectron(this.name, message);
+					if (this.configSvc.appConfig.app.persistence) {
+						await this.configSvc.storeSessionAsync();
+					}
 				}
 				break;
 

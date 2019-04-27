@@ -20,7 +20,7 @@ export interface AppMessage {
 /** Presents the struct of a request information */
 export interface AppRequestInfo {
 	ServiceName: string;
-	ObjectName: string;
+	ObjectName?: string;
 	Verb?: string;
 	Query?: { [key: string]: string };
 	Body?: any;
@@ -60,6 +60,7 @@ export class AppRTU {
 		errorCallbacks: {} as { [id: string]: (error?: any) => void }
 	};
 	private static _pingTime = new Date().getTime();
+	private static _attempt = -1;
 
 	/** Gets the last time when got PING */
 	public static get PingTime() {
@@ -193,11 +194,16 @@ export class AppRTU {
 		// check
 		if (typeof WebSocket === "undefined") {
 			console.warn("[AppRTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
-			PlatformUtility.invoke(onStarted, this.isReady ? 13 : 567);
+			if (onStarted !== undefined) {
+				onStarted();
+			}
 			return;
 		}
-		else if (this._websocket !== undefined) {
-			PlatformUtility.invoke(onStarted, this.isReady ? 13 : 567);
+
+		if (this._websocket !== undefined) {
+			if (onStarted !== undefined) {
+				onStarted();
+			}
 			return;
 		}
 
@@ -319,6 +325,7 @@ export class AppRTU {
 				try {
 					if ("Error" === json.Type) {
 						if (AppUtility.isGotSecurityException(json.Data)) {
+							console.warn(`[AppRTU]: Got a security issue: ${json.Data.Message} (${json.Data.Code})`, AppConfig.isDebug ? json.Data : "");
 							this.restartOnSecurityError(json.Data);
 						}
 						if (errorCallback !== undefined) {
@@ -367,8 +374,7 @@ export class AppRTU {
 					}
 					this._pingTime = new Date().getTime();
 					this.send({
-						ServiceName: "RTU",
-						ObjectName: "Session",
+						ServiceName: "Session",
 						Verb: "PONG"
 					});
 				}
@@ -376,18 +382,9 @@ export class AppRTU {
 				// run schedulers
 				else if (message.Type.Service === "Scheduler") {
 					if (AppConfig.isDebug) {
-						console.log("[AppRTU]: Got a signal to update online status, run scheduler, ...", AppUtility.toIsoDateTime(new Date(), true));
+						console.log("[AppRTU]: Got a signal to run scheduler", AppUtility.toIsoDateTime(new Date(), true));
 					}
-					this.send({
-						ServiceName: "Users",
-						ObjectName: "Status"
-					});
-					this.publish({
-						Type: {
-							Service: "Scheduler"
-						},
-						Data: message.Data
-					});
+					this.broadcast({ Type: { Service: "Scheduler" }, Data: message.Data });
 				}
 
 				// response to knocking message when re-start
@@ -397,9 +394,9 @@ export class AppRTU {
 					}
 				}
 
-				// publish the messags to all subscribers
+				// broadcast the messags to all subscribers
 				else {
-					this.publish(message);
+					this.broadcast(message);
 				}
 			}
 
@@ -435,20 +432,24 @@ export class AppRTU {
 	public static restart(reason?: string, defer?: number) {
 		this._status = "restarting";
 		this.close();
+		this._attempt++;
 		console.warn(`[AppRTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
 		PlatformUtility.invoke(() => {
 			console.log("[AppRTU]: Re-starting...");
-			this.start(() => console.log("[AppRTU]: Re-started..."), true);
-		}, defer || 123);
+			this.start(() => {
+				console.log("[AppRTU]: Re-started...");
+				this._attempt = -1;
+			}, true);
+		}, defer || 123 + (this._attempt * 13));
 	}
 
 	/** Restarts the real-time updater when got an error */
 	public static restartOnSecurityError(error?: any) {
-		if (error !== undefined && "TokenExpiredException" === error.Type) {
+		if ("TokenExpiredException" === error.Type) {
 			this.restart("Re-start because the JWT is expired");
 		}
 		else {
-			this.publish({
+			this.broadcast({
 				Type: {
 					Service: "Users",
 					Object: "Session",
@@ -459,8 +460,8 @@ export class AppRTU {
 		}
 	}
 
-	/** Publishs a message */
-	public static publish(message: AppMessage) {
+	/** Broadcasts a message to all subscribers */
+	public static broadcast(message: AppMessage) {
 		this._serviceScopeSubject.next({ "service": message.Type.Service, "message": message });
 		if (AppUtility.isNotEmpty(message.Type.Object)) {
 			this._objectScopeSubject.next({ "service": message.Type.Service, "object": message.Type.Object, "message": message });
@@ -478,7 +479,7 @@ export class AppRTU {
 		const request = JSON.stringify({
 			ID: id,
 			ServiceName: requestInfo.ServiceName,
-			ObjectName: requestInfo.ObjectName,
+			ObjectName: requestInfo.ObjectName || "",
 			Verb: requestInfo.Verb || "GET",
 			Query: requestInfo.Query || {},
 			Body: requestInfo.Body || {},
