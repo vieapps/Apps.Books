@@ -115,32 +115,30 @@ export class BooksUpdatePage implements OnInit {
 	}
 
 	prepareCover($event: any) {
-		this.cover.image = undefined;
-		if ($event.target.files.length === 0) {
-			return;
+		const file: File = $event.target.files.length > 0 ? $event.target.files[0] : undefined;
+		if (file !== undefined && file.type.startsWith("image/")) {
+			this.filesSvc.readAsDataURL(file, data => this.cover.image = data, 1024000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
 		}
-		const fileReader = new FileReader();
-		fileReader.onloadend = (loadEvent: any) => {
-			this.cover.image = loadEvent.target.result;
-		};
-		fileReader.readAsDataURL($event.target.files[0]);
+		else {
+			this.cover.image = undefined;
+		}
 	}
 
-	async uploadCoverAsync(onNext: () => void) {
-		await this.filesSvc.uploadBase64DataAsync(
+	private uploadCoverAsync(onNext: () => void) {
+		return this.filesSvc.uploadAsync(
 			"books",
 			this.cover.image,
+			{
+				"x-object-id": this.book.ID,
+				"x-temporary": `${this.update.requestOnly}`
+			},
 			data => {
-				this.update.form.controls["Cover"].setValue(data.Uri);
+				this.update.form.controls["Cover"].setValue(data.URI);
 				onNext();
 			},
 			error => {
 				console.error("Error occurred while uploading cover image", error);
 				onNext();
-			},
-			{
-				"x-book-id": this.book.ID,
-				"x-temporary": `${this.update.requestOnly}`
 			}
 		);
 	}

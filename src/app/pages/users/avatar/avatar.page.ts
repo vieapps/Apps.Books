@@ -78,16 +78,14 @@ export class UsersAvatarPage implements OnInit {
 	}
 
 	prepareImage($event: any) {
-		if ($event.target.files.length === 0) {
-			return;
+		const file: File = $event.target.files.length > 0 ? $event.target.files[0] : undefined;
+		if (file !== undefined && file.type.startsWith("image/")) {
+			this.filesSvc.readAsDataURL(file, data => {
+				const image = new Image();
+				image.src = data;
+				this.imgcropperComponent.setImage(image);
+			}, 1024000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
 		}
-		const image = new Image();
-		const fileReader = new FileReader();
-		fileReader.onloadend = (loadEvent: any) => {
-			image.src = loadEvent.target.result;
-			this.imgcropperComponent.setImage(image);
-		};
-		fileReader.readAsDataURL($event.target.files[0]);
 	}
 
 	async updateProfileAsync() {
@@ -110,12 +108,14 @@ export class UsersAvatarPage implements OnInit {
 	async updateAsync() {
 		this.processing = true;
 		if (this.mode === "Avatar" && this.cropper.data.original !== undefined) {
-			await this.filesSvc.uploadAvatarAsync(
+			await this.filesSvc.uploadAsync(
+				"avatars",
 				this.cropper.data.image,
+				undefined,
 				async data => {
-					this.profile.Avatar = data.Uri;
+					this.profile.Avatar = data.URI;
 					this.cropper.data = {
-						image: data.Uri,
+						image: data.URI,
 						original: undefined
 					};
 					await this.updateProfileAsync();

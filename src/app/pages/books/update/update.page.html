@@ -27,7 +27,7 @@
 			{{ cover.title }}
 		</ion-label>
 		<div>
-			<input type="file" accept="image/*" (change)="prepareCover($event)" />
+			<input type="file" accept="image/png, image/jpeg" (change)="prepareCover($event)" />
 		</div>
 		<ion-button fill="clear" slot="end" (click)="cover.image = undefined">
 			<ion-icon name="trash" slot="icon-only"></ion-icon>
