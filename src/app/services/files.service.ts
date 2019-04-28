@@ -22,62 +22,45 @@ export class FilesService extends BaseService {
 		return headers;
 	}
 
-	/** Uploads a file (as multipart/form-data or base64) to HTTP service of files with on-process supported */
-	public upload(path: string, data: FormData | string, headers: { [key: string]: string }, onSuccess?: (data?: any) => void, onError?: (error?: any) => void, onProgress?: (percentage: string) => void) {
+	/** Uploads a file (multipart/form-data or base64) to HTTP service of files with uploading progress report */
+	public upload(path: string, data: FormData | string, headers: { [key: string]: string }, onNext?: (data?: any) => void, onError?: (error?: any) => void, onProgress?: (percentage: string) => void) {
 		const asBase64 = typeof data === "string";
-		return onProgress !== undefined
-			? AppXHR.http.post(
-					AppXHR.getURI(path, AppConfig.URIs.files),
-					asBase64 ? { Data: data } : data,
-					{
-						headers: this.getHeaders(headers, asBase64),
-						reportProgress: true,
-						observe: "events"
+		return AppXHR.http.post(
+			AppXHR.getURI(path, AppConfig.URIs.files),
+			asBase64 ? { Data: data } : data,
+			{
+				headers: this.getHeaders(headers, asBase64),
+				reportProgress: true,
+				observe: "events"
+			}
+		).subscribe(
+			event => {
+				if (event.type === HttpEventType.UploadProgress) {
+					const percentage = Math.round(event.loaded / event.total * 100) + "%";
+					if (onProgress !== undefined) {
+						onProgress(percentage);
 					}
-				)
-				.subscribe(
-					events => {
-						if (events.type === HttpEventType.UploadProgress) {
-							onProgress(Math.round(events.loaded / events.total * 100) + "%");
-						}
-						else if (events.type === HttpEventType.Response) {
-							if (onSuccess !== undefined) {
-								onSuccess(events.body);
-							}
-						}
-					},
-					error => {
-						this.showError("Error occurred while uploading file", error);
-						if (onError !== undefined) {
-							onError(AppUtility.parseError(error));
-						}
+					else {
+						console.log(this.getLogMessage(`${percentage} uploaded...`));
 					}
-				)
-			: AppXHR.http.post(
-					AppXHR.getURI(path, AppConfig.URIs.files),
-					asBase64 ? { Data: data } : data,
-					{
-						headers: this.getHeaders(headers, asBase64),
-						observe: "body"
+				}
+				else if (event.type === HttpEventType.Response) {
+					if (onNext !== undefined) {
+						onNext(event.body);
 					}
-				)
-				.subscribe(
-					response => {
-						if (onSuccess !== undefined) {
-							onSuccess(response);
-						}
-					},
-					error => {
-						this.showError("Error occurred while uploading file", error);
-						if (onError !== undefined) {
-							onError(AppUtility.parseError(error));
-						}
-					}
-				);
+				}
+			},
+			error => {
+				console.error(this.getErrorMessage("Error occurred while uploading a file", error), error);
+				if (onError !== undefined) {
+					onError(AppUtility.parseError(error));
+				}
+			}
+		);
 	}
 
-	/** Uploads a file (as form-data or base64) to HTTP service of files */
-	public async uploadAsync(path: string, data: FormData | string, headers: { [key: string]: string }, onSuccess?: (data?: any) => void, onError?: (error?: any) => void) {
+	/** Uploads a file (multipart/form-data or base64) to HTTP service of files */
+	public async uploadAsync(path: string, data: FormData | string, headers: { [key: string]: string }, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		try {
 			const asBase64 = typeof data === "string";
 			const response = await AppXHR.http.post(
@@ -88,12 +71,12 @@ export class FilesService extends BaseService {
 					observe: "body"
 				}
 			).toPromise();
-			if (onSuccess !== undefined) {
-				onSuccess(response);
+			if (onNext !== undefined) {
+				onNext(response);
 			}
 		}
 		catch (error) {
-			this.showError("Error occurred while uploading file", error);
+			console.error(this.getErrorMessage("Error occurred while uploading a file", error), error);
 			if (onError !== undefined) {
 				onError(AppUtility.parseError(error));
 			}
@@ -101,15 +84,18 @@ export class FilesService extends BaseService {
 	}
 
 	/** Reads the file content as data URL (base64-string) */
-	public readAsDataURL(file: File, onSuccess: (data: string) => void, limitSize?: number, onLimitExceeded?: (fileSize?: number, limitSize?: number) => void) {
+	public readAsDataURL(file: File, onRead: (data: string) => void, limitSize?: number, onLimitExceeded?: (fileSize?: number, limitSize?: number) => void) {
 		if (limitSize !== undefined && file.size > limitSize) {
 			if (onLimitExceeded !== undefined) {
 				onLimitExceeded(file.size, limitSize);
 			}
+			else {
+				console.warn(this.getLogMessage(`Limit size exceeded - Max allowed size: ${limitSize} bytes - Actual size: ${file.size} bytes`));
+			}
 		}
 		else {
 			const fileReader = new FileReader();
-			fileReader.onloadend = (event: any) => onSuccess(event.target.result);
+			fileReader.onloadend = (event: any) => onRead(event.target.result);
 			fileReader.readAsDataURL(file);
 		}
 	}

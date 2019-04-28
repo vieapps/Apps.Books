@@ -66,14 +66,14 @@ export class Base {
 		onError?: (error?: any) => void,
 		useXHR: boolean = false
 	) {
-		let useWebSockets = AppRTU.isReady && !useXHR;
-		if (useWebSockets) {
+		let useWS = AppRTU.isReady && !useXHR;
+		if (useWS) {
 			if (new Date().getTime() - AppRTU.PingTime > 130000) {
-				useWebSockets = false;
+				useWS = false;
 				AppRTU.restart("Ping period is too large...");
 			}
 		}
-		if (useWebSockets) {
+		if (useWS) {
 			const uri = PlatformUtility.parseURI(request.Path);
 			const serviceName = uri.Paths[0];
 			const objectName = uri.Paths.length > 1 ? uri.Paths[1] : "";
@@ -97,11 +97,11 @@ export class Base {
 		}
 		else {
 			try {
-				let path = AppXHR.getURI(request.Path);
+				let uri = AppXHR.getURI(request.Path);
 				if (request.Extra !== undefined) {
-					path += (path.indexOf("?") > 0 ? "&" : "?") + "x-request-extra=" + AppUtility.toBase64Url(request.Extra);
+					uri += (uri.indexOf("?") > 0 ? "&" : "?") + `x-request-extra=${AppUtility.toBase64Url(request.Extra)}`;
 				}
-				const data = await AppXHR.sendRequestAsync(request.Verb || "GET", path, request.Header, request.Body);
+				const data = await AppXHR.sendRequestAsync(request.Verb || "GET", uri, request.Header, request.Body);
 				if (onSuccess !== undefined) {
 					onSuccess(data);
 				}
@@ -162,14 +162,7 @@ export class Base {
 					onNext(data);
 				}
 			},
-			error => {
-				if (onError !== undefined) {
-					onError(AppUtility.parseError(error));
-				}
-				else {
-					this.showError("Error occurred while searching", error);
-				}
-			}
+			error => this.showError("Error occurred while searching", error, onError)
 		);
 	}
 
@@ -205,14 +198,7 @@ export class Base {
 						onNext(data);
 					}
 				},
-				error => {
-					if (onError !== undefined) {
-						onError(AppUtility.parseError(error));
-					}
-					else {
-						this.showError("Error occurred while searching", error);
-					}
-				},
+				error => this.showError("Error occurred while searching", error, onError),
 				useXHR
 			);
 		}
@@ -235,14 +221,7 @@ export class Base {
 				Header: headers
 			},
 			onNext,
-			error => {
-				if (onError !== undefined) {
-					onError(AppUtility.parseError(error));
-				}
-				else {
-					this.showError("Error occurred while creating", error);
-				}
-			},
+			error => this.showError("Error occurred while creating", error, onError),
 			useXHR
 		);
 	}
@@ -262,14 +241,7 @@ export class Base {
 				Header: headers
 			},
 			onNext,
-			error => {
-				if (onError !== undefined) {
-					onError(AppUtility.parseError(error));
-				}
-				else {
-					this.showError("Error occurred while reading", error);
-				}
-			},
+			error => this.showError("Error occurred while reading", error, onError),
 			useXHR
 		);
 	}
@@ -291,14 +263,7 @@ export class Base {
 				Header: headers
 			},
 			onNext,
-			error => {
-				if (onError !== undefined) {
-					onError(AppUtility.parseError(error));
-				}
-				else {
-					this.showError("Error occurred while updating", error);
-				}
-			},
+			error => this.showError("Error occurred while updating", error, onError),
 			useXHR
 		);
 	}
@@ -318,14 +283,7 @@ export class Base {
 				Header: headers
 			},
 			onNext,
-			error => {
-				if (onError !== undefined) {
-					onError(AppUtility.parseError(error));
-				}
-				else {
-					this.showError("Error occurred while deleting", error);
-				}
-			},
+			error => this.showError("Error occurred while deleting", error, onError),
 			useXHR
 		);
 	}
@@ -337,14 +295,14 @@ export class Base {
 
 	/** Prints the error message to console/log file and run the next action */
 	protected getErrorMessage(message: string, error?: any) {
-		return this.getLogMessage(message + "\n" + AppUtility.getErrorMessage(error));
+		return this.getLogMessage(`${message}\n${AppUtility.getErrorMessage(error)}`);
 	}
 
 	/** Prints the error message to console/log file and run the next action */
 	protected showError(message: string, error?: any, onNext?: (error?: any) => void) {
 		console.error(this.getErrorMessage(message, error), error);
 		if (onNext !== undefined) {
-			onNext(error);
+			onNext(AppUtility.parseError(error));
 		}
 	}
 
