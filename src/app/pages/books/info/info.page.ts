@@ -103,9 +103,9 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 		};
 	}
 
-	async initializeAsync() {
+	initializeAsync() {
 		const id = this.configSvc.requestParams["ID"];
-		await this.booksSvc.getAsync(id, async () => {
+		return this.booksSvc.getAsync(id, async () => {
 			this.book = Book.instances.getValue(id);
 			if (this.book !== undefined) {
 				await this.prepareResourcesAsync();
@@ -164,9 +164,9 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 		}
 	}
 
-	async copyLinkAsync() {
+	copyLinkAsync() {
 		PlatformUtility.copyToClipboard(this.redirectUrl);
-		await this.appFormsSvc.showToastAsync("Copied...");
+		return this.appFormsSvc.showToastAsync("Copied...");
 	}
 
 	openSource() {

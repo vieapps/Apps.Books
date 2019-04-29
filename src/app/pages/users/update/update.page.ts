@@ -1,6 +1,7 @@
 import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../../components/app.crypto";
+import { AppEvents } from "../../../components/app.events";
 import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { ConfigurationService } from "../../../services/configuration.service";
@@ -114,9 +115,9 @@ export class UsersUpdatePage implements OnInit {
 		}
 	}
 
-	async initializeAsync() {
+	initializeAsync() {
 		const id = this.configSvc.requestParams["ID"] || this.configSvc.getAccount().id;
-		await this.usersSvc.getProfileAsync(
+		return this.usersSvc.getProfileAsync(
 			id,
 			async () => {
 				this.profile = UserProfile.get(id);
@@ -273,6 +274,7 @@ export class UsersUpdatePage implements OnInit {
 						if (this.update.language !== this.update.form.value.Language) {
 							await this.configSvc.changeLanguageAsync(this.update.form.value.Language);
 						}
+						AppEvents.broadcast("Profile", { Type: "Updated" });
 					}
 					await Promise.all([
 						TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/profile"),
@@ -444,8 +446,8 @@ export class UsersUpdatePage implements OnInit {
 		}
 	}
 
-	async showProfileAsync(preProcess?: () => void) {
-		await this.appFormsSvc.hideLoadingAsync(() => this.zone.run(async () => {
+	showProfileAsync(preProcess?: () => void) {
+		return this.appFormsSvc.hideLoadingAsync(async () => await this.zone.run(async () => {
 			if (preProcess !== undefined) {
 				preProcess();
 			}

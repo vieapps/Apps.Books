@@ -400,8 +400,8 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	async showActionsAsync() {
-		await this.appFormsSvc.showActionSheetAsync(this.actions);
+	showActionsAsync() {
+		return this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
 	showFilter() {

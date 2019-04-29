@@ -125,12 +125,12 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		await this.booksSvc.updateBookmarkAsync(this.book.ID, this.chapter, this.scrollOffset);
 	}
 
-	async onSwipeLeftAsync() {
-		await this.goNextAsync();
+	onSwipeLeftAsync() {
+		return this.goNextAsync();
 	}
 
-	async onSwipeRightAsync() {
-		await this.openTOCs();
+	onSwipeRightAsync() {
+		return new Promise<void>(() => this.openTOCs());
 	}
 
 	async initializeAsync() {
@@ -221,8 +221,8 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		}
 	}
 
-	async showActionsAsync() {
-		await this.appFormsSvc.showActionSheetAsync(this.actions);
+	showActionsAsync() {
+		return this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
 	async goChapterAsync(direction: string = "next") {
@@ -288,20 +288,20 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		]);
 	}
 
-	async openAuthorAsync() {
-		await this.configSvc.navigateForwardAsync("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author }));
+	openAuthorAsync() {
+		return this.configSvc.navigateForwardAsync("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author }));
 	}
 
-	async openInfoAsync() {
-		await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/info/"));
+	openInfoAsync() {
+		return this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/info/"));
 	}
 
 	openTOCs() {
 		AppEvents.broadcast("OpenSidebar", { Type: "start" });
 	}
 
-	async openOptionsAsync() {
-		await this.configSvc.navigateForwardAsync("/books/options");
+	openOptionsAsync() {
+		return this.configSvc.navigateForwardAsync("/books/options");
 	}
 
 	async openRecrawlAsync() {
@@ -332,8 +332,8 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		);
 	}
 
-	async openUpdateAsync() {
-		await this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/update/"));
+	openUpdateAsync() {
+		return this.configSvc.navigateForwardAsync(this.book.routerURI.replace("/read/", "/update/"));
 	}
 
 	async deleteAsync() {

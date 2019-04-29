@@ -90,7 +90,7 @@ export class AppComponent implements OnInit {
 				this.configSvc.pushUrl(url, params);
 				AppEvents.broadcast("Navigated", { Url: url, Params: params });
 				if (new Date().getTime() - AppRTU.PingTime > 130000) {
-					AppRTU.restart("Ping period is too large...");
+					AppRTU.restart("[Router]: Ping period is too large...");
 				}
 			}
 		});

@@ -113,9 +113,9 @@ export class UsersOtpPage implements OnInit {
 		};
 	}
 
-	async provisonAsync() {
+	provisonAsync() {
 		this.appFormsSvc.showLoadingAsync(this.title);
-		await this.usersSvc.prepare2FAMethodAsync(
+		return this.usersSvc.prepare2FAMethodAsync(
 			async data => {
 				this.provision.info = data.Provisioning;
 				this.provision.uri = data.Uri;
@@ -133,7 +133,7 @@ export class UsersOtpPage implements OnInit {
 	}
 
 	async addAsync() {
-		this.appFormsSvc.showLoadingAsync(this.title);
+		await this.appFormsSvc.showLoadingAsync(this.title);
 		await this.usersSvc.add2FAMethodAsync(
 			this.password,
 			this.provision.info,
@@ -176,8 +176,8 @@ export class UsersOtpPage implements OnInit {
 		);
 	}
 
-	async doneAsync(onNext?: () => void) {
-		await this.appFormsSvc.hideLoadingAsync(async () => {
+	doneAsync(onNext?: () => void) {
+		return this.appFormsSvc.hideLoadingAsync(async () => {
 			if (onNext !== undefined) {
 				onNext();
 			}

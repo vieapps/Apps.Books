@@ -143,10 +143,10 @@ export class BooksUpdatePage implements OnInit {
 		);
 	}
 
-	async updateBookAsync() {
+	updateBookAsync() {
 		if (this.update.hash !== AppCrypto.hash(this.update.form.value)) {
 			if (this.update.requestOnly) {
-				await this.booksSvc.requestUpdateAsync(
+				return this.booksSvc.requestUpdateAsync(
 					this.update.form.value,
 					async () => {
 						await Promise.all([
@@ -159,7 +159,7 @@ export class BooksUpdatePage implements OnInit {
 				);
 			}
 			else {
-				await this.booksSvc.updateAsync(
+				return this.booksSvc.updateAsync(
 					this.update.form.value,
 					async () => {
 						await Promise.all([
@@ -176,7 +176,7 @@ export class BooksUpdatePage implements OnInit {
 			}
 		}
 		else {
-			await this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
+			return this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
 		}
 	}
 

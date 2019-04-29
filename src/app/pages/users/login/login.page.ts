@@ -296,8 +296,8 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 		}
 	}
 
-	async refreshCaptchaAsync(control?: AppFormsControl) {
-		await this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
+	refreshCaptchaAsync(control?: AppFormsControl) {
+		return this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 	onResetPasswordFormInitialized($event: any) {
@@ -311,28 +311,28 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 		this.refreshCaptchaAsync($event);
 	}
 
-	async closeAsync() {
+	closeAsync() {
 		if (AppUtility.isNotEmpty(this.configSvc.queryParams["next"])) {
 			try {
-				this.configSvc.navigateHomeAsync(AppCrypto.urlDecode(this.configSvc.queryParams["next"]));
+				return this.configSvc.navigateHomeAsync(AppCrypto.urlDecode(this.configSvc.queryParams["next"]));
 			}
 			catch (error) {
 				console.error("<Login>: Error occurred while redirecting", error);
-				await this.configSvc.navigateHomeAsync();
+				return this.configSvc.navigateHomeAsync();
 			}
 		}
 		else {
 			if (this.configSvc.previousUrl.startsWith("/users")) {
-				await this.configSvc.navigateHomeAsync();
+				return this.configSvc.navigateHomeAsync();
 			}
 			else {
-				await this.configSvc.navigateBackAsync();
+				return this.configSvc.navigateBackAsync();
 			}
 		}
 	}
 
-	async registerAsync() {
-		await this.configSvc.navigateForwardAsync(this.configSvc.appConfig.url.users.register);
+	registerAsync() {
+		return this.configSvc.navigateForwardAsync(this.configSvc.appConfig.url.users.register);
 	}
 
 }

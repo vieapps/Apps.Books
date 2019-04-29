@@ -70,7 +70,7 @@ export class Base {
 		if (useWS) {
 			if (new Date().getTime() - AppRTU.PingTime > 130000) {
 				useWS = false;
-				AppRTU.restart("Ping period is too large...");
+				AppRTU.restart("[Base]: Ping period is too large...");
 			}
 		}
 		if (useWS) {

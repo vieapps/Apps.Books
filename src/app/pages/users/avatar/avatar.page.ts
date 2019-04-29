@@ -1,8 +1,9 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { ImageCropperComponent, CropperSettings } from "ng2-img-cropper";
+import { AppFormsService } from "../../../components/forms.service";
+import { AppEvents } from "../../../components/app.events";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
 import { UsersService } from "../../../services/users.service";
 import { FilesService } from "../../../services/files.service";
@@ -77,24 +78,25 @@ export class UsersAvatarPage implements OnInit {
 		};
 	}
 
-	prepareImage($event: any) {
+	prepareAvatarImage($event: any) {
 		const file: File = $event.target.files.length > 0 ? $event.target.files[0] : undefined;
 		if (file !== undefined && file.type.startsWith("image/")) {
 			this.filesSvc.readAsDataURL(file, data => {
 				const image = new Image();
 				image.src = data;
 				this.imgcropperComponent.setImage(image);
-			}, 1024000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
+			}, 4096000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
 		}
 	}
 
-	async updateProfileAsync() {
-		await this.usersSvc.updateProfileAsync(
+	updateProfileAsync() {
+		return this.usersSvc.updateProfileAsync(
 			{
 				ID: this.profile.ID,
 				Avatar: this.profile.Avatar
 			},
 			async () => await this.configSvc.storeSessionAsync(async () => {
+				AppEvents.broadcast("Profile", { Type: "Updated" });
 				await TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/avatar");
 				await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.avatar.message")));
 			}),
@@ -105,13 +107,11 @@ export class UsersAvatarPage implements OnInit {
 		);
 	}
 
-	async updateAsync() {
+	updateAsync() {
 		this.processing = true;
 		if (this.mode === "Avatar" && this.cropper.data.original !== undefined) {
-			await this.filesSvc.uploadAsync(
-				"avatars",
+			return this.filesSvc.uploadAvatarAsync(
 				this.cropper.data.image,
-				undefined,
 				async data => {
 					this.profile.Avatar = data.URI;
 					this.cropper.data = {
@@ -128,15 +128,15 @@ export class UsersAvatarPage implements OnInit {
 		}
 		else if (this.mode === "Gravatar" && this.profile.Avatar !== "") {
 			this.profile.Avatar = "";
-			await this.updateProfileAsync();
+			return this.updateProfileAsync();
 		}
 		else {
-			await this.cancelAsync();
+			return this.cancelAsync();
 		}
 	}
 
-	async cancelAsync(onNext?: () => void) {
-		await this.appFormsSvc.hideModalAsync(onNext);
+	cancelAsync(onNext?: () => void) {
+		return this.appFormsSvc.hideModalAsync(onNext);
 	}
 
 }

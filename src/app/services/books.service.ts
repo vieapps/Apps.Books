@@ -116,7 +116,7 @@ export class BooksService extends BaseService {
 			else if ("OpenBook" === info.args.Type) {
 				const book = Book.instances.getValue(info.args.ID);
 				if (book !== undefined && book.TotalChapters > 1) {
-					await this.updateReadingAsync(book, info.args.Chapter || 1);
+					this.updateReading(book, info.args.Chapter || 1);
 				}
 			}
 			else if ("CloseBook" === info.args.Type && this._reading.ID !== undefined) {
@@ -167,7 +167,7 @@ export class BooksService extends BaseService {
 		};
 	}
 
-	private async updateReadingAsync(book: Book, chapter: number) {
+	private updateReading(book: Book, chapter: number) {
 		if (book.ID !== this._reading.ID) {
 			this._reading.ID = book.ID;
 			this._reading.Chapter.Previous = undefined;
@@ -225,7 +225,7 @@ export class BooksService extends BaseService {
 				}
 			},
 			error => {
-				console.error(this.getErrorMessage("Error occurred while searching", error));
+				console.error(super.getErrorMessage("Error occurred while searching", error));
 				if (onError !== undefined) {
 					onError(error);
 				}
@@ -246,7 +246,7 @@ export class BooksService extends BaseService {
 				}
 			},
 			error => {
-				console.error(this.getErrorMessage("Error occurred while searching", error));
+				console.error(super.getErrorMessage("Error occurred while searching", error));
 				if (onError !== undefined) {
 					onError(error);
 				}
@@ -275,7 +275,7 @@ export class BooksService extends BaseService {
 					}
 				},
 				error => {
-					console.error(this.getErrorMessage("Error occurred while reading", error));
+					console.error(super.getErrorMessage("Error occurred while reading", error));
 					if (onError !== undefined) {
 						onError(error);
 					}
@@ -324,7 +324,7 @@ export class BooksService extends BaseService {
 					this.increaseCounters(id, "view", onNext);
 				},
 				error => {
-					console.error(this.getErrorMessage("Error occurred while reading a chapter", error));
+					console.error(super.getErrorMessage("Error occurred while reading a chapter", error));
 					if (onError !== undefined) {
 						onError(error);
 					}
@@ -401,7 +401,7 @@ export class BooksService extends BaseService {
 			body,
 			onNext,
 			error => {
-				console.error(this.getErrorMessage("Error occurred while requesting to update", error));
+				console.error(super.getErrorMessage("Error occurred while requesting to update", error));
 				if (onError !== undefined) {
 					onError(error);
 				}
@@ -415,7 +415,7 @@ export class BooksService extends BaseService {
 			body,
 			onNext,
 			error => {
-				console.error(this.getErrorMessage("Error occurred while updating", error));
+				console.error(super.getErrorMessage("Error occurred while updating", error));
 				if (onError !== undefined) {
 					onError(error);
 				}
@@ -433,7 +433,7 @@ export class BooksService extends BaseService {
 				}
 			},
 			error => {
-				console.error(this.getErrorMessage("Error occurred while deleting", error));
+				console.error(super.getErrorMessage("Error occurred while deleting", error));
 				if (onError !== undefined) {
 					onError(error);
 				}
@@ -462,7 +462,7 @@ export class BooksService extends BaseService {
 					AppEvents.broadcast("Books", { Type: "Updated", ID: message.Data.ID });
 				}
 				else if (this.configSvc.isDebug) {
-					console.warn(this.getLogMessage("Got an update"), message);
+					console.warn(super.getLogMessage("Got an update"), message);
 				}
 				break;
 		}
@@ -602,7 +602,7 @@ export class BooksService extends BaseService {
 				return new Promise<void>(() => this.configSvc.appConfig.extras["Books-Status"] = (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s)));
 
 			default:
-				return new Promise<void>(message.Type.Event === "All" ? () => {} : () => console.warn(this.getLogMessage("Got an update message"), message));
+				return new Promise<void>(message.Type.Event === "All" ? () => {} : () => console.warn(super.getLogMessage("Got an update message"), message));
 		}
 	}
 

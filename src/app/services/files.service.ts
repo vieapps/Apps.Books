@@ -13,6 +13,28 @@ export class FilesService extends BaseService {
 		AppXHR.initialize(http);
 	}
 
+	/** Reads the file content as data URL (base64-string) */
+	public readAsDataURL(file: File, onRead: (data: string) => void, limitSize?: number, onLimitExceeded?: (fileSize?: number, limitSize?: number) => void) {
+		if (limitSize !== undefined && file.size > limitSize) {
+			console.warn(super.getLogMessage(`Limit size exceeded - Max allowed size: ${limitSize} bytes - Actual size: ${file.size} bytes`));
+			if (onLimitExceeded !== undefined) {
+				onLimitExceeded(file.size, limitSize);
+			}
+		}
+		else {
+			const fileReader = new FileReader();
+			fileReader.onloadend = (event: any) => onRead(event.target.result);
+			fileReader.readAsDataURL(file);
+		}
+	}
+
+	/** Gets the multipart/form-data body from the collection of files to upload to HTTP service of files */
+	public getMultipartBody(files: Array<File>) {
+		const body = new FormData();
+		(files || []).forEach(file => body.append("files[]", file, file !== undefined ? file.name : ""));
+		return body;
+	}
+
 	private getHeaders(additionalHeaders: { [key: string]: string }, asBase64: boolean) {
 		const headers = AppConfig.getAuthenticatedHeaders();
 		Object.keys(additionalHeaders || {}).forEach(name => headers[name] = additionalHeaders[name]);
@@ -41,7 +63,7 @@ export class FilesService extends BaseService {
 						onProgress(percentage);
 					}
 					else {
-						console.log(this.getLogMessage(`${percentage} uploaded...`));
+						console.log(super.getLogMessage(`${percentage} uploaded...`));
 					}
 				}
 				else if (event.type === HttpEventType.Response) {
@@ -51,7 +73,7 @@ export class FilesService extends BaseService {
 				}
 			},
 			error => {
-				console.error(this.getErrorMessage("Error occurred while uploading a file", error), error);
+				console.error(super.getErrorMessage("Error occurred while uploading a file", error), error);
 				if (onError !== undefined) {
 					onError(AppUtility.parseError(error));
 				}
@@ -76,35 +98,16 @@ export class FilesService extends BaseService {
 			}
 		}
 		catch (error) {
-			console.error(this.getErrorMessage("Error occurred while uploading a file", error), error);
+			console.error(super.getErrorMessage("Error occurred while uploading a file", error), error);
 			if (onError !== undefined) {
 				onError(AppUtility.parseError(error));
 			}
 		}
 	}
 
-	/** Reads the file content as data URL (base64-string) */
-	public readAsDataURL(file: File, onRead: (data: string) => void, limitSize?: number, onLimitExceeded?: (fileSize?: number, limitSize?: number) => void) {
-		if (limitSize !== undefined && file.size > limitSize) {
-			if (onLimitExceeded !== undefined) {
-				onLimitExceeded(file.size, limitSize);
-			}
-			else {
-				console.warn(this.getLogMessage(`Limit size exceeded - Max allowed size: ${limitSize} bytes - Actual size: ${file.size} bytes`));
-			}
-		}
-		else {
-			const fileReader = new FileReader();
-			fileReader.onloadend = (event: any) => onRead(event.target.result);
-			fileReader.readAsDataURL(file);
-		}
-	}
-
-	/** Gets the multipart/form-data body from the collection of files to upload to HTTP service of files */
-	public getMultipartBody(files: Array<File>) {
-		const body = new FormData();
-		(files || []).forEach(file => body.append("files[]", file, file !== undefined ? file.name : ""));
-		return body;
+	/** Uploads an avatar image (multipart/form-data or base64) to HTTP service of files */
+	public uploadAvatarAsync(data: FormData | string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return this.uploadAsync("avatars", data, undefined, onNext, onError);
 	}
 
 }

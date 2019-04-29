@@ -101,8 +101,8 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	async openSearchAsync() {
-		await this.configSvc.navigateForwardAsync("/users/search");
+	openSearchAsync() {
+		return this.configSvc.navigateForwardAsync("/users/search");
 	}
 
 	track(index: number, profile: UserProfile) {

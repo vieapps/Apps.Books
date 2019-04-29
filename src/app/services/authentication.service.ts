@@ -100,13 +100,13 @@ export class AuthenticationService extends BaseService {
 			},
 			async data => {
 				if (AppUtility.isTrue(data.Require2FA)) {
-					console.warn(this.getLogMessage("Log in with static password successful, but need to verify with 2FA"), this.configSvc.isDebug ? data : "");
+					console.warn(super.getLogMessage("Log in with static password successful, but need to verify with 2FA"), this.configSvc.isDebug ? data : "");
 					if (onNext !== undefined) {
 						onNext(data);
 					}
 				}
 				else {
-					console.log(this.getLogMessage("Log in successful"), this.configSvc.isDebug ? data : "");
+					console.log(super.getLogMessage("Log in successful"), this.configSvc.isDebug ? data : "");
 					await this.updateSessionAsync(data, onNext);
 				}
 			},
@@ -114,7 +114,7 @@ export class AuthenticationService extends BaseService {
 				if (AppUtility.isGotSecurityException(error)) {
 					await this.configSvc.resetSessionAsync(async () =>
 						await this.configSvc.initializeSessionAsync(async () =>
-							await this.configSvc.registerSessionAsync(() => console.log(this.getLogMessage("The session is re-registered (anonymous)")))
+							await this.configSvc.registerSessionAsync(() => console.log(super.getLogMessage("The session is re-registered (anonymous)")))
 						)
 					);
 				}
@@ -139,7 +139,7 @@ export class AuthenticationService extends BaseService {
 				OTP: AppCrypto.rsaEncrypt(otpCode)
 			},
 			async data => {
-				console.log(this.getLogMessage("Log in with OTP successful"));
+				console.log(super.getLogMessage("Log in with OTP successful"));
 				await this.updateSessionAsync(data, onNext);
 			},
 			error => {
@@ -162,7 +162,7 @@ export class AuthenticationService extends BaseService {
 				AppEvents.broadcast("Session", { Type: "LogOut" });
 				AppEvents.sendToElectron("Users", { Type: "LogOut" });
 				await this.configSvc.updateSessionAsync(data, async () => await this.configSvc.registerSessionAsync(() => {
-					console.log(this.getLogMessage("Log out successful"), this.configSvc.isDebug ? data : "");
+					console.log(super.getLogMessage("Log out successful"), this.configSvc.isDebug ? data : "");
 					AppEvents.broadcast("Account", { Type: "Updated" });
 					AppEvents.broadcast("Profile", { Type: "Updated" });
 					if (onNext !== undefined) {

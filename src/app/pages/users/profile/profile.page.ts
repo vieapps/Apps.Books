@@ -79,10 +79,10 @@ export class UsersProfilePage implements OnInit {
 		return this.authSvc.isSystemAdministrator() && !this.configSvc.previousUrl.startsWith("/users/list") && !this.configSvc.previousUrl.startsWith("/users/search");
 	}
 
-	async setModeAsync(mode: string, title: string) {
+	setModeAsync(mode: string, title: string) {
 		this.mode = mode;
 		this.configSvc.appTitle = this.title = title;
-		await Promise.all([
+		return Promise.all([
 			this.prepareButtonsAsync(),
 			this.prepareActionsAsync()
 		]);
@@ -135,8 +135,8 @@ export class UsersProfilePage implements OnInit {
 		}
 	}
 
-	async showActionsAsync() {
-		await this.appFormsSvc.showActionSheetAsync(this.actions);
+	showActionsAsync() {
+		return this.appFormsSvc.showActionSheetAsync(this.actions);
 	}
 
 	async showProfileAsync(onNext?: () => void) {
@@ -160,12 +160,12 @@ export class UsersProfilePage implements OnInit {
 		);
 	}
 
-	async openUpdateAsync(mode?: string) {
-		await this.configSvc.navigateForwardAsync("/users/update/" + (this.id === undefined ? "my" : AppUtility.toANSI(this.profile.Name, true)) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" }));
+	openUpdateAsync(mode?: string) {
+		return this.configSvc.navigateForwardAsync("/users/update/" + (this.id === undefined ? "my" : AppUtility.toANSI(this.profile.Name, true)) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" }));
 	}
 
-	async openOTPAsync(mode?: string) {
-		await this.configSvc.navigateForwardAsync("/users/otp");
+	openOTPAsync(mode?: string) {
+		return this.configSvc.navigateForwardAsync("/users/otp");
 	}
 
 	async openSendInvitationAsync() {

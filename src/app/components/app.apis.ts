@@ -430,17 +430,21 @@ export class AppRTU {
 
 	/** Restarts the real-time updater */
 	public static restart(reason?: string, defer?: number) {
-		this._status = "restarting";
-		this.close();
-		this._attempt++;
-		console.warn(`[AppRTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
-		PlatformUtility.invoke(() => {
-			console.log("[AppRTU]: Re-starting...");
-			this.start(() => {
-				console.log("[AppRTU]: Re-started...");
-				this._attempt = -1;
-			}, true);
-		}, defer || 123 + (this._attempt * 13));
+		if (this._status !== "restarting") {
+			this.close();
+			this._status = "restarting";
+			this._attempt++;
+			console.warn(`[AppRTU]: ${reason || "Re-start because the WebSocket connection is broken"}`);
+			PlatformUtility.invoke(() => {
+				console.log(`[AppRTU]: Re-starting... #${this._attempt}`);
+				this.start(() => {
+					if (this.isReady) {
+						console.log(`[AppRTU]: Re-started... #${this._attempt}`);
+						this._attempt = -1;
+					}
+				}, true);
+			}, defer || 123 + (this._attempt * 13));
+		}
 	}
 
 	/** Restarts the real-time updater when got an error */

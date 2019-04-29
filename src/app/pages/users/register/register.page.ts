@@ -232,8 +232,8 @@ export class UsersRegisterPage implements OnInit {
 		this.refreshCaptchaAsync($event);
 	}
 
-	async refreshCaptchaAsync(control?: AppFormsControl) {
-		await this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
+	refreshCaptchaAsync(control?: AppFormsControl) {
+		return this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
 }
