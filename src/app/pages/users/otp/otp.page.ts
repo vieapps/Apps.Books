@@ -118,7 +118,7 @@ export class UsersOtpPage implements OnInit {
 		return this.usersSvc.prepare2FAMethodAsync(
 			async data => {
 				this.provision.info = data.Provisioning;
-				this.provision.uri = data.Uri;
+				this.provision.uri = data.URI;
 				await Promise.all([
 					this.prepareStatusAsync(),
 					this.appFormsSvc.hideLoadingAsync(() => {

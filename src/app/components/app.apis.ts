@@ -1,6 +1,7 @@
 import { Subject } from "rxjs";
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { AppConfig } from "../app.config";
+import { AppCrypto } from "./app.crypto";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 
@@ -265,6 +266,14 @@ export class AppRTU {
 					console.error("[AppRTU]: Error occurred while running the 'on-open' handler", e);
 				}
 			}
+			this._websocket.send(JSON.stringify({
+				ServiceName: "Session",
+				Verb: "VERIFY",
+				Header: {
+					"x-session-id": AppCrypto.aesEncrypt(AppConfig.session.id),
+					"x-device-id": AppCrypto.aesEncrypt(AppConfig.session.device)
+				}
+			}));
 			PlatformUtility.invoke(() => {
 				if (this.isReady) {
 					this.sendRequests(true);

@@ -73,7 +73,7 @@ export class FilesService extends BaseService {
 				}
 			},
 			error => {
-				console.error(super.getErrorMessage("Error occurred while uploading a file", error), error);
+				console.error(super.getErrorMessage("Error occurred while uploading", error), error);
 				if (onError !== undefined) {
 					onError(AppUtility.parseError(error));
 				}
@@ -98,7 +98,7 @@ export class FilesService extends BaseService {
 			}
 		}
 		catch (error) {
-			console.error(super.getErrorMessage("Error occurred while uploading a file", error), error);
+			console.error(super.getErrorMessage("Error occurred while uploading", error), error);
 			if (onError !== undefined) {
 				onError(AppUtility.parseError(error));
 			}

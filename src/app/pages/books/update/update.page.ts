@@ -129,7 +129,7 @@ export class BooksUpdatePage implements OnInit {
 			"books",
 			this.cover.image,
 			{
-				"x-object-id": this.book.ID,
+				"x-book-id": this.book.ID,
 				"x-temporary": `${this.update.requestOnly}`
 			},
 			data => {
