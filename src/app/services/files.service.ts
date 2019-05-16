@@ -2,8 +2,22 @@ import { Injectable } from "@angular/core";
 import { HttpClient, HttpEventType } from "@angular/common/http";
 import { AppConfig } from "../app.config";
 import { AppXHR } from "../components/app.apis";
+import { AppCrypto } from "../components/app.crypto";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseService } from "./base.service";
+
+/** Presents the header for uploading files */
+export interface FilesHeader {
+	ServiceName: string;
+	ObjectName: string;
+	SystemID?: string;
+	DefinitionID?: string;
+	ObjectID: string;
+	ObjectTitle?: string;
+	IsShared?: boolean;
+	IsTracked?: boolean;
+	IsTemporary?: boolean;
+}
 
 @Injectable()
 export class FilesService extends BaseService {
@@ -35,23 +49,24 @@ export class FilesService extends BaseService {
 		return body;
 	}
 
-	private getHeaders(additionalHeaders: { [key: string]: string }, asBase64: boolean) {
-		const headers = AppConfig.getAuthenticatedHeaders();
-		Object.keys(additionalHeaders || {}).forEach(name => headers[name] = additionalHeaders[name]);
+	private getHeader(additional: { [key: string]: string }, asBase64: boolean) {
+		const header = AppConfig.getAuthenticatedHeaders();
+		Object.keys(additional || {}).forEach(name => header[name] = additional[name]);
+		Object.keys(header).filter(name => !AppUtility.isNotEmpty(header[name])).forEach(name => delete header[name]);
 		if (asBase64) {
-			headers["x-as-base64"] = "yes";
+			header["x-as-base64"] = "true";
 		}
-		return headers;
+		return header;
 	}
 
 	/** Uploads a file (multipart/form-data or base64) to HTTP service of files with uploading progress report */
-	public upload(path: string, data: FormData | string, headers: { [key: string]: string }, onNext?: (data?: any) => void, onError?: (error?: any) => void, onProgress?: (percentage: string) => void) {
-		const asBase64 = typeof data === "string";
+	public upload(path: string, data: string | Array<string> | FormData, header: { [key: string]: string }, onNext?: (data?: any) => void, onError?: (error?: any) => void, onProgress?: (percentage: string) => void) {
+		const asBase64 = !(data instanceof FormData);
 		return AppXHR.http.post(
 			AppXHR.getURI(path, AppConfig.URIs.files),
 			asBase64 ? { Data: data } : data,
 			{
-				headers: this.getHeaders(headers, asBase64),
+				headers: this.getHeader(header, asBase64),
 				reportProgress: true,
 				observe: "events"
 			}
@@ -59,11 +74,11 @@ export class FilesService extends BaseService {
 			event => {
 				if (event.type === HttpEventType.UploadProgress) {
 					const percentage = Math.round(event.loaded / event.total * 100) + "%";
+					if (AppConfig.app.debug) {
+						console.log(super.getLogMessage(`Uploading... ${percentage}`));
+					}
 					if (onProgress !== undefined) {
 						onProgress(percentage);
-					}
-					else {
-						console.log(super.getLogMessage(`${percentage} uploaded...`));
 					}
 				}
 				else if (event.type === HttpEventType.Response) {
@@ -82,14 +97,14 @@ export class FilesService extends BaseService {
 	}
 
 	/** Uploads a file (multipart/form-data or base64) to HTTP service of files */
-	public async uploadAsync(path: string, data: FormData | string, headers: { [key: string]: string }, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public async uploadAsync(path: string, data: string | Array<string> | FormData, header: { [key: string]: string }, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		try {
-			const asBase64 = typeof data === "string";
+			const asBase64 = !(data instanceof FormData);
 			const response = await AppXHR.http.post(
 				AppXHR.getURI(path, AppConfig.URIs.files),
 				asBase64 ? { Data: data } : data,
 				{
-					headers: this.getHeaders(headers, asBase64),
+					headers: this.getHeader(header, asBase64),
 					observe: "body"
 				}
 			).toPromise();
@@ -106,8 +121,42 @@ export class FilesService extends BaseService {
 	}
 
 	/** Uploads an avatar image (multipart/form-data or base64) to HTTP service of files */
-	public uploadAvatarAsync(data: FormData | string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public uploadAvatarAsync(data: string | Array<string> | FormData, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return this.uploadAsync("avatars", data, undefined, onNext, onError);
+	}
+
+	private getFilesHeader(header: FilesHeader): { [key: string]: string } {
+		return {
+			"x-service-name": header.ServiceName,
+			"x-object-name": header.ObjectName,
+			"x-system-id": header.SystemID,
+			"x-definition-id": header.DefinitionID,
+			"x-object-id": header.ObjectID,
+			"x-object-title": AppCrypto.urlEncode(header.ObjectTitle || ""),
+			"x-shared": AppUtility.isTrue(header.IsShared) ? "true" : undefined,
+			"x-tracked": AppUtility.isTrue(header.IsTracked) ? "true" : undefined,
+			"x-temporary": AppUtility.isTrue(header.IsTemporary) ? "true" : undefined
+		};
+	}
+
+	/** Uploads thumbnail images (multipart/form-data or base64) to HTTP service of files */
+	public uploadThumbnails(data: string | Array<string> | FormData, header: FilesHeader, onNext?: (data?: any) => void, onError?: (error?: any) => void, onProgress?: (percentage: string) => void) {
+		return this.upload("thumbnails", data, this.getFilesHeader(header), onNext, onError, onProgress);
+	}
+
+	/** Uploads thumbnail images (multipart/form-data or base64) to HTTP service of files */
+	public uploadThumbnailsAsync(data: string | Array<string> | FormData, header: FilesHeader, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return this.uploadAsync("thumbnails", data, this.getFilesHeader(header), onNext, onError);
+	}
+
+	/** Uploads files (multipart/form-data or base64) to HTTP service of files */
+	public uploadFiles(data: FormData, header: FilesHeader, onNext?: (data?: any) => void, onError?: (error?: any) => void, onProgress?: (percentage: string) => void) {
+		return this.upload("files", data, this.getFilesHeader(header), onNext, onError, onProgress);
+	}
+
+	/** Uploads files (multipart/form-data or base64) to HTTP service of files */
+	public uploadFilesAsync(data: FormData, header: FilesHeader, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return this.uploadAsync("files", data, this.getFilesHeader(header), onNext, onError);
 	}
 
 }

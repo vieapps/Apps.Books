@@ -30,7 +30,7 @@ export class AppConfig {
 		version: "1.0.1",
 		copyright: "© 2016 - 2019 VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: "ionic 4.3 - angular 7.2 - cordova 8.1",
+		frameworks: "ionic 4.4 - angular 7.2 - cordova 8.1",
 		homepage: "https://viebooks.net",
 		mode: "",
 		platform: "",

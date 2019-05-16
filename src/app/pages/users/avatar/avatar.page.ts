@@ -85,7 +85,7 @@ export class UsersAvatarPage implements OnInit {
 				const image = new Image();
 				image.src = data;
 				this.imgcropperComponent.setImage(image);
-			}, 4096000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
+			}, 1024000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
 		}
 	}
 
