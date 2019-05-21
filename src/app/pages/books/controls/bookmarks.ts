@@ -67,7 +67,9 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy() {
-		this.slidingitems.closeOpened();
+		if (this.slidingitems !== undefined) {
+			this.slidingitems.closeOpened();
+		}
 		AppEvents.off("App", "LanguageChangedEventHandlerOfBookmarksControl");
 		AppEvents.off("Session", "SessionEventHandlerOfBookmarksControl");
 		AppEvents.off("Books", "BookmarksUpdatedEventHandlerOfBookmarksControl");
