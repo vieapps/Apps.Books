@@ -40,6 +40,17 @@ export class Base {
 	}
 
 	/**
+		* Sends a request to an endpoint API via HXR
+		* @param verb HTTP verb to perform the request
+		* @param uri Full URI of the end-point API's uri to perform the request
+		* @param headers Additional headers to perform the request
+		* @param body The JSON object that contains the body to perform the request
+	*/
+	protected requestAsync(verb: string, uri: string, headers?: any, body?: any) {
+		return AppXHR.sendRequestAsync(verb, uri, headers, body);
+	}
+
+	/**
 	 * Sends a request to the remote API to perform an action of a specified service (using WebSocket)
 	 * @param request The request to send
 	 * @param onSuccess The callback function to handle the returning data
@@ -101,7 +112,7 @@ export class Base {
 				if (request.Extra !== undefined) {
 					uri += (uri.indexOf("?") > 0 ? "&" : "?") + `x-request-extra=${AppUtility.toBase64Url(request.Extra)}`;
 				}
-				const data = await AppXHR.sendRequestAsync(request.Verb || "GET", uri, request.Header, request.Body);
+				const data = await this.requestAsync(request.Verb || "GET", uri, request.Header, request.Body);
 				if (onSuccess !== undefined) {
 					onSuccess(data);
 				}

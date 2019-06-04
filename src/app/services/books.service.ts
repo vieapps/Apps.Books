@@ -48,6 +48,19 @@ export class BooksService extends BaseService {
 			return;
 		}
 
+		try {
+			const categories = await this.requestAsync("GET", "/assets/books/categories.json") as Array<any>;
+			this.configSvc.appConfig.extras["Books-Categories"] = categories.map(s => StatisticInfo.deserialize(s));
+			if (categories.length > 0) {
+				AppEvents.broadcast("Books", { Type: "CategoriesUpdated", Data: categories });
+			}
+		}
+		catch (e) {
+			if (this.configSvc.isDebug) {
+				console.error(this.getErrorMessage("Error occurred while fetching static categories", e));
+			}
+		}
+
 		await Promise.all([
 			this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
 			this.loadStatisticsAsync(() => {
@@ -502,10 +515,8 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public get categories() {
-		return this.configSvc.appConfig.extras["Books-Categories"] !== undefined
-			? this.configSvc.appConfig.extras["Books-Categories"] as Array<StatisticInfo>
-			: new Array<StatisticInfo>();
+	public get categories(): Array<StatisticInfo> {
+		return this.configSvc.appConfig.extras["Books-Categories"] || [];
 	}
 
 	private async loadCategoriesAsync(onNext?: (categories?: Array<StatisticInfo>) => void) {
@@ -527,10 +538,8 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public get authors() {
-		return this.configSvc.appConfig.extras["Books-Authors"] !== undefined
-			? this.configSvc.appConfig.extras["Books-Authors"] as Dictionary<string, Array<StatisticBase>>
-			: new Dictionary<string, Array<StatisticBase>>();
+	public get authors(): Dictionary<string, Array<StatisticBase>> {
+		return this.configSvc.appConfig.extras["Books-Authors"] || new Dictionary<string, Array<StatisticBase>>();
 	}
 
 	private async loadAuthorsAsync(onNext?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
@@ -567,22 +576,22 @@ export class BooksService extends BaseService {
 		};
 	}
 
-	private async loadStatisticsAsync(onNext?: () => void) {
-		await Promise.all([
+	private loadStatisticsAsync(onNext?: () => void) {
+		return Promise.all([
 			this.loadCategoriesAsync(),
 			this.loadAuthorsAsync()
-		]);
-		super.send({
-			ServiceName: this.name,
-			ObjectName: "statistic",
-			Verb: "GET",
-			Query: {
-				"object-identity": "all"
+		]).then(() => {
+			super.send({
+				ServiceName: this.name,
+				ObjectName: "statistic",
+				Query: {
+					"object-identity": "all"
+				}
+			});
+			if (onNext !== undefined) {
+				onNext();
 			}
 		});
-		if (onNext !== undefined) {
-			onNext();
-		}
 	}
 
 	private processUpdateStatisticMessageAsync(message: AppMessage) {
@@ -596,7 +605,6 @@ export class BooksService extends BaseService {
 				authors.setValue(message.Data.Char, (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s)));
 				this.configSvc.appConfig.extras["Books-Authors"] = authors;
 				return this.storeAuthorsAsync();
-				break;
 
 			case "Status":
 				return new Promise<void>(() => this.configSvc.appConfig.extras["Books-Status"] = (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s)));
@@ -646,8 +654,7 @@ export class BooksService extends BaseService {
 	private getBookmarks(onNext?: () => void) {
 		super.send({
 			ServiceName: this.name,
-			ObjectName: "bookmarks",
-			Verb: "GET"
+			ObjectName: "bookmarks"
 		});
 		if (onNext !== undefined) {
 			onNext();
