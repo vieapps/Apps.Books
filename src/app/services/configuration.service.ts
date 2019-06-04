@@ -45,9 +45,9 @@ export class ConfigurationService extends BaseService {
 	) {
 		super("Configuration");
 		AppStorage.initializeAsync(storage, () => console.log(super.getLogMessage("KVP storage is ready")));
-		AppEvents.on("App", async info => {
+		AppEvents.on("App", info => {
 			if ("Initialized" === info.args.Type) {
-				await this.loadGeoMetaAsync();
+				this.loadGeoMetaAsync();
 			}
 		});
 	}
@@ -211,12 +211,13 @@ export class ConfigurationService extends BaseService {
 		if (isNativeApp) {
 			this.appConfig.app.platform = this.device.platform;
 			this.appConfig.session.device = this.device.uuid + "@" + this.appConfig.app.id;
+			this.appConfig.url.base = "/";
 		}
 
 		else {
+			this.appConfig.app.platform = PlatformUtility.getAppPlatform() + " " + this.appConfig.app.mode;
 			this.appConfig.url.host = PlatformUtility.getHost();
 			this.appConfig.url.base = this.platformLocation.getBaseHrefFromDOM();
-			this.appConfig.app.platform = PlatformUtility.getAppPlatform() + " " + this.appConfig.app.mode;
 		}
 
 		if (isCordova) {
@@ -241,7 +242,7 @@ export class ConfigurationService extends BaseService {
 			AppEvents.initializeElectronService(this.electronSvc);
 			PlatformUtility.setElectronService(this.electronSvc);
 			this.appConfig.app.shell = "Electron";
-			this.electronSvc.ipcRenderer.on("electron.ipc2app", ($event, $info) => {
+			this.electronSvc.ipcRenderer.on("electron.ipc2app", ($event: any, $info: any) => {
 				$info = $info || {};
 				if (AppUtility.isNotEmpty($info.event)) {
 					AppEvents.broadcast($info.event, $info.args);
@@ -524,7 +525,7 @@ export class ConfigurationService extends BaseService {
 	public watchFacebookConnect() {
 		FB.Event.subscribe(
 			"auth.authResponseChange",
-			response => {
+			(response: any) => {
 				if (response.status === "connected") {
 					this.appConfig.facebook.token = response.authResponse.accessToken;
 					this.appConfig.facebook.id = response.authResponse.userID;
@@ -544,7 +545,7 @@ export class ConfigurationService extends BaseService {
 	public getFacebookProfile() {
 		FB.api(
 			`/${this.appConfig.facebook.version}/me?fields=id,name,picture&access_token=${this.appConfig.facebook.token}`,
-			response => {
+			(response: any) => {
 				this.appConfig.session.account.facebook = {
 					id: response.id,
 					name: response.name,
@@ -563,7 +564,7 @@ export class ConfigurationService extends BaseService {
 			&& this.appConfig.session.token.oauths["facebook"] && this.appConfig.session.token.oauths["facebook"] === this.appConfig.session.account.facebook.id) {
 			FB.api(
 				`/${this.appConfig.facebook.version}/${this.appConfig.session.account.facebook.id}/picture?type=large&redirect=false&access_token=${this.appConfig.facebook.token}`,
-				response => {
+				(response: any) => {
 					this.appConfig.session.account.facebook.pictureUrl = response.data.url;
 					this.storeSessionAsync(() => console.log(super.getLogMessage("Account is updated with information of Facebook profile (large profile picture)"), this.appConfig.isDebug ? response : ""));
 				}

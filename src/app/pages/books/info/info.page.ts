@@ -70,7 +70,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 	}
 
 	get redirectUrl() {
-		return this.book ? PlatformUtility.getRedirectURI(this.book.routerURI) : this.configSvc.appConfig.URIs.activations;
+		return this.book !== undefined ? PlatformUtility.getRedirectURI(this.book.routerURI) : this.configSvc.appConfig.URIs.activations;
 	}
 
 	ngOnInit() {

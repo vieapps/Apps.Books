@@ -106,9 +106,6 @@ export class AppComponent implements OnInit {
 				if (this.configSvc.isNativeApp) {
 					this.statusBar.styleDefault();
 					this.statusBar.overlaysWebView(false);
-					if (this.configSvc.isRunningOnIOS) {
-						this.statusBar.backgroundColorByHexString("f8f8f8");
-					}
 				}
 			}
 

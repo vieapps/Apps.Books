@@ -245,7 +245,7 @@ export class PlatformUtility {
 	/** Gets the redirect URI for working with external */
 	public static getRedirectURI(path: string, addAsRedirectParam: boolean = true) {
 		const uri = this.parseURI(AppConfig.isWebApp ? window.location.href : AppConfig.URIs.activations);
-		return (uri.Scheme === "file"
+		return (uri.Scheme === "file" || uri.Scheme === "ionic"
 			? AppConfig.URIs.activations
 			: uri.HostURI + AppConfig.url.base) + "?" + (AppUtility.isTrue(addAsRedirectParam) ? "redirect=" + AppCrypto.urlEncode(path) : path);
 	}
@@ -279,7 +279,7 @@ export class PlatformUtility {
 			this._clipboard.copy(value).then(
 				() => {
 					if (AppConfig.isDebug) {
-						console.log("Clipboard copied...");
+						console.log("Clipboard copied...", value);
 					}
 				},
 				error => {
