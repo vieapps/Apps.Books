@@ -35,9 +35,7 @@ export class BooksService extends BaseService {
 			if ("Initialized" === info.args.Type) {
 				await this.initializeAsync(() => console.log(`[${this.name}]: The service is initialized`));
 			}
-		});
-		AppEvents.on("App", async info => {
-			if ("PlatformIsReady" === info.args.Type) {
+			else if ("PlatformIsReady" === info.args.Type) {
 				try {
 					const categories = (await this.requestAsync("GET", `/assets/books/${this.configSvc.appConfig.language}/categories.json`) as Array<any>).map(s => StatisticInfo.deserialize(s));
 					if (this.categories.length < 1) {
