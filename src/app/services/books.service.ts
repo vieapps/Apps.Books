@@ -36,6 +36,25 @@ export class BooksService extends BaseService {
 				await this.initializeAsync(() => console.log(`[${this.name}]: The service is initialized`));
 			}
 		});
+		AppEvents.on("App", async info => {
+			if ("PlatformIsReady" === info.args.Type) {
+				try {
+					const categories = (await this.requestAsync("GET", `/assets/books/${this.configSvc.appConfig.language}/categories.json`) as Array<any>).map(s => StatisticInfo.deserialize(s));
+					if (this.categories.length < 1) {
+						this.categories = categories;
+					}
+				}
+				catch { }
+
+				try {
+					const introductions = await this.requestAsync("GET", `/assets/books/${this.configSvc.appConfig.language}/introductions.json`);
+					if (this.introductions[this.configSvc.appConfig.language] === undefined) {
+						this.updateIntroductions(introductions as { [key: string]: string; });
+					}
+				}
+				catch { }
+			}
+		});
 		this.registerEventHandlers();
 	}
 
@@ -46,19 +65,6 @@ export class BooksService extends BaseService {
 				onNext();
 			}
 			return;
-		}
-
-		try {
-			const categories = await this.requestAsync("GET", "/assets/books/categories.json") as Array<any>;
-			this.configSvc.appConfig.extras["Books-Categories"] = categories.map(s => StatisticInfo.deserialize(s));
-			if (categories.length > 0) {
-				AppEvents.broadcast("Books", { Type: "CategoriesUpdated", Data: categories });
-			}
-		}
-		catch (e) {
-			if (this.configSvc.isDebug) {
-				console.error(this.getErrorMessage("Error occurred while fetching static categories", e));
-			}
 		}
 
 		await Promise.all([
@@ -481,16 +487,21 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public get introductions() {
-		this.configSvc.appConfig.extras["Books-Introductions"] = this.configSvc.appConfig.extras["Books-Introductions"] || {};
-		return this.configSvc.appConfig.extras["Books-Introductions"] as { [key: string]: { [key: string]: string } };
+	public get introductions(): { [key: string]: { [key: string]: string } } {
+		return this.configSvc.appConfig.extras["Books-Introductions"] || {};
+	}
+
+	private updateIntroductions(introduction: { [key: string]: string }) {
+		const introductions = this.introductions;
+		if (introduction !== undefined) {
+			introductions[this.configSvc.appConfig.language] = introduction;
+			AppEvents.broadcast("Books", { Type: "InstroductionsUpdated" });
+		}
+		this.configSvc.appConfig.extras["Books-Introductions"] = introductions;
 	}
 
 	private async loadIntroductionsAsync(onNext?: () => void) {
-		this.configSvc.appConfig.extras["Books-Introductions"] = await AppStorage.getAsync("Books-Introductions") || this.introductions;
-		if (this.introductions !== undefined) {
-			AppEvents.broadcast("Books", { Type: "InstroductionsUpdated", Data: this.introductions });
-		}
+		this.updateIntroductions(await AppStorage.getAsync("Books-Introductions"));
 		if (onNext !== undefined) {
 			onNext();
 		}
@@ -498,7 +509,6 @@ export class BooksService extends BaseService {
 
 	private async storeIntroductionsAsync(onNext?: () => void) {
 		await AppStorage.setAsync("Books-Introductions", this.introductions);
-		AppEvents.broadcast("Books", { Type: "InstroductionsUpdated", Data: this.introductions });
 		if (onNext !== undefined) {
 			onNext();
 		}
@@ -506,8 +516,7 @@ export class BooksService extends BaseService {
 
 	public async fetchIntroductionsAsync(onNext?: () => void) {
 		try {
-			const introduction = await this.configSvc.getDefinitionAsync(this.name.toLowerCase(), "introductions");
-			this.configSvc.appConfig.extras["Books-Introductions"][this.configSvc.appConfig.language] = introduction;
+			this.updateIntroductions(await this.configSvc.getDefinitionAsync(this.name.toLowerCase(), "introductions"));
 			await this.storeIntroductionsAsync(onNext);
 		}
 		catch (error) {
@@ -519,20 +528,22 @@ export class BooksService extends BaseService {
 		return this.configSvc.appConfig.extras["Books-Categories"] || [];
 	}
 
-	private async loadCategoriesAsync(onNext?: (categories?: Array<StatisticInfo>) => void) {
-		const categories = (await AppStorage.getAsync("Books-Categories") as Array<any> || []).map(s => StatisticInfo.deserialize(s));
-		this.configSvc.appConfig.extras["Books-Categories"] = categories;
-		if (categories.length > 0) {
-			AppEvents.broadcast("Books", { Type: "CategoriesUpdated", Data: categories });
+	public set categories(value: Array<StatisticInfo>) {
+		if (value !== undefined && value.length > 0) {
+			this.configSvc.appConfig.extras["Books-Categories"] = value;
+			AppEvents.broadcast("Books", { Type: "CategoriesUpdated" });
 		}
+	}
+
+	private async loadCategoriesAsync(onNext?: (categories?: Array<StatisticInfo>) => void) {
+		this.categories = (await AppStorage.getAsync("Books-Categories") as Array<any> || []).map(s => StatisticInfo.deserialize(s));
 		if (onNext !== undefined) {
-			onNext(categories);
+			onNext(this.categories);
 		}
 	}
 
 	private async storeCategoriesAsync(onNext?: (categories?: Array<StatisticInfo>) => void) {
 		await AppStorage.setAsync("Books-Categories", this.categories);
-		AppEvents.broadcast("Books", { Type: "CategoriesUpdated", Data: this.categories });
 		if (onNext !== undefined) {
 			onNext(this.categories);
 		}
@@ -597,7 +608,7 @@ export class BooksService extends BaseService {
 	private processUpdateStatisticMessageAsync(message: AppMessage) {
 		switch (message.Type.Event) {
 			case "Categories":
-				this.configSvc.appConfig.extras["Books-Categories"] = (message.Data.Objects as Array<any>).map(s => StatisticInfo.deserialize(s));
+				this.categories = (message.Data.Objects as Array<any>).map(s => StatisticInfo.deserialize(s));
 				return this.storeCategoriesAsync();
 
 			case "Authors":

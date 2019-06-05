@@ -100,6 +100,7 @@ export class AppComponent implements OnInit {
 			await this.configSvc.loadOptionsAsync();
 			await this.configSvc.prepareLanguagesAsync();
 			this.setupEventHandlers();
+			AppEvents.broadcast("App", { Type: "PlatformIsReady" });
 
 			if (this.platform.is("cordova")) {
 				this.splashScreen.hide();

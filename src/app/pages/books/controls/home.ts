@@ -64,6 +64,12 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 				}
 			}
 		}, "LanguageChangedEventHandlerOfBookHomeScreen");
+
+		AppEvents.on("Books", info => {
+			if ("InstroductionsUpdated" === info.args.Type) {
+				this.updateIntroduction();
+			}
+		}, "IntroductionsChangedEventHandlerOfBookHomeScreen");
 	}
 
 	ngOnChanges() {
@@ -75,6 +81,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	ngOnDestroy() {
 		AppEvents.off("App", "AppReadyEventHandlerOfBookHomeScreen");
 		AppEvents.off("App", "LanguageChangedEventHandlerOfBookHomeScreen");
+		AppEvents.off("Books", "IntroductionsChangedEventHandlerOfBookHomeScreen");
 	}
 
 	private async prepareResourcesAsync() {
@@ -89,7 +96,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	async initializeAsync() {
 		await this.prepareResourcesAsync();
 
-		if (this.booksSvc.introductions === undefined || this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
+		if (this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
 			await this.booksSvc.fetchIntroductionsAsync(() => this.updateIntroduction());
 		}
 		else {
