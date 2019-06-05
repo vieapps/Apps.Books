@@ -114,7 +114,7 @@ export class BooksService extends BaseService {
 					this._reading.ID === undefined ? this.updateCategoriesIntoSidebarAsync() : new Promise<void>(() => {})
 				]), 234);
 			}
-			if ("HomePageIsOpened" === info.args.Type && this._reading.ID !== undefined) {
+			else if ("HomePageIsOpened" === info.args.Type && this._reading.ID !== undefined) {
 				await this.updateCategoriesIntoSidebarAsync();
 				this._reading.ID = undefined;
 			}
