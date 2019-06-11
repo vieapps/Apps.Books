@@ -46,7 +46,7 @@ export class ConfigurationService extends BaseService {
 		super("Configuration");
 		AppStorage.initializeAsync(storage, () => console.log(super.getLogMessage("KVP storage is ready")));
 		AppEvents.on("App", info => {
-			if ("Initialized" === info.args.Type) {
+			if ("PlatformIsReady" === info.args.Type) {
 				this.loadGeoMetaAsync();
 			}
 		});
@@ -611,24 +611,23 @@ export class ConfigurationService extends BaseService {
 		);
 	}
 
-	private async saveGeoMetaAsync(data: any, onNext?: (data?: any) => void) {
+	private saveGeoMetaAsync(data: any, onNext?: (data?: any) => void) {
 		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces, true)) {
 			this.appConfig.geoMeta.provinces[data.code] = data;
 		}
 		else if (AppUtility.isObject(data, true) && AppUtility.isArray(data.countries, true)) {
 			this.appConfig.geoMeta.countries = data.countries;
 		}
-
-		await Promise.all([
+		return Promise.all([
 			AppStorage.setAsync("GeoMeta-Country", this.appConfig.geoMeta.country),
 			AppStorage.setAsync("GeoMeta-Countries", this.appConfig.geoMeta.countries),
 			AppStorage.setAsync("GeoMeta-Provinces", this.appConfig.geoMeta.provinces)
-		]);
-
-		AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
-		if (onNext !== undefined) {
-			onNext(data);
-		}
+		]).then(() => {
+			AppEvents.broadcast("App", { Type: "GeoMetaUpdated", Data: this.appConfig.geoMeta });
+			if (onNext !== undefined) {
+				onNext(data);
+			}
+		});
 	}
 
 	/** Loads the options of the app */
@@ -644,15 +643,16 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Stores the options of the app */
-	public async storeOptionsAsync(onNext?: (data?: any) => void) {
-		await AppStorage.setAsync("Options", this.appConfig.options);
-		AppEvents.broadcast("App", { Type: "OptionsUpdated" });
-		if (this.isDebug) {
-			console.log(super.getLogMessage("Options are updated"), this.appConfig.options);
-		}
-		if (onNext !== undefined) {
-			onNext(this.appConfig.options);
-		}
+	public storeOptionsAsync(onNext?: (data?: any) => void) {
+		return AppStorage.setAsync("Options", this.appConfig.options).then(() => {
+			AppEvents.broadcast("App", { Type: "OptionsUpdated" });
+			if (this.isDebug) {
+				console.log(super.getLogMessage("Options are updated"), this.appConfig.options);
+			}
+			if (onNext !== undefined) {
+				onNext(this.appConfig.options);
+			}
+		});
 	}
 
 	/** Prepares the UI languages */
@@ -663,13 +663,12 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Changes the language & locale of resources to use in the app */
-	public async changeLanguageAsync(language: string) {
+	public changeLanguageAsync(language: string) {
 		this.appConfig.options.i18n = language;
-		AppEvents.broadcast("App", { Type: "LanguageChanged" });
-		await Promise.all([
+		return Promise.all([
 			this.storeOptionsAsync(),
 			this.setResourceLanguageAsync(language)
-		]);
+		]).then(() => AppEvents.broadcast("App", { Type: "LanguageChanged" }));
 	}
 
 	/** Sets the language & locale of resources to use in the app */
