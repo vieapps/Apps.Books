@@ -44,8 +44,8 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 		And: new Array<{ [key: string]: any }>()
 	};
 	subscription: Subscription;
-	@ViewChild(IonSearchbar) searchCtrl: IonSearchbar;
-	@ViewChild(IonInfiniteScroll) scrollCtrl: IonInfiniteScroll;
+	@ViewChild(IonSearchbar, { static: false }) searchCtrl: IonSearchbar;
+	@ViewChild(IonInfiniteScroll, { static: false }) scrollCtrl: IonInfiniteScroll;
 
 	ngOnInit() {
 		if (!this.authSvc.isServiceAdministrator()) {

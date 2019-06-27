@@ -92,9 +92,9 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	routerSubscription: Subscription;
 	searchSubscription: Subscription;
 
-	@ViewChild(IonContent) contentCtrl: IonContent;
-	@ViewChild(IonSearchbar) searchCtrl: IonSearchbar;
-	@ViewChild(IonInfiniteScroll) scrollCtrl: IonInfiniteScroll;
+	@ViewChild(IonContent, { static: false }) contentCtrl: IonContent;
+	@ViewChild(IonSearchbar, { static: false }) searchCtrl: IonSearchbar;
+	@ViewChild(IonInfiniteScroll, { static: true }) scrollCtrl: IonInfiniteScroll;
 
 	ngOnInit() {
 		this.initializeAsync();
@@ -282,8 +282,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 			this.searchAsync(() => this.scrollCtrl.complete());
 		}
 		else {
-			this.scrollCtrl.complete();
-			this.scrollCtrl.disabled = true;
+			this.scrollCtrl.complete().then(() => this.scrollCtrl.disabled = true);
 		}
 	}
 

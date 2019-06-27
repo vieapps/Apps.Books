@@ -43,7 +43,7 @@ export class UsersAvatarPage implements OnInit {
 		}
 	};
 	processing = false;
-	@ViewChild("imgcropper") imgcropperComponent: ImageCropperComponent;
+	@ViewChild("imgcropper", { static: false }) imgcropperComponent: ImageCropperComponent;
 
 	get imageUri() {
 		return this.mode === "Gravatar" ? this.profile.Gravatar : this.cropper.data.image;

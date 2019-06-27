@@ -32,7 +32,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 	@Output() lastFocusEvent: EventEmitter<any> = new EventEmitter();
 
-	@ViewChild("elementRef") elementRef: any;
+	@ViewChild("elementRef", { static: false }) elementRef: any;
 
 	ngOnInit() {
 		this._step = "ngOnInit";

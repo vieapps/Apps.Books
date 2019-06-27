@@ -56,7 +56,7 @@ export class UsersOtpPage implements OnInit {
 		}
 	};
 
-	@ViewChild(IonInput) otpCtrl: IonInput;
+	@ViewChild(IonInput, { static: false }) otpCtrl: IonInput;
 
 	ngOnInit() {
 		this.prepareAsync();

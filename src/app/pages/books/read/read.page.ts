@@ -53,7 +53,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		source: "Source",
 		chapters: "Number of chapters"
 	};
-	@ViewChild(IonContent) contentCtrl: IonContent;
+	@ViewChild(IonContent, { static: false }) contentCtrl: IonContent;
 
 	get locale() {
 		return this.configSvc.locale;
