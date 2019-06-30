@@ -15,6 +15,7 @@ import { Device } from "@ionic-native/device/ngx";
 import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { AppVersion } from "@ionic-native/app-version/ngx";
 import { GoogleAnalytics } from "@ionic-native/google-analytics/ngx";
+import { File } from "@ionic-native/file/ngx";
 import { FileTransfer } from "@ionic-native/file-transfer/ngx";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
@@ -70,6 +71,7 @@ export class HammerConfig extends HammerGestureConfig {
 		Device,
 		Keyboard,
 		AppVersion,
+		File,
 		FileTransfer,
 		GoogleAnalytics,
 		InAppBrowser,

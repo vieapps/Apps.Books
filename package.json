@@ -1,6 +1,6 @@
 {
 	"name": "net.vieapps.books",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"author": "VIEApps.net",
 	"homepage": "https://vieapps.net/",
 	"description": "VIEApps NGX Books",
@@ -70,11 +70,11 @@
 		"zone.js": "^0.9.1"
 	},
 	"devDependencies": {
-		"@angular-devkit/architect": "^0.800.4",
-		"@angular-devkit/build-angular": "^0.800.4",
-		"@angular-devkit/core": "^8.0.4",
-		"@angular-devkit/schematics": "^8.0.4",
-		"@angular/cli": "^8.0.4",
+		"@angular-devkit/architect": "^0.800.6",
+		"@angular-devkit/build-angular": "^0.800.6",
+		"@angular-devkit/core": "^8.0.6",
+		"@angular-devkit/schematics": "^8.0.6",
+		"@angular/cli": "^8.0.6",
 		"@angular/compiler": "^8.0.3",
 		"@angular/compiler-cli": "^8.0.3",
 		"@angular/language-service": "^8.0.3",
