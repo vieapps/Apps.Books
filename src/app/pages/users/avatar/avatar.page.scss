@@ -1,8 +1,8 @@
 ion-list > ion-list-header {
 	margin-bottom: 0;
 }
-ion-list > ion-item:last-of-type {
-	margin-top: 16px;
+ion-list > ion-item:last-of-type > div {
+	padding-top: 30px;
 }
 ion-item > input {
 	clear: both;

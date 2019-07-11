@@ -64,21 +64,21 @@ export class AppRTU {
 	private static _attempt = -1;
 
 	/** Gets the last time when got PING */
-	public static get PingTime() {
+	public static get pingTime() {
 		return this._pingTime;
 	}
 
 	private static _onOpen: (event: Event) => void;
 
 	/** Sets the action to fire when the RTU is opened */
-	public static set OnOpen(func: (event: Event) => void) {
+	public static set onOpen(func: (event: Event) => void) {
 		this._onOpen = func;
 	}
 
 	private static _onClose: (event: CloseEvent) => void;
 
 	/** Sets the action to fire when the RTU is closed */
-	public static set OnClose(func: (event: CloseEvent) => void) {
+	public static set onClose(func: (event: CloseEvent) => void) {
 		this._onClose = func;
 	}
 
@@ -92,7 +92,7 @@ export class AppRTU {
 	private static _onMessage: (event: MessageEvent) => void;
 
 	/** Sets the action to fire when the RTU got any error */
-	public static set OnMessage(func: (event: MessageEvent) => void) {
+	public static set onMessage(func: (event: MessageEvent) => void) {
 		this._onMessage = func;
 	}
 

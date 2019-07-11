@@ -49,7 +49,8 @@ export class UsersUpdatePage implements OnInit {
 		controls: new Array<AppFormsControl>(),
 		config: undefined as Array<any>,
 		hash: undefined as string,
-		language: this.configSvc.appConfig.language
+		language: this.configSvc.appConfig.language,
+		darkTheme: this.configSvc.color === "dark"
 	};
 	password = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
@@ -75,6 +76,7 @@ export class UsersUpdatePage implements OnInit {
 	onFormInitialized($event: any) {
 		if (this.update.config === $event.config) {
 			this.update.form.patchValue(this.profile);
+			this.update.form.controls["DarkTheme"].setValue(this.update.darkTheme);
 			this.update.hash = AppCrypto.hash(this.update.form.value);
 		}
 		else {
@@ -240,6 +242,14 @@ export class UsersUpdatePage implements OnInit {
 						Values: this.configSvc.languages
 					},
 				}
+			},
+			{
+				Name: "DarkTheme",
+				Type: "YesNo",
+				Options: {
+					Label: await this.configSvc.getResourceAsync("users.register.controls.DarkTheme"),
+					Type: "toggle"
+				}
 			}
 		] as Array<any>;
 
@@ -250,6 +260,7 @@ export class UsersUpdatePage implements OnInit {
 		});
 
 		this.update.language = this.profile.Language;
+		this.update.darkTheme = this.configSvc.color === "dark";
 		this.title = await this.configSvc.getResourceAsync("users.profile.update.title");
 		this.configSvc.appTitle = this.title;
 		await this.prepareButtonsAsync();
@@ -271,8 +282,14 @@ export class UsersUpdatePage implements OnInit {
 					if (this.profile.ID === this.configSvc.getAccount().id) {
 						this.configSvc.getAccount().profile = UserProfile.get(this.profile.ID);
 						await this.configSvc.storeSessionAsync();
-						if (this.update.language !== this.update.form.value.Language) {
-							await this.configSvc.changeLanguageAsync(this.update.form.value.Language);
+						if (this.update.language !== this.update.form.value.Language || this.update.darkTheme !== this.update.form.value.DarkTheme) {
+							this.configSvc.appConfig.options.theme = this.update.form.value.DarkTheme ? "dark" : "light";
+							if (this.update.language !== this.update.form.value.Language) {
+								await this.configSvc.changeLanguageAsync(this.update.form.value.Language);
+							}
+							else {
+								await this.configSvc.storeOptionsAsync();
+							}
 						}
 						AppEvents.broadcast("Profile", { Type: "Updated" });
 					}

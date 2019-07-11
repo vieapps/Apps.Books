@@ -1,4 +1,5 @@
 <ion-item *ngIf="visible && isFormControl && !isCaptchaControl && !selectAsRadioBoxes"
+	[color]="theme"
 	[formGroup]="formGroup"
 	[class.invalid]="invalid"
 	[class.completer-container]="isCompleter"
@@ -129,15 +130,15 @@
 	[value]="value"
 	(ionChange)="onValueChanged($event)">
 	<ion-list-header *ngIf="label"
-		[color]="color.label"
+		[color]="theme"
 		[class]="css.label">{{ label }}</ion-list-header>
-	<ion-item *ngFor="let option of selectOptions">
+	<ion-item *ngFor="let option of selectOptions" [color]="theme">
 		<ion-label>{{ option.Label }}</ion-label>
 		<ion-radio [value]="option.Value" [checked]="selectOptionIsChecked(option.Value)"></ion-radio>
 	</ion-item>
 </ion-radio-group>
 
-<ion-item *ngIf="visible && description && isFormControl && !isCaptchaControl">
+<ion-item *ngIf="visible && description && isFormControl && !isCaptchaControl" [color]="theme">
 	<label
 		[class]="css.description"
 		[style]="style.description">{{ description }}</label>
@@ -145,7 +146,7 @@
 	
 <div *ngIf="visible && isFormControl && isCaptchaControl">
 
-	<ion-item [formGroup]="formGroup" [class.invalid]="invalid">
+	<ion-item [color]="theme" [formGroup]="formGroup" [class.invalid]="invalid">
 		<ion-label *ngIf="label"
 			[color]="color.label"
 			[position]="position"
@@ -163,13 +164,13 @@
 			(keyup)="onKeyUp($event)"></ion-input>
 	</ion-item>
 
-	<ion-item *ngIf="description">
+	<ion-item *ngIf="description" [color]="theme">
 		<label
 			[class]="css.description"
 			[style]="style.description">{{ description }}</label>
 	</ion-item>
 
-	<ion-item>
+	<ion-item [color]="theme">
 		<ion-button fill="clear" (click)="refreshCaptcha()">
 			<ion-icon icon="refresh" slot="icon-only"></ion-icon>
 		</ion-button>
@@ -179,20 +180,22 @@
 </div>
 
 <ion-list-header *ngIf="visible && label && (isFormGroup || isFormArray)"
-	[color]="color.label"
+	[color]="theme"
 	[class]="css.label">{{ label }}</ion-list-header>
 
 <div *ngIf="visible && isFormGroup">
 	<app-form-control *ngFor="let ctrl of subControls; trackBy: trackControl"
 		[formGroup]="subFormGroup"
-		[control]="ctrl"></app-form-control>
+		[control]="ctrl"
+		[theme]="theme"></app-form-control>
 </div>
 
 <div *ngIf="visible && isSimpleFormArray">
 	<app-form-control *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl"
 		[formGroup]="subFormGroup"
 		[formArrayIndex]="idx"
-		[control]="ctrl"></app-form-control>
+		[control]="ctrl"
+		[theme]="theme"></app-form-control>
 </div>
 
 <div *ngIf="visible && isComplexFormArray">
@@ -202,6 +205,7 @@
 			[class]="getSubCss(ctrl)">{{ getSubLabel(ctrl) }}</ion-list-header>
 		<app-form-control *ngFor="let subctrl of getSubControls(ctrl); trackBy: trackControl"
 			[formGroup]="getSubFormGroup(idx)"
-			[control]="subctrl"></app-form-control>
+			[control]="subctrl"
+			[theme]="theme"></app-form-control>
 	</div>
 </div>

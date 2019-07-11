@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons slot="end">
 			<ion-button color="primary" (click)="doneAsync()">
 				{{ resources.buttons.done }}
@@ -11,9 +11,9 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content [color]="configSvc.color" padding>
 	<ion-list>
-		<ion-item>
+		<ion-item [color]="configSvc.color">
 			<ion-label>
 				{{ resources.status }}
 				<span>
@@ -25,10 +25,10 @@
 				{{ resources.buttons.on }}
 			</ion-button>
 		</ion-item>
-		<ion-list-header *ngIf="required && providers.length > 0">
+		<ion-list-header *ngIf="required && providers.length > 0" [color]="configSvc.color">
 			{{ resources.providers }}
 		</ion-list-header>
-		<ion-item *ngFor="let provider of providers">
+		<ion-item *ngFor="let provider of providers" [color]="configSvc.color">
 			<ion-label>
 				{{ provider.Label }} @ {{ provider.Time | date:'dd/MM/yyyy hh:mm a' }}
 			</ion-label>
@@ -37,7 +37,7 @@
 				{{ resources.buttons.delete }}
 			</ion-button>
 		</ion-item>
-		<ion-item *ngIf="provision.uri !== ''">
+		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color">
 			<div text-wrap>
 				<div>
 					{{ resources.qrcode.image }}
@@ -53,13 +53,13 @@
 				</div>
 			</div>
 		</ion-item>
-		<ion-item *ngIf="provision.uri !== ''" [class.invalid]="!provision.value || provision.value.length < 5 || provision.value.length > 10">
+		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color" [class.invalid]="!provision.value || provision.value.length < 5 || provision.value.length > 10">
 			<ion-label position="stacked">
 				{{ resources.qrcode.control }}
 			</ion-label>
 			<ion-input minlength="5" maxlength="10" [(ngModel)]="provision.value" required></ion-input>
 		</ion-item>
-		<ion-item *ngIf="provision.uri !== ''" [class.invalid]="!password">
+		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color" [class.invalid]="!password">
 			<ion-label position="stacked">
 				{{ resources.password.label }}
 			</ion-label>

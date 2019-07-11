@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons slot="start">
 			<ion-menu-button *ngIf="!showBackButton"></ion-menu-button>
 			<ion-back-button *ngIf="showBackButton && !filtering" text=""></ion-back-button>
@@ -29,7 +29,7 @@
 </ion-header>
 
 <ion-footer *ngIf="!filtering && (actions || pagination)">
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons *ngIf="actions" slot="end">
 			<ion-button color="primary" (click)="showActionsAsync()">
 				<ion-icon name="more" slot="icon-only"></ion-icon>
@@ -52,7 +52,7 @@
 	</ion-toolbar>
 </ion-footer>
 
-<ion-content>
+<ion-content [color]="configSvc.color">
 
 	<ion-list *ngIf="!displayAsGrid">
 		<control-book-linear-item *ngFor="let book of books; trackBy: track"

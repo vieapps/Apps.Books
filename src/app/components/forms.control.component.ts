@@ -28,6 +28,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	@Input() control: AppFormsControl;
 	@Input() formGroup: FormGroup;
 	@Input() formArrayIndex: number;
+	@Input() theme: string;
 
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 	@Output() lastFocusEvent: EventEmitter<any> = new EventEmitter();

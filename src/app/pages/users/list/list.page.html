@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons slot="start">
 			<ion-back-button text=""></ion-back-button>
 		</ion-buttons>
@@ -19,7 +19,7 @@
 </ion-header>
 
 <ion-footer *ngIf="!filtering && pagination">
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<div>
 			<span float-start>
 				<ion-icon name="contacts" color="primary" slot="start"></ion-icon>
@@ -37,9 +37,9 @@
 	</ion-toolbar>
 </ion-footer>
 
-<ion-content>
+<ion-content [color]="configSvc.color">
 	<ion-list padding-end>
-		<ion-item *ngFor="let profile of profiles; let idx=index; trackBy: track" [routerLink]="getRouterLink(profile, idx)" [queryParams]="getQueryParams(profile)" routerDirection="forward" detail="false">
+		<ion-item *ngFor="let profile of profiles; let idx=index; trackBy: track" [color]="configSvc.color" [routerLink]="getRouterLink(profile, idx)" [queryParams]="getQueryParams(profile)" routerDirection="forward" detail="false">
 			<ion-label>
 				<ion-thumbnail float-start padding-end>
 					<img [src]="profile.avatarURI" />

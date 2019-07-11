@@ -21,6 +21,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Input() config: Array<any>;
 	@Input() value: any;
 	@Input() lastFocus: any;
+	@Input() color: string;
 
 	@Output() initEvent: EventEmitter<any> = new EventEmitter();
 	@Output() submitEvent: EventEmitter<any> = new EventEmitter();

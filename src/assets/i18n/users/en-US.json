@@ -83,7 +83,8 @@
 				"Language": {
 					"label": "Language",
 					"description": "Specify the display language and format of number, date-time, ..."
-				}
+				},
+				"DarkTheme": "Use dark theme"
 			},
 			"alert": {
 				"header": "Register successful",

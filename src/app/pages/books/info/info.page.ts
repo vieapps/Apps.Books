@@ -111,7 +111,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 				await this.prepareResourcesAsync();
 				this.getStatistics();
 				this.title = this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
-				this.qrcode = this.configSvc.appConfig.isNativeApp ? "ngxapps://books/" + this.book.ID : this.redirectUrl;
+				this.qrcode = this.redirectUrl + (this.configSvc.appConfig.isNativeApp ? "" : `&ngxapps=${this.booksSvc.name}&ngxaction=Open&ngxid=${this.book.ID}`);
 				if (AppUtility.isObject(this.book.Files, true) && (this.book.Files.Epub.Size === "generating..." || this.book.Files.Mobi.Size === "generating...")) {
 					this.booksSvc.generateFiles(this.book.ID);
 				}

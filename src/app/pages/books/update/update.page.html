@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons slot="start">
 			<ion-button fill="clear" color="secondary" (click)="cancelAsync()">
 				{{ button.cancel }}
@@ -16,13 +16,14 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content [color]="configSvc.color" padding>
 	<app-form *ngIf="update.config"
+		[color]="configSvc.color"
 		[form]="update.form"
 		[config]="update.config"
 		[controls]="update.controls"
 		(initEvent)="onFormInitialized($event)"></app-form>
-	<ion-item class="select-file">
+	<ion-item [color]="configSvc.color" class="select-file">
 		<ion-label position="stacked" color="primary">
 			{{ cover.title }}
 		</ion-label>

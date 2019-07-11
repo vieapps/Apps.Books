@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { Router, NavigationEnd } from "@angular/router";
+import { Router, RoutesRecognized, NavigationEnd } from "@angular/router";
 import { HttpClient } from "@angular/common/http";
 import { Platform, MenuController } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
@@ -83,15 +83,18 @@ export class AppComponent implements OnInit {
 
 	ngOnInit() {
 		this.router.events.subscribe(event => {
-			if (event instanceof NavigationEnd) {
-				const url = (event as NavigationEnd).url;
-				const params = this.router.routerState.snapshot.root.queryParams;
-				this.configSvc.appConfig.url.routerParams = this.router.routerState.snapshot.root.params;
-				this.configSvc.pushUrl(url, params);
-				AppEvents.broadcast("Navigated", { Url: url, Params: params });
-				if (new Date().getTime() - AppRTU.PingTime > 130000) {
+			if (event instanceof RoutesRecognized) {
+				this.configSvc.appConfig.url.routerParams = (event as RoutesRecognized).state.root.params;
+				this.configSvc.pushUrl((event as RoutesRecognized).url, (event as RoutesRecognized).state.root.queryParams);
+				const current = this.configSvc.getCurrentUrl();
+				AppEvents.broadcast("Navigating", { Url: current.url, Params: current.params });
+			}
+			else if (event instanceof NavigationEnd) {
+				if (new Date().getTime() - AppRTU.pingTime > 130000) {
 					AppRTU.restart("[Router]: Ping period is too large...");
 				}
+				const current = this.configSvc.getCurrentUrl();
+				AppEvents.broadcast("Navigated", { Url: current.url, Params: current.params });
 			}
 		});
 
@@ -386,8 +389,8 @@ export class AppComponent implements OnInit {
 		);
 	}
 
-	private async initializeAsync(onNext?: () => void, noInitializeSession?: boolean) {
-		await this.configSvc.initializeAsync(
+	private initializeAsync(onNext?: () => void, noInitializeSession?: boolean) {
+		return this.configSvc.initializeAsync(
 			async () => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.isNativeApp ? JSON.stringify(this.configSvc.appConfig.session) : this.configSvc.appConfig.session : "");

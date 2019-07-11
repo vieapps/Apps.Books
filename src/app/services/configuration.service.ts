@@ -104,17 +104,22 @@ export class ConfigurationService extends BaseService {
 		return this.appConfig.locales;
 	}
 
+	/** Gets the color of the theme (dark or light) */
+	public get color() {
+		return this.appConfig.options.theme === "dark" ? "dark" : undefined;
+	}
+
 	/** Gets the locale data for working with i18n globalization */
 	public getLocaleData(locale: string) {
 		return this.appConfig.getLocaleData(locale);
 	}
 
-	private getCurrentUrl() {
+	public getCurrentUrl() {
 		return this.appConfig.url.stack.length > 0 ? this.appConfig.url.stack[this.appConfig.url.stack.length - 1] : undefined;
 	}
 
 	/** Gets the previous url */
-	private getPreviousUrl() {
+	public getPreviousUrl() {
 		return this.appConfig.url.stack.length > 1 ? this.appConfig.url.stack[this.appConfig.url.stack.length - 2] : undefined;
 	}
 
@@ -635,6 +640,9 @@ export class ConfigurationService extends BaseService {
 		const options = await AppStorage.getAsync("Options") || {};
 		if (options.i18n !== undefined && options.timezone !== undefined && options.extras !== undefined) {
 			this.appConfig.options = options;
+			if (this.appConfig.options.theme === undefined) {
+				this.appConfig.options.theme = "light";
+			}
 			await this.storeOptionsAsync(onNext);
 		}
 		else if (onNext !== undefined) {
@@ -663,10 +671,10 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Changes the language & locale of resources to use in the app */
-	public changeLanguageAsync(language: string) {
+	public changeLanguageAsync(language: string, storeOptions: boolean = true) {
 		this.appConfig.options.i18n = language;
 		return Promise.all([
-			this.storeOptionsAsync(),
+			storeOptions ? this.storeOptionsAsync() : new Promise<void>(() => {}),
 			this.setResourceLanguageAsync(language)
 		]).then(() => AppEvents.broadcast("App", { Type: "LanguageChanged" }));
 	}

@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons slot="start">
 			<ion-back-button text="" (click)="onClose()"></ion-back-button>
 		</ion-buttons>
@@ -21,7 +21,7 @@
 </ion-header>
 
 <ion-footer>
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<div *ngIf="book && book.TotalChapters > 1" slot="start">
 			<ion-icon name="bookmark" color="primary" slot="start"></ion-icon>
 			{{ chapter | number:'':locale }} / {{ book.TotalChapters | number:'':locale : '?' }}	
@@ -48,7 +48,7 @@
 	</ion-toolbar>
 </ion-footer>
 
-<ion-content (ionScrollEnd)="onScrollEndAsync()" (swipeleft)="onSwipeLeftAsync()" (swiperight)="onSwipeRightAsync()">
+<ion-content [color]="configSvc.color" (ionScrollEnd)="onScrollEndAsync()" (swipeleft)="onSwipeLeftAsync()" (swiperight)="onSwipeRightAsync()">
 	<div *ngIf="book" [class]="options.color" padding>
 		<div *ngIf="chapter === 0" class="cover">
 			<figure [hidden]="book.Cover.indexOf('/no/cover/image.png') > 0">

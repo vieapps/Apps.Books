@@ -30,14 +30,14 @@ export class AppConfig {
 		version: "1.1.0",
 		copyright: "© 2016 - 2019 VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: "ionic 4.6 - angular 8.0 - cordova 9.0",
+		frameworks: "ionic 4.6 - angular 8.1 - cordova 9.0",
 		homepage: "https://viebooks.net",
 		mode: "",
 		platform: "",
 		os: "",
 		shell: "",
 		persistence: true,
-		debug: false,
+		debug: true,
 		offline: false
 	};
 
@@ -107,6 +107,7 @@ export class AppConfig {
 	/** Options of the app */
 	public static options = {
 		i18n: "vi-VN",
+		theme: "light",
 		timezone: +7.00,
 		extras: {} as { [key: string]: any }
 	};

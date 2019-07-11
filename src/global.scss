@@ -24,6 +24,9 @@ ion-content {
 		max-width: 320px;
 	}
 }
+ion-list {
+	padding: 0 !important;
+}
 ion-menu.menu-side-start > ion-header > ion-toolbar > ion-thumbnail img {
 	border-radius: 50%;
 	width: 80%;

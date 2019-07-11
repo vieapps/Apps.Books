@@ -83,7 +83,8 @@
 				"Language": {
 					"label": "Ngôn ngữ",
 					"description": "Chỉ định ngôn ngữ hiển thị và các định dạng số, ngày giờ, ..."
-				}
+				},
+				"DarkTheme": "Sử dụng tông màu tối"
 			},
 			"alert": {
 				"header": "Đăng ký thành công",

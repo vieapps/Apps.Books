@@ -79,7 +79,7 @@ export class Base {
 	) {
 		let useWS = AppRTU.isReady && !useXHR;
 		if (useWS) {
-			if (new Date().getTime() - AppRTU.PingTime > 130000) {
+			if (new Date().getTime() - AppRTU.pingTime > 130000) {
 				useWS = false;
 				AppRTU.restart("[Base]: Ping period is too large...");
 			}

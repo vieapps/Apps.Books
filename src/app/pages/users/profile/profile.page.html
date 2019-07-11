@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons slot="start">
 			<ion-back-button *ngIf="mode === 'profile'" text=""></ion-back-button>
 			<ion-button *ngIf="buttons.cancel" color="secondary" (click)="buttons.cancel.handler()">
@@ -23,7 +23,7 @@
 </ion-header>
 
 <ion-footer *ngIf="buttons.invite || actions">
-	<ion-toolbar>
+	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons *ngIf="buttons.invite" slot="start">
 			<ion-button (click)="buttons.invite.handler()">
 				<ion-icon *ngIf="buttons.invite.icon" [name]="buttons.invite.icon" slot="start"></ion-icon>
@@ -39,7 +39,7 @@
 	</ion-toolbar>
 </ion-footer>
 
-<ion-content>
+<ion-content [color]="configSvc.color">
 
 	<div *ngIf="mode === 'profile' && profile">
 
@@ -51,22 +51,22 @@
 		</h1>
 
 		<ion-list padding-end>
-			<ion-list-header>
+			<ion-list-header [color]="configSvc.color">
 				{{ labels.header }}
 			</ion-list-header>
-			<ion-item>
+			<ion-item [color]="configSvc.color">
 				<ion-icon icon="at" slot="start"></ion-icon>
 				{{ profile.Email }}
 			</ion-item>
-			<ion-item *ngIf="profile.Mobile !== ''">
+			<ion-item *ngIf="profile.Mobile !== ''" [color]="configSvc.color">
 				<ion-icon icon="call" slot="start"></ion-icon>
 				{{ profile.Mobile }}
 			</ion-item>
-			<ion-item *ngIf="profile.fullAddress !== ''">
+			<ion-item *ngIf="profile.fullAddress !== ''" [color]="configSvc.color">
 				<ion-icon icon="pin" slot="start"></ion-icon>
 				{{ profile.fullAddress }}
 			</ion-item>
-			<ion-item>
+			<ion-item [color]="configSvc.color">
 				<ion-icon icon="time" slot="start"></ion-icon>
 				{{ labels.lastAccess }} {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
 			</ion-item>
@@ -78,6 +78,7 @@
 
 	<div *ngIf="mode === 'invitation'" padding>
 		<app-form *ngIf="invitation.config !== undefined"
+			[color]="configSvc.color"
 			[form]="invitation.form"
 			[config]="invitation.config"
 			[controls]="invitation.controls"
