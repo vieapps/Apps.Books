@@ -29,22 +29,22 @@ import { Base as BaseService } from "./base.service";
 export class ConfigurationService extends BaseService {
 
 	constructor (
-		public platformLocation: PlatformLocation,
-		public platform: Platform,
-		public navController: NavController,
-		public device: Device,
-		public keyboard: Keyboard,
-		public inappBrowser: InAppBrowser,
-		public clipboard: Clipboard,
-		public appVersion: AppVersion,
-		public googleAnalytics: GoogleAnalytics,
-		public storage: Storage,
-		public browserTitle: BrowserTitle,
-		public translateSvc: TranslateService,
-		public electronSvc: ElectronService
+		private platformLocation: PlatformLocation,
+		private platform: Platform,
+		private navController: NavController,
+		private device: Device,
+		private keyboard: Keyboard,
+		private inappBrowser: InAppBrowser,
+		private clipboard: Clipboard,
+		private appVersion: AppVersion,
+		private googleAnalytics: GoogleAnalytics,
+		private storage: Storage,
+		private browserTitle: BrowserTitle,
+		private translateSvc: TranslateService,
+		private electronSvc: ElectronService
 	) {
 		super("Configuration");
-		AppStorage.initializeAsync(storage, () => console.log(super.getLogMessage("KVP storage is ready")));
+		AppStorage.initializeAsync(this.storage, () => console.log(super.getLogMessage("KVP storage is ready")));
 		AppEvents.on("App", info => {
 			if ("PlatformIsReady" === info.args.Type) {
 				this.loadGeoMetaAsync();
@@ -348,7 +348,16 @@ export class ConfigurationService extends BaseService {
 		}
 
 		if (AppUtility.isNotEmpty(session.Token)) {
-			this.appConfig.session.token = AppCrypto.jwtDecode(session.Token, AppUtility.isObject(this.appConfig.session.keys, true) ? this.appConfig.session.keys.jwt : this.appConfig.app.name);
+			try {
+				const jwtKey = AppUtility.isObject(this.appConfig.session.keys, true)
+					? this.appConfig.session.keys.jwt
+					: this.appConfig.app.name;
+				this.appConfig.session.token = AppCrypto.jwtDecode(session.Token, jwtKey);
+			}
+			catch (error) {
+				this.appConfig.session.token = undefined;
+				super.showError("Error occurred while decoding token =>" + session.Token, error);
+			}
 		}
 
 		this.appConfig.session.account = this.getAccount(!this.isAuthenticated);

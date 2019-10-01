@@ -39,7 +39,7 @@ export class AppComponent implements OnInit {
 		if (this.configSvc.isDebug) {
 			console.log("<AppComponent>: Initializing...");
 		}
-		AppXHR.initialize(http);
+		AppXHR.initialize(this.http);
 	}
 
 	sidebar = {

@@ -25,6 +25,7 @@ import { AppComponent } from "./app.component";
 import { AppRoutingModule } from "./app.routing.module";
 import { AppFormsModule } from "./components/forms.module";
 import { AppModulePreloader } from "./components/app.preloader";
+import { TimePipeModule } from "./components/time.pipe";
 import { AppReadyGuardService, RegisterGuardService } from "./services/base.service";
 import { AuthenticatedGuardService, NotAuthenticatedGuardService } from "./services/base.service";
 import { ConfigurationService } from "./services/configuration.service";
@@ -62,8 +63,9 @@ export class HammerConfig extends HammerGestureConfig {
 			useFactory: HttpLoaderFactory,
 			deps: [HttpClient]
 		}}),
+		TimePipeModule,
 		AppFormsModule,
-		AppRoutingModule
+		AppRoutingModule,
 	],
 	providers: [
 		StatusBar,

@@ -12,7 +12,7 @@ import { ConfigurationService } from "./configuration.service";
 @Injectable()
 export class AuthenticationService extends BaseService {
 
-	constructor(public configSvc: ConfigurationService) {
+	constructor(private configSvc: ConfigurationService) {
 		super("Authentication");
 	}
 

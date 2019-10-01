@@ -68,7 +68,10 @@
 			</ion-item>
 			<ion-item [color]="configSvc.color">
 				<ion-icon icon="time" slot="start"></ion-icon>
-				{{ labels.lastAccess }} {{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
+				{{ labels.lastAccess }} 
+				<span title="{{ profile.LastAccess | date:'h:mm a @ d/M/y' }}" margin-horizontal>
+					{{ profile.LastAccess | time:locale:'h:mm a @ d/M/y' }}
+				</span>
 			</ion-item>
 		</ion-list>
 

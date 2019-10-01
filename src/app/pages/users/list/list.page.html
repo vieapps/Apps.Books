@@ -46,7 +46,9 @@
 				</ion-thumbnail>
 				<label class="time" float-end>
 					<ion-icon icon="time" slot="start"></ion-icon>
-					{{ profile.LastAccess | date: 'h:mm a @ d/M/y' }}
+					<span title="{{ profile.LastAccess | date:'h:mm a @ d/M/y' }}">
+						{{ profile.LastAccess | time:locale:'h:mm a @ d/M/y' }}
+					</span>
 				</label>
 				<h2>
 					{{ profile.Name }}

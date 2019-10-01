@@ -1,3 +1,6 @@
+div, h2 {
+	width: 100%;
+}
 ion-list > ion-item-sliding > ion-item {
 	cursor: pointer;
 }
@@ -16,9 +19,6 @@ ion-list > ion-item-sliding > ion-item > div > div > label {
 ion-list > ion-item-sliding > ion-item > div > div > span {
 	margin-left: 30px;
 	font-size: 80%;
-}
-div, h2 {
-	width: 100%;
 }
 ion-icon {
 	margin-right: 8px;

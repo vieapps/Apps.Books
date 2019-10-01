@@ -3,6 +3,7 @@ import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { IonicModule } from "@ionic/angular";
+import { TimePipeModule } from "../../../components/time.pipe";
 import { UsersOtpPage } from "./otp.page";
 
 @NgModule({
@@ -10,6 +11,7 @@ import { UsersOtpPage } from "./otp.page";
 		CommonModule,
 		FormsModule,
 		IonicModule,
+		TimePipeModule,
 		RouterModule.forChild([{ path: "", component: UsersOtpPage }])
 	],
 	exports: [],

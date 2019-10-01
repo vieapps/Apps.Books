@@ -75,6 +75,10 @@ export class UsersProfilePage implements OnInit {
 		Object.keys(controls).forEach(key => controls[key].setValue(""));
 	}
 
+	get locale() {
+		return this.configSvc.locale;
+	}
+
 	get canManageUsers() {
 		return this.authSvc.isSystemAdministrator() && !this.configSvc.previousUrl.startsWith("/users/list") && !this.configSvc.previousUrl.startsWith("/users/search");
 	}

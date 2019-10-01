@@ -16,7 +16,7 @@
 				</ion-toolbar>
 			</ion-header>
 			<ion-content [color]="configSvc.color">
-				<ion-list>
+				<ion-list class="ion-margin-vertical">
 					<ion-menu-toggle auto-hide="false" *ngFor="let menu of sidebar.left.menu; trackBy: trackSidebarItem">
 						<ion-list-header *ngIf="menu.title" [color]="configSvc.color">
 							<ion-label>

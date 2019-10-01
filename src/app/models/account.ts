@@ -35,7 +35,9 @@ export class Account {
 			account.privileges = AppUtility.isArray(json.privileges, true)
 				? (json.privileges as Array<any>).map(o => Privilege.deserialize(o))
 				: [];
-			account.profile = data.profile !== undefined ? UserProfile.deserialize(data.profile) : undefined;
+			account.profile = data.profile !== undefined
+				? UserProfile.deserialize(data.profile)
+				: undefined;
 			if (onCompleted !== undefined) {
 				onCompleted(account, data);
 			}

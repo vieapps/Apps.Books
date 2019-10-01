@@ -58,6 +58,10 @@ export class UsersOtpPage implements OnInit {
 
 	@ViewChild(IonInput, { static: false }) otpCtrl: IonInput;
 
+	get locale() {
+		return this.configSvc.locale;
+	}
+
 	ngOnInit() {
 		this.prepareAsync();
 		this.prepareResourcesAsync();

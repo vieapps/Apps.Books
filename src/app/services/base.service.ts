@@ -121,6 +121,9 @@ export class Base {
 				if (onError !== undefined) {
 					onError(error);
 				}
+				else {
+					this.showError("Error occurred while processing with remote API", error);
+				}
 			}
 		}
 	}

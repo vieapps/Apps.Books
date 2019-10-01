@@ -38,13 +38,13 @@
 		<ion-item [hidden]="mode !== 'Avatar'" [color]="configSvc.color">
 			<input type="file" accept="image/png, image/jpeg" (change)="prepareAvatarImage($event)" />
 		</ion-item>
-		<ion-item [color]="configSvc.color">
+		<ion-item *ngIf="!isNativeApp" [color]="configSvc.color">
 			<div>
 				<div [hidden]="mode !== 'Avatar'" class="cropper">
-					<img-cropper #imgcropper [image]="cropper.data" [settings]="cropper.settings"></img-cropper>
+					<img-cropper [image]="htmlCropper.data" [settings]="htmlCropper.settings"></img-cropper>
 				</div>
 				<div>
-					<img [src]="imageUri" [width]="cropper.settings.croppedWidth" [height]="cropper.settings.croppedHeight" />
+					<img [src]="imageUri" [width]="htmlCropper.settings.croppedWidth" [height]="htmlCropper.settings.croppedHeight" />
 				</div>
 			</div>
 		</ion-item>

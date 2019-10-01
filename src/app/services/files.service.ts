@@ -22,9 +22,9 @@ export interface FilesHeader {
 @Injectable()
 export class FilesService extends BaseService {
 
-	constructor(http: HttpClient) {
+	constructor(private http: HttpClient) {
 		super("Files");
-		AppXHR.initialize(http);
+		AppXHR.initialize(this.http);
 	}
 
 	/** Reads the file content as data URL (base64-string) */

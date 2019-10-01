@@ -1,8 +1,8 @@
-<ion-list #list>
+<ion-list #list margin-vertical>
 	<ion-list-header *ngIf="bookmarks.length > 0" [color]="configSvc.color">
 		{{ resources.header }}
 	</ion-list-header>
-	<ion-item-sliding *ngFor="let bookmark of bookmarks; trackBy: trackBookmark" #slidingitems>
+	<ion-item-sliding #slidingitems *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
 		<ion-item [color]="configSvc.color" (click)="openAsync(bookmark)">
 			<div>
 				<h2>
@@ -10,7 +10,7 @@
 				</h2>
 				<div>
 					<label>
-						{{ bookmark.Time | date: 'h:mm a @ d/M/y' }}
+						{{ bookmark.Time | time:locale:'h:mm a @ d/M/y' }}
 					</label>
 					<span>
 						{{ getPosition(bookmark) }}
@@ -33,7 +33,7 @@
 		<div>
 			<span float-end>
 				<label>
-					{{ resources.footer }} {{ profile.LastSync | date: 'h:mm a @ d/M/y' }}
+					{{ resources.footer }} {{ profile.LastSync | time:locale:'h:mm a @ d/M/y' }}
 				</label>
 				<ion-button fill="clear" slot="end" (click)="sendAsync()">
 					<ion-icon name="cloud-upload" slot="icon-only"></ion-icon>

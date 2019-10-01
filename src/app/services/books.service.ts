@@ -17,7 +17,7 @@ import { ConfigurationService } from "./configuration.service";
 @Injectable()
 export class BooksService extends BaseService {
 
-	constructor(public configSvc: ConfigurationService) {
+	constructor(private configSvc: ConfigurationService) {
 		super("Books");
 		this.initialize();
 	}

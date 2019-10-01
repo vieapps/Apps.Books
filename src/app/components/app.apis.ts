@@ -182,7 +182,7 @@ export class AppRTU {
 			}
 			type = {
 				Service: service,
-				Object:  object,
+				Object: object,
 				Event: event
 			};
 			this._types[identity] = type;
@@ -194,7 +194,7 @@ export class AppRTU {
 	public static start(onStarted?: () => void, isRestart?: boolean) {
 		// check
 		if (typeof WebSocket === "undefined") {
-			console.warn("[AppRTU]: Your browser is outdated, its requires a modern browser that supports WebSocket (like Chrome, Safari, Firefox, Microsoft Edge/IE 10/11, ...)");
+			console.warn("[AppRTU]: Its requires a modern web component that supports WebSocket");
 			if (onStarted !== undefined) {
 				onStarted();
 			}
@@ -251,7 +251,7 @@ export class AppRTU {
 		// create new instance of WebSocket
 		this._status = "initializing";
 		this._uri = (AppUtility.isNotEmpty(AppConfig.URIs.updates) ? AppConfig.URIs.updates : AppConfig.URIs.apis).replace("http://", "ws://").replace("https://", "wss://");
-		this._websocket = new WebSocket(this._uri + "v?x-request=" + AppUtility.toBase64Url(AppConfig.getAuthenticatedHeaders()) + (AppUtility.isTrue(isRestart) ? "&x-restart=" : ""));
+		this._websocket = new WebSocket(`${this._uri}v?x-session-id=${AppCrypto.urlEncode(AppConfig.session.id)}&x-device-id=${AppCrypto.urlEncode(AppConfig.session.device)}` + (AppUtility.isTrue(isRestart) ? "&x-restart=" : ""));
 		this._pingTime = new Date().getTime();
 
 		// assign 'on-open' event handler
@@ -268,11 +268,12 @@ export class AppRTU {
 			}
 			this._websocket.send(JSON.stringify({
 				ServiceName: "Session",
-				Verb: "VERIFY",
+				Verb: "AUTH",
 				Header: {
 					"x-session-id": AppCrypto.aesEncrypt(AppConfig.session.id),
 					"x-device-id": AppCrypto.aesEncrypt(AppConfig.session.device)
-				}
+				},
+				Body: AppConfig.getAuthenticatedHeaders()
 			}));
 			PlatformUtility.invoke(() => {
 				if (this.isReady) {

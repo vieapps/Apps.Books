@@ -14,7 +14,7 @@ import { ConfigurationService } from "./configuration.service";
 @Injectable()
 export class UsersService extends BaseService {
 
-	constructor(public configSvc: ConfigurationService) {
+	constructor(private configSvc: ConfigurationService) {
 		super("Users");
 		AppRTU.registerAsServiceScopeProcessor(this.name, async message => await this.processUpdateMessageAsync(message));
 		if (this.configSvc.isDebug) {
@@ -330,7 +330,7 @@ export class UsersService extends BaseService {
 					case "State":
 						const userProfile = UserProfile.get(message.Data.UserID);
 						if (userProfile !== undefined) {
-							userProfile.IsOnline = this.configSvc.isAuthenticated && account.id === userProfile.ID ? true : message.Data.IsOnline;
+							userProfile.IsOnline = message.Data.IsOnline ? true : this.configSvc.isAuthenticated && account.id === userProfile.ID ? true : false;
 							userProfile.LastAccess = new Date();
 							AppEvents.sendToElectron(this.name, message);
 						}

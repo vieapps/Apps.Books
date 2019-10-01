@@ -8,9 +8,7 @@ export class StatisticBase {
 
 	public static deserialize(json: any, statistic?: StatisticBase) {
 		statistic = statistic || new StatisticBase();
-		AppUtility.copy(json, statistic, () => {
-			statistic.Title = AppUtility.toANSI(statistic.Name).toLowerCase();
-		});
+		AppUtility.copy(json, statistic, () => statistic.Title = AppUtility.toANSI(statistic.Name).toLowerCase());
 		return statistic;
 	}
 }

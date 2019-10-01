@@ -11,7 +11,7 @@
 
 <ion-content [color]="configSvc.color">
 
-	<h1 padding-horizontal padding-top>
+	<h1 class="ion-padding-horizontal" padding-top>
 		{{ book.Title }}
 	</h1>
 
@@ -96,7 +96,7 @@
 							{{ resources.updated }}:
 						</span>
 						<label>
-							{{ book.LastUpdated | date: 'h:mm a @ d/M/y' }}
+							{{ book.LastUpdated | time:locale:'h:mm a @ d/M/y' }}
 						</label>
 					</ion-item>
 					<ion-item [color]="configSvc.color">

@@ -27,10 +27,10 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.1.0",
+		version: "1.2.0",
 		copyright: "© 2016 - 2019 VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: "ionic 4.6 - angular 8.1 - cordova 9.0",
+		frameworks: "ionic 4.10 - angular 8.2 - cordova 9.0",
 		homepage: "https://viebooks.net",
 		mode: "",
 		platform: "",
@@ -46,7 +46,17 @@ export class AppConfig {
 		id: undefined as string,
 		token: undefined as any,
 		account: undefined as Account,
-		keys: undefined as any,
+		keys: {
+			jwt: undefined as string,
+			aes: {
+				key: undefined as string,
+				iv: undefined as string
+			},
+			rsa: {
+				exponent: undefined as string,
+				modulus: undefined as string
+			}
+		},
 		device: "",
 		captcha: {
 			code: "",

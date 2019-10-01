@@ -35,8 +35,12 @@ export class BookmarksControl implements OnInit, OnDestroy {
 			delete: "Delete"
 		}
 	};
-	@ViewChild("list", { static: false }) list: IonList;
-	@ViewChild("slidingitems", { static: false }) slidingitems: IonItemSliding;
+	@ViewChild("list", { static: true }) list: IonList;
+	@ViewChild("slidingitems", { static: true }) slidingitems: IonItemSliding;
+
+	get locale() {
+		return this.configSvc.locale;
+	}
 
 	ngOnInit() {
 		this.prepareResourcesAsync();

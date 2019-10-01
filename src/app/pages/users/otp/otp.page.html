@@ -30,7 +30,7 @@
 		</ion-list-header>
 		<ion-item *ngFor="let provider of providers" [color]="configSvc.color">
 			<ion-label>
-				{{ provider.Label }} @ {{ provider.Time | date:'dd/MM/yyyy hh:mm a' }}
+				{{ provider.Label }} @ {{ provider.Time | time:locale:'dd/MM/yyyy hh:mm a' }}
 			</ion-label>
 			<ion-button fill="clear" slot="end" (click)="deleteAsync(provider)">
 				<ion-icon name="trash" slot="start"></ion-icon>
