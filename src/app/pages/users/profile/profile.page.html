@@ -50,7 +50,7 @@
 			{{ profile.Name }}
 		</h1>
 
-		<ion-list padding-end>
+		<ion-list class="ion-padding-end">
 			<ion-list-header [color]="configSvc.color">
 				{{ labels.header }}
 			</ion-list-header>
@@ -69,7 +69,7 @@
 			<ion-item [color]="configSvc.color">
 				<ion-icon icon="time" slot="start"></ion-icon>
 				{{ labels.lastAccess }} 
-				<span title="{{ profile.LastAccess | date:'h:mm a @ d/M/y' }}" margin-horizontal>
+				<span title="{{ profile.LastAccess | date:'h:mm a @ d/M/y' }}" class="ion-margin-horizontal">
 					{{ profile.LastAccess | time:locale:'h:mm a @ d/M/y' }}
 				</span>
 			</ion-item>

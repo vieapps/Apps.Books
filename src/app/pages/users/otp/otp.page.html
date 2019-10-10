@@ -11,7 +11,7 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color" padding>
+<ion-content [color]="configSvc.color" class="ion-padding">
 	<ion-list>
 		<ion-item [color]="configSvc.color">
 			<ion-label>
@@ -20,7 +20,7 @@
 					{{ status }}
 				</span>
 			</ion-label>
-			<ion-button *ngIf="!required && provision.uri === ''" fill="solid" color="primary" (click)="provisonAsync()" item-right>
+			<ion-button *ngIf="!required && provision.uri === ''" fill="solid" color="primary" (click)="provisonAsync()" class="ion-item-right">
 				<ion-icon name="power" slot="start"></ion-icon>
 				{{ resources.buttons.on }}
 			</ion-button>
@@ -38,7 +38,7 @@
 			</ion-button>
 		</ion-item>
 		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color">
-			<div text-wrap>
+			<div class="ion-text-wrap">
 				<div>
 					{{ resources.qrcode.image }}
 				</div>

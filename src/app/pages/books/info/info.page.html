@@ -11,13 +11,13 @@
 
 <ion-content [color]="configSvc.color">
 
-	<h1 class="ion-padding-horizontal" padding-top>
+	<h1 class="ion-padding-horizontal ion-padding-top">
 		{{ book.Title }}
 	</h1>
 
-	<ion-grid padding>
+	<ion-grid class="ion-padding">
 		<ion-row>
-			<ion-col padding-bottom text-center size-xs="12" size-sm="6" size-md="4" size-md="3">
+			<ion-col class="ion-padding-bottom ion-text-center" size-xs="12" size-sm="6" size-md="4" size-md="3">
 				<img [src]="book.Cover" />
 			</ion-col>
 			<ion-col size-xs="12" size-sm="6" size-md="8" size-md="9">
@@ -100,7 +100,7 @@
 						</label>
 					</ion-item>
 					<ion-item [color]="configSvc.color">
-						<div padding-top>
+						<div class="ion-padding-top">
 							<section>
 								e-Books:
 							</section>
@@ -109,13 +109,13 @@
 									<span>
 										EPUB: {{ book.Files.Epub.Size }}
 									</span>
-									<ion-icon *ngIf="book.Files.Epub.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" float-end></ion-icon>
+									<ion-icon *ngIf="book.Files.Epub.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" class="ion-float-end"></ion-icon>
 								</li>
 								<li (click)="downloadAsync('Mobi')">
 									<span>
 										MOBI: {{ book.Files.Mobi.Size }}
 									</span>
-									<ion-icon *ngIf="book.Files.Mobi.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" float-end></ion-icon>
+									<ion-icon *ngIf="book.Files.Mobi.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" class="ion-float-end"></ion-icon>
 								</li>
 							</ul>
 						</div>
@@ -123,9 +123,9 @@
 				</ion-list>
 			</ion-col>
 		</ion-row>
-		<ion-row padding-top>
-			<ion-col padding-bottom text-center class="qrcode" size-xs="12" size-sm="6" size-md="4" size-md="3">
-				<div padding-bottom>
+		<ion-row class="ion-padding-top">
+			<ion-col class="ion-padding-bottom ion-text-center qrcode" size-xs="12" size-sm="6" size-md="4" size-md="3">
+				<div class="ion-padding-bottom">
 					{{ resources.qrcode.header }}
 				</div>
 				<div>
@@ -171,7 +171,7 @@
 						</div>
 					</ion-item>
 					<ion-item *ngIf="statistics.downloads" [color]="configSvc.color">
-						<div padding-top>
+						<div class="ion-padding-top">
 							<section>
 								{{ resources.statistics.downloads }}:
 							</section>
@@ -208,7 +208,7 @@
 		</ion-row>
 	</ion-grid>
 
-	<section padding-vertical>
+	<section class="ion-padding-vertical">
 		<ion-item [color]="configSvc.color">
 			<ion-label position="stacked">
 				{{ resources.link }}:

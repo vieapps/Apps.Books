@@ -49,7 +49,7 @@
 </ion-footer>
 
 <ion-content [color]="configSvc.color" (ionScrollEnd)="onScrollEndAsync()" (swipeleft)="onSwipeLeftAsync()" (swiperight)="onSwipeRightAsync()">
-	<div *ngIf="book" [class]="options.color" padding>
+	<div *ngIf="book" class="ion-padding {{options.color}}">
 		<div *ngIf="chapter === 0" class="cover">
 			<figure [hidden]="book.Cover.indexOf('/no/cover/image.png') > 0">
 				<img [src]="book.Cover" />

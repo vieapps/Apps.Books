@@ -16,7 +16,7 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color" padding>
+<ion-content [color]="configSvc.color" class="ion-padding">
 	<app-form *ngIf="update.config"
 		[color]="configSvc.color"
 		[form]="update.form"
@@ -34,7 +34,7 @@
 			<ion-icon name="trash" slot="icon-only"></ion-icon>
 		</ion-button>		
 	</ion-item>
-	<div class="cover" padding>
+	<div class="cover ion-padding">
 		<div *ngIf="cover.uri">
 			<div>
 				{{ cover.current }}

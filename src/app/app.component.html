@@ -1,6 +1,6 @@
 <ion-app>
-	<ion-split-pane when="lg">
-		<ion-menu>
+	<ion-split-pane when="lg" contentId="main">
+		<ion-menu contentId="main">
 			<ion-header>
 				<ion-toolbar [color]="configSvc.color">
 					<ion-thumbnail *ngIf="sidebar.left.avatar" slot="start">
@@ -21,7 +21,7 @@
 						<ion-list-header *ngIf="menu.title" [color]="configSvc.color">
 							<ion-label>
 								<ion-icon *ngIf="menu.icon" [name]="menu.icon" slot="start"></ion-icon>
-								<img *ngIf="menu.thumbnail" [src]="menu.thumbnail" float-start/>
+								<img *ngIf="menu.thumbnail" [src]="menu.thumbnail" class="ion-float-start" />
 								{{ menu.title }}
 							</ion-label>
 						</ion-list-header>
@@ -34,7 +34,7 @@
 						<ion-item *ngFor="let item of menu.items; trackBy: trackSidebarItem" [routerLink]="[item.url]" [queryParams]="item.queryParams" [routerDirection]="item.direction" [detail]="item.detail" [color]="configSvc.color" (click)="item.onClick()">
 							<ion-icon *ngIf="item.icon" [name]="item.icon" slot="start"></ion-icon>
 							<ion-label>
-								<img *ngIf="item.thumbnail" [src]="item.thumbnail" float-start/>
+								<img *ngIf="item.thumbnail" [src]="item.thumbnail" class="ion-float-start" />
 								{{ item.title }}
 							</ion-label>
 						</ion-item>
@@ -42,6 +42,6 @@
 				</ion-list>
 			</ion-content>
 		</ion-menu>
-		<ion-router-outlet main></ion-router-outlet>
+		<ion-router-outlet id="main"></ion-router-outlet>
 	</ion-split-pane>
 </ion-app>

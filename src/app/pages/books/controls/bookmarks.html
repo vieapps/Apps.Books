@@ -1,4 +1,4 @@
-<ion-list #list margin-vertical>
+<ion-list #list class="ion-margin-vertical">
 	<ion-list-header *ngIf="bookmarks.length > 0" [color]="configSvc.color">
 		{{ resources.header }}
 	</ion-list-header>
@@ -31,7 +31,7 @@
 	</ion-item-sliding>
 	<ion-item *ngIf="profile && bookmarks.length > 0" [color]="configSvc.color" class="sync">
 		<div>
-			<span float-end>
+			<span class="ion-float-end">
 				<label>
 					{{ resources.footer }} {{ profile.LastSync | time:locale:'h:mm a @ d/M/y' }}
 				</label>
