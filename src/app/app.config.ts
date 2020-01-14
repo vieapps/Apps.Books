@@ -7,7 +7,7 @@ import en_US from "@angular/common/locales/en";
 /** Configuration of the app */
 export class AppConfig {
 
-	/** URIs of the remote API and resources */
+	/** URIs of the remote API and related resources */
 	public static URIs = {
 		/** APIs */
 		apis: "https://apis.vieapps.net/",
@@ -28,7 +28,7 @@ export class AppConfig {
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
 		version: "1.2.0",
-		copyright: "© 2016 - 2019 VIEApps.net",
+		copyright: "© 2016 - 2020 VIEApps.net",
 		license: "Apache-2.0",
 		frameworks: "ionic 4.11 - angular 8.2 - cordova 9.0",
 		homepage: "https://viebooks.net",
@@ -149,7 +149,7 @@ export class AppConfig {
 	public static tracking = {
 		google: ["UA-3060572-8"],
 		facebook: new Array<string>(),
-		domains: ["viebooks.net", "books.vieapps.net", "books.vieapps.com"],
+		domains: ["viebooks.net"],
 	};
 
 	/** Facebook integration */
