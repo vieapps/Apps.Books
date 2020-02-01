@@ -749,9 +749,7 @@ export class AppFormsService {
 				confirmControl.setErrors({ notEquivalent: true });
 				return { notEquivalent: true };
 			}
-			else {
-				return null;
-			}
+			return null;
 		};
 	}
 
@@ -765,9 +763,7 @@ export class AppFormsService {
 				formControl.setErrors({ notEquivalent: true });
 				return { notEquivalent: true };
 			}
-			else {
-				return null;
-			}
+			return null;
 		};
 	}
 
@@ -778,9 +774,7 @@ export class AppFormsService {
 				formControl.setErrors({ lessThan: true });
 				return { lessThan: true };
 			}
-			else {
-				return null;
-			}
+			return null;
 		};
 	}
 
@@ -791,9 +785,7 @@ export class AppFormsService {
 				formControl.setErrors({ greater: true });
 				return { greater: true };
 			}
-			else {
-				return null;
-			}
+			return null;
 		};
 	}
 
@@ -959,8 +951,7 @@ export class AppFormsService {
 					duration: 1000,
 					position: atBottom ? "bottom" : "top",
 					animated: true
-				}
-			)
+				})
 			: await this.toastController.create({
 					message: message,
 					duration: duration,
@@ -968,8 +959,7 @@ export class AppFormsService {
 					closeButtonText: closeButtonText,
 					position: atBottom ? "bottom" : "top",
 					animated: true
-				}
-			);
+				});
 		await this._toast.present();
 	}
 
