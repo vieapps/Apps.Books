@@ -165,3 +165,14 @@ ion-item.select-file > ion-label {
 qr-code > img {
 	height: auto !important;
 }
+
+/* Preview of Image Picker */
+.image-picker-preview {
+	clear: both;
+	overflow: hidden;
+}
+.image-picker-preview > div {
+	width: 300px;
+	float: left;
+	padding-right: 20px;
+}

@@ -2,6 +2,7 @@
 	[color]="theme"
 	[formGroup]="formGroup"
 	[class.invalid]="invalid"
+	[class.select-file]="isFilePickerControl"
 	[class.completer-container]="isCompleter"
 	[class.select-dropdown]="selectAsDropdown">
 
@@ -53,7 +54,7 @@
 		[value]="value"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
-		(ionChange)="onValueChanged($event)">
+		(ionChange)="onChanged($event)">
 		<ion-select-option *ngFor="let option of selectOptions" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</ion-select-option>
 	</ion-select>
 
@@ -81,21 +82,21 @@
 		[value]="datetimeValue"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
-		(ionChange)="datetimeOnValueChanged($event)"></ion-datetime>
+		(ionChange)="onChanged($event)"></ion-datetime>
 
 	<ion-checkbox *ngIf="isControl('YesNo') && type !== 'toggle'" slot="end" #elementRef
 		[name]="name"
 		[disabled]="disabled"
 		[color]="color.control"
 		[checked]="checked"
-		(ionChange)="yesnoOnValueChanged($event)"></ion-checkbox>
+		(ionChange)="onChanged($event)"></ion-checkbox>
 
 	<ion-toggle *ngIf="isControl('YesNo') && type === 'toggle'" slot="end" #elementRef
 		[name]="name"
 		[disabled]="disabled"
 		[color]="color.control"
 		[checked]="checked"
-		(ionChange)="yesnoOnValueChanged($event)"></ion-toggle>
+		(ionChange)="onChanged($event)"></ion-toggle>
 
 	<ion-range *ngIf="isControl('Range')" #elementRef
 		[name]="name"
@@ -105,7 +106,7 @@
 		[min]="minValue"
 		[max]="maxValue"
 		[value]="value"
-		(ionChange)="onValueChanged($event)"></ion-range>
+		(ionChange)="onChanged($event)"></ion-range>
 
 	<ng2-completer *ngIf="isCompleter" #elementRef
 		[inputName]="name"
@@ -119,16 +120,39 @@
 		[textNoResults]="completerNoResultsText"
 		[datasource]="completerDataSource"
 		[initialValue]="completerInitialValue"
-		(selected)="completerOnItemChanged($event)"
+		(selected)="onChanged($event)"
 		(keyup)="onKeyUp($event)"></ng2-completer>
 
+	<div *ngIf="isFilePickerControl" class="file-picker">
+		<input type="file" #elementRef
+			[accept]="control.Options.FilePickerOptions.Accept"
+			[multiple]="control.Options.FilePickerOptions.AllowMultiple"
+			[placeholder]="placeholder"
+			(change)="onChanged($event)" />
+	</div>
+	<ion-button *ngIf="isImagePickerControl && control.Options.FilePickerOptions.AllowDelete && value && value.new"
+		fill="clear"
+		slot="end"
+		(click)="onDeleted($event)">
+		<ion-icon name="trash" slot="icon-only"></ion-icon>
+	</ion-button>		
+
 </ion-item>
+
+<div *ngIf="isImagePickerControl && control.Options.FilePickerOptions.AllowPreview && value" class="image-picker-preview ion-padding">
+	<div *ngIf="value.current">
+		<img [src]="value.current" />
+	</div>
+	<div *ngIf="value.new">
+		<img [src]="value.new" />
+	</div>
+</div>
 
 <ion-radio-group *ngIf="visible && selectAsRadioBoxes" #elementRef
 	[name]="name"
 	[class.invalid]="invalid"
 	[value]="value"
-	(ionChange)="onValueChanged($event)">
+	(ionChange)="onChanged($event)">
 	<ion-list-header *ngIf="label"
 		[color]="theme"
 		[class]="css.label">{{ label }}</ion-list-header>

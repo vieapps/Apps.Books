@@ -37,7 +37,7 @@ export class AppConfig {
 		os: "",
 		shell: "",
 		persistence: true,
-		debug: false,
+		debug: true,
 		offline: false
 	};
 

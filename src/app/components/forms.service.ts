@@ -9,7 +9,7 @@ import { AppXHR } from "./app.apis";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 
-/** Configuration of a control in the dynamic forms */
+/** Presents the settings of a control in the dynamic forms */
 export class AppFormsControl {
 
 	constructor (
@@ -24,6 +24,7 @@ export class AppFormsControl {
 	Name = "";
 	Type = "TextBox";
 	Order = 0;
+	Segment = undefined as string;
 	Hidden = false;
 	Required = false;
 	Validators: Array<ValidatorFn> | Array<string> = undefined;
@@ -70,6 +71,20 @@ export class AppFormsControl {
 			CancelText: "{{common.buttons.cancel}}",
 			OkText: "{{common.buttons.ok}}"
 		},
+		LookupOptions: {
+			SearchingText: "{{common.messages.completer.searching}}",
+			NoResultsText: "{{common.messages.completer.noresults}}",
+			AsCompleter: true,
+			PauseMiliseconds: 234,
+			ClearSelected: false,
+			DataSource: undefined as CompleterData,
+			InitialValue: undefined as any,
+			Handlers: {
+				Initialize: undefined as (control: AppFormsControl) => void,
+				GetInitialValue: undefined as (control: AppFormsControl) => any,
+				OnItemSelected: undefined as (item: any, control: AppFormsControl) => void
+			}
+		},
 		DatePickerOptions: {
 			AllowTimes: false,
 			DisplayFormat: undefined as string,
@@ -81,18 +96,14 @@ export class AppFormsControl {
 			CancelText: "{{common.buttons.cancel}}",
 			DoneText: "{{common.buttons.done}}"
 		},
-		LookupOptions: {
-			SearchingText: "{{common.messages.completer.searching}}",
-			NoResultsText: "{{common.messages.completer.noresults}}",
-			AsCompleter: true,
-			PauseMiliseconds: 123,
-			ClearSelected: false,
-			DataSource: undefined as CompleterData,
-			InitialValue: undefined as any,
+		FilePickerOptions: {
+			Accept: "*",
+			AllowMultiple: true,
+			AllowPreview: false,
+			AllowDelete: true,
 			Handlers: {
-				Initialize: undefined as (control: AppFormsControl) => void,
-				GetInitialValue: undefined as (control: AppFormsControl) => any,
-				OnItemSelected: undefined as (item: any, control: AppFormsControl) => void
+				OnChanged: undefined as (event: any) => void,
+				OnDeleted: undefined as (file: File) => void
 			}
 		}
 	};
@@ -151,6 +162,17 @@ export class AppFormsControl {
 		this.Extras["_cfg:Parent"] = value;
 	}
 
+	/** Gets the index of segment (if has) */
+	public get segmentIndex() {
+		const index = this.Extras["_cfg:SegmentIndex"];
+		return index !== undefined ? index as number : 0;
+	}
+
+	/** Sets the index of segment (if has) */
+	public set segmentIndex(value: number) {
+		this.Extras["_cfg:SegmentIndex"] = value;
+	}
+
 	/** Sets the value of the control */
 	public set value(value: any) {
 		this.formRef.setValue(value);
@@ -168,6 +190,7 @@ export class AppFormsControl {
 		control.Name = options.Name || options.name || (alternativeName !== undefined ? `${alternativeName}_${control.Order}` : `c_${control.Order}`);
 		control.Type = options.Type || options.type || "TextBox";
 
+		control.Segment = options.Segment || options.segment;
 		control.Hidden = !!(options.Hidden || options.hidden);
 		control.Required = !control.Hidden && !!(options.Required || options.required);
 		control.Extras = options.Extras || options.extras || {};
@@ -245,21 +268,6 @@ export class AppFormsControl {
 				};
 			}
 
-			const datepickerOptions = controlOptions.DatePickerOptions || controlOptions.datepickeroptions;
-			if (datepickerOptions !== undefined) {
-				control.Options.DatePickerOptions = {
-					AllowTimes: !!(datepickerOptions.AllowTimes || datepickerOptions.allowtimes),
-					DisplayFormat: datepickerOptions.DisplayFormat || datepickerOptions.displayformat,
-					PickerFormat: datepickerOptions.PickerFormat || datepickerOptions.pickerformat,
-					DayNames: datepickerOptions.DayNames || datepickerOptions.daynames,
-					DayShortNames: datepickerOptions.DayShortNames || datepickerOptions.dayshortnames,
-					MonthNames: datepickerOptions.MonthNames || datepickerOptions.monthnames,
-					MonthShortNames: datepickerOptions.MonthShortNames || datepickerOptions.monthshortnames,
-					CancelText: datepickerOptions.CancelText || datepickerOptions.canceltext || "{{common.buttons.cancel}}",
-					DoneText: datepickerOptions.DoneText || datepickerOptions.donetext || "{{common.buttons.done}}"
-				};
-			}
-
 			const lookupOptions = controlOptions.LookupOptions || controlOptions.lookupoptions;
 			if (lookupOptions !== undefined) {
 				const handlers = lookupOptions.Handlers || lookupOptions.handlers || {};
@@ -276,6 +284,32 @@ export class AppFormsControl {
 						GetInitialValue: handlers.GetInitialValue || handlers.getinitialvalue,
 						OnItemSelected: handlers.OnItemSelected || handlers.onitemselected
 					}
+				};
+			}
+
+			const datepickerOptions = controlOptions.DatePickerOptions || controlOptions.datepickeroptions;
+			if (datepickerOptions !== undefined) {
+				control.Options.DatePickerOptions = {
+					AllowTimes: !!(datepickerOptions.AllowTimes || datepickerOptions.allowtimes),
+					DisplayFormat: datepickerOptions.DisplayFormat || datepickerOptions.displayformat,
+					PickerFormat: datepickerOptions.PickerFormat || datepickerOptions.pickerformat,
+					DayNames: datepickerOptions.DayNames || datepickerOptions.daynames,
+					DayShortNames: datepickerOptions.DayShortNames || datepickerOptions.dayshortnames,
+					MonthNames: datepickerOptions.MonthNames || datepickerOptions.monthnames,
+					MonthShortNames: datepickerOptions.MonthShortNames || datepickerOptions.monthshortnames,
+					CancelText: datepickerOptions.CancelText || datepickerOptions.canceltext || "{{common.buttons.cancel}}",
+					DoneText: datepickerOptions.DoneText || datepickerOptions.donetext || "{{common.buttons.done}}"
+				};
+			}
+
+			const filepickerOptions = controlOptions.FilePickerOptions || controlOptions.filepickeroptions;
+			if (filepickerOptions !== undefined) {
+				control.Options.FilePickerOptions = {
+					Accept: filepickerOptions.Accept || filepickerOptions.accept,
+					AllowMultiple: !!(filepickerOptions.AllowMultiple || filepickerOptions.allowmultiple),
+					AllowPreview: !!(filepickerOptions.AllowPreview || filepickerOptions.allowpreview),
+					AllowDelete: !!(filepickerOptions.AllowDelete || filepickerOptions.allowdelete),
+					Handlers: filepickerOptions.Handlers || filepickerOptions.handlers,
 				};
 			}
 		}
@@ -308,6 +342,7 @@ export class AppFormsControl {
 		options.Options.SelectOptions.InterfaceOptions = this.Options.SelectOptions.InterfaceOptions;
 		options.Options.LookupOptions.DataSource = this.Options.LookupOptions.DataSource;
 		options.Options.LookupOptions.Handlers = this.Options.LookupOptions.Handlers;
+		options.Options.FilePickerOptions.Handlers = this.Options.FilePickerOptions.Handlers;
 		if (onPreCompleted !== undefined) {
 			onPreCompleted(options);
 		}
@@ -330,6 +365,25 @@ export class AppFormsControl {
 
 }
 
+/** Presents the settings of a segment (means a tab that contains group of controls) in the dynamic forms */
+export class AppFormsSegment {
+
+	constructor (
+		name?: string,
+		label?: string,
+		icon?: string
+	) {
+		this.Name = name;
+		this.Label = label;
+		this.Icon = icon;
+	}
+
+	Name = "";
+	Label = "";
+	Icon = undefined as string;
+}
+
+/** Provides the servicing operations of the dynamic forms */
 @Injectable()
 export class AppFormsService {
 
@@ -443,14 +497,27 @@ export class AppFormsService {
 	}
 
 	/** Gets the definition of all controls */
-	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>) {
+	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>, segments?: Array<AppFormsSegment>, defaultSegment?: string) {
 		controls = controls || new Array<AppFormsControl>();
-		config.map((options, order) => new AppFormsControl(options, order))
-			.sort((a, b) => a.Order - b.Order)
-			.forEach((control, order) => {
-				control.Order = order;
-				controls.push(control);
-			});
+		config.map((options, order) => {
+			const control = new AppFormsControl(options, order);
+			if (segments !== undefined && segments.length > 0) {
+				if (control.Segment === undefined) {
+					control.Segment = defaultSegment !== undefined && segments.findIndex(segment => segment.Name === defaultSegment) > -1 ? defaultSegment : segments[0].Name;
+				}
+				const index = segments.findIndex(segment => segment.Name === control.Segment);
+				if (index < 0) {
+					control.Segment = segments[0].Name;
+				}
+				control.segmentIndex = index < 0 ? 0 : index;
+			}
+			return control;
+		})
+		.sort(AppUtility.sort({ name: "segmentIndex", primer: undefined, reverse: false }, "Order"))
+		.forEach((control, order) => {
+			control.Order = order;
+			controls.push(control);
+		});
 		this.prepareControls(controls, !AppConfig.isNativeApp && AppConfig.app.platform.startsWith("Desktop") && !PlatformUtility.isSafari());
 		return controls;
 	}

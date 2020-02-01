@@ -1,10 +1,29 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
-	<ion-list>
-		<app-form-control *ngFor="let ctrl of controls; trackBy: trackControl"
+
+	<div *ngIf="gotSegments">
+		<ion-segment (ionChange)="onSegmentChanged($event)">
+			<ion-segment-button *ngFor="let segment of segments; trackBy: trackSegment" [value]="segment.Name" [checked]="segment.Name === currentSegment">
+				<ion-label>{{ segment.Label }}</ion-label>
+				<ion-icon *ngIf="segment.Icon" [name]="segment.Icon"></ion-icon>
+			</ion-segment-button>
+		</ion-segment>
+		<ion-list *ngFor="let segment of segments" [hidden]="segment.Name !== currentSegment">
+			<app-form-control *ngFor="let control of getControls(segment); trackBy: trackControl"
+				[formGroup]="form"
+				[control]="control"
+				[theme]="color"
+				(lastFocusEvent)="onLastFocus($event)"
+				(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form-control>
+		</ion-list>
+	</div>
+
+	<ion-list *ngIf="!gotSegments">
+		<app-form-control *ngFor="let control of controls; trackBy: trackControl"
 			[formGroup]="form"
-			[control]="ctrl"
+			[control]="control"
 			[theme]="color"
 			(lastFocusEvent)="onLastFocus($event)"
 			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form-control>
 	</ion-list>
+
 </form>

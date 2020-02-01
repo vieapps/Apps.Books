@@ -111,6 +111,14 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.isControl("Captcha");
 	}
 
+	get isFilePickerControl() {
+		return this.isControl("FilePicker");
+	}
+
+	get isImagePickerControl() {
+		return this.isFilePickerControl && !this.control.Options.FilePickerOptions.AllowMultiple && this.control.Options.FilePickerOptions.Accept !== undefined && this.control.Options.FilePickerOptions.Accept.indexOf("image/") > -1;
+	}
+
 	get label() {
 		return this.control.Options.Label;
 	}
@@ -215,12 +223,12 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			: this.formControl.value;
 	}
 
-	onValueChanged($event: any) {
-		this.formControl.setValue($event.detail.value);
-		this._selectValues = undefined;
-		if (!this.isControl("Range")) {
-			this.focusNext();
-		}
+	get checked() {
+		return this.control.formRef !== undefined && this.control.value !== undefined
+			? this.minValue === undefined || this.maxValue === undefined
+				? AppUtility.isTrue(this.control.value)
+				: +this.control.value !== 0
+			: false;
 	}
 
 	get textareaRows() {
@@ -233,33 +241,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.formControl.value !== undefined
 			? AppUtility.toIsoDateTime(new Date(this.formControl.value), true)
 			: undefined;
-	}
-
-	datetimeOnValueChanged($event: any) {
-		try {
-			const year = $event.detail.value.year;
-			const month = $event.detail.value.month;
-			const day = $event.detail.value.day;
-			let value = `${year.text}-${month.text}-${day.text}`;
-			if (this.control.Options.DatePickerOptions.AllowTimes) {
-				const hour = $event.detail.value.hour;
-				const minute = $event.detail.value.minute;
-				const second = $event.detail.value.second;
-				if (hour !== undefined && minute !== undefined) {
-					value += `T${hour.text}`;
-					if (minute !== undefined) {
-						value += `:${minute.text}`;
-						if (second !== undefined) {
-							value += `:${second.text}`;
-						}
-					}
-					value += "Z";
-				}
-			}
-			this.formControl.setValue(new Date(value));
-		}
-		catch {}
-		this.focusNext();
 	}
 
 	get datetimeDisplayFormat() {
@@ -349,21 +330,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this._selectValues.indexOf(value) > -1;
 	}
 
-	get checked() {
-		return this.control.formRef !== undefined && this.control.value !== undefined
-			? this.minValue === undefined || this.maxValue === undefined
-				? AppUtility.isTrue(this.control.value)
-				: +this.control.value !== 0
-			: false;
-	}
-
-	yesnoOnValueChanged($event: any) {
-		this.control.value = this.minValue === undefined || this.maxValue === undefined
-			? $event.detail.checked
-			: $event.detail.checked ? 1 : 0;
-		this.focusNext();
-	}
-
 	get isCompleter() {
 		return this.isControl("Lookup") && this.control.Options.LookupOptions.AsCompleter;
 	}
@@ -435,22 +401,86 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this._completerInitialValue;
 	}
 
-	completerOnItemChanged(item: any) {
-		if (this.control.Options.Type === "Address") {
-			let address = AppUtility.isObject(item, true) ? item.originalObject : undefined;
-			if (address === undefined && this._step === "ngAfterViewInit" && this._completerInitialValue !== undefined) {
-				address = this._completerInitialValue;
-				this._step = "ngDone";
-			}
-			["County", "Province", "Country"].forEach(name => {
-				const formControl = this.formGroup.controls[name];
-				if (formControl !== undefined) {
-					formControl.setValue(address !== undefined ? address[name] || "" : "");
-				}
-			});
+	private focusNext() {
+		this.appFormsSvc.focusNext(this.control, () => this.lastFocusEvent.emit(this.control));
+	}
+
+	onKeyUp($event: KeyboardEvent) {
+		if ($event.code === "Enter") {
+			this.focusNext();
 		}
-		else if (this.control.Options.LookupOptions.Handlers.OnItemSelected !== undefined) {
-			this.control.Options.LookupOptions.Handlers.OnItemSelected(item, this.control);
+	}
+
+	onChanged($event: any) {
+		if (this.isFilePickerControl) {
+			if (this.control.Options.FilePickerOptions.Handlers.OnChanged !== undefined) {
+				this.control.Options.FilePickerOptions.Handlers.OnChanged($event);
+			}
+		}
+		else if (this.isControl("DatePicker")) {
+			try {
+				const year = $event.detail.value.year;
+				const month = $event.detail.value.month;
+				const day = $event.detail.value.day;
+				let value = `${year.text}-${month.text}-${day.text}`;
+				if (this.control.Options.DatePickerOptions.AllowTimes) {
+					const hour = $event.detail.value.hour;
+					const minute = $event.detail.value.minute;
+					const second = $event.detail.value.second;
+					if (hour !== undefined && minute !== undefined) {
+						value += `T${hour.text}`;
+						if (minute !== undefined) {
+							value += `:${minute.text}`;
+							if (second !== undefined) {
+								value += `:${second.text}`;
+							}
+						}
+						value += "Z";
+					}
+				}
+				this.formControl.setValue(new Date(value));
+			}
+			catch {}
+			this.focusNext();
+		}
+		else if (this.isControl("YesNo")) {
+			this.control.value = this.minValue === undefined || this.maxValue === undefined
+				? $event.detail.checked
+				: $event.detail.checked ? 1 : 0;
+			this.focusNext();
+		}
+		else if (this.isCompleter) {
+			if (this.control.Options.Type === "Address") {
+				let address = AppUtility.isObject($event, true) ? $event.originalObject : undefined;
+				if (address === undefined && this._step === "ngAfterViewInit" && this._completerInitialValue !== undefined) {
+					address = this._completerInitialValue;
+					this._step = "ngDone";
+				}
+				["County", "Province", "Country"].forEach(name => {
+					const formControl = this.formGroup.controls[name];
+					if (formControl !== undefined) {
+						formControl.setValue(address !== undefined ? address[name] || "" : "");
+					}
+				});
+			}
+			else if (this.control.Options.LookupOptions.Handlers.OnItemSelected !== undefined) {
+				this.control.Options.LookupOptions.Handlers.OnItemSelected($event, this.control);
+			}
+		}
+		else {
+			this.formControl.setValue($event.detail.value);
+			this._selectValues = undefined;
+			if (!this.isControl("Range")) {
+				this.focusNext();
+			}
+		}
+	}
+
+	onDeleted($event: any) {
+		if (this.isImagePickerControl) {
+			if (this.control.Options.FilePickerOptions.Handlers.OnDeleted !== undefined) {
+				this.control.Options.FilePickerOptions.Handlers.OnDeleted($event);
+			}
 		}
 	}
 
@@ -494,16 +524,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	trackControl(index: number, control: AppFormsControl) {
 		return control.Name;
-	}
-
-	onKeyUp($event: KeyboardEvent) {
-		if ($event.code === "Enter") {
-			this.focusNext();
-		}
-	}
-
-	private focusNext() {
-		this.appFormsSvc.focusNext(this.control, () => this.lastFocusEvent.emit(this.control));
 	}
 
 }

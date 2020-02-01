@@ -162,9 +162,9 @@
 				"request": "Request to update book"
 			},
 			"button": "Send request",
-			"cover": {
-				"current": "Current",
-				"new": "New"
+			"segments": {
+				"meta": "Book Info",
+				"others": "TOCs & Cover Image"
 			},
 			"messages": {
 				"confirm": "Are you sure you want to discard changes?",

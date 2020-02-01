@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppConfig } from "../app.config";
-import { AppFormsControl, AppFormsService } from "./forms.service";
+import { AppFormsControl, AppFormsSegment, AppFormsService } from "./forms.service";
 import { PlatformUtility } from "./app.utility.platform";
 
 @Component({
@@ -17,8 +17,10 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	@Input() form: FormGroup;
-	@Input() controls: Array<AppFormsControl>;
 	@Input() config: Array<any>;
+	@Input() segments: Array<AppFormsSegment>;
+	@Input() defaultSegment: string;
+	@Input() controls: Array<AppFormsControl>;
 	@Input() value: any;
 	@Input() lastFocus: any;
 	@Input() color: string;
@@ -27,9 +29,17 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 
+	currentSegment: string;
+
 	ngOnInit() {
+		if (this.segments !== undefined && this.segments.length > 0) {
+			this.currentSegment = this.defaultSegment !== undefined && this.segments.findIndex(segment => segment.Name === this.defaultSegment) > -1
+				? this.defaultSegment
+				: this.segments[0].Name;
+		}
+
 		if ((this.controls === undefined || this.controls.length < 1) && this.config !== undefined) {
-			this.controls = this.appFormsSvc.getControls(this.config, this.controls);
+			this.controls = this.appFormsSvc.getControls(this.config, this.controls, this.segments, this.defaultSegment);
 		}
 
 		if (this.controls === undefined) {
@@ -66,6 +76,22 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	onSubmit() {
 		this.submitEvent.emit(this.form.value);
+	}
+
+	get gotSegments() {
+		return this.segments !== undefined && this.segments.length > 0;
+	}
+
+	onSegmentChanged($event: any) {
+		this.currentSegment = $event.detail.value;
+	}
+
+	trackSegment(index: number, segment: AppFormsSegment) {
+		return `${segment.Name}@${index}`;
+	}
+
+	getControls(segment: AppFormsSegment) {
+		return this.controls.filter(ctrl => ctrl.Segment === segment.Name);
 	}
 
 	trackControl(index: number, control: AppFormsControl) {

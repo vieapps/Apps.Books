@@ -210,6 +210,62 @@ export class AppUtility {
 		}
 	}
 
+	/** Gets the default compare function for sorting a sequence */
+	private static defaultCompare(current: any, next: any): number {
+		return current === next
+			? 0
+			: current < next ? -1 : 1;
+	}
+
+	/** Gets the compare function for sorting a sequence */
+	private static getCompare(primer: (object: any) => any, reverse: boolean) {
+		let compareFunction = this.defaultCompare;
+		if (primer) {
+			compareFunction = (current: any, next: any) => this.defaultCompare(primer(current), primer(next));
+		}
+		if (reverse) {
+			return (current: any, next: any) => -1 * compareFunction(current, next);
+		}
+		return compareFunction;
+	}
+
+	/** Sort a sequence */
+	public static sort(...sorts: Array<string | { name: string, primer: (object: any) => any, reverse: boolean }>) {
+		const sortBy = new Array<{ name: string, compare: (current: any, next: any) => number }>();
+
+		// preprocess sorting options
+		for (let index = 0; index < sorts.length; index++) {
+			const sort = sorts[index];
+			let name: string;
+			let compareFunction: (current: any, next: any) => number;
+			if (typeof sort === "string") {
+				name = sort as string;
+				compareFunction = this.defaultCompare;
+			}
+			else {
+				name = sort.name;
+				compareFunction = this.getCompare(sort.primer, sort.reverse);
+			}
+			sortBy.push({
+				name: name,
+				compare: compareFunction
+			});
+		}
+
+		// final comparison function
+		return (current: any, next: any) => {
+			let result = 0;
+			for (let index = 0; index < sortBy.length; index++) {
+				const name = sortBy[index].name;
+				result = sortBy[index].compare(current[name], next[name]);
+				if (result !== 0) {
+					break;
+				}
+			}
+			return result;
+		};
+	}
+
 	/** Gets the query of JSON */
 	public static getQueryOfJson(json: { [key: string]: any }): string {
 		let query = "";

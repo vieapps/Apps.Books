@@ -4,7 +4,7 @@ import { AppCrypto } from "../../../components/app.crypto";
 import { AppEvents } from "../../../components/app.events";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
+import { AppFormsControl, AppFormsSegment, AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
 import { AuthenticationService } from "../../../services/authentication.service";
 import { FilesService } from "../../../services/files.service";
@@ -32,18 +32,13 @@ export class BooksUpdatePage implements OnInit {
 	book: Book;
 	update = {
 		form: new FormGroup({}),
-		controls: new Array<AppFormsControl>(),
 		config: undefined as Array<any>,
+		segments: new Array<AppFormsSegment>(),
+		defaultSegment: "meta",
+		controls: new Array<AppFormsControl>(),
 		requestOnly: true,
 		category: "",
 		hash: "",
-	};
-	cover = {
-		uri: undefined as string,
-		image: undefined as string,
-		title: "Cover",
-		current: "Current",
-		new: "New"
 	};
 	button = {
 		update: "Update",
@@ -65,9 +60,10 @@ export class BooksUpdatePage implements OnInit {
 				: await this.configSvc.getResourceAsync("common.buttons.update"),
 			cancel: await this.configSvc.getResourceAsync("common.buttons.cancel")
 		};
-		this.cover.title = await this.configSvc.getResourceAsync("books.info.controls.Cover");
-		this.cover.current = await this.configSvc.getResourceAsync("books.update.cover.current");
-		this.cover.new = await this.configSvc.getResourceAsync("books.update.cover.new");
+		this.update.segments.push(
+			new AppFormsSegment("meta", await this.configSvc.getResourceAsync("books.update.segments.meta")),
+			new AppFormsSegment("others", await this.configSvc.getResourceAsync("books.update.segments.others"))
+		);
 		this.book = Book.instances.getValue(this.configSvc.requestParams["ID"]);
 		if (this.book === undefined) {
 			await this.appFormsSvc.showToastAsync("Hmmmmmm....");
@@ -89,45 +85,68 @@ export class BooksUpdatePage implements OnInit {
 				if (config.find(control => true === control.Options.AutoFocus) === undefined) {
 					config[0].Options.AutoFocus = true;
 				}
-				config.forEach((control, order) => control.Order = order);
-				config.push({
-					Name: "TOCs",
-					Type: "TextArea",
-					Required: this.book.TotalChapters > 1,
-					Hidden: this.book.TotalChapters < 2,
-					Options: {
-						Type: "text",
-						Label: "{{books.info.controls.TOCs}}",
-						TextAreaRows: 10
+				config.forEach(control => control.Segment = "meta");
+				config.push(
+					{
+						Name: "TOCs",
+						Type: "TextArea",
+						Required: this.book.TotalChapters > 1,
+						Hidden: this.book.TotalChapters < 2,
+						Segment: "others",
+						Options: {
+							Type: "text",
+							Label: "{{books.info.controls.TOCs}}",
+							TextAreaRows: 20
+						}
+					},
+					{
+						Name: "CoverImage",
+						Type: "FilePicker",
+						Segment: "others",
+						Options: {
+							Label: "{{books.info.controls.Cover}}",
+							FilePickerOptions: {
+								Accept: "image/png, image/jpeg",
+								AllowMultiple: false,
+								AllowPreview: true,
+								AllowDelete: true,
+								Handlers: {
+									OnChanged: (event: any) => {
+										const file: File = event.target.files.length > 0
+											? event.target.files[0]
+											: undefined;
+										if (file !== undefined && file.type.startsWith("image/")) {
+											this.filesSvc.readAsDataURL(file, data => this.update.form.controls.CoverImage.value.new = data, 1024000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
+										}
+										else {
+											this.update.form.controls.CoverImage.value.data = undefined;
+										}
+									},
+									OnDeleted: (file: File) => this.update.form.controls.CoverImage.value.new = undefined
+								}
+							}
+						}
 					}
-				});
+				);
 			}
 			this.update.config = config;
-			this.cover.uri = AppUtility.isNotEmpty(this.book.Cover) ? this.book.Cover : undefined;
 		}
 	}
 
 	onFormInitialized($event: any) {
 		this.update.form.patchValue(this.book);
 		this.update.form.controls["TOCs"].setValue(this.book.TOCs.join("\n"));
+		this.update.form.controls["CoverImage"].setValue({ current: AppUtility.isNotEmpty(this.book.Cover) ? this.book.Cover : undefined, new: undefined });
 		this.update.category = this.book.Category;
-		this.update.hash = AppCrypto.hash(this.update.form.value);
-	}
-
-	prepareCover($event: any) {
-		const file: File = $event.target.files.length > 0 ? $event.target.files[0] : undefined;
-		if (file !== undefined && file.type.startsWith("image/")) {
-			this.filesSvc.readAsDataURL(file, data => this.cover.image = data, 1024000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
-		}
-		else {
-			this.cover.image = undefined;
-		}
+		const bookInfo = this.update.form.value;
+		delete bookInfo["CoverImage"];
+		this.update.hash = AppCrypto.hash(bookInfo);
 	}
 
 	private uploadCoverAsync(onNext: () => void) {
 		return this.filesSvc.uploadAsync(
 			"books",
-			this.cover.image,
+			this.update.form.controls.CoverImage.value.new,
 			{
 				"x-book-id": this.book.ID,
 				"x-temporary": `${this.update.requestOnly}`
@@ -144,10 +163,12 @@ export class BooksUpdatePage implements OnInit {
 	}
 
 	updateBookAsync() {
-		if (this.update.hash !== AppCrypto.hash(this.update.form.value)) {
+		const bookInfo = this.update.form.value;
+		delete bookInfo["CoverImage"];
+		if (this.update.hash !== AppCrypto.hash(bookInfo)) {
 			if (this.update.requestOnly) {
 				return this.booksSvc.requestUpdateAsync(
-					this.update.form.value,
+					bookInfo,
 					async () => {
 						await Promise.all([
 							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/request-update")),
@@ -160,7 +181,7 @@ export class BooksUpdatePage implements OnInit {
 			}
 			else {
 				return this.booksSvc.updateAsync(
-					this.update.form.value,
+					bookInfo,
 					async () => {
 						await Promise.all([
 							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/update")),
@@ -186,7 +207,7 @@ export class BooksUpdatePage implements OnInit {
 		}
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
-			if (this.cover.image !== undefined) {
+			if (this.update.form.controls.CoverImage.value.new !== undefined) {
 				await this.uploadCoverAsync(async () => await this.updateBookAsync());
 			}
 			else {

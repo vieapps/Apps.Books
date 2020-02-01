@@ -162,9 +162,9 @@
 				"request": "Gửi yêu cầu cập nhật thông tin sách"
 			},
 			"button": "Gửi yêu cầu",
-			"cover": {
-				"current": "Hiện tại",
-				"new": "Mới"
+			"segments": {
+				"meta": "Thông tin sách",
+				"others": "Mục lục & Ảnh bìa"
 			},
 			"messages": {
 				"confirm": "Chắc chắn muốn huỷ bỏ cập nhật?",
