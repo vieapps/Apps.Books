@@ -434,7 +434,7 @@ export class AppFormsService {
 					}));
 				}
 				else if (AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
-					let uri = AppXHR.getURI(control.Options.SelectOptions.RemoteURI as string);
+					let uri = AppXHR.getURI(control.Options.SelectOptions.RemoteURI);
 					uri += (uri.indexOf("?") < 0 ? "?" : "&") + AppConfig.getRelatedQuery();
 					try {
 						if (control.Options.SelectOptions.RemoteURIProcessor !== undefined) {
@@ -452,11 +452,15 @@ export class AppFormsService {
 												? control.Options.SelectOptions.RemoteURIConverter(data)
 												: { Value: data.Value || data.value, Label: data.Label || data.label || data.Value || data.value };
 										})
-								: [];
+								: AppUtility.isNotEmpty(values)
+									? (AppUtility.toArray(values) as Array<string>).map(value => {
+											return { Value: value, Label: value };
+										})
+									: [];
 						}
 					}
 					catch (error) {
-						console.error("[Forms]: Error occurred while preparing the values from a remote URI", error);
+						console.error("[Forms]: Error occurred while preparing the selecting values from a remote URI", error);
 						control.Options.SelectOptions.Values = [];
 					}
 					await Promise.all(control.Options.SelectOptions.Values.map(async selectValue => {
