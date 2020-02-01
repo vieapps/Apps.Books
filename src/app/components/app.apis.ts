@@ -35,24 +35,11 @@ export class AppRTU {
 	private static _status = "initializing";
 	private static _uri: string;
 	private static _websocket: WebSocket;
-	private static _types: {
-		[key: string]: AppMessageType
-	} = {};
-	private static _serviceScopeHandlers: {
-		[key: string]: Array<{ func: (message: AppMessage) => void, identity: string }>
-	} = {};
-	private static _objectScopeHandlers: {
-		[key: string]: Array<{ func: (message: AppMessage) => void, identity: string }>
-	} = {};
-	private static _serviceScopeSubject: Subject<{
-		service: string,
-		message: AppMessage
-	}>;
-	private static _objectScopeSubject: Subject<{
-		service: string,
-		object: string,
-		message: AppMessage
-	}>;
+	private static _types: { [key: string]: AppMessageType } = {};
+	private static _serviceScopeHandlers: { [key: string]: Array<{ func: (message: AppMessage) => void, identity: string }> } = {};
+	private static _objectScopeHandlers: { [key: string]: Array<{ func: (message: AppMessage) => void, identity: string }> } = {};
+	private static _serviceScopeSubject: Subject<{ service: string, message: AppMessage }>;
+	private static _objectScopeSubject: Subject<{ service: string, object: string, message: AppMessage }>;
 	private static _requests = {
 		counter: 0,
 		nocallbackRequests: {} as { [id: string]: string },
@@ -210,10 +197,7 @@ export class AppRTU {
 
 		// initialize object for registering handlers
 		if (this._serviceScopeSubject === undefined) {
-			this._serviceScopeSubject = new Subject<{
-				service: string,
-				message: AppMessage
-			}>();
+			this._serviceScopeSubject = new Subject<{ service: string, message: AppMessage }>();
 			this._serviceScopeSubject.subscribe(
 				({ service, message }) => {
 					const handlers = this.getServiceHandlers(service);
@@ -229,11 +213,7 @@ export class AppRTU {
 		}
 
 		if (this._objectScopeSubject === undefined) {
-			this._objectScopeSubject = new Subject<{
-				service: string,
-				object: string,
-				message: AppMessage
-			}>();
+			this._objectScopeSubject = new Subject<{ service: string, object: string, message: AppMessage }>();
 			this._objectScopeSubject.subscribe(
 				({ service, object, message }) => {
 					const handlers = this.getObjectHandlers(service, object);
