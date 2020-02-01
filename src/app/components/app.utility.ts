@@ -219,36 +219,35 @@ export class AppUtility {
 
 	/** Gets the compare function for sorting a sequence */
 	private static getCompare(primer: (object: any) => any, reverse: boolean) {
-		let compareFunction = this.defaultCompare;
+		let compare = this.defaultCompare;
 		if (primer) {
-			compareFunction = (current: any, next: any) => this.defaultCompare(primer(current), primer(next));
+			compare = (current: any, next: any) => this.defaultCompare(primer(current), primer(next));
 		}
-		if (reverse) {
-			return (current: any, next: any) => -1 * compareFunction(current, next);
-		}
-		return compareFunction;
+		return reverse
+			? (current: any, next: any) => -1 * compare(current, next)
+			: compare;
 	}
 
-	/** Sort a sequence */
-	public static sort(...sorts: Array<string | { name: string, primer: (object: any) => any, reverse: boolean }>) {
+	/** Gets the compare function for sorting a sequence */
+	public static compare(...sorts: Array<string | { name: string, primer: (object: any) => any, reverse: boolean }>) {
 		const sortBy = new Array<{ name: string, compare: (current: any, next: any) => number }>();
 
 		// preprocess sorting options
 		for (let index = 0; index < sorts.length; index++) {
 			const sort = sorts[index];
 			let name: string;
-			let compareFunction: (current: any, next: any) => number;
+			let compare: (current: any, next: any) => number;
 			if (typeof sort === "string") {
 				name = sort as string;
-				compareFunction = this.defaultCompare;
+				compare = this.defaultCompare;
 			}
 			else {
 				name = sort.name;
-				compareFunction = this.getCompare(sort.primer, sort.reverse);
+				compare = this.getCompare(sort.primer, sort.reverse);
 			}
 			sortBy.push({
 				name: name,
-				compare: compareFunction
+				compare: compare
 			});
 		}
 

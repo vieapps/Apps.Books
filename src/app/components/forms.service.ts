@@ -21,10 +21,10 @@ export class AppFormsControl {
 		}
 	}
 
-	Name = "";
-	Type = "TextBox";
 	Order = 0;
 	Segment = undefined as string;
+	Name = "";
+	Type = "TextBox";
 	Hidden = false;
 	Required = false;
 	Validators: Array<ValidatorFn> | Array<string> = undefined;
@@ -320,7 +320,7 @@ export class AppFormsControl {
 			if (AppUtility.isArray(subConfig, true)) {
 				control.SubControls = {
 					AsArray: !!(subControls.AsArray || subControls.asarray),
-					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Name)).sort((a, b) => a.Order - b.Order)
+					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Name)).sort(AppUtility.compare("Order"))
 				};
 				if (control.SubControls.Controls.length < 1) {
 					control.SubControls = undefined;
@@ -513,7 +513,7 @@ export class AppFormsService {
 			}
 			return control;
 		})
-		.sort(AppUtility.sort({ name: "segmentIndex", primer: undefined, reverse: false }, "Order"))
+		.sort(AppUtility.compare({ name: "segmentIndex", primer: undefined, reverse: false }, "Order"))
 		.forEach((control, order) => {
 			control.Order = order;
 			controls.push(control);
