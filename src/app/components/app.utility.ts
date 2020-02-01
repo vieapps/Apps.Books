@@ -397,7 +397,7 @@ export class AppUtility {
 		}
 		else if (this.isNotEmpty(obj)) {
 			const array = this.indexOf(obj as string, this.isNotEmpty(separator) ? separator : ",") > 0
-				? (obj as string).split(separator || ",")
+				? (obj as string).split(this.isNotEmpty(separator) ? separator : ",")
 				: [obj as string];
 			return array.map(element => this.isNotEmpty(element) ? element.trim() : "");
 		}
