@@ -18,8 +18,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	@Input() form: FormGroup;
 	@Input() config: Array<any>;
-	@Input() segments: Array<AppFormsSegment>;
-	@Input() defaultSegment: string;
+	@Input() segments: { items: Array<AppFormsSegment>, default: string, current: string };
 	@Input() controls: Array<AppFormsControl>;
 	@Input() value: any;
 	@Input() lastFocus: any;
@@ -29,17 +28,16 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
 
-	currentSegment: string;
-
 	ngOnInit() {
-		if (this.segments !== undefined && this.segments.length > 0) {
-			this.currentSegment = this.defaultSegment !== undefined && this.segments.findIndex(segment => segment.Name === this.defaultSegment) > -1
-				? this.defaultSegment
-				: this.segments[0].Name;
+		this.segments = this.segments || { items: undefined, default: undefined, current: undefined };
+		if (this.segments.items !== undefined && this.segments.items.length > 0) {
+			this.segments.current = this.segments.default !== undefined && this.segments.items.findIndex(segment => segment.Name === this.segments.default) > -1
+				? this.segments.default
+				: this.segments.items[0].Name;
 		}
 
 		if ((this.controls === undefined || this.controls.length < 1) && this.config !== undefined) {
-			this.controls = this.appFormsSvc.getControls(this.config, this.controls, this.segments, this.defaultSegment);
+			this.controls = this.appFormsSvc.getControls(this.config, this.controls, this.segments);
 		}
 
 		if (this.controls === undefined) {
@@ -79,11 +77,11 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	get gotSegments() {
-		return this.segments !== undefined && this.segments.length > 0;
+		return this.segments !== undefined && this.segments.items !== undefined && this.segments.items.length > 0;
 	}
 
 	onSegmentChanged($event: any) {
-		this.currentSegment = $event.detail.value;
+		this.segments.current = $event.detail.value;
 	}
 
 	trackSegment(index: number, segment: AppFormsSegment) {
@@ -91,7 +89,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	getControls(segment: AppFormsSegment) {
-		return this.controls.filter(ctrl => ctrl.Segment === segment.Name);
+		return this.controls.filter(control => control.Segment === segment.Name);
 	}
 
 	trackControl(index: number, control: AppFormsControl) {

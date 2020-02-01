@@ -33,8 +33,10 @@ export class BooksUpdatePage implements OnInit {
 	update = {
 		form: new FormGroup({}),
 		config: undefined as Array<any>,
-		segments: new Array<AppFormsSegment>(),
-		defaultSegment: "meta",
+		segments: {
+			items: new Array<AppFormsSegment>(),
+			default: "meta"
+		},
 		controls: new Array<AppFormsControl>(),
 		requestOnly: true,
 		category: "",
@@ -60,7 +62,7 @@ export class BooksUpdatePage implements OnInit {
 				: await this.configSvc.getResourceAsync("common.buttons.update"),
 			cancel: await this.configSvc.getResourceAsync("common.buttons.cancel")
 		};
-		this.update.segments.push(
+		this.update.segments.items.push(
 			new AppFormsSegment("meta", await this.configSvc.getResourceAsync("books.update.segments.meta")),
 			new AppFormsSegment("others", await this.configSvc.getResourceAsync("books.update.segments.others"))
 		);
@@ -152,7 +154,7 @@ export class BooksUpdatePage implements OnInit {
 				"x-temporary": `${this.update.requestOnly}`
 			},
 			data => {
-				this.update.form.controls["Cover"].setValue(data.URI);
+				this.update.form.controls.Cover.setValue(data.URI);
 				onNext();
 			},
 			error => {

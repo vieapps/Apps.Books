@@ -186,11 +186,11 @@ export class AppFormsControl {
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeName?: string) {
 		control = control || new AppFormsControl();
 		control.Order = (options.Order !== undefined ? options.Order : undefined) || (options.order !== undefined ? options.order : undefined) || (order !== undefined ? order : 0);
+		control.Segment = options.Segment || options.segment;
 
 		control.Name = options.Name || options.name || (alternativeName !== undefined ? `${alternativeName}_${control.Order}` : `c_${control.Order}`);
 		control.Type = options.Type || options.type || "TextBox";
 
-		control.Segment = options.Segment || options.segment;
 		control.Hidden = !!(options.Hidden || options.hidden);
 		control.Required = !control.Hidden && !!(options.Required || options.required);
 		control.Extras = options.Extras || options.extras || {};
@@ -373,14 +373,14 @@ export class AppFormsSegment {
 		label?: string,
 		icon?: string
 	) {
-		this.Name = name;
-		this.Label = label;
+		this.Name = name || "";
+		this.Label = label || "";
 		this.Icon = icon;
 	}
 
-	Name = "";
-	Label = "";
-	Icon = undefined as string;
+	Name: string;
+	Label: string;
+	Icon: string;
 }
 
 /** Provides the servicing operations of the dynamic forms */
@@ -467,6 +467,10 @@ export class AppFormsService {
 				control.Options.SelectOptions.OkText = await this.normalizeResourceAsync(control.Options.SelectOptions.OkText);
 				control.Options.SelectOptions.CancelText = await this.normalizeResourceAsync(control.Options.SelectOptions.CancelText);
 			}
+			else if (control.Type === "Lookup") {
+				control.Options.LookupOptions.SearchingText = await this.normalizeResourceAsync(control.Options.LookupOptions.SearchingText);
+				control.Options.LookupOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.LookupOptions.NoResultsText);
+			}
 			else if (control.Type === "DatePicker") {
 				if (AppUtility.isTrue(modifyDatePickers)) {
 					control.Type = "TextBox";
@@ -481,10 +485,6 @@ export class AppFormsService {
 					control.Options.DatePickerOptions.CancelText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.CancelText);
 				}
 			}
-			else if (control.Type === "Lookup") {
-				control.Options.LookupOptions.SearchingText = await this.normalizeResourceAsync(control.Options.LookupOptions.SearchingText);
-				control.Options.LookupOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.LookupOptions.NoResultsText);
-			}
 			if (control.SubControls !== undefined) {
 				await this.prepareControlsAsync(control.SubControls.Controls, modifyDatePickers);
 				control.SubControls.Controls.forEach(subcontrol => subcontrol.parent = control);
@@ -497,19 +497,19 @@ export class AppFormsService {
 	}
 
 	/** Gets the definition of all controls */
-	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>, segments?: Array<AppFormsSegment>, defaultSegment?: string) {
+	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>, segments?: { items: Array<AppFormsSegment>, default: string, current: string }) {
 		controls = controls || new Array<AppFormsControl>();
 		config.map((options, order) => {
 			const control = new AppFormsControl(options, order);
-			if (segments !== undefined && segments.length > 0) {
+			if (segments !== undefined && segments.items !== undefined && segments.items.length > 0) {
 				if (control.Segment === undefined) {
-					control.Segment = defaultSegment !== undefined && segments.findIndex(segment => segment.Name === defaultSegment) > -1 ? defaultSegment : segments[0].Name;
+					control.Segment = segments.default !== undefined && segments.items.findIndex(segment => segment.Name === segments.default) > -1
+						? segments.default
+						: segments.items[0].Name;
 				}
-				const index = segments.findIndex(segment => segment.Name === control.Segment);
-				if (index < 0) {
-					control.Segment = segments[0].Name;
-				}
-				control.segmentIndex = index < 0 ? 0 : index;
+				const segmentIndex = segments.items.findIndex(segment => segment.Name === control.Segment);
+				control.Segment = segmentIndex < 0 ? segments.items[0].Name : control.Segment;
+				control.segmentIndex = segmentIndex < 0 ? 0 : segmentIndex;
 			}
 			return control;
 		})
