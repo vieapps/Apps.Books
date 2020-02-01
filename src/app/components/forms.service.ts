@@ -21,9 +21,9 @@ export class AppFormsControl {
 		}
 	}
 
+	Name = "";
 	Order = 0;
 	Segment = undefined as string;
-	Name = "";
 	Type = "TextBox";
 	Hidden = false;
 	Required = false;
