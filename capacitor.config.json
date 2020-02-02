@@ -1,0 +1,26 @@
+{
+  "appId": "net.vieapps.books",
+  "appName": "VIEApps NGX Books",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www",
+  "cordova": {
+    "preferences": {
+      "SplashScreen": "assets/images/icon.png",
+      "SplashMaintainAspectRatio": "true",
+      "SplashShowOnlyFirstTime": "false",
+      "SplashScreenDelay": "3000",
+      "FadeSplashScreen": "true",
+      "FadeSplashScreenDuration": "300",
+      "KeyboardDisplayRequiresUserAction": "false",
+      "android-minSdkVersion": "19",
+      "AndroidPersistentFileLocation": "Compatibility",
+      "CordovaWebViewEngine": "CDVWKWebViewEngine",
+      "webviewbounce": "false",
+      "UIWebViewBounce": "false",
+      "ScrollEnabled": "false",
+      "DisallowOverscroll": "true",
+      "BackupWebStorage": "none"
+    }
+  }
+}
