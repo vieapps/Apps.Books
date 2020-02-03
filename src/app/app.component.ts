@@ -100,7 +100,10 @@ export class AppComponent implements OnInit {
 
 		this.platform.ready().then(async () => {
 			this.configSvc.prepare();
-			await this.configSvc.loadOptionsAsync();
+			await Promise.all([
+				this.configSvc.loadURIsAsync(),
+				this.configSvc.loadOptionsAsync()
+			]);
 			await this.configSvc.prepareLanguagesAsync();
 			this.setupEventHandlers();
 			AppEvents.broadcast("App", { Type: "PlatformIsReady" });
@@ -114,7 +117,7 @@ export class AppComponent implements OnInit {
 			}
 
 			const isActivate = this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"];
-			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(isActivate ? "common.messages.activating" : "common.messages.loading"));
+			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(`common.messages.${isActivate ? "activating" : "loading"}`));
 			await this.updateSidebarAsync();
 			this.sidebar.left.title = this.configSvc.appConfig.app.name;
 

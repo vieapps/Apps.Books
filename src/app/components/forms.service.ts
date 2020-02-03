@@ -8,6 +8,7 @@ import { AppConfig } from "../app.config";
 import { AppXHR } from "./app.apis";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
+import { ConfigurationService } from "../services/configuration.service";
 
 /** Presents the settings of a control in the dynamic forms */
 export class AppFormsControl {
@@ -23,12 +24,12 @@ export class AppFormsControl {
 
 	Name = "";
 	Order = 0;
-	Segment = undefined as string;
+	Segment: string;
 	Type = "TextBox";
 	Hidden = false;
 	Required = false;
-	Validators: Array<ValidatorFn> | Array<string> = undefined;
-	AsyncValidators: Array<AsyncValidatorFn> | Array<string> = undefined;
+	Validators: Array<ValidatorFn> | Array<string>;
+	AsyncValidators: Array<AsyncValidatorFn> | Array<string>;
 	Extras: { [key: string]: any } = {};
 	Options = {
 		Type: "text",
@@ -110,7 +111,7 @@ export class AppFormsControl {
 	SubControls: {
 		AsArray: boolean,
 		Controls: Array<AppFormsControl>
-	} = undefined;
+	};
 
 	/** Gets uri of the captcha image */
 	public get captchaURI() {
@@ -388,12 +389,13 @@ export class AppFormsSegment {
 export class AppFormsService {
 
 	constructor (
-		public translateSvc: TranslateService,
-		public loadingController: LoadingController,
-		public alertController: AlertController,
-		public actionsheetController: ActionSheetController,
-		public modalController: ModalController,
-		public toastController: ToastController
+		private translateSvc: TranslateService,
+		private configSvc: ConfigurationService,
+		private loadingController: LoadingController,
+		private alertController: AlertController,
+		private actionsheetController: ActionSheetController,
+		private modalController: ModalController,
+		private toastController: ToastController
 	) {
 	}
 
@@ -441,7 +443,9 @@ export class AppFormsService {
 							control.Options.SelectOptions.Values = await control.Options.SelectOptions.RemoteURIProcessor(uri, control.Options.SelectOptions.RemoteURIConverter);
 						}
 						else {
-							const values = await AppXHR.sendRequestAsync("GET", uri);
+							const values = uri.indexOf("discovery/definitions?") > 0
+								? await this.configSvc.fetchDefinitionAsync(uri)
+								: await AppXHR.sendRequestAsync("GET", uri);
 							control.Options.SelectOptions.Values = AppUtility.isArray(values, true)
 								? (values as Array<string>).length > 0 && typeof values[0] === "string"
 									? (values as Array<string>).map(value => {
@@ -945,18 +949,20 @@ export class AppFormsService {
 	/** Shows the toast alert message */
 	public async showToastAsync(message: string, duration: number = 1000, showCloseButton: boolean = false, closeButtonText: string = "close", atBottom: boolean = false) {
 		await this.hideToastAsync();
-		this._toast = !showCloseButton && duration < 1
+		this._toast = showCloseButton && AppUtility.isNotEmpty(closeButtonText)
 			? await this.toastController.create({
 					message: message,
-					duration: 1000,
+					duration: duration < 1 ? 1000 : duration,
 					position: atBottom ? "bottom" : "top",
-					animated: true
+					animated: true,
+					buttons: [{
+						text: closeButtonText,
+						role: "cancel"
+					}]
 				})
 			: await this.toastController.create({
 					message: message,
-					duration: duration,
-					showCloseButton: showCloseButton,
-					closeButtonText: closeButtonText,
+					duration: duration < 1 ? 1000 : duration,
 					position: atBottom ? "bottom" : "top",
 					animated: true
 				});

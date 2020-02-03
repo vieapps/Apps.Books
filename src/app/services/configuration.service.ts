@@ -644,6 +644,31 @@ export class ConfigurationService extends BaseService {
 		});
 	}
 
+	/** Loads the URI settings of the app */
+	public async loadURIsAsync(onNext?: (data?: any) => void) {
+		const uris = await AppStorage.getAsync("URIs") || {};
+		if (uris.apis !== undefined && uris.updates !== undefined && uris.files !== undefined) {
+			this.appConfig.URIs = uris;
+			await this.storeURIsAsync(onNext);
+		}
+		else if (onNext !== undefined) {
+			onNext(uris);
+		}
+	}
+
+	/** Stores the URI settings of the app */
+	public storeURIsAsync(onNext?: (data?: any) => void) {
+		return AppStorage.setAsync("URIs", this.appConfig.URIs).then(() => {
+			AppEvents.broadcast("App", { Type: "URIsUpdated" });
+			if (this.isDebug) {
+				console.log(super.getLogMessage("URIs are updated"), this.appConfig.URIs);
+			}
+			if (onNext !== undefined) {
+				onNext(this.appConfig.URIs);
+			}
+		});
+	}
+
 	/** Loads the options of the app */
 	public async loadOptionsAsync(onNext?: (data?: any) => void) {
 		const options = await AppStorage.getAsync("Options") || {};
@@ -704,12 +729,23 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Definitions (forms, views, resources, ...) */
+	public addDefinition(path: string, definition: any) {
+		this._definitions[AppCrypto.md5(path.toLowerCase())] = definition;
+	}
+
 	public getDefinition(path: string) {
 		return this._definitions[AppCrypto.md5(path.toLowerCase())];
 	}
 
-	public addDefinition(definition: any, path: string) {
-		this._definitions[AppCrypto.md5(path.toLowerCase())] = definition;
+	public async fetchDefinitionAsync(path: string) {
+		if (this.getDefinition(path) === undefined) {
+			await super.fetchAsync(
+				path,
+				data => this.addDefinition(path, data),
+				error => super.showError("Error occurred while working with definitions", error)
+			);
+		}
+		return this.getDefinition(path);
 	}
 
 	private getDefinitionPath(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
@@ -733,19 +769,11 @@ export class ConfigurationService extends BaseService {
 	}
 
 	public setDefinition(definition: any, serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
-		this.addDefinition(definition, this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID));
+		this.addDefinition(this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID), definition);
 	}
 
-	public async getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
-		const path = this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID);
-		if (this.getDefinition(path) === undefined) {
-			await super.fetchAsync(
-				path,
-				data => this.addDefinition(data, path),
-				error => super.showError("Error occurred while working with definitions", error)
-			);
-		}
-		return this.getDefinition(path);
+	public getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
+		return this.fetchDefinitionAsync(this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID));
 	}
 
 }
