@@ -949,23 +949,18 @@ export class AppFormsService {
 	/** Shows the toast alert message */
 	public async showToastAsync(message: string, duration: number = 1000, showCloseButton: boolean = false, closeButtonText: string = "close", atBottom: boolean = false) {
 		await this.hideToastAsync();
-		this._toast = showCloseButton && AppUtility.isNotEmpty(closeButtonText)
-			? await this.toastController.create({
-					message: message,
-					duration: duration < 1 ? 1000 : duration,
-					position: atBottom ? "bottom" : "top",
-					animated: true,
-					buttons: [{
+		this._toast = await this.toastController.create({
+			animated: true,
+			message: message,
+			duration: duration < 1 ? 1000 : duration,
+			position: atBottom ? "bottom" : "top",
+			buttons: showCloseButton && AppUtility.isNotEmpty(closeButtonText)
+				? [{
 						text: closeButtonText,
 						role: "cancel"
 					}]
-				})
-			: await this.toastController.create({
-					message: message,
-					duration: duration < 1 ? 1000 : duration,
-					position: atBottom ? "bottom" : "top",
-					animated: true
-				});
+				: []
+		});
 		await this._toast.present();
 	}
 
