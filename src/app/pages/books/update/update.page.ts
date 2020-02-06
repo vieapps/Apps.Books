@@ -80,12 +80,8 @@ export class BooksUpdatePage implements OnInit {
 		const config = await this.configSvc.getDefinitionAsync(this.booksSvc.name.toLowerCase(), "book", "form-controls") as Array<any>;
 		config.forEach(control => control.Segment = "meta");
 
-		let ctrl = config.find(control => control.Name === "TOCs");
-		if (ctrl !== undefined) {
-			ctrl.Segment = "others";
-		}
-		else {
-			config.push({
+		config.push(
+			{
 				Name: "TOCs",
 				Type: "TextArea",
 				Required: this.book.TotalChapters > 1,
@@ -95,15 +91,8 @@ export class BooksUpdatePage implements OnInit {
 					Label: "{{books.info.controls.TOCs}}",
 					TextAreaRows: 20
 				}
-			});
-		}
-
-		ctrl = config.find(control => control.Name === "CoverImage");
-		if (ctrl !== undefined) {
-			ctrl.Segment = "others";
-		}
-		else {
-			config.push({
+			},
+			{
 				Name: "CoverImage",
 				Type: "FilePicker",
 				Segment: "others",
@@ -143,12 +132,13 @@ export class BooksUpdatePage implements OnInit {
 						}
 					}
 				}
-			});
-		}
+			}
+		);
 
-		ctrl = config.find(control => control.Name === "Language");
+		let ctrl = config.find(control => control.Name === "Language");
 		if (ctrl !== undefined && ctrl.Type === "TextBox") {
 			ctrl.Type = "Select";
+			ctrl.Options = ctrl.Options || {};
 			ctrl.Options.SelectOptions = {
 				Values: this.configSvc.languages.map(language => {
 					return {
@@ -159,9 +149,9 @@ export class BooksUpdatePage implements OnInit {
 			};
 		}
 
-		ctrl = config.find(control => true === control.Options.AutoFocus);
+		ctrl = config.find(control => control.Options !== undefined && true === control.Options.AutoFocus);
 		if (ctrl === undefined) {
-			ctrl = config.find(control => control.Type === "TextBox" && !control.Hidden);
+			ctrl = config.find(control => control.Type === "TextBox" && control.Options !== undefined && !control.Hidden);
 			if (ctrl !== undefined) {
 				ctrl.Options.AutoFocus = true;
 			}
@@ -175,9 +165,7 @@ export class BooksUpdatePage implements OnInit {
 		this.update.form.controls.TOCs.setValue(this.book.TOCs.join("\n"));
 		this.update.form.controls.CoverImage.setValue({ current: AppUtility.isNotEmpty(this.book.Cover) ? this.book.Cover : undefined, new: undefined });
 		this.update.category = this.book.Category;
-		const bookInfo = this.update.form.value;
-		delete bookInfo["CoverImage"];
-		this.update.hash = AppCrypto.hash(bookInfo);
+		this.update.hash = AppCrypto.hash(this.update.form.value, value => delete value["CoverImage"]);
 		this.appFormsSvc.hideLoadingAsync();
 	}
 

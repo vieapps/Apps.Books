@@ -745,7 +745,7 @@ export class ConfigurationService extends BaseService {
 				error => super.showError("Error occurred while working with definitions", error)
 			);
 		}
-		return this.getDefinition(path);
+		return AppUtility.clone(this.getDefinition(path));
 	}
 
 	private getDefinitionPath(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {

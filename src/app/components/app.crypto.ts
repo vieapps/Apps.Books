@@ -40,7 +40,10 @@ export class AppCrypto {
 	}
 
 	/** Gets MD5 hash of the object */
-	public static hash(obj: any) {
+	public static hash(obj: any, preHash?: (obj: any) => void) {
+		if (preHash !== undefined) {
+			preHash(obj);
+		}
 		return this.md5(JSON.stringify(obj || {}));
 	}
 
