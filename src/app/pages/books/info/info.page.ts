@@ -70,7 +70,9 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 	}
 
 	get redirectUrl() {
-		return this.book !== undefined ? PlatformUtility.getRedirectURI(this.book.routerURI) : this.configSvc.appConfig.URIs.activations;
+		return this.book !== undefined
+			? PlatformUtility.getRedirectURI(this.book.routerURI) + "&ngx=" + AppUtility.toBase64Url({ Service: this.booksSvc.name, Object: "book", ID: this.book.ID, Action: "Open" })
+			: this.configSvc.appConfig.URIs.activations;
 	}
 
 	ngOnInit() {
@@ -111,7 +113,9 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 				await this.prepareResourcesAsync();
 				this.getStatistics();
 				this.title = this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
-				this.qrcode = this.redirectUrl + (this.configSvc.appConfig.isNativeApp ? "" : `&ngxapps=${this.booksSvc.name}&ngxaction=Open&ngxid=${this.book.ID}`);
+				this.qrcode = this.configSvc.appConfig.isNativeApp
+					? JSON.stringify({ Service: this.booksSvc.name, Object: "book", ID: this.book.ID, Action: "Read" })
+					: this.redirectUrl;
 				if (AppUtility.isObject(this.book.Files, true) && (this.book.Files.Epub.Size === "generating..." || this.book.Files.Mobi.Size === "generating...")) {
 					this.booksSvc.generateFiles(this.book.ID);
 				}
