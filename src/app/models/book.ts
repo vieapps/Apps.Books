@@ -54,7 +54,7 @@ export class Book extends BaseModel {
 	routerParams = {} as { [key: string]: any };
 
 	public get routerURI() {
-		return this.routerLink + "?x-request=" + this.routerParams["x-request"];
+		return this.getRouterURI();
 	}
 
 	public static deserialize(json: any, book?: Book) {
@@ -70,8 +70,8 @@ export class Book extends BaseModel {
 				? book.TOCs.map(o => "")
 				: book.Chapters;
 
-			book.ansiTitle = AppUtility.toANSI(book.Title + " " + book.Author).toLowerCase();
-			book.routerLink = `/books/read/${AppUtility.toANSI(book.Title + "-" + book.Author, true)}`;
+			book.ansiTitle = AppUtility.toANSI(`${book.Title} ${book.Author}`).toLowerCase();
+			book.routerLink = `/books/read/${AppUtility.toURI(book.ansiTitle)}`;
 			book.routerParams = {
 				"x-request": AppUtility.toBase64Url({
 					ID: book.ID
@@ -88,6 +88,10 @@ export class Book extends BaseModel {
 				: Book.deserialize(data, Book.instances.getValue(data.ID));
 			Book.instances.setValue(book.ID, book);
 		}
+	}
+
+	public getRouterURI(params?: { [key: string]: any }) {
+		return this.routerLink + "?x-request=" + (params !== undefined ? AppUtility.toBase64Url(params) : this.routerParams["x-request"]);
 	}
 }
 

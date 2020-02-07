@@ -71,7 +71,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 
 	get redirectUrl() {
 		return this.book !== undefined
-			? PlatformUtility.getRedirectURI(this.book.routerURI) + "&ngx=" + AppUtility.toBase64Url({ Service: this.booksSvc.name, Object: "book", ID: this.book.ID, Action: "Open" })
+			? PlatformUtility.getRedirectURI(this.book.getRouterURI({ Service: this.booksSvc.name, Object: "book", ID: this.book.ID })) + "&ngx=redirect"
 			: this.configSvc.appConfig.URIs.activations;
 	}
 
@@ -119,7 +119,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 				if (AppUtility.isObject(this.book.Files, true) && (this.book.Files.Epub.Size === "generating..." || this.book.Files.Mobi.Size === "generating...")) {
 					this.booksSvc.generateFiles(this.book.ID);
 				}
-				await TrackingUtility.trackAsync("Info: " + this.title, this.book.routerLink);
+				await TrackingUtility.trackAsync(`Info: ${this.title}`, this.book.routerLink);
 			}
 			else {
 				await this.configSvc.navigateBackAsync();
@@ -156,13 +156,15 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 
 	async downloadAsync(type: string) {
 		if (this.configSvc.isAuthenticated) {
-			await TrackingUtility.trackAsync("Download: " + this.title, "books/download/success");
-			await TrackingUtility.trackAsync("Download: " + this.title, "books/download/" + type.toLowerCase());
+			await Promise.all([
+				TrackingUtility.trackAsync(`Download: ${this.title}`, "books/download/success"),
+				TrackingUtility.trackAsync(`Download: ${this.title}`, `books/download/${type.toLowerCase()}`)
+			]);
 			PlatformUtility.openURI(this.book.Files[type].Url + "?" + AppUtility.getQueryOfJson(this.configSvc.appConfig.getAuthenticatedHeaders()));
 		}
 		else {
 			await Promise.all([
-				TrackingUtility.trackAsync("Download: " + this.title, "books/download/failed"),
+				TrackingUtility.trackAsync(`Download: ${this.title}`, "books/download/failed"),
 				this.appFormsSvc.showAlertAsync(undefined, undefined, await this.configSvc.getResourceAsync("books.info.notAuthenticated"))
 			]);
 		}
