@@ -5,13 +5,13 @@
 		</ion-buttons>
 		<ion-buttons slot="end">
 			<ion-button *ngIf="book && book.TotalChapters > 1 && screen > 767 && screen < 992" (click)="openTOCs()">
-				<ion-icon name="md-list" slot="icon-only"></ion-icon>
+				<ion-icon name="list" slot="icon-only"></ion-icon>
 			</ion-button>
 			<ion-button *ngIf="screen > 767" (click)="openOptionsAsync()">
 				<ion-icon name="options" slot="icon-only"></ion-icon>
 			</ion-button>
 			<ion-button (click)="openInfoAsync()">
-				<ion-icon name="information-circle-outline" slot="icon-only"></ion-icon>
+				<ion-icon name="information-circle" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
 		<ion-title>
@@ -28,18 +28,18 @@
 		</div>
 		<ion-buttons *ngIf="actions" slot="end">
 			<ion-button color="primary" (click)="showActionsAsync()">
-				<ion-icon name="more" slot="icon-only"></ion-icon>
+				<ion-icon name="ellipsis-horizontal" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
 		<div *ngIf="book">
 			<span>
 				<ion-buttons>
 					<ion-button fill="clear" color="primary" (click)="goPreviousAsync()">
-						<ion-icon name="rewind" slot="start"></ion-icon>
+						<ion-icon name="play-back" slot="start"></ion-icon>
 						{{ resources.previous }}
 					</ion-button>
 					<ion-button fill="clear" color="primary" (click)="goNextAsync()">
-						<ion-icon name="fastforward" slot="end"></ion-icon>
+						<ion-icon name="play-forward" slot="end"></ion-icon>
 						{{ resources.next }}
 					</ion-button>
 				</ion-buttons>
@@ -48,7 +48,7 @@
 	</ion-toolbar>
 </ion-footer>
 
-<ion-content [color]="configSvc.color" (ionScrollEnd)="onScrollEndAsync()" (swipeleft)="onSwipeLeftAsync()" (swiperight)="onSwipeRightAsync()">
+<ion-content [color]="configSvc.color" [scrollEvents]="true" (ionScrollEnd)="onScrollEndAsync()" (swipeleft)="onSwipeLeftAsync()" (swiperight)="onSwipeRightAsync()">
 	<div *ngIf="book" class="ion-padding {{options.color}}">
 		<div *ngIf="chapter === 0" class="cover">
 			<figure [hidden]="book.Cover.indexOf('/no/cover/image.png') > 0">

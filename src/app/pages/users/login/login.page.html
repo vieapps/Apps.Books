@@ -18,17 +18,17 @@
 			[config]="login.config"
 			[controls]="login.controls"
 			(initEvent)="onLoginFormInitialized($event)"></app-form>
-		<ion-buttons class="ion-padding-horizontal ion-padding-top">
+		<ion-buttons class="ion-padding">
 			<ion-button fill="solid" color="primary" (click)="logInAsync()">
-				<ion-icon *ngIf="login.buttons.login.icon !== undefined" [icon]="login.buttons.login.icon" slot="start"></ion-icon>
+				<ion-icon *ngIf="login.buttons.login.icon" [icon]="login.buttons.login.icon" slot="start"></ion-icon>
 				{{ login.buttons.login.label }}
 			</ion-button>
 			<ion-button fill="clear" color="primary" (click)="openResetPasswordAsync()">
-				<ion-icon *ngIf="reset.button.icon !== undefined" [icon]="reset.button.icon" slot="start"></ion-icon>
+				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{ reset.button.label }}
 			</ion-button>
 			<ion-button *ngIf="configSvc.appConfig.accountRegistrations.registrable && configSvc.screenWidth > 767" fill="clear" color="primary" (click)="registerAsync()" class="ion-float-end">
-				<ion-icon *ngIf="login.buttons.register.icon !== undefined" [icon]="login.buttons.register.icon" slot="start"></ion-icon>
+				<ion-icon *ngIf="login.buttons.register.icon" [icon]="login.buttons.register.icon" slot="start"></ion-icon>
 				{{ login.buttons.register.label }}
 			</ion-button>
 		</ion-buttons>
@@ -41,9 +41,9 @@
 			[config]="otp.config"
 			[controls]="otp.controls"
 			[value]="otp.value"></app-form>
-		<ion-buttons class="ion-padding-horizontal">
+		<ion-buttons class="ion-padding">
 			<ion-button fill="solid" color="primary" (click)="logInOTPAsync()">
-				<ion-icon *ngIf="otp.button.icon !== undefined" [icon]="otp.button.icon" slot="start"></ion-icon>
+				<ion-icon *ngIf="otp.button.icon" [icon]="otp.button.icon" slot="start"></ion-icon>
 				{{ otp.button.label }}
 			</ion-button>
 		</ion-buttons>
@@ -57,9 +57,9 @@
 			[controls]="reset.controls"
 			(initEvent)="onResetPasswordFormInitialized($event)"
 			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
-		<ion-buttons class="ion-padding-horizontal">
+		<ion-buttons class="ion-padding">
 			<ion-button fill="solid" color="primary" (click)="resetPasswordAsync()">
-				<ion-icon *ngIf="reset.button.icon !== undefined" [icon]="reset.button.icon" slot="start"></ion-icon>
+				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{ reset.button.label }}
 			</ion-button>
 		</ion-buttons>

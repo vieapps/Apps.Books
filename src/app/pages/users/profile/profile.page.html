@@ -9,7 +9,7 @@
 		</ion-buttons>
 		<ion-buttons slot="end">
 			<ion-button *ngIf="mode === 'profile' && !id && canManageUsers" routerLink="/users/list">
-				<ion-icon name="contacts" slot="icon-only"></ion-icon>
+				<ion-icon name="people-circle" slot="icon-only"></ion-icon>
 			</ion-button>
 			<ion-button *ngIf="buttons.ok" color="primary" (click)="buttons.ok.handler()">
 				<ion-icon *ngIf="buttons.ok.icon" [name]="buttons.ok.icon" slot="start"></ion-icon>
@@ -32,7 +32,7 @@
 		</ion-buttons>
 		<ion-buttons *ngIf="actions" slot="end">
 			<ion-button color="primary" (click)="showActionsAsync()">
-				<ion-icon name="more" slot="icon-only"></ion-icon>
+				<ion-icon name="ellipsis-horizontal" slot="icon-only"></ion-icon>
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons></ion-buttons>
@@ -80,7 +80,7 @@
 	</div>
 
 	<div *ngIf="mode === 'invitation'" padding>
-		<app-form *ngIf="invitation.config !== undefined"
+		<app-form *ngIf="invitation.config"
 			[color]="configSvc.color"
 			[form]="invitation.form"
 			[config]="invitation.config"

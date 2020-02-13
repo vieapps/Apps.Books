@@ -145,7 +145,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 					await this.prepareAsync();
 				}
 				else {
-					this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
+					await this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
 				}
 			},
 			async error => await this.appFormsSvc.showErrorAsync(error)

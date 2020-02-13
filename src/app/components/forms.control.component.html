@@ -55,7 +55,7 @@
 		[disabled]="disabled"
 		[placeholder]="placeholder"
 		(ionChange)="onChanged($event)">
-		<ion-select-option *ngFor="let option of selectOptions" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</ion-select-option>
+		<ion-select-option *ngFor="let option of selectOptions" [value]="option.Value">{{ option.Label }}</ion-select-option>
 	</ion-select>
 
 	<div *ngIf="selectAsDropdown">
@@ -155,7 +155,7 @@
 		[class]="css.label">{{ label }}</ion-list-header>
 	<ion-item *ngFor="let option of selectOptions" [color]="theme">
 		<ion-label>{{ option.Label }}</ion-label>
-		<ion-radio [value]="option.Value" [checked]="selectOptionIsChecked(option.Value)"></ion-radio>
+		<ion-radio [value]="option.Value"></ion-radio>
 	</ion-item>
 </ion-radio-group>
 

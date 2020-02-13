@@ -120,7 +120,7 @@ export class UsersProfilePage implements OnInit {
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", () => this.zone.run(async () => await this.openUpdateAsync("profile"))),
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", () => this.zone.run(async () => await this.openUpdateAsync("password"))),
 					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "at", () => this.zone.run(async () => await this.openUpdateAsync("email"))),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "unlock", () => this.zone.run(async () => await this.openOTPAsync()))
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "lock-open", () => this.zone.run(async () => await this.openOTPAsync()))
 				].forEach(action => this.actions.push(action));
 			}
 

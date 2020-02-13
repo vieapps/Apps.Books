@@ -43,7 +43,7 @@ export class BooksOptionsPage implements OnInit, OnDestroy {
 		this.title = await this.configSvc.getResourceAsync("books.options.title");
 		this.sample = await this.configSvc.getResourceAsync("books.options.labels.sample");
 		const config = new Array<any>();
-		["color", "font", "size", "paragraph", "align"].forEach(async name => {
+		await Promise.all(["color", "font", "size", "paragraph", "align"].map(async name => {
 			const resources = await this.configSvc.getResourcesAsync(`books.options.${name}`);
 			config.push({
 				Name: name,
@@ -60,7 +60,7 @@ export class BooksOptionsPage implements OnInit, OnDestroy {
 					}
 				}
 			});
-		});
+		}));
 		this.config = config;
 		await TrackingUtility.trackAsync(this.title, "books/options");
 	}

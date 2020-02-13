@@ -1,8 +1,8 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
 	<div *ngIf="gotSegments">
-		<ion-segment (ionChange)="onSegmentChanged($event)">
-			<ion-segment-button *ngFor="let segment of segments.items; trackBy: trackSegment" [value]="segment.Name" [checked]="segment.Name === segments.current">
+		<ion-segment [value]="segments.current" (ionChange)="onSegmentChanged($event)">
+			<ion-segment-button *ngFor="let segment of segments.items; trackBy: trackSegment" [value]="segment.Name">
 				<ion-label>{{ segment.Label }}</ion-label>
 				<ion-icon *ngIf="segment.Icon" [name]="segment.Icon"></ion-icon>
 			</ion-segment-button>
