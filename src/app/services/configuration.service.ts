@@ -263,7 +263,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Initializes the configuration settings of the app */
-	public async initializeAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void, dontInitializeSession?: boolean) {
+	public async initializeAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void, dontInitializeSession: boolean = false) {
 		// prepare environment
 		if (this.appConfig.app.mode === "") {
 			this.prepare();
@@ -275,7 +275,7 @@ export class ConfigurationService extends BaseService {
 		}
 
 		// initialize session
-		if (AppUtility.isFalse(dontInitializeSession)) {
+		if (!dontInitializeSession) {
 			await this.initializeSessionAsync(onNext, onError);
 		}
 		else if (onNext !== undefined) {
@@ -323,7 +323,7 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Updates the session and stores into storage */
-	public async updateSessionAsync(session: any, onNext?: (data?: any) => void, dontStore?: boolean) {
+	public async updateSessionAsync(session: any, onNext?: (data?: any) => void, dontStore: boolean = false) {
 		if (AppUtility.isNotEmpty(session.ID)) {
 			this.appConfig.session.id = session.ID;
 		}
@@ -340,6 +340,8 @@ export class ConfigurationService extends BaseService {
 					iv: session.Keys.AES.IV
 				},
 				rsa: {
+					encryptionExponent: session.Keys.RSA.EncryptionExponent,
+					decryptionExponent: session.Keys.RSA.DecryptionExponent,
 					exponent: session.Keys.RSA.Exponent,
 					modulus: session.Keys.RSA.Modulus
 				}
@@ -349,10 +351,7 @@ export class ConfigurationService extends BaseService {
 
 		if (AppUtility.isNotEmpty(session.Token)) {
 			try {
-				const jwtKey = AppUtility.isObject(this.appConfig.session.keys, true)
-					? this.appConfig.session.keys.jwt
-					: this.appConfig.app.name;
-				this.appConfig.session.token = AppCrypto.jwtDecode(session.Token, jwtKey);
+				this.appConfig.session.token = AppCrypto.jwtDecode(session.Token, AppUtility.isObject(this.appConfig.session.keys, true) ? this.appConfig.session.keys.jwt : this.appConfig.app.name);
 			}
 			catch (error) {
 				this.appConfig.session.token = undefined;
@@ -380,7 +379,7 @@ export class ConfigurationService extends BaseService {
 			});
 		}
 
-		if (AppUtility.isTrue(dontStore)) {
+		if (dontStore) {
 			if (onNext !== undefined) {
 				onNext(this.appConfig.session);
 			}
@@ -462,15 +461,15 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Gets the information of the current/default account */
-	public getAccount(getDefault?: boolean) {
-		const account = AppUtility.isTrue(getDefault) || this.appConfig.session.account === undefined
+	public getAccount(getDefault: boolean = false) {
+		const account = getDefault || this.appConfig.session.account === undefined
 			? undefined
 			: this.appConfig.session.account;
 		return account || new Account();
 	}
 
 	/** Updates information of the account */
-	public updateAccount(data: any, onNext?: (data?: any) => void, updateInstances?: boolean) {
+	public updateAccount(data: any, onNext?: (data?: any) => void, updateInstances: boolean = false) {
 		const id = data.ID || "";
 		const account = Account.instances.containsKey(id)
 			? Account.instances.getValue(id)
@@ -526,7 +525,7 @@ export class ConfigurationService extends BaseService {
 			}
 		}
 		else {
-			if (account.id !== undefined && (AppUtility.isTrue(updateInstances) || Account.instances.containsKey(account.id))) {
+			if (account.id !== undefined && (updateInstances || Account.instances.containsKey(account.id))) {
 				Account.instances.setValue(account.id, account);
 			}
 			if (onNext !== undefined) {
