@@ -1,6 +1,8 @@
 <ion-list #list class="ion-margin-vertical">
 	<ion-list-header *ngIf="bookmarks.length > 0" [color]="configSvc.color">
-		{{ resources.header }}
+		<ion-label>
+			{{ resources.header }}
+		</ion-label>
 	</ion-list-header>
 	<ion-item-sliding #slidingitems *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
 		<ion-item [color]="configSvc.color" (click)="openAsync(bookmark)">

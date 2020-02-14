@@ -26,7 +26,9 @@
 			</ion-button>
 		</ion-item>
 		<ion-list-header *ngIf="required && providers.length > 0" [color]="configSvc.color">
-			{{ resources.providers }}
+			<ion-label>
+				{{ resources.providers }}
+			</ion-label>
 		</ion-list-header>
 		<ion-item *ngFor="let provider of providers" [color]="configSvc.color">
 			<ion-label>
@@ -70,7 +72,7 @@
 			</ion-button>
 		</ion-item>
 	</ion-list>
-	<ion-buttons *ngIf="provision.uri !== ''" padding-horizontal>
+	<ion-buttons *ngIf="provision.uri !== ''" class="ion-padding">
 		<ion-button fill="solid" color="primary" [disabled]="!password || !provision.value || provision.value.length < 5 || provision.value.length > 10" (click)="addAsync()">
 			<ion-icon name="done-all" slot="start"></ion-icon>
 			{{ resources.buttons.verify }}

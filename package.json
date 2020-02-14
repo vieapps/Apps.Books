@@ -1,9 +1,10 @@
 {
 	"name": "net.vieapps.books",
-	"version": "1.4.1",
+	"version": "1.5.0",
 	"author": "VIEApps.net",
 	"homepage": "https://vieapps.net/",
 	"description": "VIEApps NGX Books",
+	"private": true,
 	"scripts": {
 		"ng": "ng",
 		"start": "ng serve",
@@ -12,7 +13,6 @@
 		"lint": "ng lint",
 		"e2e": "ng e2e"
 	},
-	"private": true,
 	"dependencies": {
 		"@angular/common": "^8.2.14",
 		"@angular/core": "^8.2.14",

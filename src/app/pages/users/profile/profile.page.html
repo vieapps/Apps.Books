@@ -52,7 +52,9 @@
 
 		<ion-list class="ion-padding-end">
 			<ion-list-header [color]="configSvc.color">
-				{{ labels.header }}
+				<ion-label>
+					{{ labels.header }}
+				</ion-label>
 			</ion-list-header>
 			<ion-item [color]="configSvc.color">
 				<ion-icon icon="at" slot="start"></ion-icon>
@@ -79,7 +81,7 @@
 		
 	</div>
 
-	<div *ngIf="mode === 'invitation'" padding>
+	<div *ngIf="mode === 'invitation'" class="ion-padding">
 		<app-form *ngIf="invitation.config"
 			[color]="configSvc.color"
 			[form]="invitation.form"
