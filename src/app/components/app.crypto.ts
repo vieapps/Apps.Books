@@ -4,11 +4,11 @@ import * as CryptoJS from "crypto-js";
 /** Servicing component for woring with cryptography */
 export class AppCrypto {
 
-	private static _rsa = new RSA();
 	private static _aes = {
 		key: undefined,
 		iv: undefined
 	};
+	private static _rsa = new RSA();
 	private static _jwt: string;
 
 	/** Gets the base64url-encoded string from the base64 string */
@@ -82,41 +82,38 @@ export class AppCrypto {
 			: undefined;
 	}
 
-	/** Encrypts the string by RSA */
-	public static rsaEncrypt(text: string) {
-		return this._rsa.encrypt(text) as string;
-	}
-
-	/** Encrypts the string by AES */
+	/** Encrypts the string - using AES */
 	public static aesEncrypt(text: string, key?: any, iv?: any) {
 		return CryptoJS.AES.encrypt(text, key || this._aes.key, { iv: iv || this._aes.iv }).toString();
 	}
 
-	/** Decrypts the string by AES */
+	/** Decrypts the string - using AES */
 	public static aesDecrypt(text: string, key?: any, iv?: any) {
 		return CryptoJS.AES.decrypt(text, key || this._aes.key, { iv: iv || this._aes.iv }).toString(CryptoJS.enc.Utf8);
 	}
 
-	/** Initializes key for working with RSA and AES */
-	public static init(keys: any) {
+	/** Encrypts the string - using RSA */
+	public static rsaEncrypt(text: string) {
+		return this._rsa.encrypt(text) as string;
+	}
+
+	/** Decrypts the string - using RSA */
+	public static rsaDecrypt(text: string) {
+		return this._rsa.decrypt(text) as string;
+	}
+
+	/** Initializes all keys for encrypting/decryptnig/hashing */
+	public static init(keys: { aes: { key: string; iv: string }; rsa: { encryptionExponent?: string; decryptionExponent?: string; exponent: string; modulus: string }; jwt: string; }) {
 		if (keys.aes !== undefined) {
-			this.initAES(keys.aes.key, keys.aes.iv);
+			this._aes.key = CryptoJS.enc.Hex.parse(keys.aes.key);
+			this._aes.iv = CryptoJS.enc.Hex.parse(keys.aes.iv);
 		}
 		if (keys.rsa !== undefined) {
-			this.initRSA(keys.rsa.encryptionExponent || keys.rsa.exponent, keys.rsa.decryptionExponent || keys.rsa.exponent, keys.rsa.modulus);
+			this._rsa.init(keys.rsa.encryptionExponent || keys.rsa.exponent, keys.rsa.decryptionExponent || keys.rsa.exponent, keys.rsa.modulus);
 		}
 		if (keys.jwt !== undefined) {
-			this._jwt = keys.jwt;
+			this._jwt = keys.jwt = keys.aes !== undefined ? this.aesDecrypt(keys.jwt) : keys.jwt;
 		}
-	}
-
-	public static initAES(key: string, iv: string) {
-		this._aes.key = CryptoJS.enc.Hex.parse(key);
-		this._aes.iv = CryptoJS.enc.Hex.parse(iv);
-	}
-
-	public static initRSA(encryptionExponent: string, decryptionExponent: string, modulus: string) {
-		this._rsa.init(encryptionExponent, decryptionExponent, modulus);
 	}
 
 }
