@@ -77,7 +77,7 @@ export class AppCrypto {
 	/** Decodes the JSON Web Token */
 	public static jwtDecode(jwt: string, key?: string) {
 		const elements = jwt.split(".");
-		return this.urlSign(elements[0] + "." + elements[1], key || this._jwt) === elements[2]
+		return elements.length > 2 && this.urlSign(elements[0] + "." + elements[1], key || this._jwt) === elements[2]
 			? JSON.parse(this.urlDecode(elements[1]))
 			: undefined;
 	}

@@ -2,7 +2,7 @@
 	<ion-split-pane when="lg" contentId="main">
 		<ion-menu contentId="main">
 			<ion-header>
-				<ion-toolbar [color]="configSvc.color">
+				<ion-toolbar [color]="color">
 					<ion-thumbnail *ngIf="sidebar.left.avatar" slot="start">
 						<ion-menu-toggle auto-hide="false">
 							<a routerLink="/users/profile/my" routerDirection="forward">
@@ -15,23 +15,23 @@
 					</ion-title>
 				</ion-toolbar>
 			</ion-header>
-			<ion-content [color]="configSvc.color">
+			<ion-content [color]="color">
 				<ion-list class="ion-margin-vertical">
 					<ion-menu-toggle auto-hide="false" *ngFor="let menu of sidebar.left.menu; trackBy: trackSidebarItem">
-						<ion-list-header *ngIf="menu.title" [color]="configSvc.color">
+						<ion-list-header *ngIf="menu.title" [color]="color">
 							<ion-label>
 								<ion-icon *ngIf="menu.icon" [name]="menu.icon" slot="start"></ion-icon>
 								<img *ngIf="menu.thumbnail" [src]="menu.thumbnail" class="ion-float-start" />
 								{{ menu.title }}
 							</ion-label>
 						</ion-list-header>
-						<ion-item *ngIf="menu.parent" [routerLink]="[menu.parent.url]" [queryParams]="menu.parent.queryParams" [routerDirection]="menu.parent.direction" [color]="configSvc.color" (click)="menu.parent.onClick()">
+						<ion-item *ngIf="menu.parent" [routerLink]="[menu.parent.url]" [queryParams]="menu.parent.queryParams" [routerDirection]="menu.parent.direction" [color]="color" (click)="menu.parent.onClick()">
 							<ion-icon name="arrow-back" slot="start"></ion-icon>
 							<ion-label>
 								{{ menu.parent.title }}
 							</ion-label>
 						</ion-item>
-						<ion-item *ngFor="let item of menu.items; trackBy: trackSidebarItem" [routerLink]="[item.url]" [queryParams]="item.queryParams" [routerDirection]="item.direction" [detail]="item.detail" [color]="configSvc.color" (click)="item.onClick()">
+						<ion-item *ngFor="let item of menu.items; trackBy: trackSidebarItem" [routerLink]="[item.url]" [queryParams]="item.queryParams" [routerDirection]="item.direction" [detail]="item.detail" [color]="color" (click)="item.onClick()">
 							<ion-icon *ngIf="item.icon" [name]="item.icon" slot="start"></ion-icon>
 							<ion-label>
 								<img *ngIf="item.thumbnail" [src]="item.thumbnail" class="ion-float-start" />

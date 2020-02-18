@@ -24,17 +24,17 @@ import { BooksService } from "./services/books.service";
 export class AppComponent implements OnInit {
 
 	constructor(
-		public router: Router,
-		public http: HttpClient,
-		public platform: Platform,
-		public menuController: MenuController,
-		public splashScreen: SplashScreen,
-		public statusBar: StatusBar,
-		public appFormsSvc: AppFormsService,
-		public configSvc: ConfigurationService,
-		public authSvc: AuthenticationService,
-		public usersSvc: UsersService,
-		public booksSvc: BooksService
+		private router: Router,
+		private http: HttpClient,
+		private platform: Platform,
+		private menuController: MenuController,
+		private splashScreen: SplashScreen,
+		private statusBar: StatusBar,
+		private appFormsSvc: AppFormsService,
+		private configSvc: ConfigurationService,
+		private authSvc: AuthenticationService,
+		private usersSvc: UsersService,
+		private booksSvc: BooksService
 	) {
 		if (this.configSvc.isDebug) {
 			console.log("<AppComponent>: Initializing...");
@@ -80,6 +80,10 @@ export class AppComponent implements OnInit {
 			onClick: () => {}
 		}
 	};
+
+	public get color() {
+		return this.configSvc.color;
+	}
 
 	ngOnInit() {
 		this.router.events.subscribe(event => {

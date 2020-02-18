@@ -271,34 +271,35 @@ export class BooksService extends BaseService {
 		);
 	}
 
-	public getAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontUpdateCounter?: boolean) {
+	public getAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontUpdateCounter: boolean = false) {
 		const book = Book.instances.getValue(id);
-		if (book !== undefined && (book.TOCs.length > 0 || book.Body !== "")) {
-			if (AppUtility.isFalse(dontUpdateCounter)) {
-				this.increaseCounters(id);
-			}
-			return new Promise<void>(onNext !== undefined ? () => onNext() : () => {});
-		}
-		else {
-			return super.readAsync(
-				super.getURI("book", id),
-				data => {
-					Book.update(data);
-					if (AppUtility.isFalse(dontUpdateCounter)) {
+		return book !== undefined && (book.TOCs.length > 0 || book.Body !== "")
+			? new Promise<void>(() => {
+					if (!dontUpdateCounter) {
 						this.increaseCounters(id);
 					}
 					if (onNext !== undefined) {
-						onNext(data);
+						onNext();
 					}
-				},
-				error => {
-					console.error(super.getErrorMessage("Error occurred while reading", error));
-					if (onError !== undefined) {
-						onError(error);
+				})
+			: super.readAsync(
+					super.getURI("book", id),
+					data => {
+						Book.update(data);
+						if (!dontUpdateCounter) {
+							this.increaseCounters(id);
+						}
+						if (onNext !== undefined) {
+							onNext(data);
+						}
+					},
+					error => {
+						console.error(super.getErrorMessage("Error occurred while reading", error));
+						if (onError !== undefined) {
+							onError(error);
+						}
 					}
-				}
-			);
-		}
+				);
 	}
 
 	public getChapter(id: string, chapter: number, onNext?: () => void) {

@@ -178,7 +178,7 @@ export class AppRTU {
 	}
 
 	/** Starts the real-time updater */
-	public static start(onStarted?: () => void, isRestart?: boolean) {
+	public static start(onStarted?: () => void, isRestart: boolean = false) {
 		// check
 		if (typeof WebSocket === "undefined") {
 			console.warn("[AppRTU]: Its requires a modern web component that supports WebSocket");
@@ -231,7 +231,7 @@ export class AppRTU {
 		// create new instance of WebSocket
 		this._status = "initializing";
 		this._uri = (AppUtility.isNotEmpty(AppConfig.URIs.updates) ? AppConfig.URIs.updates : AppConfig.URIs.apis).replace("http://", "ws://").replace("https://", "wss://");
-		this._websocket = new WebSocket(`${this._uri}v?x-session-id=${AppCrypto.urlEncode(AppConfig.session.id)}&x-device-id=${AppCrypto.urlEncode(AppConfig.session.device)}` + (AppUtility.isTrue(isRestart) ? "&x-restart=" : ""));
+		this._websocket = new WebSocket(`${this._uri}v?x-session-id=${AppCrypto.urlEncode(AppConfig.session.id)}&x-device-id=${AppCrypto.urlEncode(AppConfig.session.device)}` + (isRestart ? "&x-restart=" : ""));
 		this._pingTime = new Date().getTime();
 
 		// assign 'on-open' event handler
@@ -259,7 +259,7 @@ export class AppRTU {
 				if (this.isReady) {
 					this.sendRequests(true);
 				}
-			}, 567);
+			}, 345);
 		};
 
 		// assign 'on-close' event handler
@@ -430,7 +430,7 @@ export class AppRTU {
 				this.start(() => {
 					if (this.isReady) {
 						console.log(`[AppRTU]: Re-started... #${this._attempt}`);
-						this._attempt = -1;
+						PlatformUtility.invoke(() => this._attempt = -1, 123);
 					}
 				}, true);
 			}, defer || 123 + (this._attempt * 13));
