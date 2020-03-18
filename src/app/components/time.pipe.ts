@@ -86,34 +86,23 @@ export class TimePipe implements PipeTransform, OnDestroy {
 	}
 
 	public transform(value: string | number | Date, locale?: string, format?: string) {
-		locale = (locale || "en_US").trim().substr(0, 2).toLowerCase();
-
-		let suffixes = TimePipe.Suffixes[locale];
-		if (suffixes === undefined) {
-			suffixes = TimePipe.Suffixes["en"];
-		}
-
 		const time = new Date(value);
 		const ticks = new Date().getTime() - time.getTime();
-		let suffix = suffixes.past;
-		if (ticks < 0) {
-			suffix = suffixes.future;
-		}
-
-		let resources = TimePipe.Resources[locale];
-		if (resources === undefined) {
-			resources = TimePipe.Resources["en"];
-		}
-
 		const seconds = Math.round(Math.abs(ticks / 1000));
 		this.setTimer(seconds);
 		if (Number.isNaN(seconds)) {
 			return "";
 		}
 
+		locale = (locale || "en_US").trim().substr(0, 2).toLowerCase();
+		const resources = TimePipe.Resources[locale] || TimePipe.Resources["en"];
+
 		if (seconds <= 4) {
 			return resources.now;
 		}
+
+		const suffixes = TimePipe.Suffixes[locale] || TimePipe.Suffixes["en"];
+		const suffix = ticks < 0 ? suffixes.future : suffixes.past;
 
 		if (seconds <= 45) {
 			return resources.seconds + suffix;
