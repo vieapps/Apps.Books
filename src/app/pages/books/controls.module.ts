@@ -21,6 +21,7 @@ import { BookGridItemControl } from "./controls/item.grid";
 		BookGridItemControl,
 		BookmarksControl
 	],
+	providers: [],
 	declarations: [
 		BookHomeScreenControl,
 		BookLinearItemControl,

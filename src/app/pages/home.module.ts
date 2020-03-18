@@ -13,6 +13,7 @@ import { HomePage } from "./home.page";
 		RouterModule.forChild([{ path: "", component: HomePage }])
 	],
 	exports: [],
+	providers: [],
 	declarations: [HomePage]
 })
 

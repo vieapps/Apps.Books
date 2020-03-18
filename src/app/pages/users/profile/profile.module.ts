@@ -21,6 +21,7 @@ import { UsersProfilePage } from "./profile.page";
 		RouterModule.forChild([{ path: "", component: UsersProfilePage }])
 	],
 	exports: [],
+	providers: [],
 	declarations: [UsersProfilePage]
 })
 

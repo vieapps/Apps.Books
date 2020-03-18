@@ -13,6 +13,7 @@ import { BooksUpdatePage } from "./update.page";
 		RouterModule.forChild([{ path: "", component: BooksUpdatePage }])
 	],
 	exports: [],
+	providers: [],
 	declarations: [BooksUpdatePage]
 })
 

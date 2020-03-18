@@ -11,6 +11,7 @@ import { BooksReadPage } from "./read.page";
 		RouterModule.forChild([{ path: "", component: BooksReadPage }])
 	],
 	exports: [],
+	providers: [],
 	declarations: [BooksReadPage]
 })
 

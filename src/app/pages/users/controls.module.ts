@@ -10,12 +10,9 @@ import { UsersServicePrivilegesControl } from "./controls/service.privileges";
 		IonicModule,
 		AppFormsModule
 	],
-	exports: [
-		UsersServicePrivilegesControl
-	],
-	declarations: [
-		UsersServicePrivilegesControl
-	]
+	exports: [UsersServicePrivilegesControl],
+	providers: [],
+	declarations: [UsersServicePrivilegesControl]
 })
 
 export class UserControlsModule {}

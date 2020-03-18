@@ -15,6 +15,7 @@ import { BooksInfoPage } from "./info.page";
 		TimePipeModule
 	],
 	exports: [],
+	providers: [],
 	declarations: [BooksInfoPage]
 })
 

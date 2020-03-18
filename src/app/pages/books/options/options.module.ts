@@ -13,6 +13,7 @@ import { BooksOptionsPage } from "./options.page";
 		RouterModule.forChild([{ path: "", component: BooksOptionsPage }])
 	],
 	exports: [],
+	providers: [],
 	declarations: [BooksOptionsPage]
 })
 

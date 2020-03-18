@@ -13,6 +13,7 @@ import { UsersRegisterPage } from "./register.page";
 		RouterModule.forChild([{ path: "", component: UsersRegisterPage }])
 	],
 	exports: [],
+	providers: [],
 	declarations: [UsersRegisterPage]
 })
 

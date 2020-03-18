@@ -13,6 +13,7 @@ import { UsersListPage } from "./list.page";
 		TimePipeModule
 	],
 	exports: [],
+	providers: [],
 	declarations: [UsersListPage]
 })
 

@@ -13,6 +13,7 @@ import { BooksListPage } from "./list.page";
 		RouterModule.forChild([{ path: "", component: BooksListPage }])
 	],
 	exports: [],
+	providers: [],
 	declarations: [BooksListPage]
 })
 

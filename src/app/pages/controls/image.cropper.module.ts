@@ -12,8 +12,8 @@ import { ImageCropperControl } from "./image.cropper";
 		HtmlImageCropper
 	],
 	exports: [ImageCropperControl],
-	declarations: [ImageCropperControl],
-	providers: [NativeImageCropper]
+	providers: [NativeImageCropper],
+	declarations: [ImageCropperControl]
 })
 
 export class ImageCropperControlModule {}

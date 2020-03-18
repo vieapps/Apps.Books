@@ -15,6 +15,7 @@ import { UsersUpdatePage } from "./update.page";
 		RouterModule.forChild([{ path: "", component: UsersUpdatePage }])
 	],
 	exports: [],
+	providers: [],
 	declarations: [UsersUpdatePage]
 })
 
