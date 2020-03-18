@@ -37,18 +37,9 @@
 				<ion-radio value="Gravatar"></ion-radio>
 			</ion-item>
 		</ion-radio-group>
-		<ion-item [hidden]="mode !== 'Avatar'" [color]="configSvc.color">
-			<input type="file" accept="image/png, image/jpeg" (change)="prepareAvatarImage($event)" />
-		</ion-item>
-		<ion-item *ngIf="!isNativeApp" [color]="configSvc.color">
-			<div>
-				<div [hidden]="mode !== 'Avatar'" class="cropper">
-					<img-cropper [image]="htmlCropper.data" [settings]="htmlCropper.settings"></img-cropper>
-				</div>
-				<div>
-					<img [src]="imageUri" [width]="htmlCropper.settings.croppedWidth" [height]="htmlCropper.settings.croppedHeight" />
-				</div>
-			</div>
+		<control-image-cropper [settings]="imageCropperSettings" [hidden]="mode !== 'Avatar'"></control-image-cropper>
+		<ion-item [color]="configSvc.color" [hidden]="mode !== 'Gravatar'">
+			<img [src]="profile.Gravatar" />
 		</ion-item>
 	</ion-list>
 </ion-content>

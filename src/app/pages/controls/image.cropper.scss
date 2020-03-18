@@ -1,0 +1,25 @@
+ion-item> div {
+	padding-top: 30px;
+}
+ion-item > div > div {
+	margin-bottom: 16px;
+}
+ion-item > div > div:first-of-type {
+	margin-right: 30px;
+}
+ion-item > div > div > img {
+	border-radius: 50%;
+	width: 242px;
+	height: 242px;
+}
+ion-item > input {
+	clear: both;
+	display: block;
+	width: 100%;
+	height: 22px;
+}
+@media only screen and (min-width: 600px) {
+	ion-item > div > div {
+		float: left;
+	}
+}

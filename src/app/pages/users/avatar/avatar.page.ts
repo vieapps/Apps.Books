@@ -1,6 +1,4 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { ImageCropperComponent as HtmlImageCropper, CropperSettings as HtmlImageCropperSettings } from "ng2-img-cropper";
-import { Crop as NativeImageCropper } from "@ionic-native/crop/ngx";
 import { AppFormsService } from "../../../components/forms.service";
 import { AppEvents } from "../../../components/app.events";
 import { AppUtility } from "../../../components/app.utility";
@@ -9,6 +7,7 @@ import { ConfigurationService } from "../../../services/configuration.service";
 import { UsersService } from "../../../services/users.service";
 import { FilesService } from "../../../services/files.service";
 import { UserProfile } from "../../../models/user";
+import { ImageCropperControl } from "../../controls/image.cropper";
 
 @Component({
 	selector: "page-users-avatar",
@@ -19,7 +18,6 @@ import { UserProfile } from "../../../models/user";
 export class UsersAvatarPage implements OnInit {
 
 	constructor (
-		public nativeImageCropper: NativeImageCropper,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public filesSvc: FilesService,
@@ -37,23 +35,9 @@ export class UsersAvatarPage implements OnInit {
 		avatar: "Uploaded avatar",
 		gravatar: "Gravatar picture",
 	};
-	htmlCropper = {
-		settings: new HtmlImageCropperSettings(),
-		data: {
-			image: "",
-			original: undefined
-		}
-	};
 	processing = false;
-	@ViewChild(HtmlImageCropper, { static: false }) htmlImageCropper: HtmlImageCropper;
-
-	get imageUri() {
-		return this.mode === "Gravatar" ? this.profile.Gravatar : this.htmlCropper.data.image;
-	}
-
-	get isNativeApp() {
-		return this.configSvc.isNativeApp;
-	}
+	imageCropperSettings = { currentImage: undefined };
+	@ViewChild(ImageCropperControl, { static: false }) imageCropper: ImageCropperControl;
 
 	ngOnInit() {
 		this.initializeAsync();
@@ -61,18 +45,8 @@ export class UsersAvatarPage implements OnInit {
 
 	async initializeAsync() {
 		this.profile = this.configSvc.getAccount().profile;
-		this.mode = this.profile.Avatar === "" || this.profile.Avatar === this.profile.Gravatar
-			? "Gravatar"
-			: "Avatar";
-
-		this.htmlCropper.data.image = this.profile.Avatar;
-		this.htmlCropper.settings.width = 100;
-		this.htmlCropper.settings.height = 100;
-		this.htmlCropper.settings.croppedWidth = 300;
-		this.htmlCropper.settings.croppedHeight = 300;
-		this.htmlCropper.settings.canvasWidth = 242;
-		this.htmlCropper.settings.canvasHeight = 242;
-		this.htmlCropper.settings.noFileInput = true;
+		this.mode = this.profile.Avatar === "" || this.profile.Avatar === this.profile.Gravatar ? "Gravatar" : "Avatar";
+		this.imageCropperSettings.currentImage = this.profile.Avatar;
 
 		this.title = await this.configSvc.getResourceAsync("users.profile.avatar.title");
 		this.resources = {
@@ -82,21 +56,6 @@ export class UsersAvatarPage implements OnInit {
 			avatar: await this.configSvc.getResourceAsync("users.profile.avatar.mode.avatar"),
 			gravatar: await this.configSvc.getResourceAsync("users.profile.avatar.mode.gravatar")
 		};
-	}
-
-	prepareAvatarImage($event: any) {
-		const file: File = $event.target.files.length > 0 ? $event.target.files[0] : undefined;
-		if (file !== undefined && file.type.startsWith("image/")) {
-			this.filesSvc.readAsDataURL(file, data => {
-				const image = new Image();
-				image.src = data;
-				this.htmlImageCropper.setImage(image);
-			}, 1024000, async () => await this.appFormsSvc.showToastAsync("Too big..."));
-		}
-	}
-
-	uploadAvatarAsync(onNext: (data?: any) => void, onError: (error?: any) => void) {
-
 	}
 
 	updateProfileAsync() {
@@ -119,15 +78,11 @@ export class UsersAvatarPage implements OnInit {
 
 	updateAsync() {
 		this.processing = true;
-		if (this.mode === "Avatar" && this.htmlCropper.data.original !== undefined) {
+		if (this.mode === "Avatar" && this.imageCropper.data.original !== undefined) {
 			return this.filesSvc.uploadAvatarAsync(
-				this.htmlCropper.data.image,
+				this.imageCropper.data.image,
 				async data => {
 					this.profile.Avatar = data.URI;
-					this.htmlCropper.data = {
-						image: data.URI,
-						original: undefined
-					};
 					await this.updateProfileAsync();
 				},
 				error => {

@@ -1,18 +1,17 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { IonicModule } from "@ionic/angular";
-import { ImageCropperModule as HtmlImageCropper } from "ng2-img-cropper";
-import { Crop as NativeImageCropper } from "@ionic-native/crop/ngx";
+import { ImageCropperControlModule } from "../../controls/image.cropper.module";
 import { UsersAvatarPage } from "./avatar.page";
 
 @NgModule({
 	imports: [
 		CommonModule,
 		IonicModule,
-		HtmlImageCropper
+		ImageCropperControlModule
 	],
 	exports: [],
-	providers: [NativeImageCropper],
+	providers: [],
 	declarations: [UsersAvatarPage],
 	entryComponents: [UsersAvatarPage]
 })
