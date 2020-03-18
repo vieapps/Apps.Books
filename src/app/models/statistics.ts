@@ -12,6 +12,7 @@ export class StatisticBase {
 		AppUtility.copy(json, statistic, () => statistic.Title = AppUtility.toANSI(statistic.Name).toLowerCase());
 		return statistic;
 	}
+
 }
 
 /** Statistic information */
@@ -50,4 +51,5 @@ export class StatisticInfo extends StatisticBase {
 			})
 		});
 	}
+
 }

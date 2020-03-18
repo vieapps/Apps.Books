@@ -21,6 +21,7 @@ export class CounterBase {
 		AppUtility.copy(json, counter);
 		return counter;
 	}
+
 }
 
 /** Counter information */
@@ -42,4 +43,5 @@ export class CounterInfo extends CounterBase {
 		AppUtility.copy(json, counter);
 		return counter;
 	}
+
 }

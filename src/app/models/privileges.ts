@@ -31,6 +31,7 @@ export class Privilege {
 		AppUtility.copy(json, privilege);
 		return privilege;
 	}
+
 }
 
 /** Privilege of an individual business object */
@@ -64,4 +65,5 @@ export class Privileges {
 		});
 		return privileges;
 	}
+
 }

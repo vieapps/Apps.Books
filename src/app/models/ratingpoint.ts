@@ -16,4 +16,5 @@ export class RatingPoint {
 	public get Average() {
 		return this.Total > 0 ? this.Points / this.Total : 0;
 	}
+
 }

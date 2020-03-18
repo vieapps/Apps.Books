@@ -20,4 +20,5 @@ export class ContactInfo {
 		AppUtility.copy(json, contactInfo);
 		return contactInfo;
 	}
+
 }

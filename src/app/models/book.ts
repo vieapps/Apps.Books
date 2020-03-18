@@ -96,6 +96,7 @@ export class Book extends BaseModel {
 
 /** Bookmark of an e-book */
 export class Bookmark {
+
 	ID = "";
 	Chapter = 0;
 	Position = 0;

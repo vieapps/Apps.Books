@@ -91,8 +91,7 @@ export class UserProfileBase extends BaseModel {
 /** Full user profile (with related information from main service) */
 export class UserProfile extends UserProfileBase {
 
-	constructor(
-	) {
+	constructor() {
 		super();
 	}
 
@@ -115,7 +114,7 @@ export class UserProfile extends UserProfileBase {
 		return profile;
 	}
 
-	static update(data: any) {
+	public static update(data: any) {
 		if (AppUtility.isObject(data, true)) {
 			const profile = data instanceof UserProfile
 				? data as UserProfile
