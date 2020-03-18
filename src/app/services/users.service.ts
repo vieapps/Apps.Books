@@ -19,12 +19,6 @@ export class UsersService extends BaseService {
 	) {
 		super("Users");
 		AppRTU.registerAsServiceScopeProcessor(this.name, async message => await this.processUpdateMessageAsync(message));
-		if (this.configSvc.isDebug) {
-			AppRTU.registerAsObjectScopeProcessor(this.name, "Session", () => {});
-			AppRTU.registerAsObjectScopeProcessor(this.name, "Account", () => {});
-			AppRTU.registerAsObjectScopeProcessor(this.name, "Profile", () => {});
-			AppRTU.registerAsObjectScopeProcessor(this.name, "Status", () => {});
-		}
 	}
 
 	public get completerDataSource() {

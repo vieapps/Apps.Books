@@ -104,10 +104,6 @@ export class BooksService extends BaseService {
 				this.sendBookmarks();
 			}
 		});
-		if (this.configSvc.isDebug) {
-			AppRTU.registerAsServiceScopeProcessor(this.name, () => {});
-			AppRTU.registerAsObjectScopeProcessor(this.name, "Crawl", () => {});
-		}
 
 		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
