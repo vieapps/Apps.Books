@@ -27,7 +27,7 @@ export class AppCustomCompleter extends Subject<CompleterItem[]> implements Comp
 		this._unsubscribe();
 		this._subscription = AppXHR.get(this.onRequest(term)).subscribe(
 			response => this.next(this.onConvert(response)),
-			error => console.error("[Custom Completer]: Error occurred while fetching remote data => " + AppUtility.getErrorMessage(error), error)
+			error => console.error(`[Custom Completer]: Error occurred while fetching remote data => ${AppUtility.getErrorMessage(error)}`, error)
 		);
 	}
 

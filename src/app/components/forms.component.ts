@@ -9,24 +9,43 @@ import { PlatformUtility } from "./app.utility.platform";
 	templateUrl: "./forms.component.html"
 })
 
-export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
+	/*** The configurable form */
+	export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor (
-		public appFormsSvc: AppFormsService
+		private appFormsSvc: AppFormsService
 	) {
 	}
 
-	@Input() form: FormGroup;
-	@Input() config: Array<any>;
-	@Input() segments: { items: Array<AppFormsSegment>, default: string, current: string };
-	@Input() controls: Array<AppFormsControl>;
-	@Input() value: any;
-	@Input() lastFocus: any;
+	/*** The color theme of the form ('dark' or 'light') */
 	@Input() color: string;
 
+	/*** The instance of the form */
+	@Input() form: FormGroup;
+
+	/*** The configuration of the form controls */
+	@Input() config: Array<any>;
+
+	/*** The configuration of the form segments */
+	@Input() segments: { items: Array<AppFormsSegment>, default: string, current: string };
+
+	/*** The instance of the form controls */
+	@Input() controls: Array<AppFormsControl>;
+
+	/*** The value of the form controls */
+	@Input() value: any;
+
+	/*** The event handler to run when the form was initialized */
 	@Output() initEvent: EventEmitter<any> = new EventEmitter();
-	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
+
+	/*** The event handler to run when the captcha code of form was refreshed */
 	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
+
+	/*** The event handler to run when the form was focused into last control */
+	@Output() lastFocusEvent: EventEmitter<any> = new EventEmitter();
+
+	/*** The event handler to run when the form was submitted */
+	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
 
 	ngOnInit() {
 		this.segments = this.segments || { items: undefined, default: undefined, current: undefined };
@@ -69,7 +88,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	onLastFocus($event: any) {
-		PlatformUtility.focus(this.lastFocus);
+		this.lastFocusEvent.emit($event);
 	}
 
 	onSubmit() {

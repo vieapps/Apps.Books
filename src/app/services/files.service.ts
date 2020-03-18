@@ -22,7 +22,9 @@ export interface FilesHeader {
 @Injectable()
 export class FilesService extends BaseService {
 
-	constructor(private http: HttpClient) {
+	constructor(
+		private http: HttpClient
+	) {
 		super("Files");
 		AppXHR.initialize(this.http);
 	}

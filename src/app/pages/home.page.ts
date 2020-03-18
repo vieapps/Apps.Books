@@ -11,7 +11,9 @@ import { ConfigurationService } from "../services/configuration.service";
 
 export class HomePage implements OnInit, OnDestroy {
 
-	constructor(public configSvc: ConfigurationService) {
+	constructor(
+		public configSvc: ConfigurationService
+	) {
 	}
 
 	title = "Home";

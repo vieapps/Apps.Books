@@ -15,4 +15,5 @@ import { UsersLogInPage } from "./login.page";
 	exports: [],
 	declarations: [UsersLogInPage]
 })
+
 export class UsersLogInPageModule {}

@@ -14,7 +14,9 @@ import { ConfigurationService } from "./configuration.service";
 @Injectable()
 export class UsersService extends BaseService {
 
-	constructor(private configSvc: ConfigurationService) {
+	constructor(
+		private configSvc: ConfigurationService
+	) {
 		super("Users");
 		AppRTU.registerAsServiceScopeProcessor(this.name, async message => await this.processUpdateMessageAsync(message));
 		if (this.configSvc.isDebug) {

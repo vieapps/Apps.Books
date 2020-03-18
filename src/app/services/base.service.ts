@@ -13,7 +13,9 @@ export class Base {
 
 	private _name = "";
 
-	constructor (name?: string) {
+	constructor (
+		name?: string
+	) {
 		this._name = name || this.constructor.name;
 	}
 
@@ -324,11 +326,13 @@ export class Base {
 
 @Injectable()
 export class AppReadyGuardService implements CanActivate {
+
 	constructor(
-		public location: Location,
-		public router: Router
+		private router: Router,
+		private location: Location
 	) {
 	}
+
 	canActivate() {
 		if (!AppConfig.isReady) {
 			AppConfig.url.redirectToWhenReady = AppCrypto.urlEncode(this.location.path());
@@ -336,43 +340,57 @@ export class AppReadyGuardService implements CanActivate {
 		}
 		return AppConfig.isReady;
 	}
+
 }
 
 @Injectable()
 export class AuthenticatedGuardService implements CanActivate {
+
 	constructor(
-		public location: Location,
-		public router: Router
+		private router: Router,
+		private location: Location
 	) {
 	}
+
 	canActivate() {
 		if (!AppConfig.isAuthenticated) {
 			this.router.navigateByUrl(AppConfig.url.users.login + "?next=" + AppCrypto.urlEncode(this.location.path()));
 		}
 		return AppConfig.isAuthenticated;
 	}
+
 }
 
 @Injectable()
 export class NotAuthenticatedGuardService implements CanActivate {
-	constructor(public router: Router) {
+
+	constructor(
+		private router: Router
+	) {
 	}
+
 	canActivate() {
 		if (AppConfig.isAuthenticated) {
 			this.router.navigateByUrl(AppConfig.url.home);
 		}
 		return !AppConfig.isAuthenticated;
 	}
+
 }
 
 @Injectable()
 export class RegisterGuardService implements CanActivate {
-	constructor(public router: Router) {
+
+	constructor(
+		private router: Router
+	) {
 	}
+
 	canActivate() {
 		if (!AppConfig.accountRegistrations.registrable) {
 			this.router.navigateByUrl(AppConfig.url.home);
 		}
 		return AppConfig.accountRegistrations.registrable;
 	}
+
 }

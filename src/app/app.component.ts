@@ -172,7 +172,7 @@ export class AppComponent implements OnInit {
 			},
 			profile: {
 				title: await this.configSvc.getResourceAsync("common.sidebar.profile"),
-				url: this.configSvc.appConfig.url.users.profile + "/my",
+				url: `${this.configSvc.appConfig.url.users.profile}/my`,
 				queryParams: undefined as { [key: string]: any },
 				direction: "forward",
 				icon: "person",
@@ -381,10 +381,10 @@ export class AppComponent implements OnInit {
 
 	private async showActivationResultAsync(data: any) {
 		await this.appFormsSvc.showAlertAsync(
-			await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.header.account" : "users.activate.header.password"),
-			await this.configSvc.getResourceAsync("OK" === data.Status ? "users.activate.subHeader.success" : "users.activate.subHeader.error"),
+			await this.configSvc.getResourceAsync(`users.activate.header.${("account" === data.Mode ? "account" : "password")}`),
+			await this.configSvc.getResourceAsync(`users.activate.subHeader.${("OK" === data.Status ? "success" : "error")}`),
 			"OK" === data.Status
-				? await this.configSvc.getResourceAsync("account" === data.Mode ? "users.activate.messages.success.account" : "users.activate.messages.success.password")
+				? await this.configSvc.getResourceAsync(`users.activate.messages.success.${("account" === data.Mode ? "account" : "password")}`)
 				: await this.configSvc.getResourceAsync("users.activate.messages.error.general", { error: (data.Error ? ` (${data.Error.Message})` : "") }),
 			async () => {
 				this.configSvc.appConfig.url.stack[this.configSvc.appConfig.url.stack.length - 1] = {
@@ -416,7 +416,7 @@ export class AppComponent implements OnInit {
 								await this.configSvc.resetSessionAsync(() => PlatformUtility.invoke(async () => await this.initializeAsync(onNext, noInitializeSession), 234));
 							}
 							else {
-								await this.appFormsSvc.hideLoadingAsync(() => console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error));
+								await this.appFormsSvc.hideLoadingAsync(() => console.error(`<AppComponent>: Cannot initialize the app => ${AppUtility.getErrorMessage(error)}`, error));
 							}
 						}
 					);
@@ -428,7 +428,7 @@ export class AppComponent implements OnInit {
 					await this.configSvc.resetSessionAsync(() => PlatformUtility.invoke(async () => await this.initializeAsync(onNext, noInitializeSession), 234));
 				}
 				else {
-					await this.appFormsSvc.hideLoadingAsync(() => console.error("<AppComponent>: Cannot initialize the app => " + AppUtility.getErrorMessage(error), error));
+					await this.appFormsSvc.hideLoadingAsync(() => console.error(`<AppComponent>: Cannot initialize the app => ${AppUtility.getErrorMessage(error)}`, error));
 				}
 			},
 			noInitializeSession

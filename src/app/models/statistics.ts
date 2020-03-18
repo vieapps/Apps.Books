@@ -2,6 +2,7 @@ import { AppUtility } from "../components/app.utility";
 
 /** Statistic base information */
 export class StatisticBase {
+
 	Name = "";
 	Title = "";
 	Counters = 0;
@@ -15,6 +16,7 @@ export class StatisticBase {
 
 /** Statistic information */
 export class StatisticInfo extends StatisticBase {
+
 	FullName = "";
 	Children: Array<StatisticInfo> = [];
 

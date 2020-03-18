@@ -321,7 +321,7 @@ export class AppFormsControl {
 			if (AppUtility.isArray(subConfig, true)) {
 				control.SubControls = {
 					AsArray: !!(subControls.AsArray || subControls.asarray),
-					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Name)).sort(AppUtility.compare("Order"))
+					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Name)).sort(AppUtility.getCompareFunction("Order"))
 				};
 				if (control.SubControls.Controls.length < 1) {
 					control.SubControls = undefined;
@@ -521,7 +521,7 @@ export class AppFormsService {
 			}
 			return control;
 		})
-		.sort(AppUtility.compare({ name: "segmentIndex", primer: undefined, reverse: false }, "Order"))
+		.sort(AppUtility.getCompareFunction("segmentIndex", "Order"))
 		.forEach((control, order) => {
 			control.Order = order;
 			controls.push(control);
@@ -954,12 +954,7 @@ export class AppFormsService {
 			message: message,
 			duration: duration < 1 ? 1000 : duration,
 			position: atBottom ? "bottom" : "top",
-			buttons: showCloseButton && AppUtility.isNotEmpty(closeButtonText)
-				? [{
-						text: closeButtonText,
-						role: "cancel"
-					}]
-				: []
+			buttons: showCloseButton && AppUtility.isNotEmpty(closeButtonText) ? [{ text: closeButtonText, role: "cancel" }] : []
 		});
 		await this._toast.present();
 	}

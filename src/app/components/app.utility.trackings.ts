@@ -14,7 +14,7 @@ export class TrackingUtility {
 		if (this._googleAnalytics === undefined && googleAnalytics !== undefined && AppConfig.tracking.google.length > 0) {
 			this._googleAnalytics = googleAnalytics;
 			AppConfig.tracking.google.forEach(googleID => {
-				promises.push(this._googleAnalytics.startTrackerWithId(googleID).then(
+				promises.push(this._googleAnalytics.startTrackerWithId(googleID, 15).then(
 					() => {
 						this._googleAnalytics.setAppVersion(AppConfig.app.version);
 						console.log(`[Tracking]: Google Analytics [${googleID}] is ready now...`);

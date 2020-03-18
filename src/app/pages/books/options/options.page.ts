@@ -22,7 +22,7 @@ export class BooksOptionsPage implements OnInit, OnDestroy {
 	}
 
 	title = "";
-	options: any = {};
+	options: { [key: string]: string };
 	form = new FormGroup({});
 	controls = new Array<AppFormsControl>();
 	config: Array<any>;

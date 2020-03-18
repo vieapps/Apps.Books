@@ -105,7 +105,7 @@ export class BooksUpdatePage implements OnInit {
 						AllowDelete: true,
 						Handlers: {
 							OnChanged: (event: any) => this.zone.run(() => {
-								const file: File = event.target.files.length > 0 ? event.target.files[0] : undefined;
+								const file: File = event.target.files !== undefined && event.target.files.length > 0 ? event.target.files[0] : undefined;
 								if (file !== undefined) {
 									this.filesSvc.readAsDataURL(
 										file,

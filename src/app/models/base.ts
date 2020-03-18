@@ -13,9 +13,10 @@ export abstract class Base {
 			if (AppUtility.isObject(data.Privileges, true)) {
 				this.Privileges = Privileges.deserialize(data.Privileges);
 			}
-			if (AppUtility.isNotNull(onCompleted)) {
+			if (onCompleted !== undefined) {
 				onCompleted(data);
 			}
 		});
 	}
+
 }

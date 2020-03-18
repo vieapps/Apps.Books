@@ -2,7 +2,6 @@ import { Dictionary } from "typescript-collections";
 import { AppUtility } from "../components/app.utility";
 import { Base as BaseModel } from "./base";
 import { RatingPoint } from "./ratingpoint";
-import { Privilege } from "../models/privileges";
 
 /** Base user profile */
 export class UserProfileBase extends BaseModel {
@@ -92,7 +91,8 @@ export class UserProfileBase extends BaseModel {
 /** Full user profile (with related information from main service) */
 export class UserProfile extends UserProfileBase {
 
-	constructor() {
+	constructor(
+	) {
 		super();
 	}
 

@@ -35,7 +35,7 @@ export class AppPagination {
 					let index = 0;
 					while (index < array.length) {
 						if (AppUtility.isNull(array[index])) {
-							array.splice(index, 1);
+							AppUtility.removeAt(array, index);
 						}
 						else {
 							index++;

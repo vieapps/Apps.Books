@@ -1,7 +1,7 @@
 declare var RSA: any;
 import * as CryptoJS from "crypto-js";
 
-/** Servicing component for woring with cryptography */
+/** Servicing component for working with cryptography */
 export class AppCrypto {
 
 	private static _aes = {

@@ -2,6 +2,7 @@ import { AppUtility } from "../components/app.utility";
 
 /** Contact information */
 export class ContactInfo {
+
 	Name = "";
 	Title = "";
 	Phone = "";

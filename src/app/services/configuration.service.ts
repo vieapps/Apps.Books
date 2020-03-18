@@ -106,7 +106,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets the color of the theme (dark or light) */
 	public get color() {
-		return this.appConfig.options.theme === "dark" ? "dark" : undefined;
+		return "dark" === this.appConfig.options.theme ? "dark" : undefined;
 	}
 
 	/** Gets the locale data for working with i18n globalization */

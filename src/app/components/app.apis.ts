@@ -18,7 +18,7 @@ export interface AppMessage {
 	Data: any;
 }
 
-/** Presents the struct of a request information */
+/** Presents the struct of a request */
 export interface AppRequestInfo {
 	ServiceName: string;
 	ObjectName?: string;
@@ -48,7 +48,7 @@ export class AppRTU {
 		errorCallbacks: {} as { [id: string]: (error?: any) => void }
 	};
 	private static _pingTime = new Date().getTime();
-	private static _attempt = -1;
+	private static _attempt = 0;
 
 	/** Gets the last time when got PING */
 	public static get pingTime() {
@@ -200,13 +200,14 @@ export class AppRTU {
 			this._serviceScopeSubject = new Subject<{ service: string, message: AppMessage }>();
 			this._serviceScopeSubject.subscribe(
 				({ service, message }) => {
-					const handlers = this.getServiceHandlers(service);
-					if (handlers.length > 0) {
-						handlers.forEach(handler => handler.func(message));
-					}
-					else if (AppConfig.isDebug) {
-						console.warn(`[AppRTU]: No suitable service scope handler is found (${service})`);
-					}
+					this.getServiceHandlers(service).forEach(handler => {
+						try {
+							handler.func(message);
+						}
+						catch (error) {
+							console.error("[AppRTU]: Error occurred while running a handler", error);
+						}
+					});
 				},
 				error => console.warn("[AppRTU]: Got an error", AppConfig.isNativeApp ? JSON.stringify(error) : error)
 			);
@@ -216,15 +217,16 @@ export class AppRTU {
 			this._objectScopeSubject = new Subject<{ service: string, object: string, message: AppMessage }>();
 			this._objectScopeSubject.subscribe(
 				({ service, object, message }) => {
-					const handlers = this.getObjectHandlers(service, object);
-					if (handlers.length > 0) {
-						handlers.forEach(handler => handler.func(message));
-					}
-					else if (AppConfig.isDebug) {
-						console.warn(`[AppRTU]: No suitable object scope handler is found (${service}#${object})`);
-					}
+					this.getObjectHandlers(service, object).forEach(handler => {
+						try {
+							handler.func(message);
+						}
+						catch (error) {
+							console.error("[AppRTU]: Error occurred while running a handler", error);
+						}
+					});
 				},
-				error => console.error("[AppRTU]: Got an error => " + AppUtility.getErrorMessage(error), error)
+				error => console.error(`[AppRTU]: Got an error => ${AppUtility.getErrorMessage(error)}`, error)
 			);
 		}
 
@@ -242,8 +244,8 @@ export class AppRTU {
 				try {
 					this._onOpen(event);
 				}
-				catch (e) {
-					console.error("[AppRTU]: Error occurred while running the 'on-open' handler", e);
+				catch (error) {
+					console.error("[AppRTU]: Error occurred while running the 'on-open' handler", error);
 				}
 			}
 			this._websocket.send(JSON.stringify({
@@ -270,8 +272,8 @@ export class AppRTU {
 				try {
 					this._onClose(event);
 				}
-				catch (e) {
-					console.error("[AppRTU]: Error occurred while running the 'on-close' handler", e);
+				catch (error) {
+					console.error("[AppRTU]: Error occurred while running the 'on-close' handler", error);
 				}
 			}
 			if (AppUtility.isNotEmpty(this._uri) && 1007 !== event.code) {
@@ -287,8 +289,8 @@ export class AppRTU {
 				try {
 					this._onError(event);
 				}
-				catch (e) {
-					console.error("[AppRTU]: Error occurred while running the 'on-error' handler", e);
+				catch (error) {
+					console.error("[AppRTU]: Error occurred while running the 'on-error' handler", error);
 				}
 			}
 		};
@@ -300,8 +302,8 @@ export class AppRTU {
 				try {
 					this._onMessage(event);
 				}
-				catch (e) {
-					console.error("[AppRTU]: Error occurred while running the 'on-message' handler", e);
+				catch (error) {
+					console.error("[AppRTU]: Error occurred while running the 'on-message' handler", error);
 				}
 			}
 
@@ -430,7 +432,7 @@ export class AppRTU {
 				this.start(() => {
 					if (this.isReady) {
 						console.log(`[AppRTU]: Re-started... #${this._attempt}`);
-						PlatformUtility.invoke(() => this._attempt = -1, 123);
+						PlatformUtility.invoke(() => this._attempt = 0, 123);
 					}
 				}, true);
 			}, defer || 123 + (this._attempt * 13));
@@ -495,16 +497,16 @@ export class AppRTU {
 	}
 
 	private static sendRequests(sendCallbackables: boolean, additionalRequest?: string) {
-		const requests = new Array<string>();
-		Object.keys(this._requests.nocallbackRequests).sort().forEach(id => requests.push(this._requests.nocallbackRequests[id]));
+		Object.keys(this._requests.nocallbackRequests).sort().forEach(id => this._websocket.send(this._requests.nocallbackRequests[id]));
 		this._requests.nocallbackRequests = {};
+
 		if (sendCallbackables) {
-			Object.keys(this._requests.callbackableRequests).sort().forEach(id => requests.push(this._requests.callbackableRequests[id]));
+			Object.keys(this._requests.callbackableRequests).sort().forEach(id => this._websocket.send(this._requests.callbackableRequests[id]));
 		}
+
 		if (AppUtility.isNotEmpty(additionalRequest)) {
-			requests.push(additionalRequest);
+			this._websocket.send(additionalRequest);
 		}
-		requests.forEach(request => this._websocket.send(request));
 	}
 
 }

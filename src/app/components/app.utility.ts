@@ -2,6 +2,15 @@ import { List } from "linqts";
 import { HttpErrorResponse } from "@angular/common/http";
 import { AppCrypto } from "./app.crypto";
 
+/** Decorator of an extension method */
+export function Extension(object: any) {
+	let originalFunction: Function;
+	return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+		originalFunction = descriptor.value;
+		object.prototype[propertyKey] = (...args) => originalFunction(this, ...args);
+	};
+}
+
 /** Servicing component for working with app */
 export class AppUtility {
 
@@ -56,6 +65,28 @@ export class AppUtility {
 		const atPos = this.isNotEmpty(email) ? email.indexOf("@") : -1;
 		const dotPos = this.isNotEmpty(email) ? email.indexOf(".", atPos + 1) : -1;
 		return atPos > 0 && dotPos > atPos;
+	}
+
+	/** Parses the error */
+	public static parseError(error: any) {
+		try {
+			return error instanceof HttpErrorResponse
+				? error.error
+				: "Error" === error.Type && error.Data !== undefined ? error.Data : error;
+		}
+		catch (e) {
+			return error;
+		}
+	}
+
+	/** Gets the error message */
+	public static getErrorMessage(error: any) {
+		error = this.parseError(error);
+		return this.isObject(error, true) && error.Type !== undefined && error.Message !== undefined
+			? `Error: ${error.Message}\nType: ${error.Type}\nCorrelation ID: ${error.CorrelationID}`
+			: error instanceof Error
+				? error.message
+				: `Unexpected error: ${error}`;
 	}
 
 	/** Checks the error to see that is security exception or not */
@@ -193,76 +224,83 @@ export class AppUtility {
 			: -1;
 	}
 
-	/** Removes an item from the sequence base on index */
-	public static removeAt<T>(items: Array<T>, index: number) {
-		if (index > -1 && index < items.length) {
-			items.splice(index, 1);
-		}
-	}
-
-	/** Insert an item into the sequence by the specific index */
-	public static insertAt<T>(items: Array<T>, item: T, index: number = -1) {
-		if (index > -1 && index < items.length) {
-			items.splice(index, 0, item);
-		}
-		else {
-			items.push(item);
-		}
-	}
-
-	/** Gets the default compare function for sorting a sequence */
-	private static defaultCompare(current: any, next: any): number {
-		return current === next
-			? 0
-			: current < next ? -1 : 1;
-	}
-
 	/** Gets the compare function for sorting a sequence */
-	private static getCompare(primer: (object: any) => any, reverse: boolean) {
-		let compare = this.defaultCompare;
-		if (primer) {
-			compare = (current: any, next: any) => this.defaultCompare(primer(current), primer(next));
-		}
-		return reverse
-			? (current: any, next: any) => -1 * compare(current, next)
-			: compare;
-	}
-
-	/** Gets the compare function for sorting a sequence */
-	public static compare(...sorts: Array<string | { name: string, primer: (object: any) => any, reverse: boolean }>) {
-		const sortBy = new Array<{ name: string, compare: (current: any, next: any) => number }>();
-
+	public static getCompareFunction(...sorts: Array<string | { name: string, reverse?: boolean, primer?: (object: any) => any }>) {
 		// preprocess sorting options
-		for (let index = 0; index < sorts.length; index++) {
-			const sort = sorts[index];
-			let name: string;
-			let compare: (current: any, next: any) => number;
-			if (typeof sort === "string") {
-				name = sort as string;
-				compare = this.defaultCompare;
-			}
-			else {
-				name = sort.name;
-				compare = this.getCompare(sort.primer, sort.reverse);
-			}
-			sortBy.push({
-				name: name,
-				compare: compare
-			});
-		}
+		const compareFn = (a: any, b: any): number => a === b ? 0 : a < b ? -1 : 1;
+		const sortBy = sorts.map(sort => {
+			return typeof sort === "string"
+				? { name: sort as string, compare: compareFn }
+				: { name: sort.name, compare: (a: any, b: any) => (sort.reverse ? -1 : 1) * (sort.primer !== undefined ? compareFn(sort.primer(a), sort.primer(b)) : compareFn(a, b)) };
+		});
 
 		// final comparison function
-		return (current: any, next: any) => {
+		return (a: any, b: any) => {
 			let result = 0;
 			for (let index = 0; index < sortBy.length; index++) {
 				const name = sortBy[index].name;
-				result = sortBy[index].compare(current[name], next[name]);
+				result = sortBy[index].compare(a[name], b[name]);
 				if (result !== 0) {
 					break;
 				}
 			}
 			return result;
 		};
+	}
+
+	/**
+	 * Removes an item from the sequence base on index
+	 * @param sequence The sequence for processing
+	 * @param index The zero-based index to remove
+	*/
+	public static removeAt<T>(sequence: Array<T>, index: number) {
+		if (index > -1 && index < sequence.length) {
+			sequence.splice(index, 1);
+		}
+		return sequence;
+	}
+
+	/**
+	 * Inserts an item into the sequence by the specific index
+	 * @param sequence The sequence for processing
+	 * @param item The item to insert into the sequence
+	 * @param index The zero-based index to insert
+	*/
+	public static insertAt<T>(sequence: Array<T>, item: T, index: number = -1) {
+		if (index > -1 && index < sequence.length) {
+			sequence.splice(index, 0, item);
+		}
+		else {
+			sequence.push(item);
+		}
+		return sequence;
+	}
+
+	/**
+	 * Filters and sorts the sequence by the specified conditions
+	 * @param sequence The sequence for processing
+	 * @param filter The callback function to filter the sequence
+	 * @param sort The callback function to sort the sequence
+	*/
+	public static filter<T>(sequence: Array<T>, filter: (value: T, index?: number, array?: Array<T>) => boolean, sort?: (a: any, b: any) => number) {
+		return filter !== undefined && sort !== undefined
+			? sequence.filter(filter).sort(sort)
+			: filter !== undefined
+				? sequence.filter(filter)
+				: sort !== undefined
+					? sequence.sort(sort)
+					: sequence;
+	}
+
+	/**
+	 * Converts, filters and sorts the sequence by the specified conditions
+	 * @param sequence The sequence for processing
+	 * @param converter The callback function to convert the sequence
+	 * @param filter The callback function to filter the sequence
+	 * @param sorter The callback function to sort the sequence
+	*/
+	public static convert<S, T>(sequence: Array<S>, converter: (value: S, index?: number, array?: Array<S>) => T, filter?: (value: T, index?: number, array?: Array<T>) => boolean, sorter?: (a: any, b: any) => number) {
+		return this.filter(sequence.map(converter), filter, sorter);
 	}
 
 	/** Gets the query of JSON */
@@ -291,33 +329,30 @@ export class AppUtility {
 		}
 	}
 
-	/** Gets the array of objects with random scoring number (for ordering) */
-	public static getTopScores(objects: Array<any>, take?: number, excluded?: string, dontAddRandomScore?: boolean, nameOfRandomScore?: string) {
-		dontAddRandomScore = dontAddRandomScore !== undefined
-			? dontAddRandomScore
-			: false;
-		nameOfRandomScore = nameOfRandomScore !== undefined
-			? nameOfRandomScore
-			: "Score";
+	/** Gets the sub-sequence the sequence that ordering by the random scoring number */
+	public static getTopScores(sequence: Array<any> | List<any>, take?: number, excluded?: string, dontAddRandomScore?: boolean, nameOfRandomScore?: string) {
+		dontAddRandomScore = dontAddRandomScore !== undefined ? dontAddRandomScore : false;
+		nameOfRandomScore = nameOfRandomScore !== undefined ? nameOfRandomScore : "Score";
 
-		let list = new List(objects);
+		let list = this.isArray(sequence)
+			? new List(sequence as Array<any>)
+			: sequence as List<any>;
+
 		if (excluded !== undefined) {
-			list = list.Where(o => excluded !== o.ID);
+			list = list.Where(element => excluded !== element["ID"]);
 		}
-		list = list.Select(o => {
-			const i = this.clone(o);
+
+		list = list.Select(element => this.clone(element, undefined, undefined, obj => {
 			if (this.isFalse(dontAddRandomScore)) {
-				i[nameOfRandomScore] = Math.random();
+				obj[nameOfRandomScore] = Math.random();
 			}
-			return i;
-		});
+		}));
+
 		if (this.isFalse(dontAddRandomScore)) {
-			list = list.OrderByDescending(o => o[nameOfRandomScore]);
+			list = list.OrderByDescending(element => element[nameOfRandomScore]);
 		}
-		if (take !== undefined) {
-			list = list.Take(take);
-		}
-		return list.ToArray();
+
+		return (take !== undefined && take > 0 ? list.Take(take) : list).ToArray();
 	}
 
 	/** Removes tags from the HTML content */
@@ -337,28 +372,6 @@ export class AppUtility {
 		return wellHtml !== ""
 			? wellHtml.replace(/\&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/\r/g, "").replace(/\n/g, "<br/>")
 			: "";
-	}
-
-	/** Parses the error */
-	public static parseError(error: any) {
-		try {
-			return error instanceof HttpErrorResponse
-				? error.error
-				: "Error" === error.Type && error.Data !== undefined ? error.Data : error;
-		}
-		catch (e) {
-			return error;
-		}
-	}
-
-	/** Gets the error message */
-	public static getErrorMessage(error: any) {
-		error = this.parseError(error);
-		return this.isObject(error, true) && error.Type !== undefined && error.Message !== undefined
-			? `Error: ${error.Message}\nType: ${error.Type}\nCorrelation ID: ${error.CorrelationID}`
-			: error instanceof Error
-				? error.message
-				: `Unexpected error: ${error}`;
 	}
 
 	/** Gets all the available characters (0 and A-Z) */

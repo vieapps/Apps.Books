@@ -26,10 +26,7 @@ export class UsersServicePrivilegesControl implements OnInit, OnDestroy {
 	form = new FormGroup({});
 	controls = new Array<AppFormsControl>();
 	config: Array<any>;
-	objects: Array<{
-		Name: string,
-		Role: string
-	}>;
+	objects: Array<{ Name: string, Role: string	}>;
 	subscription: Subscription;
 
 	ngOnInit() {
@@ -73,7 +70,7 @@ export class UsersServicePrivilegesControl implements OnInit, OnDestroy {
 			}
 		}] as Array<any>;
 
-		const objects = this.configSvc.appConfig.services.all.find(service => service.name === this.serviceName).objects || [];
+		const objects = (this.configSvc.appConfig.services.all.find(service => service.name === this.serviceName).objects || []).map(object => object.toLowerCase());
 		if (objects.length > 0) {
 			this.objects = objects.map(object => {
 				return {
@@ -83,7 +80,7 @@ export class UsersServicePrivilegesControl implements OnInit, OnDestroy {
 			});
 			const labels = {} as { [key: string]: string };
 			await Promise.all(objects.map(async object => {
-				const resID = `${this.serviceName}.objects.${object}`;
+				const resID = `${this.serviceName.toLowerCase()}.objects.${object}`;
 				const name = await this.configSvc.getResourceAsync(resID);
 				const label = await this.configSvc.getResourceAsync("users.privileges.object", { object: name !== resID ? name : object });
 				labels[object] = label;

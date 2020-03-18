@@ -179,8 +179,7 @@ export class UsersRegisterPage implements OnInit {
 		});
 
 		this.register.button.label = await this.configSvc.getResourceAsync("users.register.button");
-		this.title = await this.configSvc.getResourceAsync("users.register.title");
-		this.configSvc.appTitle = this.title;
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.register.title");
 		this.register.config = config;
 	}
 

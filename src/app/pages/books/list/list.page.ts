@@ -211,13 +211,13 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 				? await this.configSvc.getResourceAsync("books.list.title.category", { category: category })
 				: await this.configSvc.getResourceAsync("books.list.title.author", { author: author });
 
-		this.sorts.forEach(async sort => sort.label = await this.configSvc.getResourceAsync("books.list.sort.labels." + sort.value));
+		this.sorts.forEach(async sort => sort.label = await this.configSvc.getResourceAsync(`books.list.sort.labels.${sort.value}`));
 
 		this.uri = this.searching
 				? "/books/search"
 				: category !== undefined
-					? "/books/list-by-category/" + AppUtility.toANSI(category, true) + "?x-request="
-					: "/books/list-by-author/" + AppUtility.toANSI(author, true) + "?x-request=";
+					? `/books/list-by-category/${AppUtility.toANSI(category, true)}?x-request=`
+					: `/books/list-by-author/${AppUtility.toANSI(author, true)}?x-request=`;
 
 		if (!this.searching) {
 			if (category === undefined && author === undefined) {
@@ -236,7 +236,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	async initializeSearchbarAsync() {
-		this.searchCtrl.placeholder = await this.configSvc.getResourceAsync("books.list.searchbar." + (this.searching ? "search" : "filter"));
+		this.searchCtrl.placeholder = await this.configSvc.getResourceAsync(`books.list.searchbar.${(this.searching ? "search" : "filter")}`);
 		if (this.searching) {
 			PlatformUtility.focus(this.searchCtrl);
 		}

@@ -19,7 +19,14 @@ export class AppEvents {
 	private static initialize() {
 		if (this._subject === undefined) {
 			this._subject = new Subject<{ event: string, args: any }>();
-			this._subject.subscribe(({ event, args }) => this.getHandlers(event).forEach(handler => handler.func({ event: event, args: args || {} })));
+			this._subject.subscribe(({ event, args }) => this.getHandlers(event).forEach(handler => {
+				try {
+					handler.func({ event: event, args: args || {} });
+				}
+				catch (error) {
+					console.error("[AppEvents]: Error occurred while running a handler", error);
+				}
+			}));
 		}
 	}
 

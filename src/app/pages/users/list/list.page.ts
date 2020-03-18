@@ -95,7 +95,7 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	async initializeSearchbarAsync() {
-		this.searchCtrl.placeholder = await this.configSvc.getResourceAsync("users.list.searchbar." + (this.searching ? "search" : "filter"));
+		this.searchCtrl.placeholder = await this.configSvc.getResourceAsync(`users.list.searchbar.${(this.searching ? "search" : "filter")}`);
 		if (this.searching) {
 			PlatformUtility.focus(this.searchCtrl);
 		}
@@ -169,7 +169,7 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.usersSvc.name);
 			this.pagination.PageNumber = this.pageNumber;
 			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
-			await TrackingUtility.trackAsync(this.title + ` [${this.pageNumber}]`, this.configSvc.currentUrl);
+			await TrackingUtility.trackAsync(`${this.title} [${this.pageNumber}]`, this.configSvc.currentUrl);
 		};
 		if (this.searching) {
 			this.subscription = this.usersSvc.search(this.request, onNextAsync);

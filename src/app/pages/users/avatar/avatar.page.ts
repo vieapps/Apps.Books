@@ -112,7 +112,7 @@ export class UsersAvatarPage implements OnInit {
 			}),
 			error => {
 				this.processing = false;
-				console.error("Error occurred while updating profile with new avatar image => " + AppUtility.getErrorMessage(error), error);
+				console.error(`Error occurred while updating profile with new avatar image => ${AppUtility.getErrorMessage(error)}`, error);
 			}
 		);
 	}
@@ -131,7 +131,7 @@ export class UsersAvatarPage implements OnInit {
 					await this.updateProfileAsync();
 				},
 				error => {
-					console.error("Error occurred while uploading avatar image => " + AppUtility.getErrorMessage(error));
+					console.error(`Error occurred while uploading avatar image => ${AppUtility.getErrorMessage(error)}`);
 					this.processing = false;
 				}
 			);

@@ -141,7 +141,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 			async () => {
 				this.book = Book.instances.getValue(id);
 				if (this.book !== undefined) {
-					this.title = this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
+					this.title = this.configSvc.appTitle = `${this.book.Title} - ${this.book.Author}`;
 					await this.prepareAsync();
 				}
 				else {
@@ -289,7 +289,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 	}
 
 	openAuthorAsync() {
-		return this.configSvc.navigateForwardAsync("/books/list-by-author/" + AppUtility.toANSI(this.book.Author, true) + "?x-request=" + AppUtility.toBase64Url({ Author: this.book.Author }));
+		return this.configSvc.navigateForwardAsync(`/books/list-by-author/${AppUtility.toANSI(this.book.Author, true)}?x-request=${AppUtility.toBase64Url({ Author: this.book.Author })}`);
 	}
 
 	openInfoAsync() {

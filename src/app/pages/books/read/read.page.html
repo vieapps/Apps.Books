@@ -114,7 +114,7 @@
 				</label>
 			</div>
 		</div>
-		<div *ngIf="chapter === 0 && book.Body !== ''" class="body {{options.style}}" [innerHTML]="book.Body"></div>
-		<div *ngIf="chapter > 0" class="body {{options.style}}" [innerHTML]="book.Chapters[chapter - 1]"></div>
+		<div *ngIf="chapter === 0 && book.Body !== ''" class="body {{ options.style }}" [innerHTML]="book.Body"></div>
+		<div *ngIf="chapter > 0" class="body {{ options.style }}" [innerHTML]="book.Chapters[chapter - 1]"></div>
 	</div>
 </ion-content>

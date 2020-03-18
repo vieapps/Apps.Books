@@ -58,7 +58,7 @@
 						<ion-icon name="at" slot="start" [color]="profile.IsOnline ? 'primary' : 'medium'"></ion-icon>
 						{{ profile.Email }}
 					</span>
-					<span *ngIf="profile.Mobile != ''">
+					<span *ngIf="profile.Mobile !== ''">
 						<ion-icon name="call" slot="start"></ion-icon>
 						{{ profile.Mobile }}
 					</span>

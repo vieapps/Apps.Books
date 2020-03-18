@@ -60,7 +60,7 @@ export class TimePipe implements PipeTransform, OnDestroy {
 
 	private timer: Subscription;
 
-	ngOnDestroy() {
+	public ngOnDestroy() {
 		this.removeTimer();
 	}
 
@@ -85,7 +85,7 @@ export class TimePipe implements PipeTransform, OnDestroy {
 		}
 	}
 
-	transform(value: string | number | Date, locale?: string, format?: string) {
+	public transform(value: string | number | Date, locale?: string, format?: string) {
 		locale = (locale || "en_US").trim().substr(0, 2).toLowerCase();
 
 		let suffixes = TimePipe.Suffixes[locale];

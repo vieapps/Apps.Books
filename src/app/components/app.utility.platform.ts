@@ -146,7 +146,7 @@ export class PlatformUtility {
 		}
 	}
 
-	/** Parses an uri */
+	/** Parses an URI */
 	public static parseURI(uri?: string) {
 		uri = uri || (window && window.location ? window.location.href : "scheme://service.as.host/path?query=#?hash=");
 
@@ -239,7 +239,7 @@ export class PlatformUtility {
 	/** Gets the URI for navigating */
 	public static getURI(path: string, queryParams?: { [key: string]: any }) {
 		const query = AppUtility.getQueryOfJson(queryParams);
-		return path + (query !== "" ? "?" + query : "");
+		return path + (query !== "" ? (path.indexOf("?") > 0 ? "&" : "?") + query : "");
 	}
 
 	/** Gets the redirect URI for working with external */

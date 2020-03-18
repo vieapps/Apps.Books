@@ -27,7 +27,7 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.5.2",
+		version: "1.6.0",
 		copyright: "© 2016 - 2020 VIEApps.net",
 		license: "Apache-2.0",
 		frameworks: "ionic 5.0 - angular 8.2 - cordova 9.0",
@@ -68,11 +68,11 @@ export class AppConfig {
 
 	/** Services in the app */
 	public static services = {
-		active: "books",
+		active: "Books",
 		all: [
 			{
-				name: "books",
-				objects: ["book", "category", "statistic"]
+				name: "Books",
+				objects: ["Book", "Category", "Statistic"]
 			}
 		] as Array<{ name: string, objects: Array<string> }>
 	};
@@ -126,10 +126,7 @@ export class AppConfig {
 
 	/** Information for working with url (stack, host, ...) */
 	public static url = {
-		stack: new Array<{
-			url: string,
-			params: { [key: string]: any }
-		}>(),
+		stack: new Array<{ url: string, params: { [key: string]: any } }>(),
 		home: "/home",
 		base: undefined as string,
 		host: undefined as string,

@@ -20,7 +20,7 @@
 					{{ status }}
 				</span>
 			</ion-label>
-			<ion-button *ngIf="!required && provision.uri === ''" fill="solid" color="primary" (click)="provisonAsync()" class="ion-item-right">
+			<ion-button *ngIf="!required && provision.uri === ''" fill="solid" color="primary" class="ion-item-right" (click)="provisonAsync()">
 				<ion-icon name="power" slot="start"></ion-icon>
 				{{ resources.buttons.on }}
 			</ion-button>
@@ -59,13 +59,13 @@
 			<ion-label position="stacked">
 				{{ resources.qrcode.control }}
 			</ion-label>
-			<ion-input minlength="5" maxlength="10" [(ngModel)]="provision.value" required></ion-input>
+			<ion-input required minlength="5" maxlength="10" [(ngModel)]="provision.value"></ion-input>
 		</ion-item>
 		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color" [class.invalid]="!password">
 			<ion-label position="stacked">
 				{{ resources.password.label }}
 			</ion-label>
-			<ion-input [type]="resources.password.show ? 'text' : 'password'" maxlength="150" [(ngModel)]="password" required></ion-input>
+			<ion-input required [type]="resources.password.show ? 'text' : 'password'" maxlength="150" [(ngModel)]="password"></ion-input>
 			<ion-button fill="clear" color="medium" slot="end" tabindex="-1" (click)="resources.password.show = !resources.password.show">
 				<ion-icon name="eye" slot="icon-only" [hidden]="!resources.password.show"></ion-icon>
 				<ion-icon name="eye-off" slot="icon-only" [hidden]="resources.password.show"></ion-icon>

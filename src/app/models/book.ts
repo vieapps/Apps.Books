@@ -9,7 +9,6 @@ export class Book extends BaseModel {
 	constructor() {
 		super();
 		delete this["Privileges"];
-		this.Language = "vi";
 	}
 
 	/** All instances of book */
@@ -23,7 +22,7 @@ export class Book extends BaseModel {
 	Original = "";
 	Publisher = "";
 	Producer = "";
-	Language = "";
+	Language = "vi";
 	Status = "";
 	Cover = "";
 	Tags = "";
