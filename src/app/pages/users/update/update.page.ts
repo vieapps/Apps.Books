@@ -50,7 +50,7 @@ export class UsersUpdatePage implements OnInit {
 		config: undefined as Array<any>,
 		hash: undefined as string,
 		language: this.configSvc.appConfig.language,
-		darkTheme: this.configSvc.color === "dark"
+		darkTheme: "dark" === this.configSvc.color
 	};
 	password = {
 		form: new FormGroup({}, [this.appFormsSvc.areEquals("Password", "ConfirmPassword")]),
@@ -76,7 +76,7 @@ export class UsersUpdatePage implements OnInit {
 	onFormInitialized($event: any) {
 		if (this.update.config === $event.config) {
 			this.update.form.patchValue(this.profile);
-			this.update.form.controls["DarkTheme"].setValue(this.update.darkTheme);
+			this.update.form.controls.DarkTheme.setValue(this.update.darkTheme);
 			this.update.hash = AppCrypto.hash(this.update.form.value);
 		}
 		else {
@@ -152,7 +152,7 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async openUpdateProfileAsync() {
-		const config = [
+		const config: Array<any> = [
 			{
 				Name: "ID",
 				Hidden: true
@@ -251,7 +251,7 @@ export class UsersUpdatePage implements OnInit {
 					Type: "toggle"
 				}
 			}
-		] as Array<any>;
+		];
 
 		config.forEach(options => {
 			if (!options.Required && this.configSvc.appConfig.accountRegistrations.required.findIndex(value => value === options.Name) > -1) {
@@ -260,9 +260,8 @@ export class UsersUpdatePage implements OnInit {
 		});
 
 		this.update.language = this.profile.Language;
-		this.update.darkTheme = this.configSvc.color === "dark";
-		this.title = await this.configSvc.getResourceAsync("users.profile.update.title");
-		this.configSvc.appTitle = this.title;
+		this.update.darkTheme = "dark" === this.configSvc.color;
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.profile.update.title");
 		await this.prepareButtonsAsync();
 		this.update.config = config;
 	}
@@ -304,7 +303,7 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async openUpdatePasswordAsync() {
-		const config = [
+		const config: Array<any> = [
 			{
 				Name: "OldPassword",
 				Required: true,
@@ -338,8 +337,7 @@ export class UsersUpdatePage implements OnInit {
 				}
 			},
 		];
-		this.title = await this.configSvc.getResourceAsync("users.profile.password.title");
-		this.configSvc.appTitle = this.title;
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.profile.password.title");
 		await this.prepareButtonsAsync();
 		this.password.config = config;
 	}
@@ -363,7 +361,7 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async openUpdateEmailAsync() {
-		const config = [
+		const config: Array<any> = [
 			{
 				Name: "OldPassword",
 				Required: true,
@@ -397,8 +395,7 @@ export class UsersUpdatePage implements OnInit {
 				}
 			},
 		];
-		this.title = await this.configSvc.getResourceAsync("users.profile.email.title");
-		this.configSvc.appTitle = this.title;
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.profile.email.title");
 		await this.prepareButtonsAsync();
 		this.email.config = config;
 	}
@@ -468,7 +465,7 @@ export class UsersUpdatePage implements OnInit {
 			if (preProcess !== undefined) {
 				preProcess();
 			}
-			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.users.profile) ? this.configSvc.appConfig.url.users.profile + "/my" : undefined);
+			await this.configSvc.navigateBackAsync(!this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.users.profile) ? `${this.configSvc.appConfig.url.users.profile}/my` : undefined);
 		}));
 	}
 

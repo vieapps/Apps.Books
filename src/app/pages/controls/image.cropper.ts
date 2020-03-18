@@ -41,7 +41,7 @@ export class ImageCropperControl implements OnInit {
 		}
 	};
 
-	@ViewChild(HtmlImageCropper, { static: false }) private htmlImageCropper: HtmlImageCropper;
+	@ViewChild(HtmlImageCropper, { static: false }) htmlImageCropper: HtmlImageCropper;
 
 	/*** Gets the data of image cropper */
 	get data() {
