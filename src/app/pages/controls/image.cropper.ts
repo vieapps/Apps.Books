@@ -14,10 +14,10 @@ import { FilesService } from "../../services/files.service";
 export class ImageCropperControl implements OnInit {
 
 	constructor (
-		private nativeImageCropper: NativeImageCropper,
-		private appFormsSvc: AppFormsService,
-		private configSvc: ConfigurationService,
-		private filesSvc: FilesService
+		public nativeImageCropper: NativeImageCropper,
+		public appFormsSvc: AppFormsService,
+		public configSvc: ConfigurationService,
+		public filesSvc: FilesService
 	) {
 	}
 
@@ -33,7 +33,7 @@ export class ImageCropperControl implements OnInit {
 		limitExceedMessage?: string;
 	};
 
-	private htmlCropper = {
+	htmlCropper = {
 		settings: new HtmlImageCropperSettings(),
 		data: {
 			image: "",
@@ -60,7 +60,7 @@ export class ImageCropperControl implements OnInit {
 		this.htmlCropper.settings.noFileInput = true;
 	}
 
-	private prepareImage($event: any) {
+	prepareImage($event: any) {
 		const file: File = $event.target.files.length > 0 ? $event.target.files[0] : undefined;
 		if (file !== undefined && file.type.startsWith("image/")) {
 			if (this.configSvc.isNativeApp) {
