@@ -126,7 +126,7 @@ export class UsersProfilePage implements OnInit {
 
 			else if (this.authSvc.canSetServicePrivileges) {
 				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", () => this.zone.run(async () => await this.openUpdateAsync("privileges"))));
-				this.usersSvc.getPrivilegesAsync(this.profile.ID);
+				this.usersSvc.getServicePrivilegesAsync(this.profile.ID);
 			}
 
 			if (this.id === undefined || this.id === this.configSvc.getAccount().id) {

@@ -445,7 +445,7 @@ export class UsersUpdatePage implements OnInit {
 	async updateServicePrivilegesAsync() {
 		if (this._privileges.hash !== AppCrypto.hash(this._privileges.privileges)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
-			await this.usersSvc.updatePrivilegesAsync(
+			await this.usersSvc.updateServicePrivilegesAsync(
 				this.profile.ID,
 				this._privileges.privileges,
 				async () => await Promise.all([

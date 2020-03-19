@@ -260,7 +260,7 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public getPrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public getServicePrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return Account.instances.containsKey(id)
 			? new Promise<void>(onNext !== undefined ? () => onNext() : () => {})
 			: super.readAsync(
@@ -275,7 +275,7 @@ export class UsersService extends BaseService {
 				);
 	}
 
-	public updatePrivilegesAsync(id: string, privileges: { [key: string]: Array<Privilege> }, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public updateServicePrivilegesAsync(id: string, privileges: { [key: string]: Array<Privilege> }, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return super.updateAsync(
 			super.getURI("account", id, this.configSvc.relatedQuery),
 			{
