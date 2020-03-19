@@ -74,7 +74,7 @@ export class HomePage implements OnInit, OnDestroy {
 	}
 
 	private trackAsync(section?: string) {
-		return TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.home + "/" + (section || "initialize"));
+		return TrackingUtility.trackAsync(this.title, `${this.configSvc.appConfig.url.home}/${(section || "initialize")}`);
 	}
 
 }
