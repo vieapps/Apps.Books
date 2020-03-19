@@ -90,7 +90,7 @@ export class Book extends BaseModel {
 	}
 
 	public getRouterURI(params?: { [key: string]: any }) {
-		return this.routerLink + "?x-request=" + (params !== undefined ? AppUtility.toBase64Url(params) : this.routerParams["x-request"]);
+		return `${this.routerLink}?x-request=${(params !== undefined ? AppUtility.toBase64Url(params) : this.routerParams["x-request"])}`;
 	}
 }
 
@@ -107,4 +107,5 @@ export class Bookmark {
 		AppUtility.copy(json, bookmark);
 		return bookmark;
 	}
+
 }

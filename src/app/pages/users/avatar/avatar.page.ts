@@ -7,7 +7,7 @@ import { ConfigurationService } from "../../../services/configuration.service";
 import { UsersService } from "../../../services/users.service";
 import { FilesService } from "../../../services/files.service";
 import { UserProfile } from "../../../models/user";
-import { ImageCropperControl } from "../../controls/image.cropper";
+import { ImageCropperControl } from "../../../controls/common/image.cropper";
 
 @Component({
 	selector: "page-users-avatar",
@@ -66,7 +66,7 @@ export class UsersAvatarPage implements OnInit {
 			},
 			async () => await this.configSvc.storeSessionAsync(async () => {
 				AppEvents.broadcast("Profile", { Type: "Updated" });
-				await TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/update/avatar");
+				await TrackingUtility.trackAsync(`${this.title} [${this.profile.Name}]`, "users/update/avatar");
 				await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.avatar.message")));
 			}),
 			error => {

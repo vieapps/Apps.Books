@@ -124,7 +124,7 @@ export class UsersProfilePage implements OnInit {
 				].forEach(action => this.actions.push(action));
 			}
 
-			else if (this.authSvc.canSetPrivileges) {
+			else if (this.authSvc.canSetServicePrivileges) {
 				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", () => this.zone.run(async () => await this.openUpdateAsync("privileges"))));
 				this.usersSvc.getPrivilegesAsync(this.profile.ID);
 			}
@@ -198,7 +198,7 @@ export class UsersProfilePage implements OnInit {
 		await this.setModeAsync("invitation", await this.configSvc.getResourceAsync("users.profile.invitation.title"));
 	}
 
-	onPrivilegesChanged($event: any) {
+	onServicePrivilegesChanged($event: any) {
 		this.invitation.privileges = $event.privileges;
 		this.invitation.relatedInfo = $event.relatedInfo;
 	}

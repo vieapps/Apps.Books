@@ -1,12 +1,12 @@
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { IonList, IonItemSliding } from "@ionic/angular";
-import { AppEvents } from "../../../components/app.events";
-import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { BooksService } from "../../../services/books.service";
-import { UserProfile } from "../../../models/user";
-import { Book, Bookmark } from "../../../models/book";
+import { AppEvents } from "../../components/app.events";
+import { AppFormsService } from "../../components/forms.service";
+import { ConfigurationService } from "../../services/configuration.service";
+import { BooksService } from "../../services/books.service";
+import { UserProfile } from "../../models/user";
+import { Book, Bookmark } from "../../models/book";
 
 @Component({
 	selector: "control-book-bookmarks",

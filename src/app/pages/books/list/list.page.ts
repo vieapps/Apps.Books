@@ -133,7 +133,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 
 	ngOnDestroy() {
 		this.routerSubscription.unsubscribe();
-		this.cancel(true);
+		this.cancelSearch(true);
 		if (!this.searching) {
 			AppEvents.off("Session", `AccountEventHandlers${this.eventIdentity}`);
 			AppEvents.off("Books", `BookEventHandlers${this.eventIdentity}`);
@@ -243,7 +243,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	onStartSearch($event: any) {
-		this.cancel();
+		this.cancelSearch();
 		if (AppUtility.isNotEmpty($event.detail.value)) {
 			this.filterBy.Query = $event.detail.value;
 			if (this.searching) {
@@ -260,7 +260,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	onCancelSearch(back?: boolean) {
-		this.cancel();
+		this.cancelSearch();
 		this.filterBy.Query = undefined;
 		if (this.searching) {
 			this.books = [];
@@ -303,7 +303,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	cancel(dontDisableInfiniteScroll?: boolean) {
+	cancelSearch(dontDisableInfiniteScroll?: boolean) {
 		if (this.searchSubscription !== undefined) {
 			this.searchSubscription.unsubscribe();
 			this.searchSubscription = undefined;

@@ -1,7 +1,7 @@
 import { Component, Input } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { Book } from "../../../models/book";
+import { ConfigurationService } from "../../services/configuration.service";
+import { Book } from "../../models/book";
 
 @Component({
 	selector: "control-book-linear-item",

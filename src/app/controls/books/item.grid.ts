@@ -1,6 +1,6 @@
 import { Component, Input } from "@angular/core";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { Book } from "../../../models/book";
+import { ConfigurationService } from "../../services/configuration.service";
+import { Book } from "../../models/book";
 
 @Component({
 	selector: "control-book-grid-item",

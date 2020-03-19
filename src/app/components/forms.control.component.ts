@@ -523,7 +523,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	trackControl(index: number, control: AppFormsControl) {
-		return control.Name;
+		return `${control.Name}@${index}`;
 	}
 
 }

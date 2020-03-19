@@ -1,14 +1,14 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { IonicModule } from "@ionic/angular";
-import { ImageCropperControlModule } from "../../controls/image.cropper.module";
+import { CommonControlsModule } from "../../../controls/common.controls.module";
 import { UsersAvatarPage } from "./avatar.page";
 
 @NgModule({
 	imports: [
 		CommonModule,
 		IonicModule,
-		ImageCropperControlModule
+		CommonControlsModule
 	],
 	exports: [],
 	providers: [],

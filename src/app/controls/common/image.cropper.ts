@@ -21,6 +21,7 @@ export class ImageCropperControl implements OnInit {
 	) {
 	}
 
+	/** Settings of the image cropper */
 	@Input() settings: {
 		currentImage?: string;
 		selectorWidth?: number;
@@ -33,15 +34,17 @@ export class ImageCropperControl implements OnInit {
 		limitExceedMessage?: string;
 	};
 
-	htmlCropper = {
-		settings: new HtmlImageCropperSettings(),
+	htmlCropper: {
 		data: {
-			image: "",
-			original: undefined
-		}
+			/** Gets the cropped image */
+			image: string;
+			/** Gets the original image */
+			original: any
+		};
+		settings: HtmlImageCropperSettings;
 	};
 
-	@ViewChild(HtmlImageCropper, { static: false }) htmlImageCropper: HtmlImageCropper;
+	@ViewChild(HtmlImageCropper, { static: false }) private htmlImageCropper: HtmlImageCropper;
 
 	/*** Gets the data of image cropper */
 	get data() {
@@ -50,14 +53,27 @@ export class ImageCropperControl implements OnInit {
 
 	ngOnInit() {
 		this.settings = this.settings || {};
-		this.htmlCropper.data.image = this.settings.currentImage;
-		this.htmlCropper.settings.width = this.settings.selectorWidth || 100;
-		this.htmlCropper.settings.height = this.settings.selectorHeight || 100;
-		this.htmlCropper.settings.croppedWidth = this.settings.croppedWidth || 300;
-		this.htmlCropper.settings.croppedHeight = this.settings.croppedHeight || 300;
-		this.htmlCropper.settings.canvasWidth = this.settings.canvasWidth || 242;
-		this.htmlCropper.settings.canvasHeight = this.settings.canvasHeight || 242;
-		this.htmlCropper.settings.noFileInput = true;
+
+		if (this.configSvc.isNativeApp) {
+		}
+		else {
+			const htmlCropperSettings = new HtmlImageCropperSettings();
+			htmlCropperSettings.width = this.settings.selectorWidth || 100;
+			htmlCropperSettings.height = this.settings.selectorHeight || 100;
+			htmlCropperSettings.croppedWidth = this.settings.croppedWidth || 300;
+			htmlCropperSettings.croppedHeight = this.settings.croppedHeight || 300;
+			htmlCropperSettings.canvasWidth = this.settings.canvasWidth || 242;
+			htmlCropperSettings.canvasHeight = this.settings.canvasHeight || 242;
+			htmlCropperSettings.noFileInput = true;
+
+			this.htmlCropper = {
+				data: {
+					image: this.settings.currentImage,
+					original: undefined
+				},
+				settings: htmlCropperSettings
+			};
+		}
 	}
 
 	prepareImage($event: any) {

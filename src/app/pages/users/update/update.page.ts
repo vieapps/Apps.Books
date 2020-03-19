@@ -109,7 +109,7 @@ export class UsersUpdatePage implements OnInit {
 			this.buttons.ok.handler = async () => await this.updateEmailAsync();
 		}
 		else if (this.mode === "privileges") {
-			this.buttons.ok.handler = async () => await this.updatePrivilegesAsync();
+			this.buttons.ok.handler = async () => await this.updateServicePrivilegesAsync();
 		}
 		else {
 			this.buttons.cancel = undefined;
@@ -139,7 +139,7 @@ export class UsersUpdatePage implements OnInit {
 							await this.openUpdateEmailAsync();
 							break;
 						case "privileges":
-							await this.openUpdatePrivilegesAsync();
+							await this.openUpdateServicePrivilegesAsync();
 							break;
 						default:
 							await this.openUpdateProfileAsync();
@@ -418,7 +418,7 @@ export class UsersUpdatePage implements OnInit {
 		}
 	}
 
-	async openUpdatePrivilegesAsync() {
+	async openUpdateServicePrivilegesAsync() {
 		this.title = await this.configSvc.getResourceAsync("users.profile.privileges.title") + ` [${this.profile.Name}]`;
 		this.configSvc.appTitle = this.title;
 		await this.prepareButtonsAsync();
@@ -430,19 +430,19 @@ export class UsersUpdatePage implements OnInit {
 		this._privileges.hash = AppCrypto.hash(this._privileges.privileges);
 	}
 
-	onPrivilegesChanged($event: any) {
+	onServicePrivilegesChanged($event: any) {
 		this._privileges.privileges[$event.service] = $event.privileges as Array<Privilege>;
 	}
 
-	trackPrivileges(index: number, service: string) {
+	trackServicePrivileges(index: number, service: string) {
 		return `${service}@${index}`;
 	}
 
-	getPrivileges(service: string) {
+	getServicePrivileges(service: string) {
 		return Account.instances.getValue(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === service);
 	}
 
-	async updatePrivilegesAsync() {
+	async updateServicePrivilegesAsync() {
 		if (this._privileges.hash !== AppCrypto.hash(this._privileges.privileges)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.usersSvc.updatePrivilegesAsync(

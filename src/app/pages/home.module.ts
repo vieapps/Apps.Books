@@ -2,10 +2,11 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
-import { BookControlsModule } from "./books/controls.module";
+import { BookControlsModule } from "../controls/books.controls.module";
 import { HomePage } from "./home.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -13,7 +14,6 @@ import { HomePage } from "./home.page";
 		RouterModule.forChild([{ path: "", component: HomePage }])
 	],
 	exports: [],
-	providers: [],
 	declarations: [HomePage]
 })
 

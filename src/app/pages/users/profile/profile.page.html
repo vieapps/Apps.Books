@@ -88,9 +88,9 @@
 			[config]="invitation.config"
 			[controls]="invitation.controls"
 			(initEvent)="onFormInitialized($event)"></app-form>
-		<control-user-service-privileges *ngIf="authSvc.canSetPrivileges"
+		<control-service-privileges *ngIf="authSvc.canSetServicePrivileges"
 			[serviceName]="configSvc.appConfig.services.active"
-			(changesEvent)="onPrivilegesChanged($event)"></control-user-service-privileges>
+			(changesEvent)="onServicePrivilegesChanged($event)"></control-service-privileges>
 	</div>
 
 </ion-content>

@@ -4,7 +4,6 @@ import { RouterModule, Routes } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "../../services/base.service";
 
-import { UserControlsModule } from "./controls.module";
 import { UsersAvatarPageModule } from "./avatar/avatar.module";
 import { UsersListPageModule } from "./list/list.module";
 import { UsersLogInPageModule } from "./login/login.module";
@@ -61,7 +60,6 @@ export const routes: Routes = [
 	imports: [
 		CommonModule,
 		IonicModule,
-		UserControlsModule,
 		UsersAvatarPageModule,
 		UsersListPageModule,
 		UsersLogInPageModule,

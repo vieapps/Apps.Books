@@ -4,7 +4,7 @@ import { RouterModule, Routes } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AuthenticatedGuardService } from "../../services/base.service";
 
-import { BookControlsModule } from "./controls.module";
+import { BookControlsModule } from "../../controls/books.controls.module";
 import { BooksInfoPageModule } from "./info/info.module";
 import { BooksListPageModule } from "./list/list.module";
 import { BooksOptionsPageModule } from "./options/options.module";

@@ -42,10 +42,10 @@
 		(initEvent)="onFormInitialized($event)"></app-form>
 
 	<div *ngIf="mode === 'privileges' && services">
-		<control-user-service-privileges *ngFor="let service of services; let idx=index; trackBy: trackPrivileges"
+		<control-service-privileges *ngFor="let service of services; let idx=index; trackBy: trackServicePrivileges"
 			[serviceName]="service"
-			[privileges]="getPrivileges(service)"
-			(changesEvent)="onPrivilegesChanged($event)"></control-user-service-privileges>
+			[privileges]="getServicePrivileges(service)"
+			(changesEvent)="onServicePrivilegesChanged($event)"></control-service-privileges>
 	</div>
 
 </ion-content>

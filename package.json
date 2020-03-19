@@ -1,6 +1,6 @@
 {
 	"name": "net.vieapps.books",
-	"version": "1.6.0",
+	"version": "1.6.1",
 	"author": "VIEApps.net",
 	"homepage": "https://vieapps.net/",
 	"description": "Online books from VIEApps.net",
@@ -86,10 +86,10 @@
 		"@ionic/angular-toolkit": "^2.2.0",
 		"@ionic/lab": "^3.1.2",
 		"@types/crypto-js": "^3.1.43",
-		"@types/node": "^13.9.1",
+		"@types/node": "^13.9.2",
 		"codelyzer": "^5.2.1",
 		"protractor": "^5.4.3",
-		"ts-node": "^8.6.2",
+		"ts-node": "^8.7.0",
 		"tslint": "^6.1.0",
 		"typescript": "3.5.3"
 	},

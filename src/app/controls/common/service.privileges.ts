@@ -1,17 +1,17 @@
 import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { AppFormsControl } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { Privilege } from "../../../models/privileges";
+import { AppFormsControl } from "../../components/forms.service";
+import { ConfigurationService } from "../../services/configuration.service";
+import { Privilege } from "../../models/privileges";
 
 @Component({
-	selector: "control-user-service-privileges",
+	selector: "control-service-privileges",
 	templateUrl: "./service.privileges.html",
 	styleUrls: ["./service.privileges.scss"]
 })
 
-export class UsersServicePrivilegesControl implements OnInit, OnDestroy {
+export class ServicePrivilegesControl implements OnInit, OnDestroy {
 
 	constructor (
 		public configSvc: ConfigurationService
@@ -55,7 +55,7 @@ export class UsersServicePrivilegesControl implements OnInit, OnDestroy {
 		});
 		roles.forEach(async role => role.Label = await this.configSvc.getResourceAsync(`users.roles.${role.Value}`));
 
-		const resourceID = `${this.serviceName}.name`;
+		const resourceID = `${this.serviceName.toLowerCase()}.name`;
 		let serviceLabel = await this.configSvc.getResourceAsync(resourceID);
 		serviceLabel = await this.configSvc.getResourceAsync("users.privileges.role", { service: serviceLabel !== resourceID ? serviceLabel : this.serviceName });
 

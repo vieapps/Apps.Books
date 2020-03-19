@@ -1,11 +1,11 @@
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, OnChanges, Input } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { AppUtility } from "../../../components/app.utility";
-import { AppEvents } from "../../../components/app.events";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { BooksService } from "../../../services/books.service";
-import { Book } from "../../../models/book";
+import { AppUtility } from "../../components/app.utility";
+import { AppEvents } from "../../components/app.events";
+import { ConfigurationService } from "../../services/configuration.service";
+import { BooksService } from "../../services/books.service";
+import { Book } from "../../models/book";
 
 @Component({
 	selector: "control-book-home-screen",

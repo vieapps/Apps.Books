@@ -141,9 +141,9 @@ export class AuthenticationService extends BaseService {
 		return this.canDo(this.configSvc.appConfig.accountRegistrations.sendInvitationRole);
 	}
 
-	/** Checks to see the user can set privileges or not */
-	public get canSetPrivileges() {
-		return this.canDo(this.configSvc.appConfig.accountRegistrations.setPrivilegsRole);
+	/** Checks to see the user can set privileges of current service or not */
+	public get canSetServicePrivileges() {
+		return this.canDo(this.configSvc.appConfig.accountRegistrations.setServicePrivilegsRole);
 	}
 
 	public logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
