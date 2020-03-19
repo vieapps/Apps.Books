@@ -6,6 +6,7 @@ import { TimePipeModule } from "../../../components/time.pipe";
 import { UsersListPage } from "./list.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -13,7 +14,6 @@ import { UsersListPage } from "./list.page";
 		TimePipeModule
 	],
 	exports: [],
-	providers: [],
 	declarations: [UsersListPage]
 })
 

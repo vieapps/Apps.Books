@@ -7,6 +7,7 @@ import { TimePipeModule } from "../../../components/time.pipe";
 import { UsersOtpPage } from "./otp.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		FormsModule,

@@ -5,13 +5,13 @@ import { IonicModule } from "@ionic/angular";
 import { BooksReadPage } from "./read.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
 		RouterModule.forChild([{ path: "", component: BooksReadPage }])
 	],
 	exports: [],
-	providers: [],
 	declarations: [BooksReadPage]
 })
 

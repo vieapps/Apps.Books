@@ -34,7 +34,7 @@ export class Account {
 		AppUtility.copy(json, account, data => {
 			account.privileges = AppUtility.isArray(json.privileges, true)
 				? (json.privileges as Array<any>).map(o => Privilege.deserialize(o))
-				: [];
+				: new Array<Privilege>();
 			account.profile = data.profile !== undefined
 				? UserProfile.deserialize(data.profile)
 				: undefined;
@@ -67,7 +67,7 @@ export class Account {
 		if (privilege === undefined && objectName !== "") {
 			privilege = privileges.find(p => p.ServiceName === serviceName && p.ObjectName === "" && p.ObjectIdentity === "");
 		}
-		return privilege != null
+		return privilege !== undefined
 			? privilege.Role === role
 			: false;
 	}

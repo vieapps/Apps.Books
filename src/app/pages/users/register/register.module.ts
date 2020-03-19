@@ -6,6 +6,7 @@ import { AppFormsModule } from "../../../components/forms.module";
 import { UsersRegisterPage } from "./register.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -13,7 +14,6 @@ import { UsersRegisterPage } from "./register.page";
 		RouterModule.forChild([{ path: "", component: UsersRegisterPage }])
 	],
 	exports: [],
-	providers: [],
 	declarations: [UsersRegisterPage]
 })
 

@@ -10,6 +10,7 @@ import { UsersAvatarPageModule } from "../avatar/avatar.module";
 import { UsersProfilePage } from "./profile.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -21,7 +22,6 @@ import { UsersProfilePage } from "./profile.page";
 		RouterModule.forChild([{ path: "", component: UsersProfilePage }])
 	],
 	exports: [],
-	providers: [],
 	declarations: [UsersProfilePage]
 })
 

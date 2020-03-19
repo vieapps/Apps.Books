@@ -51,22 +51,6 @@ export class HammerConfig extends HammerGestureConfig {
 }
 
 @NgModule({
-	declarations: [AppComponent],
-	imports: [
-		BrowserModule,
-		HttpClientModule,
-		NgxElectronModule,
-		IonicModule.forRoot(),
-		IonicStorageModule.forRoot({ name: AppConfig.app.id + "-db" }),
-		TranslateModule.forRoot({ loader: {
-			provide: TranslateLoader,
-			useFactory: HttpLoaderFactory,
-			deps: [HttpClient]
-		}}),
-		TimePipeModule,
-		AppFormsModule,
-		AppRoutingModule,
-	],
 	providers: [
 		StatusBar,
 		SplashScreen,
@@ -91,6 +75,22 @@ export class HammerConfig extends HammerGestureConfig {
 		{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
 		{ provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig }
 	],
+	imports: [
+		BrowserModule,
+		HttpClientModule,
+		NgxElectronModule,
+		IonicModule.forRoot(),
+		IonicStorageModule.forRoot({ name: AppConfig.app.id + "-db" }),
+		TranslateModule.forRoot({ loader: {
+			provide: TranslateLoader,
+			useFactory: HttpLoaderFactory,
+			deps: [HttpClient]
+		}}),
+		TimePipeModule,
+		AppFormsModule,
+		AppRoutingModule,
+	],
+	declarations: [AppComponent],
 	bootstrap: [AppComponent]
 })
 

@@ -7,6 +7,7 @@ import { CommonControlsModule } from "../../../controls/common.controls.module";
 import { UsersUpdatePage } from "./update.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -15,7 +16,6 @@ import { UsersUpdatePage } from "./update.page";
 		RouterModule.forChild([{ path: "", component: UsersUpdatePage }])
 	],
 	exports: [],
-	providers: [],
 	declarations: [UsersUpdatePage]
 })
 

@@ -251,7 +251,7 @@ export class AppConfig {
 		const json: { [key: string]: string } = {
 			"language": this.language,
 			"host": this.url.host,
-			"related-service": AppUtility.isNotEmpty(service) ? service : this.services.active
+			"related-service": (AppUtility.isNotEmpty(service) ? service : this.services.active).toLowerCase()
 		};
 		if (AppUtility.isObject(additional, true)) {
 			Object.keys(additional).forEach(key => json[key] = additional[key]);

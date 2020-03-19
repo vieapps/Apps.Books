@@ -6,6 +6,7 @@ import { BookControlsModule } from "../../../controls/books.controls.module";
 import { BooksListPage } from "./list.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -13,7 +14,6 @@ import { BooksListPage } from "./list.page";
 		RouterModule.forChild([{ path: "", component: BooksListPage }])
 	],
 	exports: [],
-	providers: [],
 	declarations: [BooksListPage]
 })
 

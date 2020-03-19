@@ -7,6 +7,7 @@ import { TimePipeModule } from "../../../components/time.pipe";
 import { BooksInfoPage } from "./info.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -15,7 +16,6 @@ import { BooksInfoPage } from "./info.page";
 		TimePipeModule
 	],
 	exports: [],
-	providers: [],
 	declarations: [BooksInfoPage]
 })
 

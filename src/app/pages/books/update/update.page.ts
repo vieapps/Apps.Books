@@ -109,26 +109,16 @@ export class BooksUpdatePage implements OnInit {
 								if (file !== undefined) {
 									this.filesSvc.readAsDataURL(
 										file,
-										data => {
-											const value = this.update.form.controls.CoverImage.value || { current: undefined, new: undefined };
-											value.new = data;
-											this.update.form.controls.CoverImage.setValue(value);
-										},
+										data => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: data }),
 										1024000,
 										async () => await this.appFormsSvc.showToastAsync("Too big...")
 									);
 								}
 								else {
-									const value = this.update.form.controls.CoverImage.value || { current: undefined, new: undefined };
-									value.new = undefined;
-									this.update.form.controls.CoverImage.setValue(value);
+									this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined });
 								}
 							}),
-							OnDeleted: (file: File) => this.zone.run(() => {
-								const value = this.update.form.controls.CoverImage.value || { current: undefined, new: undefined };
-								value.new = undefined;
-								this.update.form.controls.CoverImage.setValue(value);
-							})
+							OnDeleted: (file: File) => this.zone.run(() => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined }))
 						}
 					}
 				}
@@ -197,7 +187,7 @@ export class BooksUpdatePage implements OnInit {
 					bookInfo,
 					async () => {
 						await Promise.all([
-							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/request-update")),
+							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(`${this.title} - ${this.book.Title}`, "books/request-update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sent"))
 						]);
 						await this.configSvc.navigateBackAsync();
@@ -210,7 +200,7 @@ export class BooksUpdatePage implements OnInit {
 					bookInfo,
 					async () => {
 						await Promise.all([
-							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(this.title + " - " + this.book.Title, "books/update")),
+							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(`${this.title} - ${this.book.Title}`, "books/update")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.success"))
 						]);
 						if (this.update.category !== this.update.form.value.Category) {

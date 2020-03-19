@@ -55,6 +55,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
@@ -67,7 +68,6 @@ const routes: Routes = [
 		RouterModule.forChild(routes)
 	],
 	exports: [RouterModule],
-	providers: [],
 	declarations: []
 })
 

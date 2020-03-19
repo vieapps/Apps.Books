@@ -5,13 +5,13 @@ import { CommonControlsModule } from "../../../controls/common.controls.module";
 import { UsersAvatarPage } from "./avatar.page";
 
 @NgModule({
+	providers: [],
 	imports: [
 		CommonModule,
 		IonicModule,
 		CommonControlsModule
 	],
 	exports: [],
-	providers: [],
 	declarations: [UsersAvatarPage],
 	entryComponents: [UsersAvatarPage]
 })

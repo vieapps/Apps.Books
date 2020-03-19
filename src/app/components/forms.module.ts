@@ -8,10 +8,7 @@ import { AppFormsComponent } from "./forms.component";
 import { AppFormsControlComponent } from "./forms.control.component";
 
 @NgModule({
-	declarations: [
-		AppFormsComponent,
-		AppFormsControlComponent
-	],
+	providers: [AppFormsService],
 	imports: [
 		CommonModule,
 		ReactiveFormsModule,
@@ -22,8 +19,9 @@ import { AppFormsControlComponent } from "./forms.control.component";
 		AppFormsComponent,
 		AppFormsControlComponent
 	],
-	providers: [
-		AppFormsService
+	declarations: [
+		AppFormsComponent,
+		AppFormsControlComponent
 	]
 })
 
