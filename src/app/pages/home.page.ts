@@ -62,11 +62,9 @@ export class HomePage implements OnInit, OnDestroy {
 		AppEvents.off("SetHomepageTitleResource", "SetTitleResourceEventHandlerOfHomePage");
 	}
 
-	private initializeAsync() {
-		return Promise.all([
-			this.setTitleAsync(),
-			this.trackAsync()
-		]);
+	private async initializeAsync() {
+		await this.setTitleAsync();
+		await this.trackAsync();
 	}
 
 	private async setTitleAsync() {
