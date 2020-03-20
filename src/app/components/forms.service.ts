@@ -749,7 +749,7 @@ export class AppFormsService {
 		return (formGroup: FormGroup): { [key: string]: any } | null => {
 			const originalControl = formGroup.controls[original];
 			const confirmControl = formGroup.controls[confirm];
-			if (originalControl !== undefined && confirmControl !== undefined && originalControl.value !== confirmControl.value) {
+			if (originalControl !== undefined && confirmControl !== undefined && !AppUtility.isEquals(originalControl.value, confirmControl.value)) {
 				confirmControl.setErrors({ notEquivalent: true });
 				return { notEquivalent: true };
 			}
@@ -763,7 +763,7 @@ export class AppFormsService {
 			const otherControl = formControl.parent instanceof FormGroup
 				? (formControl.parent as FormGroup).controls[other]
 				: undefined;
-			if (otherControl !== undefined && otherControl.value !== formControl.value) {
+			if (otherControl !== undefined && !AppUtility.isEquals(otherControl.value, formControl.value)) {
 				formControl.setErrors({ notEquivalent: true });
 				return { notEquivalent: true };
 			}

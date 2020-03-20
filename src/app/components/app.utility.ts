@@ -60,6 +60,18 @@ export class AppUtility {
 		return this.isNotNull(obj) && typeof obj === "string" && (obj as string).trim() !== "";
 	}
 
+	/** Compares two strings to see is equals or not */
+	public static isEquals(str1: string, str2: string) {
+		return str1 !== undefined && str2 !== undefined && str1.toLowerCase() === str2.toLowerCase();
+	}
+
+	/** Gets the position of the sub-string in the string */
+	public static indexOf(str: string, substr: string, start?: number) {
+		return this.isNotEmpty(str) && this.isNotEmpty(substr)
+			? str.indexOf(substr, start)
+			: -1;
+	}
+
 	/** Gets the state that determines the emai address is valid or not */
 	public static isValidEmail(email?: string) {
 		const atPos = this.isNotEmpty(email) ? email.indexOf("@") : -1;
@@ -215,13 +227,6 @@ export class AppUtility {
 
 		// return clone object
 		return obj;
-	}
-
-	/** Gets the position of the sub-string in the string */
-	public static indexOf(str: string, substr: string, start?: number) {
-		return this.isNotEmpty(str) && this.isNotEmpty(substr)
-			? str.indexOf(substr, start)
-			: -1;
 	}
 
 	/** Gets the compare function for sorting a sequence */

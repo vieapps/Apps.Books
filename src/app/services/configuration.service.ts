@@ -750,19 +750,19 @@ export class ConfigurationService extends BaseService {
 	private getDefinitionPath(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
 		let path = "discovery/definitions?" + this.relatedQuery;
 		if (AppUtility.isNotEmpty(serviceName)) {
-			path += "&x-service-name=" + serviceName;
+			path += "&x-service-name=" + serviceName.toLowerCase();
 		}
 		if (AppUtility.isNotEmpty(objectName)) {
-			path += "&x-object-name=" + objectName;
+			path += "&x-object-name=" + objectName.toLowerCase();
 		}
 		if (AppUtility.isNotEmpty(definitionName)) {
-			path += "&x-object-identity=" + definitionName;
+			path += "&x-object-identity=" + definitionName.toLowerCase();
 		}
 		if (AppUtility.isNotEmpty(repositoryID)) {
-			path += "&x-repository-id=" + repositoryID;
+			path += "&x-repository-id=" + repositoryID.toLowerCase();
 		}
 		if (AppUtility.isNotEmpty(entityID)) {
-			path += "&x-entity-id=" + entityID;
+			path += "&x-entity-id=" + entityID.toLowerCase();
 		}
 		return path;
 	}

@@ -50,7 +50,7 @@ export class Account {
 	 * @param role The role need to check with this accounts' roles
 	*/
 	public isInRole(role: string) {
-		return AppUtility.isNotEmpty(role) && this.roles !== undefined && this.roles.find(r => r === role) !== undefined;
+		return role !== undefined && this.roles !== undefined && this.roles.find(r => AppUtility.isEquals(r, role)) !== undefined;
 	}
 
 	/***
@@ -63,9 +63,9 @@ export class Account {
 		serviceName = serviceName || "";
 		objectName = objectName || "";
 		const privileges = this.privileges || new Array<Privilege>();
-		let privilege = privileges.find(p => p.ServiceName === serviceName && p.ObjectName === objectName && p.ObjectIdentity === "");
+		let privilege = privileges.find(p => AppUtility.isEquals(p.ServiceName, serviceName) && AppUtility.isEquals(p.ObjectName, objectName) && AppUtility.isEquals(p.ObjectIdentity, ""));
 		if (privilege === undefined && objectName !== "") {
-			privilege = privileges.find(p => p.ServiceName === serviceName && p.ObjectName === "" && p.ObjectIdentity === "");
+			privilege = privileges.find(p => AppUtility.isEquals(p.ServiceName, serviceName) && AppUtility.isEquals(p.ObjectName, "") && AppUtility.isEquals(p.ObjectIdentity, ""));
 		}
 		return privilege !== undefined
 			? privilege.Role === role
