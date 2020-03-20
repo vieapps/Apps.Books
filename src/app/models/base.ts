@@ -5,10 +5,10 @@ import { AppUtility } from "../components/app.utility";
 export abstract class Base {
 
 	/** The identity */
-	public abstract ID = "";
+	public abstract ID: string;
 
 	/** The working privileges */
-	public Privileges: Privileges = undefined;
+	public Privileges: Privileges;
 
 	/** Gets the link for working with router */
 	public abstract get routerLink(): string;
