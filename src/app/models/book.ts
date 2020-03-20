@@ -85,20 +85,6 @@ export class Book extends BaseModel {
 		return `/books/read/${(AppUtility.isNotEmpty(this.ansiTitle) ? AppUtility.toURI(this.ansiTitle) : AppUtility.toANSI(`${this.Title}-${this.Author}`, true))}`;
 	}
 
-	public get routerParams(): { [key: string]: any } {
-		return {
-			"x-request": AppUtility.toBase64Url({ ID: this.ID })
-		};
-	}
-
-	public get routerURI() {
-		return this.getRouterURI();
-	}
-
-	public getRouterURI(params?: { [key: string]: any }) {
-		return `${this.routerLink}?x-request=${(params !== undefined ? AppUtility.toBase64Url(params) : this.routerParams["x-request"])}`;
-	}
-
 }
 
 /** Bookmark of an e-book */

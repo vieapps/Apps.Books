@@ -63,20 +63,6 @@ export class UserProfileBase extends BaseModel {
 		return `/users/profile/${AppUtility.toANSI(this.Name, true)}`;
 	}
 
-	public get routerParams(): { [key: string]: any } {
-		return {
-			"x-request": AppUtility.toBase64Url({ ID: this.ID })
-		};
-	}
-
-	public get routerURI() {
-		return this.getRouterURI();
-	}
-
-	public getRouterURI(params?: { [key: string]: any }) {
-		return `${this.routerLink}?x-request=${(params !== undefined ? AppUtility.toBase64Url(params) : this.routerParams["x-request"])}`;
-	}
-
 	public copy(source: any, onCompleted?: (data: any) => void) {
 		super.copy(source, data => {
 			if (AppUtility.isNotEmpty(this.BirthDay)) {
