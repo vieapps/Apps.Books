@@ -129,7 +129,7 @@ export class BooksService extends BaseService {
 				await this.updateCategoriesIntoSidebarAsync();
 			}
 			else if ("OpenBook" === info.args.Type) {
-				const book = Book.instances.getValue(info.args.ID);
+				const book = Book.get(info.args.ID);
 				if (book !== undefined && book.TotalChapters > 1) {
 					this.updateReading(book, info.args.Chapter || 1);
 				}
@@ -270,7 +270,7 @@ export class BooksService extends BaseService {
 	}
 
 	public getAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontUpdateCounter: boolean = false) {
-		const book = Book.instances.getValue(id);
+		const book = Book.get(id);
 		return book !== undefined && (book.TOCs.length > 0 || book.Body !== "")
 			? new Promise<void>(() => {
 					if (!dontUpdateCounter) {
@@ -301,7 +301,7 @@ export class BooksService extends BaseService {
 	}
 
 	public getChapter(id: string, chapter: number, onNext?: () => void) {
-		const book = Book.instances.getValue(id);
+		const book = Book.get(id);
 		while (chapter <= book.TotalChapters && book.Chapters[chapter - 1] !== "") {
 			chapter++;
 		}
@@ -325,7 +325,7 @@ export class BooksService extends BaseService {
 	}
 
 	public getChapterAsync(id: string, chapter: number, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		const book = Book.instances.getValue(id);
+		const book = Book.get(id);
 		if (book === undefined || book.TOCs.length < 1) {
 			return new Promise<void>(onNext !== undefined ? () => onNext() : () => {});
 		}
@@ -350,7 +350,7 @@ export class BooksService extends BaseService {
 	}
 
 	private updateChapter(data: any) {
-		const book = Book.instances.getValue(data.ID);
+		const book = Book.get(data.ID);
 		if (book !== undefined) {
 			book.Chapters[data.Chapter - 1] = data.Content;
 		}
@@ -376,7 +376,7 @@ export class BooksService extends BaseService {
 
 	private updateCounters(data: any, onNext?: (data?: any) => void) {
 		const book = AppUtility.isObject(data, true)
-			? Book.instances.getValue(data.ID)
+			? Book.get(data.ID)
 			: undefined;
 		if (book !== undefined && AppUtility.isArray(data.Counters, true)) {
 			(data.Counters as Array<any>).forEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
@@ -403,7 +403,7 @@ export class BooksService extends BaseService {
 
 	private updateFiles(data: any) {
 		const book = data.ID !== undefined
-			? Book.instances.getValue(data.ID)
+			? Book.get(data.ID)
 			: undefined;
 		if (book !== undefined && AppUtility.isObject(data.Files, true)) {
 			book.Files = data.Files;

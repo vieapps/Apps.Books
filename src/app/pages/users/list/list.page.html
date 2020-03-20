@@ -18,28 +18,26 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-footer *ngIf="!filtering && pagination">
+<ion-footer *ngIf="pagination">
 	<ion-toolbar [color]="configSvc.color">
-		<div>
-			<span class="ion-float-start">
-				<ion-icon name="people" color="primary" slot="start"></ion-icon>
-				<span>
-					{{ totalRecords | number:'':locale }} / {{ pagination.TotalRecords | number:'':locale }}	
-				</span>
+		<span class="ion-float-start" slot="start">
+			<ion-icon name="people" color="primary" slot="start"></ion-icon>
+			<span>
+				{{ totalRecords | number:'':locale }} / {{ pagination.TotalRecords | number:'':locale }}	
 			</span>
-			<span [hidden]="pagination.TotalPages < 2" class="ion-float-end ion-padding-end">
-				<ion-icon name="code" color="primary" slot="start"></ion-icon>
-				<span>
-					{{ pageNumber | number:'':locale }} / {{ pagination.TotalPages | number:'':locale }}
-				</span>
+		</span>
+		<span [hidden]="pagination.TotalPages < 2" class="ion-padding-end" slot="end">
+			<ion-icon name="code" color="primary" slot="start"></ion-icon>
+			<span>
+				{{ pageNumber | number:'':locale }} / {{ pagination.TotalPages | number:'':locale }}
 			</span>
-		</div>
+		</span>
 	</ion-toolbar>
 </ion-footer>
 
 <ion-content [color]="configSvc.color">
 	<ion-list class="ion-padding-end">
-		<ion-item *ngFor="let profile of profiles; let idx=index; trackBy: track" [color]="configSvc.color" [routerLink]="getRouterLink(profile, idx)" [queryParams]="getQueryParams(profile)" routerDirection="forward" detail="false">
+		<ion-item *ngFor="let profile of profiles; let idx=index; trackBy: track" [color]="configSvc.color" [routerLink]="profile.routerLink" [queryParams]="profile.routerParams" routerDirection="forward" detail="false">
 			<ion-label>
 				<ion-thumbnail class="ion-float-start ion-padding-end">
 					<img [src]="profile.avatarURI" />

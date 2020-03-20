@@ -26,7 +26,7 @@ export class BookLinearItemControl {
 	}
 
 	openAsync() {
-		return this.configSvc.navigateForwardAsync(this.book.routerURI || (this.book.routerLink + "?x-request=" + this.book.routerParams["x-request"]));
+		return this.configSvc.navigateForwardAsync(this.book.routerURI);
 	}
 
 }

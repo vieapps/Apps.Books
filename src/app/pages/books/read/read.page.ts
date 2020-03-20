@@ -139,7 +139,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		await this.booksSvc.getAsync(
 			id,
 			async () => {
-				this.book = Book.instances.getValue(id);
+				this.book = Book.get(id);
 				if (this.book !== undefined) {
 					this.title = this.configSvc.appTitle = `${this.book.Title} - ${this.book.Author}`;
 					await this.prepareAsync();

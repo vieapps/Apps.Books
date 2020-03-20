@@ -108,7 +108,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 	initializeAsync() {
 		const id = this.configSvc.requestParams["ID"];
 		return this.booksSvc.getAsync(id, async () => {
-			this.book = Book.instances.getValue(id);
+			this.book = Book.get(id);
 			if (this.book !== undefined) {
 				await this.prepareResourcesAsync();
 				this.getStatistics();

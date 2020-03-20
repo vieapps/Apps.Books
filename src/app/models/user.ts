@@ -44,16 +44,6 @@ export class UserProfileBase extends BaseModel {
 
 	ansiTitle = "";
 	fullAddress = "";
-	routerLink = "";
-	routerParams = {} as { [key: string]: any };
-
-	public get routerURI() {
-		return this.routerLink + "?x-request=" + this.routerParams["x-request"];
-	}
-
-	public get avatarURI() {
-		return AppUtility.isNotEmpty(this.Avatar) ? this.Avatar : this.Gravatar;
-	}
 
 	public static deserialize(json: any, profile?: UserProfileBase) {
 		profile = profile || new UserProfileBase();
@@ -65,6 +55,28 @@ export class UserProfileBase extends BaseModel {
 		return UserProfile.instances.getValue(id);
 	}
 
+	public get avatarURI() {
+		return AppUtility.isNotEmpty(this.Avatar) ? this.Avatar : this.Gravatar;
+	}
+
+	public get routerLink() {
+		return `/users/profile/${AppUtility.toANSI(this.Name, true)}`;
+	}
+
+	public get routerParams(): { [key: string]: any } {
+		return {
+			"x-request": AppUtility.toBase64Url({ ID: this.ID })
+		};
+	}
+
+	public get routerURI() {
+		return this.getRouterURI();
+	}
+
+	public getRouterURI(params?: { [key: string]: any }) {
+		return `${this.routerLink}?x-request=${(params !== undefined ? AppUtility.toBase64Url(params) : this.routerParams["x-request"])}`;
+	}
+
 	public copy(source: any, onCompleted?: (data: any) => void) {
 		super.copy(source, data => {
 			if (AppUtility.isNotEmpty(this.BirthDay)) {
@@ -74,12 +86,6 @@ export class UserProfileBase extends BaseModel {
 				+ (AppUtility.isNotEmpty(this.Province) ? (AppUtility.isNotEmpty(this.Address) ? ", " : "")
 				+ this.County + ", " + this.Province + ", " + this.Country : "");
 			this.ansiTitle = AppUtility.toANSI(this.Name + " " + this.fullAddress + " " + this.Email + " " + this.Mobile).toLowerCase();
-			this.routerLink = `/users/profile/${AppUtility.toANSI(this.Name, true)}`;
-			this.routerParams = {
-				"x-request": AppUtility.toBase64Url({
-					ID: this.ID
-				})
-			};
 			if (onCompleted !== undefined) {
 				onCompleted(data);
 			}
@@ -118,8 +124,8 @@ export class UserProfile extends UserProfileBase {
 		if (AppUtility.isObject(data, true)) {
 			const profile = data instanceof UserProfile
 				? data as UserProfile
-				: UserProfile.deserialize(data, UserProfile.get(data.ID));
-			UserProfile.instances.setValue(profile.ID, profile);
+				: this.deserialize(data, this.get(data.ID));
+			this.instances.setValue(profile.ID, profile);
 		}
 	}
 

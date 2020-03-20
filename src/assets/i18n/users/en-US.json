@@ -214,10 +214,7 @@
 				"list": "Account profiles",
 				"search": "Search for account profiles"
 			},
-			"searchbar": {
-				"filter": "quick filter by keywords",
-				"search": "place search term into \"..\" for exact searching"
-			}
+			"searchbar": "place search term into \"..\" for exact searching"
 		}
 
 	}

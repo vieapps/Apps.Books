@@ -53,7 +53,7 @@ export class BooksUpdatePage implements OnInit {
 	}
 
 	async initializeFormAsync() {
-		this.book = Book.instances.getValue(this.configSvc.requestParams["ID"]);
+		this.book = Book.get(this.configSvc.requestParams["ID"]);
 		if (this.book === undefined) {
 			await this.appFormsSvc.showToastAsync("Hmmmmmm....");
 			await this.configSvc.navigateBackAsync();

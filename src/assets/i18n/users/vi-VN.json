@@ -214,10 +214,7 @@
 				"list": "Danh sách người dùng",
 				"search": "Tìm kiếm người dùng"
 			},
-			"searchbar": {
-				"filter": "tìm nhanh, không dấu cũng OK",
-				"search": "cho từ khoá vào \"..\" để tìm kiếm chính xác"
-			}
+			"searchbar": "cho từ khoá vào \"..\" để tìm kiếm chính xác"
 		}
 	}
 }

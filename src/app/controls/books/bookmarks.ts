@@ -115,7 +115,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	async openAsync(bookmark: Bookmark) {
-		const book = Book.instances.getValue(bookmark.ID);
+		const book = Book.get(bookmark.ID);
 		if (book !== undefined) {
 			await this.configSvc.navigateForwardAsync(book.routerURI);
 		}

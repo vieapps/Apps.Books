@@ -49,12 +49,6 @@ export class Book extends BaseModel {
 	};
 
 	ansiTitle = "";
-	routerLink = "";
-	routerParams = {} as { [key: string]: any };
-
-	public get routerURI() {
-		return this.getRouterURI();
-	}
 
 	public static deserialize(json: any, book?: Book) {
 		book = book || new Book();
@@ -70,28 +64,41 @@ export class Book extends BaseModel {
 				: book.Chapters;
 
 			book.ansiTitle = AppUtility.toANSI(`${book.Title} ${book.Author}`).toLowerCase();
-			book.routerLink = `/books/read/${AppUtility.toURI(book.ansiTitle)}`;
-			book.routerParams = {
-				"x-request": AppUtility.toBase64Url({
-					ID: book.ID
-				})
-			};
 		});
 		return book;
+	}
+
+	public static get(id: string) {
+		return id !== undefined ? this.instances.getValue(id) : undefined;
 	}
 
 	public static update(data: any) {
 		if (AppUtility.isObject(data, true)) {
 			const book = data instanceof Book
 				? data as Book
-				: Book.deserialize(data, Book.instances.getValue(data.ID));
-			Book.instances.setValue(book.ID, book);
+				: this.deserialize(data, this.get(data.ID));
+			this.instances.setValue(book.ID, book);
 		}
+	}
+
+	public get routerLink() {
+		return `/books/read/${(AppUtility.isNotEmpty(this.ansiTitle) ? AppUtility.toURI(this.ansiTitle) : AppUtility.toANSI(`${this.Title}-${this.Author}`, true))}`;
+	}
+
+	public get routerParams(): { [key: string]: any } {
+		return {
+			"x-request": AppUtility.toBase64Url({ ID: this.ID })
+		};
+	}
+
+	public get routerURI() {
+		return this.getRouterURI();
 	}
 
 	public getRouterURI(params?: { [key: string]: any }) {
 		return `${this.routerLink}?x-request=${(params !== undefined ? AppUtility.toBase64Url(params) : this.routerParams["x-request"])}`;
 	}
+
 }
 
 /** Bookmark of an e-book */
