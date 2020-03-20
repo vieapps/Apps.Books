@@ -22,7 +22,7 @@ import { RatingPoint } from "../../../models/ratingpoint";
 
 export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 
-	constructor (
+	constructor(
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,

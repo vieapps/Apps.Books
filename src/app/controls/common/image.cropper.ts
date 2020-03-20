@@ -13,7 +13,7 @@ import { FilesService } from "../../services/files.service";
 
 export class ImageCropperControl implements OnInit {
 
-	constructor (
+	constructor(
 		public nativeImageCropper: NativeImageCropper,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,

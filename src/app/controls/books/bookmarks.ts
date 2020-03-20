@@ -16,7 +16,7 @@ import { Book, Bookmark } from "../../models/book";
 
 export class BookmarksControl implements OnInit, OnDestroy {
 
-	constructor (
+	constructor(
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService

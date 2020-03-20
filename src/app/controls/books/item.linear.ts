@@ -11,7 +11,7 @@ import { Book } from "../../models/book";
 
 export class BookLinearItemControl {
 
-	constructor (
+	constructor(
 		public configSvc: ConfigurationService
 	) {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));

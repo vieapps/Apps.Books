@@ -19,7 +19,7 @@ import { Privilege } from "../../../models/privileges";
 
 export class UsersUpdatePage implements OnInit {
 
-	constructor (
+	constructor(
 		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,

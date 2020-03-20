@@ -15,7 +15,7 @@ import { Book } from "../../models/book";
 
 export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
-	constructor (
+	constructor(
 		public configSvc: ConfigurationService,
 		public booksSvc: BooksService
 	) {

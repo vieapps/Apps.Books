@@ -16,7 +16,7 @@ import { AuthenticationService } from "../../../services/authentication.service"
 
 export class UsersLogInPage implements OnInit, OnDestroy {
 
-	constructor (
+	constructor(
 		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,

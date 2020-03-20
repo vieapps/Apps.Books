@@ -13,7 +13,7 @@ import { ConfigurationService } from "../services/configuration.service";
 /** Presents the settings of a control in the dynamic forms */
 export class AppFormsControl {
 
-	constructor (
+	constructor(
 		options?: any,
 		order?: number
 	) {
@@ -369,7 +369,7 @@ export class AppFormsControl {
 /** Presents the settings of a segment (means a tab that contains group of controls) in the dynamic forms */
 export class AppFormsSegment {
 
-	constructor (
+	constructor(
 		name?: string,
 		label?: string,
 		icon?: string
@@ -388,7 +388,7 @@ export class AppFormsSegment {
 @Injectable()
 export class AppFormsService {
 
-	constructor (
+	constructor(
 		private translateSvc: TranslateService,
 		private configSvc: ConfigurationService,
 		private loadingController: LoadingController,

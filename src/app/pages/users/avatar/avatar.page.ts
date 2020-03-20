@@ -17,7 +17,7 @@ import { ImageCropperControl } from "../../../controls/common/image.cropper";
 
 export class UsersAvatarPage implements OnInit {
 
-	constructor (
+	constructor(
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public filesSvc: FilesService,

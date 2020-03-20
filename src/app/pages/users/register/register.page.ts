@@ -15,7 +15,7 @@ import { UsersService } from "../../../services/users.service";
 
 export class UsersRegisterPage implements OnInit {
 
-	constructor (
+	constructor(
 		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,

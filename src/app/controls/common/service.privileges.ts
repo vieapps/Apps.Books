@@ -13,7 +13,7 @@ import { Privilege } from "../../models/privileges";
 
 export class ServicePrivilegesControl implements OnInit, OnDestroy {
 
-	constructor (
+	constructor(
 		public configSvc: ConfigurationService
 	) {
 	}

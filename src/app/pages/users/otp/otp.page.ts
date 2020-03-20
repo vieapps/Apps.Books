@@ -15,7 +15,7 @@ import { UsersService } from "../../../services/users.service";
 
 export class UsersOtpPage implements OnInit {
 
-	constructor (
+	constructor(
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,

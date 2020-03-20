@@ -10,7 +10,7 @@ import { Book } from "../../models/book";
 
 export class BookGridItemControl {
 
-	constructor (
+	constructor(
 		public configSvc: ConfigurationService
 	) {
 	}

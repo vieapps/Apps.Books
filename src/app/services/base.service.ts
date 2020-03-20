@@ -13,7 +13,7 @@ export class Base {
 
 	private _name = "";
 
-	constructor (
+	constructor(
 		name?: string
 	) {
 		this._name = name || this.constructor.name;

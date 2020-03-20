@@ -28,7 +28,7 @@ import { Base as BaseService } from "./base.service";
 @Injectable()
 export class ConfigurationService extends BaseService {
 
-	constructor (
+	constructor(
 		private platformLocation: PlatformLocation,
 		private platform: Platform,
 		private navController: NavController,

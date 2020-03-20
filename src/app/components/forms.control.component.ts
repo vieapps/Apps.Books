@@ -11,7 +11,7 @@ import { AppFormsControl, AppFormsService } from "./forms.service";
 
 export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewInit {
 
-	constructor (
+	constructor(
 		private changeDetector: ChangeDetectorRef,
 		private appFormsSvc: AppFormsService,
 		private completerSvc: CompleterService

@@ -18,7 +18,7 @@ import { UsersAvatarPage } from "../avatar/avatar.page";
 
 export class UsersProfilePage implements OnInit {
 
-	constructor (
+	constructor(
 		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,

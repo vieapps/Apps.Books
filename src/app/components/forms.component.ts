@@ -12,7 +12,7 @@ import { PlatformUtility } from "./app.utility.platform";
 	/*** The configurable form */
 	export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 
-	constructor (
+	constructor(
 		private appFormsSvc: AppFormsService
 	) {
 	}
