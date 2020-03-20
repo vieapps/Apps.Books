@@ -60,6 +60,7 @@ export class AppFormsControl {
 		Width: undefined as string,
 		Height: undefined as string,
 		TextAreaRows: undefined as number,
+		OnKeyUp: undefined as (event: KeyboardEvent) => void,
 		SelectOptions: {
 			Values: undefined as Array<{ Value: string, Label: string }>,
 			RemoteURI: undefined as string,
@@ -239,6 +240,7 @@ export class AppFormsControl {
 			control.Options.Height = controlOptions.Height || controlOptions.height;
 
 			control.Options.TextAreaRows = controlOptions.TextAreaRows || controlOptions.textarearows;
+			control.Options.OnKeyUp = controlOptions.OnKeyUp || controlOptions.onkeyup;
 
 			const selectOptions = controlOptions.SelectOptions || controlOptions.selectoptions;
 			if (selectOptions !== undefined) {
@@ -340,6 +342,7 @@ export class AppFormsControl {
 		const options = AppUtility.clone(this, ["Order", "Validators", "AsyncValidators"]);
 		options.Validators = this.Validators;
 		options.AsyncValidators = this.AsyncValidators;
+		options.Options.OnKeyUp = this.Options.OnKeyUp;
 		options.Options.SelectOptions.InterfaceOptions = this.Options.SelectOptions.InterfaceOptions;
 		options.Options.LookupOptions.DataSource = this.Options.LookupOptions.DataSource;
 		options.Options.LookupOptions.Handlers = this.Options.LookupOptions.Handlers;

@@ -76,10 +76,11 @@ ion-footer > ion-toolbar {
 }
 
 /* description label of an input control */
-.label.description,
 label.description {
 	font-size: 12px;
 	color: var(--ion-color-medium);
+	clear: both;
+	margin: 10px 0;
 }
 
 /* completer */

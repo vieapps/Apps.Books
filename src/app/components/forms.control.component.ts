@@ -46,7 +46,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		this._step = "ngAfterViewInit";
 		this.control.formRef = this.formControl;
 		this.control.elementRef = this.elementRef;
-		if (this.isCompleter && this._completerInitialValue !== undefined && this.control.Options.Type === "Address") {
+		if (this.isCompleter && this._completerInitialValue !== undefined && AppUtility.isEquals(this.control.Options.Type, "Address")) {
 			this.changeDetector.detectChanges();
 		}
 		else if (this.isControl("YesNo")) {
@@ -100,11 +100,11 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	isControl(type: string) {
-		return this.control.Type === type || this.control.Type.toLowerCase() === type.toLowerCase();
+		return AppUtility.isEquals(this.control.Type, type);
 	}
 
 	get isPasswordControl() {
-		return this.isControl("TextBox") && this.control.Options.Type === "password";
+		return this.isControl("TextBox") && AppUtility.isEquals(this.control.Options.Type, "password");
 	}
 
 	get isCaptchaControl() {
@@ -183,7 +183,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get clearOnEdit() {
-		return this.control.Options.Type.toLowerCase() === "password" ? false : undefined;
+		return AppUtility.isEquals(this.control.Options.Type, "password") ? false : undefined;
 	}
 
 	get width() {
@@ -203,7 +203,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			if (this.control.Options.Height) {
 				this._style += `height:${this.control.Options.Height};`;
 			}
-			if (this.control.Type === "Captcha") {
+			if (AppUtility.isEquals(this.control.Type, "Captcha")) {
 				this._style += "text-transform:uppercase";
 			}
 		}
@@ -218,7 +218,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get value() {
-		return "datetime-local" === this.control.Options.Type || "date" === this.control.Options.Type
+		return AppUtility.isEquals(this.control.Options.Type, "datetime-local") || AppUtility.isEquals(this.control.Options.Type, "date")
 			? AppUtility.toIsoDateTime(new Date(this.formControl.value), true)
 			: this.formControl.value;
 	}
@@ -284,7 +284,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get selectAsDropdown() {
-		return this.isControl("Select") && !this.control.Options.SelectOptions.Multiple && this.control.Options.Type === "dropdown";
+		return this.isControl("Select") && !this.control.Options.SelectOptions.Multiple && AppUtility.isEquals(this.control.Options.Type, "dropdown");
 	}
 
 	get selectMultiple() {
@@ -335,7 +335,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	completerInit() {
-		if (this.control.Options.Type === "Address") {
+		if (AppUtility.isEquals(this.control.Options.Type, "Address")) {
 			this.control.Options.LookupOptions.DataSource = this.completerSvc.local(this.appFormsSvc.getMetaCounties(), "Title,TitleANSI", "Title");
 		}
 		else if (this.control.Options.LookupOptions.Handlers.Initialize !== undefined) {
@@ -380,7 +380,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			if (this.control.Options.LookupOptions.InitialValue !== undefined) {
 				this._completerInitialValue = this.control.Options.LookupOptions.InitialValue;
 			}
-			else if (this.control.Options.Type === "Address") {
+			else if (AppUtility.isEquals(this.control.Options.Type, "Address")) {
 				const value = {
 					County: "",
 					Province: "",
@@ -405,28 +405,31 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		this.appFormsSvc.focusNext(this.control, () => this.lastFocusEvent.emit(this.control));
 	}
 
-	onKeyUp($event: KeyboardEvent) {
-		if ($event.code === "Enter") {
+	onKeyUp(event: KeyboardEvent) {
+		if (this.control.Options.OnKeyUp !== undefined) {
+			this.control.Options.OnKeyUp(event);
+		}
+		if (event.code === "Enter") {
 			this.focusNext();
 		}
 	}
 
-	onChanged($event: any) {
+	onChanged(event: any) {
 		if (this.isFilePickerControl) {
 			if (this.control.Options.FilePickerOptions.Handlers.OnChanged !== undefined) {
-				this.control.Options.FilePickerOptions.Handlers.OnChanged($event);
+				this.control.Options.FilePickerOptions.Handlers.OnChanged(event);
 			}
 		}
 		else if (this.isControl("DatePicker")) {
 			try {
-				const year = $event.detail.value.year;
-				const month = $event.detail.value.month;
-				const day = $event.detail.value.day;
+				const year = event.detail.value.year;
+				const month = event.detail.value.month;
+				const day = event.detail.value.day;
 				let value = `${year.text}-${month.text}-${day.text}`;
 				if (this.control.Options.DatePickerOptions.AllowTimes) {
-					const hour = $event.detail.value.hour;
-					const minute = $event.detail.value.minute;
-					const second = $event.detail.value.second;
+					const hour = event.detail.value.hour;
+					const minute = event.detail.value.minute;
+					const second = event.detail.value.second;
 					if (hour !== undefined && minute !== undefined) {
 						value += `T${hour.text}`;
 						if (minute !== undefined) {
@@ -445,14 +448,14 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 		else if (this.isControl("YesNo")) {
 			this.control.value = this.minValue === undefined || this.maxValue === undefined
-				? $event.detail.checked
-				: $event.detail.checked ? 1 : 0;
+				? event.detail.checked
+				: event.detail.checked ? 1 : 0;
 			this.focusNext();
 		}
 		else if (this.isCompleter) {
-			if (this.control.Options.Type === "Address") {
-				let address = AppUtility.isObject($event, true) ? $event.originalObject : undefined;
-				if (address === undefined && this._step === "ngAfterViewInit" && this._completerInitialValue !== undefined) {
+			if (AppUtility.isEquals(this.control.Options.Type, "Address")) {
+				let address = AppUtility.isObject(event, true) ? event.originalObject : undefined;
+				if (address === undefined && AppUtility.isEquals(this._step, "ngAfterViewInit") && this._completerInitialValue !== undefined) {
 					address = this._completerInitialValue;
 					this._step = "ngDone";
 				}
@@ -464,11 +467,11 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				});
 			}
 			else if (this.control.Options.LookupOptions.Handlers.OnItemSelected !== undefined) {
-				this.control.Options.LookupOptions.Handlers.OnItemSelected($event, this.control);
+				this.control.Options.LookupOptions.Handlers.OnItemSelected(event, this.control);
 			}
 		}
 		else {
-			this.formControl.setValue($event.detail.value);
+			this.formControl.setValue(event.detail.value);
 			this._selectValues = undefined;
 			if (!this.isControl("Range")) {
 				this.focusNext();
@@ -476,10 +479,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 	}
 
-	onDeleted($event: any) {
+	onDeleted(event: any) {
 		if (this.isImagePickerControl) {
 			if (this.control.Options.FilePickerOptions.Handlers.OnDeleted !== undefined) {
-				this.control.Options.FilePickerOptions.Handlers.OnDeleted($event);
+				this.control.Options.FilePickerOptions.Handlers.OnDeleted(event);
 			}
 		}
 	}

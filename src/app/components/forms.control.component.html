@@ -132,7 +132,11 @@
 	</div>
 	<ion-button *ngIf="isImagePickerControl && control.Options.FilePickerOptions.AllowDelete && value && value.new" fill="clear" slot="end" (click)="onDeleted($event)">
 		<ion-icon name="trash" slot="icon-only"></ion-icon>
-	</ion-button>		
+	</ion-button>
+	
+	<label *ngIf="description"
+		[class]="css.description"
+		[style]="style.description">{{ description }}</label>
 
 </ion-item>
 
@@ -158,12 +162,6 @@
 		<ion-radio [value]="option.Value"></ion-radio>
 	</ion-item>
 </ion-radio-group>
-
-<ion-item *ngIf="visible && description && isFormControl && !isCaptchaControl" [color]="theme">
-	<label
-		[class]="css.description"
-		[style]="style.description">{{ description }}</label>
-</ion-item>
 	
 <div *ngIf="visible && isFormControl && isCaptchaControl">
 
