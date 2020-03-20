@@ -5,7 +5,7 @@ import { AppUtility } from "../components/app.utility";
 export abstract class Base {
 
 	/** The identity */
-	public abstract ID: string;
+	public ID: string;
 
 	/** The working privileges */
 	public Privileges: Privileges;
