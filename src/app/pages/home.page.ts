@@ -25,28 +25,25 @@ export class HomePage implements OnInit, OnDestroy {
 			this.initializeAsync();
 		}
 		else {
-			AppEvents.on("App", info => {
+			AppEvents.on("App", async info => {
 				if ("Initialized" === info.args.Type) {
-					this.initializeAsync();
+					await this.initializeAsync();
 				}
 			}, "AppReadyEventHandlerOfHomePage");
 		}
 
-		AppEvents.on("App", info => {
+		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {
-				this.setTitleAsync();
+				await this.setTitleAsync();
 			}
 		}, "LanguageChangedEventHandlerOfHomePage");
 
-		AppEvents.on("Navigated", info => {
+		AppEvents.on("Navigated", async info => {
 			if (this.configSvc.appConfig.url.home === info.args.Url) {
-				Promise.all([
-					this.setTitleAsync(),
-					this.trackAsync("return")
-				]).then(() => {
-					AppEvents.broadcast("App", { Type: "HomePageIsOpened" });
-					this.changes = new Date();
-				});
+				await this.setTitleAsync();
+				await this.trackAsync("return");
+				AppEvents.broadcast("App", { Type: "HomePageIsOpened" });
+				this.changes = new Date();
 			}
 		}, "NavigatingEventHandlerOfHomePage");
 
