@@ -25,7 +25,7 @@ export class AuthenticationService extends BaseService {
 		return (account || this.configSvc.getAccount()).isInRole("SystemAdministrator");
 	}
 
-	/***
+	/**
 	 * Determines the account is service administrator or not (can manage or not)
 	 * @param serviceName The service's name need to check with this accounts' privileges
 	 * @param objectName The service object's name need to check with this accounts' privileges
@@ -36,7 +36,7 @@ export class AuthenticationService extends BaseService {
 		return this.isAdministrator(serviceName, "", privileges, account);
 	}
 
-	/***
+	/**
 	 * Determines the account is service moderator or not (can manage or not)
 	 * @param serviceName The service's name need to check with this accounts' privileges
 	 * @param objectName The service object's name need to check with this accounts' privileges
@@ -47,7 +47,7 @@ export class AuthenticationService extends BaseService {
 		return this.isModerator(serviceName, "", privileges, account);
 	}
 
-	/***
+	/**
 	 * Determines the account is administrator or not (can manage or not)
 	 * @param serviceName The service's name need to check with this accounts' privileges
 	 * @param objectName The service object's name need to check with this accounts' privileges
@@ -59,7 +59,7 @@ export class AuthenticationService extends BaseService {
 		return this.isSystemAdministrator(account) || account.isAdministrator(serviceName || this.configSvc.appConfig.services.active, objectName, privileges);
 	}
 
-	/***
+	/**
 	 * Determines the account is moderator or not (can moderate or not)
 	 * @param serviceName The service's name need to check with this accounts' privileges
 	 * @param objectName The service object's name need to check with this accounts' privileges
@@ -71,7 +71,7 @@ export class AuthenticationService extends BaseService {
 		return this.isSystemAdministrator(account) || account.isModerator(serviceName || this.configSvc.appConfig.services.active, objectName, privileges);
 	}
 
-	/***
+	/**
 	 * Determines the account is editor or not (can edit or not)
 	 * @param serviceName The service's name need to check with this accounts' privileges
 	 * @param objectName The service object's name need to check with this accounts' privileges
@@ -83,7 +83,7 @@ export class AuthenticationService extends BaseService {
 		return this.isSystemAdministrator(account) || account.isEditor(serviceName || this.configSvc.appConfig.services.active, objectName, privileges);
 	}
 
-	/***
+	/**
 	 * Determines this account is contributor or not (can contribute or not)
 	 * @param serviceName The service's name need to check with this accounts' privileges
 	 * @param objectName The service object's name need to check with this accounts' privileges
@@ -95,7 +95,7 @@ export class AuthenticationService extends BaseService {
 		return this.isSystemAdministrator(account) || account.isContributor(serviceName || this.configSvc.appConfig.services.active, objectName, privileges);
 	}
 
-	/***
+	/**
 	 * Determines this account is viewer or not (can view or not)
 	 * @param serviceName The service's name need to check with this accounts' privileges
 	 * @param objectName The service object's name need to check with this accounts' privileges
@@ -107,7 +107,7 @@ export class AuthenticationService extends BaseService {
 		return this.isSystemAdministrator(account) || account.isViewer(serviceName || this.configSvc.appConfig.services.active, objectName, privileges);
 	}
 
-	/***
+	/**
 	 * Determines this account is downloader or not (can download or not)
 	 * @param serviceName The service's name need to check with this accounts' privileges
 	 * @param objectName The service object's name need to check with this accounts' privileges
@@ -143,7 +143,7 @@ export class AuthenticationService extends BaseService {
 
 	/** Checks to see the user can set privileges of current service or not */
 	public get canSetServicePrivileges() {
-		return this.canDo(this.configSvc.appConfig.accountRegistrations.setServicePrivilegsRole);
+		return this.configSvc.appConfig.accountRegistrations.setServicePrivilegs && this.canDo(this.configSvc.appConfig.accountRegistrations.setServicePrivilegsRole);
 	}
 
 	public logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {

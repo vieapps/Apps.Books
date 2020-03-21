@@ -145,7 +145,7 @@ export class UsersProfilePage implements OnInit {
 
 	async showProfileAsync(onNext?: () => void) {
 		this.id = this.configSvc.requestParams["ID"];
-		if (this.profile === undefined && this.id !== undefined && !UserProfile.instances.containsKey(this.id)) {
+		if (this.profile === undefined && this.id !== undefined && !UserProfile.contains(this.id)) {
 			await this.appFormsSvc.showLoadingAsync();
 		}
 		const id = this.id || this.configSvc.getAccount().id;
@@ -153,7 +153,7 @@ export class UsersProfilePage implements OnInit {
 			async () => {
 				if (this.profile === undefined) {
 					this.profile = UserProfile.get(id);
-					await TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.title") + ` [${this.profile.Name}]`, "/users/profile");
+					await TrackingUtility.trackAsync(`${await this.configSvc.getResourceAsync("users.profile.title")} [${this.profile.Name}]`, "/users/profile");
 				}
 				this.labels.header = await this.configSvc.getResourceAsync("users.profile.labels.header");
 				this.labels.lastAccess = await this.configSvc.getResourceAsync("users.profile.labels.lastAccess");
@@ -215,7 +215,7 @@ export class UsersProfilePage implements OnInit {
 				this.invitation.privileges,
 				this.invitation.relatedInfo,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title + ` [${this.profile.Name}]`, "users/invitation"),
+					TrackingUtility.trackAsync(`${this.title} [${this.profile.Name}]`, "users/invitation"),
 					this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.invitation.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)

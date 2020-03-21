@@ -20,9 +20,9 @@ export class HomePage implements OnInit, OnDestroy {
 	titleResource = "homepage.title";
 	changes: any;
 
-	ngOnInit() {
+	async ngOnInit() {
 		if (this.configSvc.isReady) {
-			this.initializeAsync();
+			await this.initializeAsync();
 		}
 		else {
 			AppEvents.on("App", async info => {

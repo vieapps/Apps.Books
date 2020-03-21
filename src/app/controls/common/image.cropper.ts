@@ -82,11 +82,16 @@ export class ImageCropperControl implements OnInit {
 			if (this.configSvc.isNativeApp) {
 			}
 			else {
-				this.filesSvc.readAsDataURL(file, data => {
-					const image = new Image();
-					image.src = data;
-					this.htmlImageCropper.setImage(image);
-				}, this.settings.limitSize || 1024000, async () => await this.appFormsSvc.showToastAsync(this.settings.limitExceedMessage || "Too big..."));
+				this.filesSvc.readAsDataURL(
+					file,
+					data => {
+						const image = new Image();
+						image.src = data;
+						this.htmlImageCropper.setImage(image);
+					},
+					this.settings.limitSize || 1024000,
+					async () => await this.appFormsSvc.showToastAsync(this.settings.limitExceedMessage || "Too big...")
+				);
 			}
 		}
 	}

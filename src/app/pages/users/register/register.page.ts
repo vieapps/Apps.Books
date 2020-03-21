@@ -35,12 +35,8 @@ export class UsersRegisterPage implements OnInit {
 		}
 	};
 
-	ngOnInit() {
-		this.initializeFormAsync();
-	}
-
-	async initializeFormAsync() {
-		const config = [
+	async ngOnInit() {
+		const config: Array<any> = [
 			{
 				Name: "Email",
 				Required: true,
@@ -166,7 +162,7 @@ export class UsersRegisterPage implements OnInit {
 					MaxLength: 4
 				}
 			}
-		] as Array<any>;
+		];
 
 		config.forEach(options => {
 			if (this.configSvc.appConfig.accountRegistrations.hidden.findIndex(value => value === options.Name) > -1) {

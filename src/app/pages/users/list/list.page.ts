@@ -42,31 +42,10 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 		Query: undefined as string,
 		And: new Array<{ [key: string]: any }>()
 	};
+	sortBy = { Name: "Ascending" };
 	subscription: Subscription;
 	@ViewChild(IonSearchbar, { static: false }) searchCtrl: IonSearchbar;
 	@ViewChild(IonInfiniteScroll, { static: false }) scrollCtrl: IonInfiniteScroll;
-
-	ngOnInit() {
-		if (!this.authSvc.isServiceAdministrator()) {
-			Promise.all([
-				this.appFormsSvc.showToastAsync("Hmmm..."),
-				this.configSvc.navigateHomeAsync()
-			]);
-		}
-		else {
-			this.initializeAsync();
-		}
-	}
-
-	ngAfterViewInit() {
-		this.initializeSearchbarAsync();
-	}
-
-	ngOnDestroy() {
-		if (this.subscription !== undefined) {
-			this.subscription.unsubscribe();
-		}
-	}
 
 	get locale() {
 		return this.configSvc.locale;
@@ -76,8 +55,29 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 		return AppPagination.computeTotal(this.pageNumber, this.pagination);
 	}
 
-	get sortBy() {
-		return { Name: "Ascending" };
+	async ngOnInit() {
+		if (!this.authSvc.isServiceAdministrator()) {
+			await Promise.all([
+				this.appFormsSvc.showToastAsync("Hmmm..."),
+				this.configSvc.navigateHomeAsync()
+			]);
+		}
+		else {
+			await this.initializeAsync();
+		}
+	}
+
+	async ngAfterViewInit() {
+		this.searchCtrl.placeholder = await this.configSvc.getResourceAsync("users.list.searchbar");
+		if (this.searching) {
+			PlatformUtility.focus(this.searchCtrl);
+		}
+	}
+
+	ngOnDestroy() {
+		if (this.subscription !== undefined) {
+			this.subscription.unsubscribe();
+		}
 	}
 
 	async initializeAsync() {
@@ -93,19 +93,12 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	async initializeSearchbarAsync() {
-		this.searchCtrl.placeholder = await this.configSvc.getResourceAsync("users.list.searchbar");
-		if (this.searching) {
-			PlatformUtility.focus(this.searchCtrl);
-		}
+	track(index: number, profile: UserProfile) {
+		return `${profile.ID}@${index}`;
 	}
 
 	openSearchAsync() {
 		return this.configSvc.navigateForwardAsync("/users/search");
-	}
-
-	track(index: number, profile: UserProfile) {
-		return `${profile.ID}@${index}`;
 	}
 
 	onStartSearch($event: any) {
@@ -137,16 +130,16 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	onScroll() {
+	async onScrollAsync() {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
-			this.searchAsync(() => {
+			await this.searchAsync(async () => {
 				if (this.scrollCtrl !== undefined) {
-					this.scrollCtrl.complete();
+					await this.scrollCtrl.complete();
 				}
 			});
 		}
 		else if (this.scrollCtrl !== undefined) {
-			this.scrollCtrl.complete();
+			await this.scrollCtrl.complete();
 			this.scrollCtrl.disabled = true;
 		}
 	}
@@ -187,7 +180,7 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 			});
 		}
 		else {
-			let objects = new List(results === undefined ? UserProfile.instances.values() as Array<UserProfile> : results.map(o => UserProfile.get(o.ID))).OrderBy(o => o.Name).ThenByDescending(o => o.LastAccess);
+			let objects = new List(results === undefined ? UserProfile.all : results.map(o => UserProfile.get(o.ID))).OrderBy(o => o.Name).ThenByDescending(o => o.LastAccess);
 			if (results === undefined) {
 				objects = objects.Take(this.pageNumber * this.pagination.PageSize);
 				objects.ForEach(o => this.ratings[o.ID] = o.RatingPoints.getValue("General"));

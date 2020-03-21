@@ -30,10 +30,10 @@ export class BooksOptionsPage implements OnInit, OnDestroy {
 	hash = "";
 	subscription: Subscription;
 
-	ngOnInit() {
+	async ngOnInit() {
 		this.options = {};
 		this.subscription = this.form.valueChanges.subscribe(value => this.options = value);
-		this.initializeAsync();
+		await this.initializeAsync();
 	}
 
 	ngOnDestroy() {
@@ -71,10 +71,10 @@ export class BooksOptionsPage implements OnInit, OnDestroy {
 		this.hash = AppCrypto.hash(this.form.value);
 	}
 
-	onClose() {
+	async onCloseAsync() {
 		if (this.hash !== AppCrypto.hash(this.form.value)) {
 			Object.keys(this.options).forEach(key => this.booksSvc.readingOptions[key] = this.options[key]);
-			this.configSvc.storeOptionsAsync();
+			await this.configSvc.storeOptionsAsync();
 		}
 	}
 

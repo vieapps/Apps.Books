@@ -75,8 +75,8 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 			: this.configSvc.appConfig.URIs.activations;
 	}
 
-	ngOnInit() {
-		this.initializeAsync();
+	async ngOnInit() {
+		await this.initializeAsync();
 
 		AppEvents.on("App", async info => {
 			if ("LanguageChanged" === info.args.Type) {

@@ -45,14 +45,26 @@ export class UserProfileBase extends BaseModel {
 	ansiTitle = "";
 	fullAddress = "";
 
+	/** Deserializes data to object */
 	public static deserialize(json: any, profile?: UserProfileBase) {
 		profile = profile || new UserProfileBase();
 		profile.copy(json);
 		return profile;
 	}
 
+	/** Gets by identity */
 	public static get(id: string) {
-		return UserProfile.instances.getValue(id);
+		return this.instances.getValue(id);
+	}
+
+	/** Sets by identity */
+	public static set(profile: UserProfileBase) {
+		return profile === undefined ? undefined : this.instances.setValue(profile.ID, profile);
+	}
+
+	/** Checks to see the dictionary is contains the object by identity or not */
+	public static contains(id: string) {
+		return id !== undefined && this.instances.containsKey(id);
 	}
 
 	public get avatarURI() {
@@ -96,22 +108,32 @@ export class UserProfile extends UserProfileBase {
 	LastSync = new Date();
 	RatingPoints = new Dictionary<string, RatingPoint>();
 
-	public static get(id: string) {
-		return super.get(id) as UserProfile;
+	/** Gets all user profile instances */
+	public static get all() {
+		return this.instances.values() as Array<UserProfile>;
 	}
 
+	/** Deserializes data to object */
 	public static deserialize(json: any, profile?: UserProfile) {
 		profile = profile || new UserProfile();
 		profile.copy(json);
 		return profile;
 	}
 
+	/** Gets by identity */
+	public static get(id: string) {
+		return super.get(id) as UserProfile;
+	}
+
+	/** Sets by identity */
+	public static set(profile: UserProfile) {
+		return super.set(profile) as UserProfile;
+	}
+
+	/** Updates into dictionary */
 	public static update(data: any) {
 		if (AppUtility.isObject(data, true)) {
-			const profile = data instanceof UserProfile
-				? data as UserProfile
-				: this.deserialize(data, this.get(data.ID));
-			this.instances.setValue(profile.ID, profile);
+			this.set(data instanceof UserProfile ? data as UserProfile : this.deserialize(data, this.get(data.ID)));
 		}
 	}
 

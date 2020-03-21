@@ -63,9 +63,9 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		return this.configSvc.screenWidth;
 	}
 
-	ngOnInit() {
+	async ngOnInit() {
 		this.getReadingOptions();
-		this.initializeAsync();
+		await this.initializeAsync();
 
 		AppEvents.on("App", async info => {
 			if ("OptionsUpdated" === info.args.Type) {

@@ -398,7 +398,7 @@ export class ConfigurationService extends BaseService {
 				AppEvents.broadcast("Session", { Type: "Loaded" });
 				this.appConfig.session.account = Account.deserialize(this.appConfig.session.account);
 				if (this.appConfig.session.account.id !== undefined) {
-					Account.instances.setValue(this.appConfig.session.account.id, this.appConfig.session.account);
+					Account.set(this.appConfig.session.account);
 					if (this.appConfig.session.account.profile !== undefined) {
 						AppEvents.broadcast("Profile", { Type: "Updated" });
 					}
@@ -457,7 +457,7 @@ export class ConfigurationService extends BaseService {
 		this.appConfig.session.token = undefined;
 		this.appConfig.session.keys = undefined;
 		this.appConfig.session.account = this.getAccount(true);
-		return this.deleteSessionAsync(doStore ? () => this.storeSessionAsync(onNext) : onNext);
+		return this.deleteSessionAsync(doStore ? async () => await this.storeSessionAsync(onNext) : onNext);
 	}
 
 	/** Gets the information of the current/default account */
@@ -471,9 +471,7 @@ export class ConfigurationService extends BaseService {
 	/** Updates information of the account */
 	public updateAccount(data: any, onNext?: (data?: any) => void, updateInstances: boolean = false) {
 		const id = data.ID || "";
-		const account = Account.instances.containsKey(id)
-			? Account.instances.getValue(id)
-			: new Account();
+		const account = Account.get(id) || new Account();
 
 		if (account.id === undefined) {
 			account.id = data.ID;
@@ -507,7 +505,7 @@ export class ConfigurationService extends BaseService {
 			};
 		}
 
-		if (account.id !== undefined && UserProfile.instances.containsKey(account.id)) {
+		if (account.id !== undefined && UserProfile.contains(account.id)) {
 			account.profile = UserProfile.get(account.id);
 		}
 
@@ -516,7 +514,7 @@ export class ConfigurationService extends BaseService {
 			if (this.isDebug) {
 				console.log(super.getLogMessage("Account is updated"), this.appConfig.session.account);
 			}
-			Account.instances.setValue(account.id, account);
+			Account.set(account);
 			if (this.appConfig.app.persistence) {
 				this.storeSessionAsync(onNext);
 			}
@@ -525,8 +523,8 @@ export class ConfigurationService extends BaseService {
 			}
 		}
 		else {
-			if (account.id !== undefined && (updateInstances || Account.instances.containsKey(account.id))) {
-				Account.instances.setValue(account.id, account);
+			if (account.id !== undefined && (updateInstances || Account.contains(account.id))) {
+				Account.set(account);
 			}
 			if (onNext !== undefined) {
 				onNext(data);

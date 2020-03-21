@@ -96,8 +96,9 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	@ViewChild(IonSearchbar, { static: false }) searchCtrl: IonSearchbar;
 	@ViewChild(IonInfiniteScroll, { static: true }) scrollCtrl: IonInfiniteScroll;
 
-	ngOnInit() {
-		this.initializeAsync();
+	async ngOnInit() {
+		await this.initializeAsync();
+
 		this.routerSubscription = this.router.events.subscribe(async event => {
 			if (event instanceof NavigationEnd) {
 				if (this.configSvc.currentUrl.startsWith(this.uri)) {
@@ -106,6 +107,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 			}
 		});
+
 		if (!this.searching) {
 			AppEvents.on("Session", async info => {
 				if ("Updated" === info.args.Type) {
@@ -132,7 +134,9 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	ngOnDestroy() {
-		this.routerSubscription.unsubscribe();
+		if (this.routerSubscription !== undefined) {
+			this.routerSubscription.unsubscribe();
+		}
 		this.cancelSearch(true);
 		if (!this.searching) {
 			AppEvents.off("Session", `AccountEventHandlers${this.eventIdentity}`);
@@ -140,8 +144,8 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	ngAfterViewInit() {
-		this.initializeSearchbarAsync();
+	async ngAfterViewInit() {
+		await this.initializeSearchbarAsync();
 	}
 
 	get sortBy() {

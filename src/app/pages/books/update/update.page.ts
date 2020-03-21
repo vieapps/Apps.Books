@@ -47,9 +47,9 @@ export class BooksUpdatePage implements OnInit {
 		cancel: "Cancel"
 	};
 
-	ngOnInit() {
+	async ngOnInit() {
 		this.update.requestOnly = !this.authSvc.isServiceModerator(this.booksSvc.name);
-		this.initializeFormAsync();
+		await this.initializeFormAsync();
 	}
 
 	async initializeFormAsync() {
@@ -77,7 +77,7 @@ export class BooksUpdatePage implements OnInit {
 			new AppFormsSegment("others", await this.configSvc.getResourceAsync("books.update.segments.others"))
 		];
 
-		const config = await this.configSvc.getDefinitionAsync(this.booksSvc.name.toLowerCase(), "book", "form-controls") as Array<any>;
+		const config: Array<any> = await this.configSvc.getDefinitionAsync(this.booksSvc.name.toLowerCase(), "book", "form-controls");
 		config.forEach(control => control.Segment = "meta");
 
 		config.push(
@@ -150,13 +150,13 @@ export class BooksUpdatePage implements OnInit {
 		this.update.config = config;
 	}
 
-	onFormInitialized($event: any) {
+	async onFormInitializedAsync($event: any) {
 		this.update.form.patchValue(this.book);
 		this.update.form.controls.TOCs.setValue(this.book.TOCs.join("\n"));
 		this.update.form.controls.CoverImage.setValue({ current: AppUtility.isNotEmpty(this.book.Cover) ? this.book.Cover : undefined, new: undefined });
 		this.update.category = this.book.Category;
 		this.update.hash = AppCrypto.hash(this.update.form.value, value => delete value["CoverImage"]);
-		this.appFormsSvc.hideLoadingAsync();
+		await this.appFormsSvc.hideLoadingAsync();
 	}
 
 	private uploadCoverAsync(onNext: () => void) {

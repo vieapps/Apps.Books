@@ -64,13 +64,43 @@ export class UsersUpdatePage implements OnInit {
 	};
 
 	services: Array<string>;
-	private _privileges = {
+	private servicePrivileges = {
 		privileges: {} as { [key: string]: Array<Privilege> },
 		hash: ""
 	};
 
-	ngOnInit() {
-		this.initializeAsync();
+	async ngOnInit() {
+		const id = this.configSvc.requestParams["ID"] || this.configSvc.getAccount().id;
+		await this.usersSvc.getProfileAsync(
+			id,
+			async () => {
+				this.profile = UserProfile.get(id);
+				if (this.profile === undefined || (this.profile.ID !== this.configSvc.getAccount().id && !this.authSvc.isSystemAdministrator())) {
+					await Promise.all([
+						this.appFormsSvc.showToastAsync("Hmmm..."),
+						this.configSvc.navigateHomeAsync()
+					]);
+				}
+				else {
+					this.mode = this.configSvc.requestParams["Mode"] || "profile";
+					switch (this.mode) {
+						case "password":
+							await this.openUpdatePasswordAsync();
+							break;
+						case "email":
+							await this.openUpdateEmailAsync();
+							break;
+						case "privileges":
+							await this.openUpdateServicePrivilegesAsync();
+							break;
+						default:
+							await this.openUpdateProfileAsync();
+							break;
+					}
+				}
+			},
+			async error => await this.appFormsSvc.showErrorAsync(error)
+		);
 	}
 
 	onFormInitialized($event: any) {
@@ -115,40 +145,6 @@ export class UsersUpdatePage implements OnInit {
 			this.buttons.cancel = undefined;
 			this.buttons.ok = undefined;
 		}
-	}
-
-	initializeAsync() {
-		const id = this.configSvc.requestParams["ID"] || this.configSvc.getAccount().id;
-		return this.usersSvc.getProfileAsync(
-			id,
-			async () => {
-				this.profile = UserProfile.get(id);
-				if (this.profile === undefined || (this.profile.ID !== this.configSvc.getAccount().id && !this.authSvc.isSystemAdministrator())) {
-					await Promise.all([
-						this.appFormsSvc.showToastAsync("Hmmm..."),
-						await this.configSvc.navigateHomeAsync()
-					]);
-				}
-				else {
-					this.mode = this.configSvc.requestParams["Mode"] || "profile";
-					switch (this.mode) {
-						case "password":
-							await this.openUpdatePasswordAsync();
-							break;
-						case "email":
-							await this.openUpdateEmailAsync();
-							break;
-						case "privileges":
-							await this.openUpdateServicePrivilegesAsync();
-							break;
-						default:
-							await this.openUpdateProfileAsync();
-							break;
-					}
-				}
-			},
-			async error => await this.appFormsSvc.showErrorAsync(error)
-		);
 	}
 
 	async openUpdateProfileAsync() {
@@ -419,19 +415,18 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async openUpdateServicePrivilegesAsync() {
-		this.title = await this.configSvc.getResourceAsync("users.profile.privileges.title") + ` [${this.profile.Name}]`;
-		this.configSvc.appTitle = this.title;
+		this.configSvc.appTitle = this.title = `${await this.configSvc.getResourceAsync("users.profile.privileges.title")} [${this.profile.Name}]`;
 		await this.prepareButtonsAsync();
 		this.services = this.authSvc.isSystemAdministrator()
 			? this.configSvc.appConfig.services.all.map(service => service.name)
 			: this.configSvc.appConfig.services.all.filter(service => this.authSvc.isServiceAdministrator(service.name)).map(service => service.name);
-		const privileges = Account.instances.getValue(this.profile.ID).privileges;
-		this.services.forEach(service => this._privileges.privileges[service] = privileges.filter(privilege => privilege.ServiceName === service));
-		this._privileges.hash = AppCrypto.hash(this._privileges.privileges);
+		const privileges = Account.get(this.profile.ID).privileges;
+		this.services.forEach(service => this.servicePrivileges.privileges[service] = privileges.filter(privilege => privilege.ServiceName === service));
+		this.servicePrivileges.hash = AppCrypto.hash(this.servicePrivileges.privileges);
 	}
 
 	onServicePrivilegesChanged($event: any) {
-		this._privileges.privileges[$event.service] = $event.privileges as Array<Privilege>;
+		this.servicePrivileges.privileges[$event.service] = $event.privileges as Array<Privilege>;
 	}
 
 	trackServicePrivileges(index: number, service: string) {
@@ -439,15 +434,15 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	getServicePrivileges(service: string) {
-		return Account.instances.getValue(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === service);
+		return Account.get(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === service);
 	}
 
 	async updateServicePrivilegesAsync() {
-		if (this._privileges.hash !== AppCrypto.hash(this._privileges.privileges)) {
+		if (this.servicePrivileges.hash !== AppCrypto.hash(this.servicePrivileges.privileges)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.usersSvc.updateServicePrivilegesAsync(
 				this.profile.ID,
-				this._privileges.privileges,
+				this.servicePrivileges.privileges,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(`${this.title} [${this.profile.Name}]`, "users/update/privileges"),
 					this.showProfileAsync(async () => this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.privileges.message", { name: this.profile.Name })))

@@ -139,7 +139,7 @@ export class UsersService extends BaseService {
 
 	public getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		id = id || this.configSvc.getAccount().id;
-		return UserProfile.instances.containsKey(id)
+		return UserProfile.contains(id)
 			? new Promise<void>(onNext !== undefined ? () => onNext() : () => {})
 			: super.readAsync(
 					super.getURI("profile", id, this.configSvc.relatedQuery),
@@ -261,7 +261,7 @@ export class UsersService extends BaseService {
 	}
 
 	public getServicePrivilegesAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return Account.instances.containsKey(id)
+		return Account.contains(id)
 			? new Promise<void>(onNext !== undefined ? () => onNext() : () => {})
 			: super.readAsync(
 					super.getURI("account", id, this.configSvc.relatedQuery),

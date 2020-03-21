@@ -62,9 +62,30 @@ export class UsersOtpPage implements OnInit {
 		return this.configSvc.locale;
 	}
 
-	ngOnInit() {
-		this.prepareAsync();
-		this.prepareResourcesAsync();
+	async ngOnInit() {
+		this.resources = {
+			status: await this.configSvc.getResourceAsync("users.profile.otp.status.label"),
+			providers: await this.configSvc.getResourceAsync("users.profile.otp.labels.providers"),
+			buttons: {
+				on: await this.configSvc.getResourceAsync("users.profile.otp.buttons.on"),
+				delete: await this.configSvc.getResourceAsync("users.profile.otp.buttons.delete"),
+				verify: await this.configSvc.getResourceAsync("users.profile.otp.buttons.verify"),
+				done: await this.configSvc.getResourceAsync("common.buttons.done")
+			},
+			qrcode: {
+				image: await this.configSvc.getResourceAsync("users.profile.otp.labels.qrcode.image"),
+				control: await this.configSvc.getResourceAsync("users.profile.otp.labels.qrcode.control")
+			},
+			instruction: {
+				main: await this.configSvc.getResourceAsync("users.profile.otp.labels.instruction.main"),
+				app: await this.configSvc.getResourceAsync("users.profile.otp.labels.instruction.app")
+			},
+			password: {
+				label: await this.configSvc.getResourceAsync("users.profile.password.controls.OldPassword"),
+				show: false
+			}
+		};
+		await this.prepareAsync();
 	}
 
 	async prepareAsync(onNext?: () => void) {
@@ -90,31 +111,6 @@ export class UsersOtpPage implements OnInit {
 			: this.provision.uri === ""
 				? await this.configSvc.getResourceAsync("users.profile.otp.status.off")
 				: await this.configSvc.getResourceAsync("users.profile.otp.status.provisioning");
-	}
-
-	async prepareResourcesAsync() {
-		this.resources = {
-			status: await this.configSvc.getResourceAsync("users.profile.otp.status.label"),
-			providers: await this.configSvc.getResourceAsync("users.profile.otp.labels.providers"),
-			buttons: {
-				on: await this.configSvc.getResourceAsync("users.profile.otp.buttons.on"),
-				delete: await this.configSvc.getResourceAsync("users.profile.otp.buttons.delete"),
-				verify: await this.configSvc.getResourceAsync("users.profile.otp.buttons.verify"),
-				done: await this.configSvc.getResourceAsync("common.buttons.done")
-			},
-			qrcode: {
-				image: await this.configSvc.getResourceAsync("users.profile.otp.labels.qrcode.image"),
-				control: await this.configSvc.getResourceAsync("users.profile.otp.labels.qrcode.control")
-			},
-			instruction: {
-				main: await this.configSvc.getResourceAsync("users.profile.otp.labels.instruction.main"),
-				app: await this.configSvc.getResourceAsync("users.profile.otp.labels.instruction.app")
-			},
-			password: {
-				label: await this.configSvc.getResourceAsync("users.profile.password.controls.OldPassword"),
-				show: false
-			}
-		};
 	}
 
 	provisonAsync() {
