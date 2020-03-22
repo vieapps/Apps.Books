@@ -41,9 +41,9 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		return this.configSvc.locale;
 	}
 
-	ngOnInit() {
+	async ngOnInit() {
 		if (this.configSvc.isReady) {
-			this.initializeAsync();
+			await this.initializeAsync();
 		}
 		else {
 			AppEvents.on("App", info => {
@@ -93,7 +93,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		};
 	}
 
-	async initializeAsync() {
+	private async initializeAsync() {
 		await this.prepareResourcesAsync();
 
 		if (this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
@@ -111,11 +111,11 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		}
 	}
 
-	updateIntroduction() {
+	private updateIntroduction() {
 		this.introduction = (this.booksSvc.introductions[this.configSvc.appConfig.language] || {}).introduction;
 	}
 
-	updateBooks() {
+	private updateBooks() {
 		this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(book => book.LastUpdated).Take(40), 12);
 	}
 

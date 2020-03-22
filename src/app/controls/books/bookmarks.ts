@@ -25,7 +25,8 @@ export class BookmarksControl implements OnInit, OnDestroy {
 
 	bookmarks = new Array<Bookmark>();
 	profile: UserProfile;
-	resources = {
+
+	private resources = {
 		header: "Readings",
 		footer: "Sync time:",
 		chapter: "Chapter: ",
@@ -35,8 +36,9 @@ export class BookmarksControl implements OnInit, OnDestroy {
 			delete: "Delete"
 		}
 	};
-	@ViewChild("list", { static: true }) list: IonList;
-	@ViewChild("slidingitems", { static: true }) slidingitems: IonItemSliding;
+
+	@ViewChild("list", { static: true }) private list: IonList;
+	@ViewChild("slidingitems", { static: true }) private slidingitems: IonItemSliding;
 
 	get locale() {
 		return this.configSvc.locale;
@@ -79,7 +81,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 		AppEvents.off("Books", "BookmarksUpdatedEventHandlerOfBookmarksControl");
 	}
 
-	async prepareResourcesAsync() {
+	private async prepareResourcesAsync() {
 		this.resources = {
 			header: await this.configSvc.getResourceAsync("books.bookmarks.header"),
 			footer: await this.configSvc.getResourceAsync("books.bookmarks.footer"),
@@ -92,7 +94,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 		};
 	}
 
-	prepareBookmarks() {
+	private prepareBookmarks() {
 		this.bookmarks = new List(this.booksSvc.bookmarks.values()).OrderByDescending(o => o.Time).ToArray();
 	}
 
@@ -101,14 +103,14 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	getTitle(bookmark: Bookmark) {
-		const book = Book.instances.getValue(bookmark.ID);
+		const book = Book.get(bookmark.ID);
 		return book !== undefined
 			? book.Title + (book.Author !== "" ? " - " + book.Author : "")
 			: `${bookmark.ID}@${bookmark.Chapter}#${bookmark.Position}`;
 	}
 
 	getPosition(bookmark: Bookmark) {
-		const book = Book.instances.getValue(bookmark.ID);
+		const book = Book.get(bookmark.ID);
 		return book !== undefined
 			? (bookmark.Chapter > 0 ? this.resources.chapter + bookmark.Chapter : "") + (bookmark.Position > 0 ?  (bookmark.Chapter > 0 ? " - " : "") + this.resources.position + bookmark.Position : "")
 			: `${bookmark.Chapter}#${bookmark.Position}`;

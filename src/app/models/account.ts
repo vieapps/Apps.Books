@@ -47,19 +47,23 @@ export class Account {
 
 	/** Gets by identity */
 	public static get(id: string) {
-		return id !== undefined ? this.instances.getValue(id) : undefined;
+		return id !== undefined
+			? this.instances.getValue(id)
+			: undefined;
 	}
 
 	/** Sets by identity */
 	public static set(account: Account) {
-		return account === undefined ? undefined : this.instances.setValue(account.id, account);
+		return account === undefined
+			? undefined
+			: this.instances.setValue(account.id, account) || account;
 	}
 
 	/** Updates into dictionary */
 	public static update(data: any) {
-		if (AppUtility.isObject(data, true)) {
-			this.set(data instanceof Account ? data as Account : this.deserialize(data, this.get(data.id)));
-		}
+		return AppUtility.isObject(data, true)
+			? this.set(data instanceof Account ? data as Account : this.deserialize(data, this.get(data.id)))
+			: undefined;
 	}
 
 	/** Checks to see the dictionary is contains the object by identity or not */

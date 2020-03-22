@@ -27,8 +27,8 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 	form = new FormGroup({});
 	controls = new Array<AppFormsControl>();
 	config: Array<any>;
-	objects: Array<{ Name: string, Role: string	}>;
-	subscription: Subscription;
+	private objects: Array<{ Name: string, Role: string	}>;
+	private subscription: Subscription;
 
 	async ngOnInit() {
 		this.subscription = this.form.valueChanges.subscribe(value => this.onFormChanged(value));
@@ -40,7 +40,7 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 		this.changesEvent.unsubscribe();
 	}
 
-	async initializeFormAsync() {
+	private async initializeFormAsync() {
 		if (this.privileges === undefined || this.privileges.length < 1) {
 			this.privileges = [new Privilege(this.serviceName)];
 		}
@@ -111,7 +111,7 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 		this.config = config;
 	}
 
-	onFormInitialized($event: any) {
+	public onFormInitialized($event: any) {
 		const role = this.privileges.find(privilege => AppUtility.isEquals(privilege.ServiceName, this.serviceName) && AppUtility.isEquals(privilege.ObjectName, ""));
 		const value = {
 			Role: role !== undefined ? role.Role : "Viewer",
@@ -121,7 +121,7 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 		this.form.patchValue(value);
 	}
 
-	onFormChanged(value: any) {
+	private onFormChanged(value: any) {
 		const privileges = [new Privilege(this.serviceName, undefined, value.Role)];
 
 		const subControls = this.controls.find(control => AppUtility.isEquals(control.Name, "Objects"));

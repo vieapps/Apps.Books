@@ -2,6 +2,7 @@ import { Component, OnInit, NgZone } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../../components/app.crypto";
 import { AppEvents } from "../../../components/app.events";
+import { AppUtility } from "../../../components/app.utility";
 import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { ConfigurationService } from "../../../services/configuration.service";
@@ -418,10 +419,10 @@ export class UsersUpdatePage implements OnInit {
 		this.configSvc.appTitle = this.title = `${await this.configSvc.getResourceAsync("users.profile.privileges.title")} [${this.profile.Name}]`;
 		await this.prepareButtonsAsync();
 		this.services = this.authSvc.isSystemAdministrator()
-			? this.configSvc.appConfig.services.all.map(service => service.name)
-			: this.configSvc.appConfig.services.all.filter(service => this.authSvc.isServiceAdministrator(service.name)).map(service => service.name);
+			? this.configSvc.appConfig.services.all.map(service => service.name.toLowerCase())
+			: this.configSvc.appConfig.services.all.filter(service => this.authSvc.isServiceAdministrator(service.name)).map(service => service.name.toLowerCase());
 		const privileges = Account.get(this.profile.ID).privileges;
-		this.services.forEach(service => this.servicePrivileges.privileges[service] = privileges.filter(privilege => privilege.ServiceName === service));
+		this.services.forEach(service => this.servicePrivileges.privileges[service] = privileges.filter(privilege => AppUtility.isEquals(privilege.ServiceName, service)));
 		this.servicePrivileges.hash = AppCrypto.hash(this.servicePrivileges.privileges);
 	}
 
@@ -434,7 +435,7 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	getServicePrivileges(service: string) {
-		return Account.get(this.profile.ID).privileges.filter(privilege => privilege.ServiceName === service);
+		return Account.get(this.profile.ID).privileges.filter(privilege => AppUtility.isEquals(privilege.ServiceName, service));
 	}
 
 	async updateServicePrivilegesAsync() {

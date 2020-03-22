@@ -50,6 +50,7 @@ export class Book extends BaseModel {
 
 	ansiTitle = "";
 
+	/** Deserializes data to object */
 	public static deserialize(json: any, book?: Book) {
 		book = book || new Book();
 		book.copy(json, data => {
@@ -68,17 +69,26 @@ export class Book extends BaseModel {
 		return book;
 	}
 
+	/** Gets by identity */
 	public static get(id: string) {
-		return id !== undefined ? this.instances.getValue(id) : undefined;
+		return id !== undefined
+			? this.instances.getValue(id)
+			: undefined;
 	}
 
+
+	/** Sets by identity */
+	public static set(book: Book) {
+		return book === undefined
+			? undefined
+			: this.instances.setValue(book.ID, book) || book;
+	}
+
+	/** Updates into dictionary */
 	public static update(data: any) {
-		if (AppUtility.isObject(data, true)) {
-			const book = data instanceof Book
-				? data as Book
-				: this.deserialize(data, this.get(data.ID));
-			this.instances.setValue(book.ID, book);
-		}
+		return AppUtility.isObject(data, true)
+			? this.set(data instanceof Book ? data as Book : this.deserialize(data, this.get(data.ID)))
+			: undefined;
 	}
 
 	public get routerLink() {

@@ -59,7 +59,9 @@ export class UserProfileBase extends BaseModel {
 
 	/** Sets by identity */
 	public static set(profile: UserProfileBase) {
-		return profile === undefined ? undefined : this.instances.setValue(profile.ID, profile);
+		return profile === undefined
+			? undefined
+			: this.instances.setValue(profile.ID, profile) || profile;
 	}
 
 	/** Checks to see the dictionary is contains the object by identity or not */
@@ -108,7 +110,7 @@ export class UserProfile extends UserProfileBase {
 	LastSync = new Date();
 	RatingPoints = new Dictionary<string, RatingPoint>();
 
-	/** Gets all user profile instances */
+	/** Gets all instances */
 	public static get all() {
 		return this.instances.values() as Array<UserProfile>;
 	}
@@ -132,9 +134,9 @@ export class UserProfile extends UserProfileBase {
 
 	/** Updates into dictionary */
 	public static update(data: any) {
-		if (AppUtility.isObject(data, true)) {
-			this.set(data instanceof UserProfile ? data as UserProfile : this.deserialize(data, this.get(data.ID)));
-		}
+		return AppUtility.isObject(data, true)
+			? this.set(data instanceof UserProfile ? data as UserProfile : this.deserialize(data, this.get(data.ID)))
+			: undefined;
 	}
 
 	public copy(source: any, onCompleted?: (data: any) => void) {
