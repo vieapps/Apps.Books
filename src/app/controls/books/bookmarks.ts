@@ -26,7 +26,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	bookmarks = new Array<Bookmark>();
 	profile: UserProfile;
 
-	private resources = {
+	resources = {
 		header: "Readings",
 		footer: "Sync time:",
 		chapter: "Chapter: ",
