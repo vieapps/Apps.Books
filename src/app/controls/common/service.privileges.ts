@@ -1,4 +1,3 @@
-import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
@@ -28,21 +27,20 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 	controls = new Array<AppFormsControl>();
 	config: Array<any>;
 	private objects: Array<{ Name: string, Role: string	}>;
-	private subscription: Subscription;
+	private formChanged = this.form.valueChanges.subscribe(value => this.onFormChanged(value));
 
-	async ngOnInit() {
-		this.subscription = this.form.valueChanges.subscribe(value => this.onFormChanged(value));
-		await this.initializeFormAsync();
+	ngOnInit() {
+		this.initializeFormAsync();
 	}
 
 	ngOnDestroy() {
-		this.subscription.unsubscribe();
+		this.formChanged.unsubscribe();
 		this.changesEvent.unsubscribe();
 	}
 
 	private async initializeFormAsync() {
 		if (this.privileges === undefined || this.privileges.length < 1) {
-			this.privileges = [new Privilege(this.serviceName)];
+			this.privileges = [new Privilege(this.serviceName.toLowerCase())];
 		}
 
 		if (this.roles === undefined || this.roles.length < 1) {
@@ -132,7 +130,7 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 					control.Options.Disabled = false;
 					const role = value.Objects[control.Name] as string;
 					if (role !== "Viewer") {
-						privileges.push(new Privilege(this.serviceName, control.Name, role));
+						privileges.push(new Privilege(this.serviceName.toLowerCase(), control.Name, role));
 					}
 				});
 				if (privileges.length === 1) {

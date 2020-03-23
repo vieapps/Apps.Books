@@ -55,45 +55,61 @@ export class ImageCropperControl implements OnInit {
 		this.settings = this.settings || {};
 
 		if (this.configSvc.isNativeApp) {
+			this.prepareNativeCropper();
 		}
 		else {
-			const htmlCropperSettings = new HtmlImageCropperSettings();
-			htmlCropperSettings.width = this.settings.selectorWidth || 100;
-			htmlCropperSettings.height = this.settings.selectorHeight || 100;
-			htmlCropperSettings.croppedWidth = this.settings.croppedWidth || 300;
-			htmlCropperSettings.croppedHeight = this.settings.croppedHeight || 300;
-			htmlCropperSettings.canvasWidth = this.settings.canvasWidth || 242;
-			htmlCropperSettings.canvasHeight = this.settings.canvasHeight || 242;
-			htmlCropperSettings.noFileInput = true;
-
-			this.htmlCropper = {
-				data: {
-					image: this.settings.currentImage,
-					original: undefined
-				},
-				settings: htmlCropperSettings
-			};
+			this.prepareHtmlCropper();
 		}
+	}
+
+	private prepareNativeCropper() {
+	}
+
+	private prepareHtmlCropper() {
+		const htmlCropperSettings = new HtmlImageCropperSettings();
+		htmlCropperSettings.width = this.settings.selectorWidth || 100;
+		htmlCropperSettings.height = this.settings.selectorHeight || 100;
+		htmlCropperSettings.croppedWidth = this.settings.croppedWidth || 300;
+		htmlCropperSettings.croppedHeight = this.settings.croppedHeight || 300;
+		htmlCropperSettings.canvasWidth = this.settings.canvasWidth || 242;
+		htmlCropperSettings.canvasHeight = this.settings.canvasHeight || 242;
+		htmlCropperSettings.noFileInput = true;
+
+		this.htmlCropper = {
+			data: {
+				image: this.settings.currentImage,
+				original: undefined
+			},
+			settings: htmlCropperSettings
+		};
 	}
 
 	prepareImage($event: any) {
 		const file: File = $event.target.files.length > 0 ? $event.target.files[0] : undefined;
 		if (file !== undefined && file.type.startsWith("image/")) {
 			if (this.configSvc.isNativeApp) {
+				this.prepareImageOfNativeCropper(file);
 			}
 			else {
-				this.filesSvc.readAsDataURL(
-					file,
-					data => {
-						const image = new Image();
-						image.src = data;
-						this.htmlImageCropper.setImage(image);
-					},
-					this.settings.limitSize || 1024000,
-					async () => await this.appFormsSvc.showToastAsync(this.settings.limitExceedMessage || "Too big...")
-				);
+				this.prepareImageOfHtmlCropper(file);
 			}
 		}
+	}
+
+	private prepareImageOfNativeCropper(file: File) {
+	}
+
+	private prepareImageOfHtmlCropper(file: File) {
+		this.filesSvc.readAsDataURL(
+			file,
+			data => {
+				const image = new Image();
+				image.src = data;
+				this.htmlImageCropper.setImage(image);
+			},
+			this.settings.limitSize || 1024000,
+			async () => await this.appFormsSvc.showToastAsync(this.settings.limitExceedMessage || "Too big...")
+		);
 	}
 
 }

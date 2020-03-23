@@ -1,6 +1,6 @@
 import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
-import { IonList, IonItemSliding } from "@ionic/angular";
+import { IonList } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../services/configuration.service";
@@ -38,23 +38,17 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	};
 
 	@ViewChild("list", { static: true }) private list: IonList;
-	@ViewChild("slidingitems", { static: true }) private slidingitems: IonItemSliding;
 
 	get locale() {
 		return this.configSvc.locale;
 	}
 
 	ngOnInit() {
-		this.prepareResourcesAsync();
+		this.initializeAsync();
 
-		if (this.configSvc.isAuthenticated) {
-			this.profile = this.configSvc.getAccount().profile;
-			this.prepareBookmarks();
-		}
-
-		AppEvents.on("App", async info => {
+		AppEvents.on("App", info => {
 			if ("LanguageChanged" === info.args.Type) {
-				await this.prepareResourcesAsync();
+				this.prepareResourcesAsync();
 			}
 		}, "LanguageChangedEventHandlerOfBookmarksControl");
 
@@ -73,12 +67,18 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy() {
-		if (this.slidingitems !== undefined) {
-			this.slidingitems.closeOpened();
-		}
+		this.list.closeSlidingItems();
 		AppEvents.off("App", "LanguageChangedEventHandlerOfBookmarksControl");
 		AppEvents.off("Session", "SessionEventHandlerOfBookmarksControl");
 		AppEvents.off("Books", "BookmarksUpdatedEventHandlerOfBookmarksControl");
+	}
+
+	private async initializeAsync() {
+		await this.prepareResourcesAsync();
+		if (this.configSvc.isAuthenticated) {
+			this.profile = this.configSvc.getAccount().profile;
+			this.prepareBookmarks();
+		}
 	}
 
 	private async prepareResourcesAsync() {
@@ -119,6 +119,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	async openAsync(bookmark: Bookmark) {
 		const book = Book.get(bookmark.ID);
 		if (book !== undefined) {
+			await this.list.closeSlidingItems();
 			await this.configSvc.navigateForwardAsync(book.routerURI);
 		}
 	}

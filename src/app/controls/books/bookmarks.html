@@ -4,7 +4,7 @@
 			{{ resources.header }}
 		</ion-label>
 	</ion-list-header>
-	<ion-item-sliding #slidingitems *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
+	<ion-item-sliding *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
 		<ion-item [color]="configSvc.color" (click)="openAsync(bookmark)">
 			<div>
 				<h2>

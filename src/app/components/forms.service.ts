@@ -674,6 +674,14 @@ export class AppFormsService {
 		this.buildForm(form, controls, value);
 	}
 
+	/** Resets the form values */
+	public reset(form: FormGroup) {
+		if (form !== undefined) {
+			const controls = form.controls;
+			Object.keys(controls).forEach(key => controls[key].setValue(undefined));
+		}
+	}
+
 	/** Highlights all invalid controls (by mark as dirty on all invalid controls) and set focus into first invalid control */
 	public highlightInvalids(form: FormGroup) {
 		const control = this.highlightInvalidsFormGroup(form, form["_controls"] as Array<AppFormsControl>);

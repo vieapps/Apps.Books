@@ -30,14 +30,16 @@ export class BooksOptionsPage implements OnInit, OnDestroy {
 	hash = "";
 	subscription: Subscription;
 
-	async ngOnInit() {
+	ngOnInit() {
 		this.options = {};
 		this.subscription = this.form.valueChanges.subscribe(value => this.options = value);
-		await this.initializeAsync();
+		this.initializeAsync();
 	}
 
 	ngOnDestroy() {
-		this.subscription.unsubscribe();
+		if (this.subscription !== undefined) {
+			this.subscription.unsubscribe();
+		}
 	}
 
 	async initializeAsync() {

@@ -8,7 +8,7 @@
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons slot="end">
-			<ion-button *ngIf="mode === 'profile' && !id && canManageUsers" routerLink="/users/list">
+			<ion-button *ngIf="mode === 'profile' && !id && canManageUsers" [routerLink]="configSvc.appConfig.url.users.list">
 				<ion-icon name="people-circle" slot="icon-only"></ion-icon>
 			</ion-button>
 			<ion-button *ngIf="buttons.ok" color="primary" (click)="buttons.ok.handler()">
@@ -86,7 +86,7 @@
 			[form]="invitation.form"
 			[config]="invitation.config"
 			[controls]="invitation.controls"
-			(initEvent)="onFormInitialized($event)"></app-form>
+			(initEvent)="onInvitationFormInitialized($event)"></app-form>
 		<control-service-privileges *ngIf="authSvc.canSetServicePrivileges"
 			[serviceName]="configSvc.appConfig.services.active"
 			(changesEvent)="onServicePrivilegesChanged($event)"></control-service-privileges>

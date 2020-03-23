@@ -63,8 +63,8 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 		}
 	};
 
-	async ngOnInit() {
-		await this.openLoginAsync();
+	ngOnInit() {
+		this.openLoginAsync();
 	}
 
 	ngOnDestroy() {

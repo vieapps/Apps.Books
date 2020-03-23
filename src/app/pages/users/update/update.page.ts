@@ -70,9 +70,13 @@ export class UsersUpdatePage implements OnInit {
 		hash: ""
 	};
 
-	async ngOnInit() {
+	ngOnInit() {
+		this.prepareAsync();
+	}
+
+	private prepareAsync() {
 		const id = this.configSvc.requestParams["ID"] || this.configSvc.getAccount().id;
-		await this.usersSvc.getProfileAsync(
+		return this.usersSvc.getProfileAsync(
 			id,
 			async () => {
 				this.profile = UserProfile.get(id);
@@ -111,8 +115,7 @@ export class UsersUpdatePage implements OnInit {
 			this.update.hash = AppCrypto.hash(this.update.form.value);
 		}
 		else {
-			const controls = ($event.form as FormGroup).controls;
-			Object.keys(controls).forEach(name => controls[name].setValue(""));
+			this.appFormsSvc.reset($event.form);
 		}
 	}
 

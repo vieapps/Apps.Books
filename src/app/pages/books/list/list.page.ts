@@ -96,58 +96,6 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 	@ViewChild(IonSearchbar, { static: false }) searchCtrl: IonSearchbar;
 	@ViewChild(IonInfiniteScroll, { static: true }) scrollCtrl: IonInfiniteScroll;
 
-	async ngOnInit() {
-		await this.initializeAsync();
-
-		this.routerSubscription = this.router.events.subscribe(async event => {
-			if (event instanceof NavigationEnd) {
-				if (this.configSvc.currentUrl.startsWith(this.uri)) {
-					this.configSvc.appTitle = this.title;
-					await TrackingUtility.trackAsync(this.title, this.uri);
-				}
-			}
-		});
-
-		if (!this.searching) {
-			AppEvents.on("Session", async info => {
-				if ("Updated" === info.args.Type) {
-					await this.prepareActionsAsync();
-				}
-			}, `AccountEventHandlers${this.eventIdentity}`);
-			AppEvents.on("Books", async info => {
-				const category = this.category;
-				const author = this.author;
-				const reprepareResults = "Deleted" === info.args.Type
-					? category !== undefined
-						? category === info.args.Category
-						: author !== undefined
-							? author === info.args.Author
-							: false
-					: "Moved" === info.args.Type
-						? category !== undefined && (category === info.args.From || category === info.args.To)
-						: false;
-				if (reprepareResults) {
-					this.prepareResults();
-				}
-			}, `BookEventHandlers${this.eventIdentity}`);
-		}
-	}
-
-	ngOnDestroy() {
-		if (this.routerSubscription !== undefined) {
-			this.routerSubscription.unsubscribe();
-		}
-		this.cancelSearch(true);
-		if (!this.searching) {
-			AppEvents.off("Session", `AccountEventHandlers${this.eventIdentity}`);
-			AppEvents.off("Books", `BookEventHandlers${this.eventIdentity}`);
-		}
-	}
-
-	async ngAfterViewInit() {
-		await this.initializeSearchbarAsync();
-	}
-
 	get sortBy() {
 		return { LastUpdated: "Descending" };
 	}
@@ -201,6 +149,58 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 
 	get locale() {
 		return this.configSvc.locale;
+	}
+
+	ngOnInit() {
+		this.initializeAsync();
+
+		this.routerSubscription = this.router.events.subscribe(event => {
+			if (event instanceof NavigationEnd) {
+				if (this.configSvc.currentUrl.startsWith(this.uri)) {
+					this.configSvc.appTitle = this.title;
+					TrackingUtility.trackAsync(this.title, this.uri);
+				}
+			}
+		});
+
+		if (!this.searching) {
+			AppEvents.on("Session", info => {
+				if ("Updated" === info.args.Type) {
+					this.prepareActionsAsync();
+				}
+			}, `AccountEventHandlers${this.eventIdentity}`);
+			AppEvents.on("Books", info => {
+				const category = this.category;
+				const author = this.author;
+				const reprepareResults = "Deleted" === info.args.Type
+					? category !== undefined
+						? category === info.args.Category
+						: author !== undefined
+							? author === info.args.Author
+							: false
+					: "Moved" === info.args.Type
+						? category !== undefined && (category === info.args.From || category === info.args.To)
+						: false;
+				if (reprepareResults) {
+					this.prepareResults();
+				}
+			}, `BookEventHandlers${this.eventIdentity}`);
+		}
+	}
+
+	ngOnDestroy() {
+		if (this.routerSubscription !== undefined) {
+			this.routerSubscription.unsubscribe();
+		}
+		this.cancelSearch(true);
+		if (!this.searching) {
+			AppEvents.off("Session", `AccountEventHandlers${this.eventIdentity}`);
+			AppEvents.off("Books", `BookEventHandlers${this.eventIdentity}`);
+		}
+	}
+
+	ngAfterViewInit() {
+		this.initializeSearchbarAsync();
 	}
 
 	async initializeAsync() {
@@ -386,7 +386,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		this.actions = [
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.search"), "search", () => this.zone.run(async () => await this.configSvc.navigateForwardAsync("/books/search"))),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.filter"), "funnel", () => this.zone.run(() => this.showFilter())),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.sort"), "list-box", () => this.zone.run(async () => await this.showSortsAsync()))
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.list.actions.sort"), "swap-vertical", () => this.zone.run(async () => await this.showSortsAsync()))
 		];
 
 		const pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.name);

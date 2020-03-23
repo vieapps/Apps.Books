@@ -41,9 +41,9 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		return this.configSvc.locale;
 	}
 
-	async ngOnInit() {
+	ngOnInit() {
 		if (this.configSvc.isReady) {
-			await this.initializeAsync();
+			this.initializeAsync();
 		}
 		else {
 			AppEvents.on("App", info => {
@@ -53,15 +53,16 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 			}, "AppReadyEventHandlerOfBookHomeScreen");
 		}
 
-		AppEvents.on("App", async info => {
+		AppEvents.on("App", info => {
 			if ("LanguageChanged" === info.args.Type) {
-				await this.prepareResourcesAsync();
-				if (this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
-					await this.booksSvc.fetchIntroductionsAsync(() => this.updateIntroduction());
-				}
-				else {
-					this.updateIntroduction();
-				}
+				this.prepareResourcesAsync().then(async () => {
+					if (this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
+						await this.booksSvc.fetchIntroductionsAsync(() => this.updateIntroduction());
+					}
+					else {
+						this.updateIntroduction();
+					}
+				});
 			}
 		}, "LanguageChangedEventHandlerOfBookHomeScreen");
 
@@ -84,15 +85,6 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		AppEvents.off("Books", "IntroductionsChangedEventHandlerOfBookHomeScreen");
 	}
 
-	private async prepareResourcesAsync() {
-		this.labels = {
-			latest: await this.configSvc.getResourceAsync("books.home.latest"),
-			statistics: await this.configSvc.getResourceAsync("books.home.statistics.label"),
-			authors: await this.configSvc.getResourceAsync("books.home.statistics.authors"),
-			books: await this.configSvc.getResourceAsync("books.home.statistics.books")
-		};
-	}
-
 	private async initializeAsync() {
 		await this.prepareResourcesAsync();
 
@@ -109,6 +101,15 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		else {
 			this.updateBooks();
 		}
+	}
+
+	private async prepareResourcesAsync() {
+		this.labels = {
+			latest: await this.configSvc.getResourceAsync("books.home.latest"),
+			statistics: await this.configSvc.getResourceAsync("books.home.statistics.label"),
+			authors: await this.configSvc.getResourceAsync("books.home.statistics.authors"),
+			books: await this.configSvc.getResourceAsync("books.home.statistics.books")
+		};
 	}
 
 	private updateIntroduction() {

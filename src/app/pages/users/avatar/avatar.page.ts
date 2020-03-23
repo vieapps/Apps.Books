@@ -39,11 +39,14 @@ export class UsersAvatarPage implements OnInit {
 	imageCropperSettings = { currentImage: undefined };
 	@ViewChild(ImageCropperControl, { static: false }) imageCropper: ImageCropperControl;
 
-	async ngOnInit() {
+	ngOnInit() {
 		this.profile = this.configSvc.getAccount().profile;
 		this.mode = this.profile.Avatar === "" || this.profile.Avatar === this.profile.Gravatar ? "Gravatar" : "Avatar";
 		this.imageCropperSettings.currentImage = this.profile.Avatar;
+		this.initializeResourcesAsync();
+	}
 
+	async initializeResourcesAsync() {
 		this.title = await this.configSvc.getResourceAsync("users.profile.avatar.title");
 		this.resources = {
 			cancel: await this.configSvc.getResourceAsync("common.buttons.cancel"),

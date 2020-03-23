@@ -47,9 +47,9 @@ export class BooksUpdatePage implements OnInit {
 		cancel: "Cancel"
 	};
 
-	async ngOnInit() {
+	ngOnInit() {
 		this.update.requestOnly = !this.authSvc.isServiceModerator(this.booksSvc.name);
-		await this.initializeFormAsync();
+		this.initializeFormAsync();
 	}
 
 	async initializeFormAsync() {

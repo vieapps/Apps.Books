@@ -63,40 +63,40 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		return this.configSvc.screenWidth;
 	}
 
-	async ngOnInit() {
+	ngOnInit() {
 		this.getReadingOptions();
-		await this.initializeAsync();
+		this.initializeAsync();
 
-		AppEvents.on("App", async info => {
+		AppEvents.on("App", info => {
 			if ("OptionsUpdated" === info.args.Type) {
 				this.getReadingOptions();
 			}
 			else if ("LanguageChanged" === info.args.Type) {
-				await Promise.all([
+				Promise.all([
 					this.prepareResourcesAsync(),
 					this.prepareActionsAsync()
 				]);
 			}
 		}, "AppEventHandlersOfReadBookPage");
 
-		AppEvents.on("Session", async info => {
+		AppEvents.on("Session", info => {
 			if ("Updated" === info.args.Type) {
-				await this.prepareActionsAsync();
+				this.prepareActionsAsync();
 			}
 		}, "AppEventHandlersOfReadBookPage");
 
-		AppEvents.on("Books", async info => {
+		AppEvents.on("Books", info => {
 			if ("OpenChapter" === info.args.Type && this.chapter !== info.args.Chapter) {
 				this.scrollOffset = 0;
 				this.chapter = info.args.Chapter || 0;
 				if (this.book.Chapters[this.chapter - 1] === "") {
-					await this.appFormsSvc.showLoadingAsync();
+					this.appFormsSvc.showLoadingAsync();
 				}
-				await this.goChapterAsync();
+				this.goChapterAsync();
 			}
 			else if ("Deleted" === info.args.Type && this.book.ID === info.args.ID) {
 				this.onClose();
-				await this.configSvc.navigateBackAsync();
+				this.configSvc.navigateBackAsync();
 			}
 		}, "BookEventHandlersOfReadBookPage");
 	}
@@ -120,17 +120,19 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		}
 	}
 
-	async onScrollEndAsync() {
-		this.scrollOffset = (await this.contentCtrl.getScrollElement()).scrollTop;
-		await this.booksSvc.updateBookmarkAsync(this.book.ID, this.chapter, this.scrollOffset);
+	onScrollEnd() {
+		this.contentCtrl.getScrollElement().then(async element => {
+			this.scrollOffset = element.scrollTop;
+			await this.booksSvc.updateBookmarkAsync(this.book.ID, this.chapter, this.scrollOffset);
+		});
 	}
 
-	onSwipeLeftAsync() {
-		return this.goNextAsync();
+	onSwipeLeft() {
+		this.goNextAsync();
 	}
 
-	onSwipeRightAsync() {
-		return new Promise<void>(() => this.openTOCs());
+	onSwipeRight() {
+		this.openTOCs();
 	}
 
 	async initializeAsync() {

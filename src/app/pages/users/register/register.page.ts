@@ -35,7 +35,11 @@ export class UsersRegisterPage implements OnInit {
 		}
 	};
 
-	async ngOnInit() {
+	ngOnInit() {
+		this.prepareAsync();
+	}
+
+	private async prepareAsync() {
 		const config: Array<any> = [
 			{
 				Name: "Email",
@@ -179,6 +183,11 @@ export class UsersRegisterPage implements OnInit {
 		this.register.config = config;
 	}
 
+	onFormInitialized($event: any) {
+		this.refreshCaptchaAsync();
+		this.register.form.patchValue({ Gender: "NotProvided" });
+	}
+
 	async registerAsync() {
 		if (this.register.form.invalid) {
 			this.appFormsSvc.highlightInvalids(this.register.form);
@@ -218,16 +227,11 @@ export class UsersRegisterPage implements OnInit {
 		}
 	}
 
-	onFormInitialized($event: any) {
-		this.refreshCaptchaAsync();
-		this.register.form.patchValue({ Gender: "NotProvided" });
-	}
-
 	onRefreshCaptcha($event: AppFormsControl) {
 		this.refreshCaptchaAsync($event);
 	}
 
-	refreshCaptchaAsync(control?: AppFormsControl) {
+	private refreshCaptchaAsync(control?: AppFormsControl) {
 		return this.authSvc.registerCaptchaAsync(() => (control || this.register.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 

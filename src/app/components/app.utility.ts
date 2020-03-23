@@ -309,17 +309,15 @@ export class AppUtility {
 	}
 
 	/** Gets the query of JSON */
-	public static getQueryOfJson(json: { [key: string]: any }): string {
-		let query = "";
+	public static getQueryOfJson(json: { [key: string]: any }) {
 		try {
-			if (this.isObject(json, true)) {
-				Object.keys(json).forEach(name => query += `${name}=${encodeURIComponent(json[name])}&`);
-			}
+			return this.isObject(json, true)
+				? this.toStr(Object.keys(json).map(name => `${name}=${encodeURIComponent(json[name])}`), "&")
+				: "";
 		}
-		catch { }
-		return query !== ""
-			? query.substr(0, query.length - 1)
-			: "";
+		catch (error) {
+			return "";
+		}
 	}
 
 	/** Gets the JSON of a query param (means decode by Base64Url and parse to JSON) */
@@ -329,7 +327,7 @@ export class AppUtility {
 				? JSON.parse(AppCrypto.urlDecode(value))
 				: {};
 		}
-		catch (e) {
+		catch (error) {
 			return {};
 		}
 	}
@@ -437,8 +435,8 @@ export class AppUtility {
 		}
 	}
 
-	/** Converts the array of objects to a string */
-	public static toString(array: Array<any> | Array<string>, separator?: string) {
+	/** Converts and joins the array of objects to a string */
+	public static toStr(array: Array<any>, separator?: string) {
 		if (!this.isArray(array, true)) {
 			return "";
 		}
