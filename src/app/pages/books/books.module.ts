@@ -13,10 +13,6 @@ import { BooksUpdatePageModule } from "./update/update.module";
 
 const routes: Routes = [
 	{
-		path: "",
-		loadChildren: "../home.module#HomePageModule"
-	},
-	{
 		path: "search",
 		data: { preload: true },
 		loadChildren: "../books/list/list.module#BooksListPageModule"
