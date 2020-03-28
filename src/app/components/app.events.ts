@@ -5,9 +5,7 @@ import { AppUtility } from "./app.utility";
 /** Servicing component for working with app events */
 export class AppEvents {
 
-	private static _handlers: {
-		[key: string]: Array<{ func: (info: { event: string, args: any }) => void, identity: string }>
-	} = {};
+	private static _handlers: { [key: string]: Array<{ func: (info: { event: string, args: any }) => void, identity: string }> } = {};
 	private static _subject: Subject<{ event: string, args: any }>;
 	private static _electronService: ElectronService;
 
