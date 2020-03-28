@@ -102,7 +102,7 @@ export class BooksUpdatePage implements OnInit {
 						AllowMultiple: false,
 						AllowPreview: true,
 						AllowDelete: true,
-						OnChanged: (event: any) => {
+						OnChanged: event => {
 							const file: File = event.target.files !== undefined && event.target.files.length > 0 ? event.target.files[0] : undefined;
 							if (file !== undefined) {
 								this.filesSvc.readAsDataURL(
@@ -116,7 +116,7 @@ export class BooksUpdatePage implements OnInit {
 								this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined });
 							}
 						},
-						OnDeleted: (file: File) => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined })
+						OnDeleted: _ => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined })
 					}
 				}
 			}

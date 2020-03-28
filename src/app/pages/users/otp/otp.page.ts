@@ -4,7 +4,6 @@ import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { PlatformUtility } from "../../../components/app.utility.platform";
 import { AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
-import { AuthenticationService } from "../../../services/authentication.service";
 import { UsersService } from "../../../services/users.service";
 
 @Component({
@@ -16,10 +15,9 @@ import { UsersService } from "../../../services/users.service";
 export class UsersOtpPage implements OnInit {
 
 	constructor(
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public authSvc: AuthenticationService,
-		public usersSvc: UsersService
+		private appFormsSvc: AppFormsService,
+		private usersSvc: UsersService
 	) {
 	}
 
@@ -55,6 +53,7 @@ export class UsersOtpPage implements OnInit {
 			show: false
 		}
 	};
+
 	@ViewChild(IonInput, { static: false }) private otpCtrl: IonInput;
 
 	get locale() {
@@ -63,7 +62,7 @@ export class UsersOtpPage implements OnInit {
 
 	ngOnInit() {
 		Promise.all([
-			this.prepareResourcesAsync(),
+			this.prepareLabelsAsync(),
 			this.prepareAsync()
 		]);
 	}
@@ -85,7 +84,7 @@ export class UsersOtpPage implements OnInit {
 		}
 	}
 
-	async prepareResourcesAsync() {
+	async prepareLabelsAsync() {
 		this.labels = {
 			status: await this.configSvc.getResourceAsync("users.profile.otp.status.label"),
 			providers: await this.configSvc.getResourceAsync("users.profile.otp.labels.providers"),

@@ -21,8 +21,8 @@ import { Privilege } from "../../../models/privileges";
 export class UsersUpdatePage implements OnInit {
 
 	constructor(
-		private appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
+		private appFormsSvc: AppFormsService,
 		private authSvc: AuthenticationService,
 		private usersSvc: UsersService
 	) {
@@ -302,7 +302,9 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async openUpdatePasswordAsync() {
-		const config: Array<AppFormsControlConfig> = [
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.profile.password.title");
+		await this.prepareButtonsAsync();
+		this.password.config = [
 			{
 				Name: "OldPassword",
 				Required: true,
@@ -336,9 +338,6 @@ export class UsersUpdatePage implements OnInit {
 				}
 			},
 		];
-		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.profile.password.title");
-		await this.prepareButtonsAsync();
-		this.password.config = config;
 	}
 
 	async updatePasswordAsync() {
@@ -360,7 +359,9 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async openUpdateEmailAsync() {
-		const config: Array<AppFormsControlConfig> = [
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.profile.email.title");
+		await this.prepareButtonsAsync();
+		this.email.config = [
 			{
 				Name: "OldPassword",
 				Required: true,
@@ -394,9 +395,6 @@ export class UsersUpdatePage implements OnInit {
 				}
 			},
 		];
-		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.profile.email.title");
-		await this.prepareButtonsAsync();
-		this.email.config = config;
 	}
 
 	async updateEmailAsync() {

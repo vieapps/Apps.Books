@@ -14,8 +14,8 @@ import { ImageCropperControl } from "../../../controls/common/image.cropper";
 export class UsersAvatarPage implements OnInit {
 
 	constructor(
-		private appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
+		private appFormsSvc: AppFormsService,
 		private filesSvc: FilesService
 	) {
 	}
@@ -51,6 +51,10 @@ export class UsersAvatarPage implements OnInit {
 			avatar: await this.configSvc.getResourceAsync("users.profile.avatar.mode.avatar"),
 			gravatar: await this.configSvc.getResourceAsync("users.profile.avatar.mode.gravatar")
 		};
+	}
+
+	onModeChanged(event: any) {
+		this.mode = event.detail.value;
 	}
 
 	updateAsync() {

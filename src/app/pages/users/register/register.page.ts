@@ -16,10 +16,10 @@ import { UsersService } from "../../../services/users.service";
 export class UsersRegisterPage implements OnInit {
 
 	constructor(
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public authSvc: AuthenticationService,
-		public usersSvc: UsersService
+		private appFormsSvc: AppFormsService,
+		private authSvc: AuthenticationService,
+		private usersSvc: UsersService
 	) {
 	}
 

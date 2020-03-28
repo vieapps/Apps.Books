@@ -23,10 +23,10 @@ import { RatingPoint } from "../../../models/ratingpoint";
 export class UsersListPage implements OnInit, OnDestroy {
 
 	constructor(
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public authSvc: AuthenticationService,
-		public usersSvc: UsersService
+		private appFormsSvc: AppFormsService,
+		private authSvc: AuthenticationService,
+		private usersSvc: UsersService
 	) {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
@@ -143,7 +143,7 @@ export class UsersListPage implements OnInit, OnDestroy {
 		}
 	}
 
-	async searchAsync(onNext?: () => void) {
+	private async searchAsync(onNext?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		const onNextAsync = async (data: any) => {
 			this.pageNumber++;
@@ -160,7 +160,7 @@ export class UsersListPage implements OnInit, OnDestroy {
 		}
 	}
 
-	cancelSearch(dontDisableInfiniteScroll?: boolean) {
+	private cancelSearch(dontDisableInfiniteScroll?: boolean) {
 		if (this.subscription !== undefined) {
 			this.subscription.unsubscribe();
 			this.subscription = undefined;
@@ -170,7 +170,7 @@ export class UsersListPage implements OnInit, OnDestroy {
 		}
 	}
 
-	prepareResults(onNext?: () => void, results?: Array<any>) {
+	private prepareResults(onNext?: () => void, results?: Array<any>) {
 		if (this.searching) {
 			(results || []).forEach(o => {
 				const profile = UserProfile.get(o.ID);

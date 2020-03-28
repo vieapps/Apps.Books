@@ -20,10 +20,10 @@ import { UsersAvatarPage } from "../avatar/avatar.page";
 export class UsersProfilePage implements OnInit {
 
 	constructor(
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
-		public usersSvc: UsersService
+		private appFormsSvc: AppFormsService,
+		private usersSvc: UsersService
 	) {
 	}
 

@@ -1,5 +1,5 @@
 import { Subscription } from "rxjs";
-import { Component, OnInit, OnDestroy, NgZone } from "@angular/core";
+import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../../components/app.crypto";
 import { AppUtility } from "../../../components/app.utility";
@@ -17,10 +17,9 @@ import { AuthenticationService } from "../../../services/authentication.service"
 export class UsersLogInPage implements OnInit, OnDestroy {
 
 	constructor(
-		public zone: NgZone,
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public authSvc: AuthenticationService
+		private appFormsSvc: AppFormsService,
+		private authSvc: AuthenticationService
 	) {
 	}
 
@@ -268,7 +267,7 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 						await this.configSvc.getResourceAsync("users.login.reset.title"),
 						undefined,
 						await this.configSvc.getResourceAsync("users.login.reset.message", { email: this.reset.form.value.Email }),
-						() => this.zone.run(async () => await this.closeAsync())
+						async () => await this.closeAsync()
 					)
 				]),
 				async error => await Promise.all([
