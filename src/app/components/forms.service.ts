@@ -10,11 +10,141 @@ import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 import { ConfigurationService } from "../services/configuration.service";
 
+/** Presents the settings of a segment (means a tab that contains group of controls) in the dynamic forms */
+export class AppFormsSegment {
+
+	constructor(
+		name?: string,
+		label?: string,
+		icon?: string
+	) {
+		this.Name = name || "";
+		this.Label = label || "";
+		this.Icon = icon;
+	}
+
+	Name: string;
+	Label: string;
+	Icon: string;
+}
+
+//  ---------------------------------------------------------------
+
+/** Presents the configuration of a control in the dynamic forms */
+export interface AppFormsControlConfig {
+	Name: string;
+	Order?: number;
+	Segment?: string;
+	Type?: string;
+	Hidden?: boolean;
+	Required?: boolean;
+	Validators?: Array<ValidatorFn> | Array<string>;
+	AsyncValidators?: Array<AsyncValidatorFn> | Array<string>;
+	Extras?: { [key: string]: any };
+	Options?: {
+		Type?: string;
+		Label?: string;
+		LabelOptions?: {
+			Position?: string;
+			Color?: string;
+			Css?: string;
+		};
+		Description?: string;
+		DescriptionOptions?: {
+			Css?: string;
+			Style?: string;
+		};
+		Icon?: string;
+		Name?: string;
+		Css?: string;
+		Color?: string;
+		PlaceHolder?: string;
+		ValidatePattern?: string;
+		Disabled?: boolean;
+		ReadOnly?: boolean;
+		AutoFocus?: boolean;
+		MinValue?: any;
+		MaxValue?: any;
+		MinLength?: number;
+		MaxLength?: number;
+		Width?: string;
+		Height?: string;
+		TextAreaRows?: number;
+		OnKeyUp?: (event: KeyboardEvent) => void;
+		OnChanged?: (event: any) => void;
+		SelectOptions?: {
+			Values?: Array<{ Value: string, Label: string }>;
+			RemoteURI?: string;
+			RemoteURIConverter?: (data: any) => { Value: string, Label: string };
+			RemoteURIProcessor?: (uri: string, converter?: (data: any) => { Value: string, Label: string }) => Promise<Array<{ Value: string, Label: string }>>;
+			Multiple?: boolean;
+			AsBoxes?: boolean;
+			Interface?: string;
+			InterfaceOptions?: any;
+			CancelText?: string;
+			OkText?: string;
+		};
+		LookupOptions?: {
+			AsCompleter?: boolean;
+			CompleterOptions?: {
+				SearchingText?: string;
+				NoResultsText?: string;
+				PauseMiliseconds?: number;
+				ClearSelected?: boolean;
+				DataSource?: CompleterData;
+				InitialValue?: any;
+				GetInitialValue?: (control: AppFormsControl) => any;
+				OnInitialized?: (control: AppFormsControl) => void;
+				OnSelected?: (item: any, control: AppFormsControl) => void;
+				AllowLookupByModal?: boolean;
+				LookupByModalButtonIcon?: string;
+				OnModalDismiss?: (data?: any) => any;
+			};
+			AsModal?: boolean;
+			ModalOptions?: {
+				Component?: any;
+				ComponentProps?: { [key: string]: any };
+				BackdropDismiss?: boolean;
+				SwipeToClose?: boolean
+				OnDismiss?: (data?: any) => void;
+				AllowSelect?: boolean;
+				AllowMultiple?: boolean;
+				AllowDelete?: boolean;
+			};
+		};
+		DatePickerOptions?: {
+			AllowTimes?: boolean;
+			DisplayFormat?: string;
+			PickerFormat?: string;
+			DayNames?: string;
+			DayShortNames?: string;
+			MonthNames?: string;
+			MonthShortNames?: string;
+			CancelText?: string;
+			DoneText?: string;
+		};
+		FilePickerOptions?: {
+			Accept?: string;
+			AllowMultiple?: boolean;
+			AllowPreview?: boolean;
+			AllowDelete?: boolean;
+			OnChanged?: (event: any) => void;
+			OnDeleted?: (file: File) => void;
+		}
+	};
+	SubControls?: {
+		AsArray?: boolean;
+		Controls?: Array<AppFormsControlConfig>
+	};
+}
+
+//  ---------------------------------------------------------------
+
 /** Presents the settings of a control in the dynamic forms */
 export class AppFormsControl {
 
 	constructor(
-		options?: any,
+		options?: AppFormsControlConfig | any,
 		order?: number
 	) {
 		if (options !== undefined) {
@@ -22,15 +152,15 @@ export class AppFormsControl {
 		}
 	}
 
-	Name = "";
-	Order = 0;
+	Name: string;
+	Order: number;
 	Segment: string;
-	Type = "TextBox";
-	Hidden = false;
-	Required = false;
+	Type: string;
+	Hidden: boolean;
+	Required: boolean;
 	Validators: Array<ValidatorFn> | Array<string>;
 	AsyncValidators: Array<AsyncValidatorFn> | Array<string>;
-	Extras: { [key: string]: any } = {};
+	Extras: { [key: string]: any };
 	Options = {
 		Type: "text",
 		Label: undefined as string,
@@ -61,6 +191,7 @@ export class AppFormsControl {
 		Height: undefined as string,
 		TextAreaRows: undefined as number,
 		OnKeyUp: undefined as (event: KeyboardEvent) => void,
+		OnChanged: undefined as (event: any) => void,
 		SelectOptions: {
 			Values: undefined as Array<{ Value: string, Label: string }>,
 			RemoteURI: undefined as string,
@@ -74,17 +205,31 @@ export class AppFormsControl {
 			OkText: "{{common.buttons.ok}}"
 		},
 		LookupOptions: {
-			SearchingText: "{{common.messages.completer.searching}}",
-			NoResultsText: "{{common.messages.completer.noresults}}",
 			AsCompleter: true,
-			PauseMiliseconds: 234,
-			ClearSelected: false,
-			DataSource: undefined as CompleterData,
-			InitialValue: undefined as any,
-			Handlers: {
-				Initialize: undefined as (control: AppFormsControl) => void,
+			CompleterOptions: {
+				SearchingText: "{{common.messages.completer.searching}}",
+				NoResultsText: "{{common.messages.completer.noresults}}",
+				PauseMiliseconds: 234,
+				ClearSelected: false,
+				DataSource: undefined as CompleterData,
+				InitialValue: undefined as any,
 				GetInitialValue: undefined as (control: AppFormsControl) => any,
-				OnItemSelected: undefined as (item: any, control: AppFormsControl) => void
+				OnInitialized: undefined as (control: AppFormsControl) => void,
+				OnSelected: undefined as (item: any, control: AppFormsControl) => void,
+				AllowLookupByModal: false,
+				LookupByModalButtonIcon: undefined as string,
+				OnModalDismiss: undefined as (data?: any) => any
+			},
+			AsModal: false,
+			ModalOptions: {
+				Component: undefined as any,
+				ComponentProps: undefined as { [key: string]: any },
+				BackdropDismiss: false,
+				SwipeToClose: false,
+				OnDismiss: undefined as (data?: any) => void,
+				AllowSelect: true,
+				AllowMultiple: false,
+				AllowDelete: true
 			}
 		},
 		DatePickerOptions: {
@@ -103,14 +248,12 @@ export class AppFormsControl {
 			AllowMultiple: true,
 			AllowPreview: false,
 			AllowDelete: true,
-			Handlers: {
-				OnChanged: undefined as (event: any) => void,
-				OnDeleted: undefined as (file: File) => void
-			}
+			OnChanged: undefined as (event: any) => void,
+			OnDeleted: undefined as (file: File) => void
 		}
 	};
 	SubControls: {
-		AsArray: boolean,
+		AsArray: boolean;
 		Controls: Array<AppFormsControl>
 	};
 
@@ -186,6 +329,7 @@ export class AppFormsControl {
 	}
 
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeName?: string) {
+		options = options || {};
 		control = control || new AppFormsControl();
 		control.Order = (options.Order !== undefined ? options.Order : undefined) || (options.order !== undefined ? options.order : undefined) || (order !== undefined ? order : 0);
 		control.Segment = options.Segment || options.segment;
@@ -197,8 +341,8 @@ export class AppFormsControl {
 		control.Required = !control.Hidden && !!(options.Required || options.required);
 		control.Extras = options.Extras || options.extras || {};
 
-		control.Validators = options.Validators;
-		control.AsyncValidators = options.AsyncValidators;
+		control.Validators = options.Validators || options.validators;
+		control.AsyncValidators = options.AsyncValidators || options.asyncValidators || options.asyncvalidators;
 
 		const controlOptions = options.Options || options.options;
 		if (controlOptions !== undefined) {
@@ -213,36 +357,38 @@ export class AppFormsControl {
 			}
 
 			control.Options.Description = controlOptions.Description || controlOptions.description;
-			const descriptionOptions = controlOptions.DescriptionOptions || controlOptions.descriptionoptions;
+			const descriptionOptions = controlOptions.DescriptionOptions || controlOptions.descriptionOptions || controlOptions.descriptionoptions;
 			if (descriptionOptions !== undefined) {
 				control.Options.DescriptionOptions.Css = descriptionOptions.Css || descriptionOptions.css || "description";
 				control.Options.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
 			}
 
-			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeholder;
+			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeHolder || controlOptions.placeholder;
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
 			control.Options.Color = controlOptions.Color || controlOptions.color;
 			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
 			control.Options.Name = controlOptions.Name || controlOptions.name || (alternativeName !== undefined ? `${alternativeName}-${control.Name}` : `${control.Name}`);
-			control.Options.ValidatePattern = controlOptions.ValidatePattern || controlOptions.validatepattern;
+			control.Options.ValidatePattern = controlOptions.ValidatePattern || controlOptions.validatePattern || controlOptions.validatepattern;
 
 			control.Options.Disabled = !!(controlOptions.Disabled || controlOptions.disabled);
-			control.Options.ReadOnly = !!(controlOptions.ReadOnly || controlOptions.readonly);
-			control.Options.AutoFocus = !!(controlOptions.AutoFocus || controlOptions.autofocus);
+			control.Options.ReadOnly = !!(controlOptions.ReadOnly || controlOptions.readOnly || controlOptions.readonly);
+			control.Options.AutoFocus = !!(controlOptions.AutoFocus || controlOptions.autoFocus || controlOptions.autofocus);
 
-			control.Options.MinValue = controlOptions.MinValue || controlOptions.minvalue;
-			control.Options.MaxValue = controlOptions.MaxValue || controlOptions.maxvalue;
+			control.Options.MinValue = controlOptions.MinValue || controlOptions.minValue || controlOptions.minvalue;
+			control.Options.MaxValue = controlOptions.MaxValue || controlOptions.maxValue || controlOptions.maxvalue;
 
-			control.Options.MinLength = controlOptions.MinLength || controlOptions.minlength;
-			control.Options.MaxLength = controlOptions.MaxLength || controlOptions.maxlength;
+			control.Options.MinLength = controlOptions.MinLength || controlOptions.minLength || controlOptions.minlength;
+			control.Options.MaxLength = controlOptions.MaxLength || controlOptions.maxLength || controlOptions.maxlength;
 
 			control.Options.Width = controlOptions.Width || controlOptions.width;
 			control.Options.Height = controlOptions.Height || controlOptions.height;
 
-			control.Options.TextAreaRows = controlOptions.TextAreaRows || controlOptions.textarearows;
-			control.Options.OnKeyUp = controlOptions.OnKeyUp || controlOptions.onkeyup;
+			control.Options.TextAreaRows = controlOptions.TextAreaRows || controlOptions.textAreaRows || controlOptions.textareaRows || controlOptions.textarearows;
 
-			const selectOptions = controlOptions.SelectOptions || controlOptions.selectoptions;
+			control.Options.OnKeyUp = controlOptions.OnKeyUp || controlOptions.onKeyUp || controlOptions.onkeyup;
+			control.Options.OnChanged = controlOptions.OnChanged || controlOptions.onChanged || controlOptions.onchanged;
+
+			const selectOptions = controlOptions.SelectOptions || controlOptions.selectOptions || controlOptions.selectoptions;
 			if (selectOptions !== undefined) {
 				const selectValues = selectOptions.Values || selectOptions.values;
 				control.Options.SelectOptions = {
@@ -258,78 +404,95 @@ export class AppFormsControl {
 								: (selectValues as Array<any>).map(data => {
 										return { Value: data.Value || data.value, Label: data.Label || data.label || data.Value || data.value };
 									})
-							: undefined,
-					RemoteURI: selectOptions.RemoteURI || selectOptions.remoteuri,
-					RemoteURIConverter: selectOptions.RemoteURIConverter || selectOptions.remoteuriconverter,
-					RemoteURIProcessor: selectOptions.RemoteURIProcessor || selectOptions.remoteuriprocessor,
+							: [],
+					RemoteURI: selectOptions.RemoteURI || selectOptions.remoteURI || selectOptions.remoteuri,
+					RemoteURIConverter: selectOptions.RemoteURIConverter || selectOptions.remoteURIConverter || selectOptions.remoteuriconverter,
+					RemoteURIProcessor: selectOptions.RemoteURIProcessor || selectOptions.remoteURIProcessor || selectOptions.remoteuriprocessor,
 					Multiple: !!(selectOptions.Multiple || selectOptions.multiple),
 					AsBoxes: !!(selectOptions.AsBoxes || selectOptions.asboxes),
 					Interface: selectOptions.Interface || selectOptions.interface || "alert",
-					InterfaceOptions: selectOptions.InterfaceOptions || selectOptions.interfaceoptions,
-					CancelText: selectOptions.CancelText || selectOptions.canceltext || "{{common.buttons.cancel}}",
-					OkText: selectOptions.OkText || selectOptions.oktext || "{{common.buttons.ok}}"
+					InterfaceOptions: selectOptions.InterfaceOptions || selectOptions.interfaceOptions || selectOptions.interfaceoptions,
+					CancelText: selectOptions.CancelText || selectOptions.cancelText || selectOptions.canceltext || "{{common.buttons.cancel}}",
+					OkText: selectOptions.OkText || selectOptions.okText || selectOptions.oktext || "{{common.buttons.ok}}"
 				};
 			}
 
-			const lookupOptions = controlOptions.LookupOptions || controlOptions.lookupoptions;
+			const lookupOptions = controlOptions.LookupOptions || controlOptions.lookupOptions || controlOptions.lookupoptions;
 			if (lookupOptions !== undefined) {
-				const handlers = lookupOptions.Handlers || lookupOptions.handlers || {};
+				const asCompleter = lookupOptions.AsCompleter !== undefined || lookupOptions.asCompleter !== undefined || lookupOptions.ascompleter !== undefined ? lookupOptions.AsCompleter || lookupOptions.asCompleter || lookupOptions.ascompleter : true;
+				const completerOptions = lookupOptions.CompleterOptions || lookupOptions.completerOptions || lookupOptions.completeroptions || {};
+				const modalOptions = lookupOptions.ModalOptions || lookupOptions.modalOptions || lookupOptions.modaloptions || {};
 				control.Options.LookupOptions = {
-					SearchingText: lookupOptions.SearchingText || lookupOptions.searchingtext || "{{common.messages.completer.searching}}",
-					NoResultsText: lookupOptions.NoResultsText || lookupOptions.noresultstext || "{{common.messages.completer.noresults}}",
-					AsCompleter: lookupOptions.AsCompleter !== undefined || lookupOptions.ascompleter !== undefined ? lookupOptions.AsCompleter || lookupOptions.ascompleter : true,
-					PauseMiliseconds: lookupOptions.PauseMiliseconds || lookupOptions.pausemiliseconds || 123,
-					ClearSelected: !!(lookupOptions.ClearSelected || lookupOptions.clearselected),
-					DataSource: lookupOptions.DataSource || lookupOptions.datasource,
-					InitialValue: lookupOptions.InitialValue || lookupOptions.initialvalue,
-					Handlers: {
-						Initialize: handlers.Initialize || handlers.initialize,
-						GetInitialValue: handlers.GetInitialValue || handlers.getinitialvalue,
-						OnItemSelected: handlers.OnItemSelected || handlers.onitemselected
+					AsCompleter: asCompleter,
+					CompleterOptions: {
+						SearchingText: completerOptions.SearchingText || completerOptions.searchingText || completerOptions.searchingtext || "{{common.messages.completer.searching}}",
+						NoResultsText: completerOptions.NoResultsText || completerOptions.noResultsText || completerOptions.noresultstext || "{{common.messages.completer.noresults}}",
+						PauseMiliseconds: completerOptions.PauseMiliseconds || completerOptions.pauseMiliseconds || completerOptions.pausemiliseconds || 123,
+						ClearSelected: !!(completerOptions.ClearSelected || completerOptions.clearSelected || completerOptions.clearselected),
+						DataSource: completerOptions.DataSource || completerOptions.dataSource || completerOptions.datasource,
+						InitialValue: completerOptions.InitialValue || completerOptions.initialValue || completerOptions.initialvalue,
+						GetInitialValue: completerOptions.GetInitialValue || completerOptions.getInitialValue || completerOptions.getinitialvalue,
+						OnInitialized: completerOptions.OnInitialized || completerOptions.onInitialized || completerOptions.oninitialized,
+						OnSelected: completerOptions.OnSelected || completerOptions.onSelected || completerOptions.onselected,
+						AllowLookupByModal: !!(completerOptions.AllowLookupByModal || completerOptions.allowLookupByModal || completerOptions.allowlookupbymodal),
+						LookupByModalButtonIcon: completerOptions.LookupByModalButtonIcon || completerOptions.lookupByModalButtonIcon || completerOptions.lookupbymodalbuttonicon || "duplicate",
+						OnModalDismiss: completerOptions.OnModalDismiss || completerOptions.onModalDismiss || completerOptions.onmodaldismiss
+					},
+					AsModal: !asCompleter && (lookupOptions.AsModal !== undefined || lookupOptions.asModal !== undefined || lookupOptions.asmodal !== undefined ? lookupOptions.AsModal || lookupOptions.asModal || lookupOptions.asmodal : false),
+					ModalOptions: {
+						Component: modalOptions.Component || modalOptions.component,
+						ComponentProps: modalOptions.ComponentProps || modalOptions.componentProps || modalOptions.componentprops,
+						BackdropDismiss: !!(modalOptions.BackdropDismiss || modalOptions.backdropDismiss || modalOptions.backdropdismiss),
+						SwipeToClose: !!(modalOptions.SwipeToClose || modalOptions.swipeToClose || modalOptions.swipetoclose),
+						OnDismiss: modalOptions.OnDismiss || modalOptions.onDismiss || modalOptions.ondismiss,
+						AllowSelect: modalOptions.AllowSelect !== undefined || modalOptions.allowSelect !== undefined || modalOptions.allowselect !== undefined ? modalOptions.AllowSelect || modalOptions.allowSelect || modalOptions.allowselect : true,
+						AllowMultiple: !!(modalOptions.AllowMultiple || modalOptions.allowMultiple || modalOptions.allowmultiple),
+						AllowDelete: modalOptions.AllowDelete !== undefined || modalOptions.allowDelete !== undefined || modalOptions.allowdelete !== undefined ? modalOptions.AllowDelete || modalOptions.allowDelete || modalOptions.allowdelete : true
 					}
 				};
 			}
 
-			const datepickerOptions = controlOptions.DatePickerOptions || controlOptions.datepickeroptions;
+			const datepickerOptions = controlOptions.DatePickerOptions || controlOptions.datePickerOptions || controlOptions.datepickerOptions || controlOptions.datepickeroptions;
 			if (datepickerOptions !== undefined) {
 				control.Options.DatePickerOptions = {
-					AllowTimes: !!(datepickerOptions.AllowTimes || datepickerOptions.allowtimes),
-					DisplayFormat: datepickerOptions.DisplayFormat || datepickerOptions.displayformat,
-					PickerFormat: datepickerOptions.PickerFormat || datepickerOptions.pickerformat,
-					DayNames: datepickerOptions.DayNames || datepickerOptions.daynames,
-					DayShortNames: datepickerOptions.DayShortNames || datepickerOptions.dayshortnames,
-					MonthNames: datepickerOptions.MonthNames || datepickerOptions.monthnames,
-					MonthShortNames: datepickerOptions.MonthShortNames || datepickerOptions.monthshortnames,
-					CancelText: datepickerOptions.CancelText || datepickerOptions.canceltext || "{{common.buttons.cancel}}",
-					DoneText: datepickerOptions.DoneText || datepickerOptions.donetext || "{{common.buttons.done}}"
+					AllowTimes: !!(datepickerOptions.AllowTimes || datepickerOptions.allowTimes || datepickerOptions.allowtimes),
+					DisplayFormat: datepickerOptions.DisplayFormat || datepickerOptions.displayFormat || datepickerOptions.displayformat,
+					PickerFormat: datepickerOptions.PickerFormat || datepickerOptions.pickerFormat || datepickerOptions.pickerformat,
+					DayNames: datepickerOptions.DayNames || datepickerOptions.dayNames || datepickerOptions.daynames,
+					DayShortNames: datepickerOptions.DayShortNames || datepickerOptions.dayShortNames || datepickerOptions.dayshortnames,
+					MonthNames: datepickerOptions.MonthNames || datepickerOptions.monthNames || datepickerOptions.monthnames,
+					MonthShortNames: datepickerOptions.MonthShortNames || datepickerOptions.monthShortNames || datepickerOptions.monthshortnames,
+					CancelText: datepickerOptions.CancelText || datepickerOptions.cancelText || datepickerOptions.canceltext || "{{common.buttons.cancel}}",
+					DoneText: datepickerOptions.DoneText || datepickerOptions.doneText || datepickerOptions.donetext || "{{common.buttons.done}}"
 				};
 			}
 
-			const filepickerOptions = controlOptions.FilePickerOptions || controlOptions.filepickeroptions;
+			const filepickerOptions = controlOptions.FilePickerOptions || controlOptions.filePickerOptions || controlOptions.filepickerOptions || controlOptions.filepickeroptions;
 			if (filepickerOptions !== undefined) {
 				control.Options.FilePickerOptions = {
-					Accept: filepickerOptions.Accept || filepickerOptions.accept,
-					AllowMultiple: !!(filepickerOptions.AllowMultiple || filepickerOptions.allowmultiple),
-					AllowPreview: !!(filepickerOptions.AllowPreview || filepickerOptions.allowpreview),
-					AllowDelete: !!(filepickerOptions.AllowDelete || filepickerOptions.allowdelete),
-					Handlers: filepickerOptions.Handlers || filepickerOptions.handlers,
+					Accept: filepickerOptions.Accept || filepickerOptions.accept || "*",
+					AllowMultiple: !!(filepickerOptions.AllowMultiple || filepickerOptions.allowMultiple || filepickerOptions.allowmultiple),
+					AllowPreview: !!(filepickerOptions.AllowPreview || filepickerOptions.allowPreview || filepickerOptions.allowpreview),
+					AllowDelete: !!(filepickerOptions.AllowDelete || filepickerOptions.allowDelete || filepickerOptions.allowdelete),
+					OnChanged: filepickerOptions.OnChanged || filepickerOptions.onChanged || filepickerOptions.onchanged,
+					OnDeleted: filepickerOptions.OnDeleted || filepickerOptions.onDeleted || filepickerOptions.ondeleted
 				};
 			}
 		}
 
-		const subControls = options.SubControls || options.subcontrols;
+		const subControls = options.SubControls || options.subControls || options.subcontrols;
 		if (subControls !== undefined) {
 			const subConfig = subControls.Controls || subControls.controls;
 			if (AppUtility.isArray(subConfig, true)) {
 				control.SubControls = {
-					AsArray: !!(subControls.AsArray || subControls.asarray),
-					Controls: (subConfig as Array<any>).map((suboptions, suborder) => this.assign(suboptions, undefined, suborder, control.Name)).sort(AppUtility.getCompareFunction("Order"))
+					AsArray: !!(subControls.AsArray || subControls.asArray || subControls.asarray),
+					Controls: (subConfig as Array<any>).map((subOptions, subOrder) => this.assign(subOptions, undefined, subOrder, control.Name)).sort(AppUtility.getCompareFunction("Order"))
 				};
 				if (control.SubControls.Controls.length < 1) {
 					control.SubControls = undefined;
 				}
 				else {
-					control.SubControls.Controls.forEach((subcontrol, suborder) => subcontrol.Order = suborder);
+					control.SubControls.Controls.forEach((subControl, subOrder) => subControl.Order = subOrder);
 				}
 			}
 		}
@@ -338,15 +501,22 @@ export class AppFormsControl {
 	}
 
 	/** Copies the options of this control */
-	public copy(onPreCompleted?: (options: Array<any>) => void) {
+	public copy(onPreCompleted?: (options: Array<AppFormsControlConfig> | Array<any>) => void) {
 		const options = AppUtility.clone(this, ["Order", "Validators", "AsyncValidators"]);
 		options.Validators = this.Validators;
 		options.AsyncValidators = this.AsyncValidators;
 		options.Options.OnKeyUp = this.Options.OnKeyUp;
+		options.Options.OnChanged = this.Options.OnChanged;
 		options.Options.SelectOptions.InterfaceOptions = this.Options.SelectOptions.InterfaceOptions;
-		options.Options.LookupOptions.DataSource = this.Options.LookupOptions.DataSource;
-		options.Options.LookupOptions.Handlers = this.Options.LookupOptions.Handlers;
-		options.Options.FilePickerOptions.Handlers = this.Options.FilePickerOptions.Handlers;
+		options.Options.LookupOptions.CompleterOptions.DataSource = this.Options.LookupOptions.CompleterOptions.DataSource;
+		options.Options.LookupOptions.CompleterOptions.GetInitialValue = this.Options.LookupOptions.CompleterOptions.GetInitialValue;
+		options.Options.LookupOptions.CompleterOptions.OnInitialized = this.Options.LookupOptions.CompleterOptions.OnInitialized;
+		options.Options.LookupOptions.CompleterOptions.OnSelected = this.Options.LookupOptions.CompleterOptions.OnSelected;
+		options.Options.LookupOptions.CompleterOptions.OnModalDismiss = this.Options.LookupOptions.CompleterOptions.OnModalDismiss;
+		options.Options.LookupOptions.ModalOptions.Component = this.Options.LookupOptions.ModalOptions.Component;
+		options.Options.LookupOptions.ModalOptions.OnDismiss = this.Options.LookupOptions.ModalOptions.OnDismiss;
+		options.Options.FilePickerOptions.OnChanged = this.Options.FilePickerOptions.OnChanged;
+		options.Options.FilePickerOptions.OnDeleted = this.Options.FilePickerOptions.OnDeleted;
 		if (onPreCompleted !== undefined) {
 			onPreCompleted(options);
 		}
@@ -369,23 +539,7 @@ export class AppFormsControl {
 
 }
 
-/** Presents the settings of a segment (means a tab that contains group of controls) in the dynamic forms */
-export class AppFormsSegment {
-
-	constructor(
-		name?: string,
-		label?: string,
-		icon?: string
-	) {
-		this.Name = name || "";
-		this.Label = label || "";
-		this.Icon = icon;
-	}
-
-	Name: string;
-	Label: string;
-	Icon: string;
-}
+//  ---------------------------------------------------------------
 
 /** Provides the servicing operations of the dynamic forms */
 @Injectable()
@@ -404,7 +558,10 @@ export class AppFormsService {
 
 	private _loading: any;
 	private _actionsheet: any;
-	private _modal: any;
+	private _modal: {
+		component: any;
+		onDismiss: (data?: any) => void
+	};
 	private _alert: any;
 	private _toast: any;
 	private _types = {
@@ -432,13 +589,7 @@ export class AppFormsService {
 			control.Options.Description = await this.normalizeResourceAsync(control.Options.Description);
 			control.Options.PlaceHolder = await this.normalizeResourceAsync(control.Options.PlaceHolder);
 			if (control.Type === "Select") {
-				if (AppUtility.isArray(control.Options.SelectOptions.Values, true)) {
-					await Promise.all(control.Options.SelectOptions.Values.map(async selectValue => {
-						selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
-						selectValue.Label = await this.normalizeResourceAsync(selectValue.Label);
-					}));
-				}
-				else if (AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
+				if (AppUtility.isNotEmpty(control.Options.SelectOptions.RemoteURI)) {
 					let uri = AppXHR.getURI(control.Options.SelectOptions.RemoteURI);
 					uri += (uri.indexOf("?") < 0 ? "?" : "&") + AppConfig.getRelatedQuery();
 					try {
@@ -463,13 +614,17 @@ export class AppFormsService {
 									? (AppUtility.toArray(values) as Array<string>).map(value => {
 											return { Value: value, Label: value };
 										})
-									: [];
+									: AppUtility.isNotNull(values)
+										? [values.toString()]
+										: [];
 						}
 					}
 					catch (error) {
 						console.error("[Forms]: Error occurred while preparing the selecting values from a remote URI", error);
 						control.Options.SelectOptions.Values = [];
 					}
+				}
+				if (AppUtility.isArray(control.Options.SelectOptions.Values, true)) {
 					await Promise.all(control.Options.SelectOptions.Values.map(async selectValue => {
 						selectValue.Value = await this.normalizeResourceAsync(selectValue.Value);
 						selectValue.Label = await this.normalizeResourceAsync(selectValue.Label);
@@ -478,11 +633,11 @@ export class AppFormsService {
 				control.Options.SelectOptions.OkText = await this.normalizeResourceAsync(control.Options.SelectOptions.OkText);
 				control.Options.SelectOptions.CancelText = await this.normalizeResourceAsync(control.Options.SelectOptions.CancelText);
 			}
-			else if (control.Type === "Lookup") {
-				control.Options.LookupOptions.SearchingText = await this.normalizeResourceAsync(control.Options.LookupOptions.SearchingText);
-				control.Options.LookupOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.LookupOptions.NoResultsText);
+			else if (AppUtility.isEquals(control.Type, "Lookup")) {
+				control.Options.LookupOptions.CompleterOptions.SearchingText = await this.normalizeResourceAsync(control.Options.LookupOptions.CompleterOptions.SearchingText);
+				control.Options.LookupOptions.CompleterOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.LookupOptions.CompleterOptions.NoResultsText);
 			}
-			else if (control.Type === "DatePicker") {
+			else if (AppUtility.isEquals(control.Type, "DatePicker")) {
 				if (AppUtility.isTrue(modifyDatePickers)) {
 					control.Type = "TextBox";
 					control.Options.Type = control.Options.DatePickerOptions.AllowTimes ? "datetime-local" : "date";
@@ -508,17 +663,17 @@ export class AppFormsService {
 	}
 
 	/** Gets the definition of all controls */
-	public getControls(config: Array<any> = [], controls?: Array<AppFormsControl>, segments?: { items: Array<AppFormsSegment>, default: string, current: string }) {
+	public getControls(config: Array<AppFormsControlConfig> | Array<any> = [], controls?: Array<AppFormsControl>, segments?: { items: Array<AppFormsSegment>, default: string, current: string }) {
 		controls = controls || new Array<AppFormsControl>();
-		config.map((options, order) => {
+		(config as Array<any>).map((options, order) => {
 			const control = new AppFormsControl(options, order);
 			if (segments !== undefined && segments.items !== undefined && segments.items.length > 0) {
 				if (control.Segment === undefined) {
-					control.Segment = segments.default !== undefined && segments.items.findIndex(segment => segment.Name === segments.default) > -1
+					control.Segment = segments.default !== undefined && segments.items.findIndex(segment => AppUtility.isEquals(segment.Name, segments.default)) > -1
 						? segments.default
 						: segments.items[0].Name;
 				}
-				const segmentIndex = segments.items.findIndex(segment => segment.Name === control.Segment);
+				const segmentIndex = segments.items.findIndex(segment => AppUtility.isEquals(segment.Name, control.Segment));
 				control.Segment = segmentIndex < 0 ? segments.items[0].Name : control.Segment;
 				control.segmentIndex = segmentIndex < 0 ? 0 : segmentIndex;
 			}
@@ -571,7 +726,7 @@ export class AppFormsService {
 	private getFormGroup(controls: Array<AppFormsControl>, formGroup?: FormGroup, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
 		formGroup = formGroup || new FormGroup({}, validators, asyncValidators);
 		controls.forEach(control => {
-			if (control.SubControls === undefined && control.Type === "Lookup" && control.Options.LookupOptions.AsCompleter && control.Options.Type === "Address") {
+			if (control.SubControls === undefined && AppUtility.isEquals(control.Type, "Lookup") && control.Options.LookupOptions.AsCompleter && AppUtility.isEquals(control.Options.Type, "Address")) {
 				const options = control.copy();
 				["County", "Province", "Country"].forEach(name => formGroup.addControl(name, this.getFormControl(new AppFormsControl(options))));
 			}
@@ -590,7 +745,7 @@ export class AppFormsService {
 	private getFormArray(control: AppFormsControl, validators?: Array<ValidatorFn>, asyncValidators?: Array<AsyncValidatorFn>) {
 		const formArray = new FormArray([], validators, asyncValidators);
 		control.SubControls.Controls.forEach(subcontrol => {
-			if (subcontrol.SubControls === undefined && subcontrol.Type === "Lookup" && control.Options.LookupOptions.AsCompleter && subcontrol.Options.Type === "Address") {
+			if (subcontrol.SubControls === undefined && AppUtility.isEquals(subcontrol.Type, "Lookup") && control.Options.LookupOptions.AsCompleter && AppUtility.isEquals(subcontrol.Options.Type, "Address")) {
 				const options = subcontrol.copy();
 				const formGroup = new FormGroup({}, this.getValidators(subcontrol), this.getAsyncValidators(subcontrol));
 				["County", "Province", "Country"].forEach(name => formGroup.addControl(name, this.getFormControl(new AppFormsControl(options))));
@@ -628,18 +783,18 @@ export class AppFormsService {
 			validators.push(Validators.required);
 		}
 
-		if (this._types.text.findIndex(type => type === control.Options.Type) > -1) {
+		if (this._types.text.findIndex(type => AppUtility.isEquals(type, control.Options.Type)) > -1) {
 			if (control.Options.MinLength > 0) {
 				validators.push(Validators.minLength(control.Options.MinLength));
 			}
 			if (control.Options.MaxLength > 0) {
 				validators.push(Validators.maxLength(control.Options.MaxLength));
 			}
-			if (control.Options.Type === "email") {
+			if (AppUtility.isEquals(control.Options.Type, "email")) {
 				validators.push(Validators.pattern("([a-zA-Z0-9_.-]+)@([a-zA-Z0-9_.-]+)\\.([a-zA-Z]{2,5})"));
 			}
 		}
-		else if (this._types.datetime.findIndex(type => type === control.Options.Type) > -1) {
+		else if (this._types.datetime.findIndex(type => AppUtility.isEquals(type, control.Options.Type)) > -1) {
 			if (control.Options.MinValue !== undefined) {
 				validators.push(this.minDate(control.Options.MinValue));
 			}
@@ -647,7 +802,7 @@ export class AppFormsService {
 				validators.push(this.maxDate(control.Options.MaxValue));
 			}
 		}
-		else if ("number" === control.Options.Type) {
+		else if (AppUtility.isEquals("number", control.Options.Type)) {
 			if (control.Options.MinValue !== undefined) {
 				validators.push(Validators.min(+control.Options.MinValue));
 			}
@@ -820,8 +975,8 @@ export class AppFormsService {
 				County: county.title,
 				Province: province.title,
 				Country: country,
-				Title: county.title + ", " + province.title + ", " + country,
-				TitleANSI: AppUtility.toANSI(county.title + ", " + province.title + ", " + country)
+				Title: `${county.title}, ${province.title}, ${country}`,
+				TitleANSI: AppUtility.toANSI(`${county.title}, ${province.title}, ${country}`)
 			})));
 			this._metaCounties[country] = counties;
 		}
@@ -864,7 +1019,7 @@ export class AppFormsService {
 	}
 
 	/** Shows the action sheet */
-	public async showActionSheetAsync(buttons: Array<{ text: string, role: string, icon: string, handler: () => void }>, backdropDismiss?: boolean, dontAddCancelButton?: boolean) {
+	public async showActionSheetAsync(buttons: Array<{ text: string; role?: string; icon?: string; handler?: () => void }>, backdropDismiss: boolean = false, dontAddCancelButton: boolean = false) {
 		await this.hideLoadingAsync();
 		if (AppUtility.isFalse(dontAddCancelButton)) {
 			buttons.push(this.getActionSheetButton(await this.getResourceAsync("common.buttons.cancel"), "close", async () => await this.hideActionSheetAsync(), "cancel"));
@@ -891,7 +1046,7 @@ export class AppFormsService {
 	}
 
 	/** Shows the alert/confirmation box  */
-	public async showAlertAsync(header: string = null, subHeader: string = null, message: string, postProcess: (data?: any) => void = () => {}, okButtonText: string = null, cancelButtonText: string = null, inputs: Array<any> = null) {
+	public async showAlertAsync(header: string = null, subHeader: string = null, message: string, postProcess?: (data?: any) => void, okButtonText?: string, cancelButtonText?: string, inputs?: Array<any>, backdropDismiss: boolean = false) {
 		await this.hideLoadingAsync(async () => await this.hideAlertAsync());
 		const buttons = AppUtility.isNotEmpty(cancelButtonText)
 			? [{ text: cancelButtonText, role: "cancel", handler: async (data?: any) => await this.hideAlertAsync() }]
@@ -900,14 +1055,16 @@ export class AppFormsService {
 			text: okButtonText || await this.getResourceAsync("common.buttons.ok"),
 			role: undefined as string,
 			handler: async (data?: any) => {
-				postProcess(data);
+				if (postProcess !== undefined) {
+					postProcess(data);
+				}
 				await this.hideAlertAsync();
 			}
 		});
 		this._alert = await this.alertController.create({
 			header: header || await this.getResourceAsync("common.alert.header.general"),
 			subHeader: subHeader,
-			backdropDismiss: false,
+			backdropDismiss: backdropDismiss,
 			message: message,
 			inputs: AppUtility.isArray(inputs, true) ? inputs : undefined,
 			buttons: buttons
@@ -936,23 +1093,46 @@ export class AppFormsService {
 		await this.showAlertAsync(await this.getResourceAsync("common.alert.header.error"), subHeader, message, postProcess);
 	}
 
-	/** Shows the modal box */
-	public async showModalAsync(component: any) {
+	/**
+	 * Shows the modal dialog
+	 * @param component The component for showing in the modal dialog
+	 * @param componentProps The input properties of the component in the modal dialog
+	 * @param onDismiss The handler to run when the modal dialog was dismissed
+	 * @param backdropDismiss true to dismiss when tap on backdrop
+	 * @param swipeToClose true to swipe to close the modal dialog (only available on iOS)
+	*/
+	public async showModalAsync(component: any, componentProps?: { [key: string]: any }, onDismiss?: (data?: any) => void, backdropDismiss: boolean = false, swipeToClose: boolean = false) {
 		await this.hideLoadingAsync(async () => await this.hideModalAsync());
-		this._modal = await this.modalController.create({
-			component: component,
-			backdropDismiss: false
-		});
-		await this._modal.present();
+		this._modal = {
+			component: await this.modalController.create({
+				component: component,
+				componentProps: componentProps,
+				backdropDismiss: backdropDismiss,
+				swipeToClose: swipeToClose,
+				presentingElement: swipeToClose ? await this.modalController.getTop() : undefined
+			}),
+			onDismiss: onDismiss
+		};
+		await this._modal.component.present();
 	}
 
-	/** Hides the modal box */
-	public async hideModalAsync(onNext?: () => void) {
+	/**
+	 * Hides (Dismiss) the modal dialog
+	 * @param data The data for the onDismiss/onNext handlers
+	 * @param onNext The handler to run when the modal dialog was dismissed
+	*/
+	public async hideModalAsync(data?: any, onNext?: (data?: any) => void) {
 		if (this._modal !== undefined) {
-			await this._modal.dismiss();
+			await this._modal.component.dismiss();
+			if (this._modal.onDismiss !== undefined) {
+				this._modal.onDismiss(data);
+			}
+			if (onNext !== undefined) {
+				onNext(data);
+			}
 			this._modal = undefined;
 		}
-		if (onNext !== undefined) {
+		else if (onNext !== undefined) {
 			onNext();
 		}
 	}

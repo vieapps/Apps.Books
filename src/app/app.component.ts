@@ -251,21 +251,20 @@ export class AppComponent implements OnInit {
 			this.sidebar.left.menu[index].thumbnail = info.thumbnail;
 		}
 
-		(info.items as Array<any> || [])
-			.map(item => {
-				return {
-					title: item.title,
-					url: item.url,
-					queryParams: item.queryParams,
-					direction: item.direction,
-					icon: item.icon,
-					thumbnail: item.thumbnail,
-					detail: item.detail,
-					onClick: item.onClick
-				};
-			})
-			.filter(item => AppUtility.isNotEmpty(item.title) && AppUtility.isNotEmpty(item.url))
-			.forEach(item => this.updateSidebarItem(index, -1, item));
+		(info.items as Array<any> || []).map(item => {
+			return {
+				title: item.title,
+				url: item.url,
+				queryParams: item.queryParams,
+				direction: item.direction,
+				icon: item.icon,
+				thumbnail: item.thumbnail,
+				detail: item.detail,
+				onClick: item.onClick
+			};
+		})
+		.filter(item => AppUtility.isNotEmpty(item.title) && AppUtility.isNotEmpty(item.url))
+		.forEach(item => this.updateSidebarItem(index, -1, item));
 	}
 
 	private async normalizeSidebarMenuAsync() {

@@ -27,7 +27,7 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.6.5",
+		version: "1.7.0",
 		copyright: "© 2016 - 2020 VIEApps.net",
 		license: "Apache-2.0",
 		frameworks: "ionic 5.0 - angular 8.2 - cordova 9.0",
@@ -135,10 +135,14 @@ export class AppConfig {
 		routerParams: undefined as { [key: string]: any },
 		redirectToWhenReady: undefined as string,
 		users: {
+			root: "/users",
 			login: "/users/login",
 			register: "/users/register",
 			profile: "/users/profile",
-			list: "/users/list"
+			update: "/users/update",
+			otp: "/users/otp",
+			list: "/users/list",
+			search: "/users/search"
 		},
 		tabs: {
 			previous: undefined as string,

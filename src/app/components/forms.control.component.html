@@ -1,4 +1,4 @@
-<ion-item *ngIf="visible && isFormControl && !isCaptchaControl && !selectAsRadioBoxes"
+<ion-item *ngIf="visible && isFormControl && !isCaptchaControl && !selectAsRadioBoxes && !isCustomControl"
 	[color]="theme"
 	[formGroup]="formGroup"
 	[class.invalid]="invalid"
@@ -6,12 +6,21 @@
 	[class.completer-container]="isCompleter"
 	[class.select-dropdown]="selectAsDropdown">
 
+	<ion-button *ngIf="icon" fill="clear" slot="start" tabindex="-1">
+		<ion-icon *ngIf="icon" [name]="icon" slot="icon-only"></ion-icon>
+	</ion-button>
+
+	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="show = !show">
+		<ion-icon name="eye" slot="icon-only" [hidden]="type === 'password'"></ion-icon>
+		<ion-icon name="eye-off" slot="icon-only" [hidden]="type !== 'password'"></ion-icon>
+	</ion-button>
+
 	<ion-label *ngIf="label"
 		[color]="color.label"
-		[position]="isControl('YesNo') ? '' : position"
+		[position]="position"
 		[class]="css.label">{{ label }}</ion-label>
 
-	<ion-input *ngIf="isControl('TextBox')" #elementRef
+	<ion-input *ngIf="isTextBoxControl" #elementRef
 		[formControlName]="formControlName"
 		[name]="name"
 		[type]="type"
@@ -27,12 +36,7 @@
 		[attr.style]="style.control"
 		(keyup)="onKeyUp($event)"></ion-input>
 
-	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="show = !show">
-		<ion-icon name="eye" slot="icon-only" [hidden]="type === 'password'"></ion-icon>
-		<ion-icon name="eye-off" slot="icon-only" [hidden]="type !== 'password'"></ion-icon>
-	</ion-button>
-
-	<ion-textarea *ngIf="isControl('TextArea')" #elementRef
+	<ion-textarea *ngIf="isTextAreaControl" #elementRef
 		[formControlName]="formControlName"
 		[name]="name"
 		[placeholder]="placeholder"
@@ -44,7 +48,7 @@
 		[rows]="textareaRows" 
 		[attr.style]="style.control"></ion-textarea>
 
-	<ion-select *ngIf="isControl('Select') && !selectAsDropdown" #elementRef
+	<ion-select *ngIf="isSelectControl && !selectAsDropdown" #elementRef
 		[name]="name"
 		[multiple]="selectMultiple"
 		[interface]="selectInterface"
@@ -63,12 +67,12 @@
 			[formControlName]="formControlName"
 			[name]="name"
 			[class]="css.control"
-			(change)="formControl.setValue(this.value)">
+			(change)="onChanged(this.value)">
 			<option *ngFor="let option of selectOptions" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</option>
 		</select>
 	</div>
 
-	<ion-datetime *ngIf="isControl('DatePicker')" #elementRef
+	<ion-datetime *ngIf="isDatePickerControl" #elementRef
 		[displayFormat]="datetimeDisplayFormat"
 		[pickerFormat]="datetimePickerFormat"
 		[dayNames]="datetimeDayNames"
@@ -84,21 +88,21 @@
 		[placeholder]="placeholder"
 		(ionChange)="onChanged($event)"></ion-datetime>
 
-	<ion-checkbox *ngIf="isControl('YesNo') && type !== 'toggle'" slot="end" #elementRef
+	<ion-checkbox *ngIf="isYesNoControl && type !== 'toggle'" slot="end" #elementRef
 		[name]="name"
 		[disabled]="disabled"
 		[color]="color.control"
 		[checked]="checked"
 		(ionChange)="onChanged($event)"></ion-checkbox>
 
-	<ion-toggle *ngIf="isControl('YesNo') && type === 'toggle'" slot="end" #elementRef
+	<ion-toggle *ngIf="isYesNoControl && type === 'toggle'" slot="end" #elementRef
 		[name]="name"
 		[disabled]="disabled"
 		[color]="color.control"
 		[checked]="checked"
 		(ionChange)="onChanged($event)"></ion-toggle>
 
-	<ion-range *ngIf="isControl('Range')" #elementRef
+	<ion-range *ngIf="isRangeControl" #elementRef
 		[name]="name"
 		[color]="color.control"
 		[disabled]="disabled"
@@ -122,7 +126,10 @@
 		[initialValue]="completerInitialValue"
 		(selected)="onChanged($event)"
 		(keyup)="onKeyUp($event)"></ng2-completer>
-
+	<ion-button *ngIf="isCompleterAllowLookupByModal" fill="clear" slot="end" (click)="completerLookupAsync()">
+		<ion-icon [name]="completerLookupByModalButtonIcon" slot="icon-only"></ion-icon>
+	</ion-button>
+	
 	<div *ngIf="isFilePickerControl" class="file-picker">
 		<input type="file" #elementRef
 			[accept]="control.Options.FilePickerOptions.Accept"
@@ -140,7 +147,7 @@
 
 </ion-item>
 
-<div *ngIf="isImagePickerControl && control.Options.FilePickerOptions.AllowPreview && value" class="image-picker-preview ion-padding">
+<div *ngIf="visible && isImagePickerControl && control.Options.FilePickerOptions.AllowPreview && value" class="image-picker-preview ion-padding">
 	<div *ngIf="value.current">
 		<img [src]="value.current" />
 	</div>
@@ -163,7 +170,7 @@
 	</ion-item>
 </ion-radio-group>
 	
-<div *ngIf="visible && isFormControl && isCaptchaControl">
+<div *ngIf="visible && isCaptchaControl">
 
 	<ion-item [color]="theme" [formGroup]="formGroup" [class.invalid]="invalid">
 		<ion-label *ngIf="label"
@@ -181,16 +188,13 @@
 			[minlength]="minLength"
 			[maxlength]="maxLength"
 			(keyup)="onKeyUp($event)"></ion-input>
-	</ion-item>
-
-	<ion-item *ngIf="description" [color]="theme">
-		<label
+		<label *ngIf="description"
 			[class]="css.description"
 			[style]="style.description">{{ description }}</label>
 	</ion-item>
 
 	<ion-item [color]="theme">
-		<ion-button fill="clear" (click)="refreshCaptcha()">
+		<ion-button fill="clear" (click)="refreshCaptchaImage()">
 			<ion-icon icon="refresh" slot="icon-only"></ion-icon>
 		</ion-button>
 		<img *ngIf="captchaURI" slot="start" [src]="captchaURI"/>
@@ -228,3 +232,22 @@
 			[theme]="theme"></app-form-control>
 	</div>
 </div>
+
+<control-image-cropper *ngIf="visible && isCustomControl && control.Options.Type === 'image-cropper'" #elementRef
+	[formGroup]="formGroup"
+	[control]="control"
+	[settings]="value"
+	(change)="onChanged($event)"></control-image-cropper>
+
+<control-object-privileges *ngIf="visible && isCustomControl && control.Options.Type === 'object-privileges'" #elementRef
+	[formGroup]="formGroup"
+	[control]="control"
+	[privileges]="value"
+	[allowInheritFromParent]="control.Extras['AllowInheritFromParent'] || control.Extras['allowInheritFromParent']"
+	(change)="onChanged($event)"></control-object-privileges>
+
+<control-service-privileges *ngIf="visible && isCustomControl && control.Options.Type === 'service-privileges'" #elementRef
+	[formGroup]="formGroup"
+	[control]="control"
+	[privileges]="value"
+	(change)="onChanged($event)"></control-service-privileges>

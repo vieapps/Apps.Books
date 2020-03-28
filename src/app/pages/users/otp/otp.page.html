@@ -2,7 +2,7 @@
 	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons slot="end">
 			<ion-button color="primary" (click)="doneAsync()">
-				{{ resources.buttons.done }}
+				{{ labels.buttons.done }}
 			</ion-button>
 		</ion-buttons>
 		<ion-title>
@@ -15,19 +15,19 @@
 	<ion-list>
 		<ion-item [color]="configSvc.color">
 			<ion-label>
-				{{ resources.status }}
+				{{ labels.status }}
 				<span>
 					{{ status }}
 				</span>
 			</ion-label>
 			<ion-button *ngIf="!required && provision.uri === ''" fill="solid" color="primary" class="ion-item-right" (click)="provisonAsync()">
 				<ion-icon name="power" slot="start"></ion-icon>
-				{{ resources.buttons.on }}
+				{{ labels.buttons.on }}
 			</ion-button>
 		</ion-item>
 		<ion-list-header *ngIf="required && providers.length > 0" [color]="configSvc.color">
 			<ion-label>
-				{{ resources.providers }}
+				{{ labels.providers }}
 			</ion-label>
 		</ion-list-header>
 		<ion-item *ngFor="let provider of providers" [color]="configSvc.color">
@@ -36,46 +36,46 @@
 			</ion-label>
 			<ion-button fill="clear" slot="end" (click)="deleteAsync(provider)">
 				<ion-icon name="trash" slot="start"></ion-icon>
-				{{ resources.buttons.delete }}
+				{{ labels.buttons.delete }}
 			</ion-button>
 		</ion-item>
 		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color">
 			<div class="ion-text-wrap">
 				<div>
-					{{ resources.qrcode.image }}
+					{{ labels.qrcode.image }}
 				</div>
 				<div>
 					<img [src]="provision.uri" />
 				</div>
 				<div>
-					{{ resources.instruction.main }}
+					{{ labels.instruction.main }}
 				</div>
 				<div>
-					{{ resources.instruction.app }}
+					{{ labels.instruction.app }}
 				</div>
 			</div>
 		</ion-item>
 		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color" [class.invalid]="!provision.value || provision.value.length < 5 || provision.value.length > 10">
 			<ion-label position="stacked">
-				{{ resources.qrcode.control }}
+				{{ labels.qrcode.control }}
 			</ion-label>
 			<ion-input required minlength="5" maxlength="10" [(ngModel)]="provision.value"></ion-input>
 		</ion-item>
 		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color" [class.invalid]="!password">
 			<ion-label position="stacked">
-				{{ resources.password.label }}
+				{{ labels.password.label }}
 			</ion-label>
-			<ion-input required [type]="resources.password.show ? 'text' : 'password'" maxlength="150" [(ngModel)]="password"></ion-input>
-			<ion-button fill="clear" color="medium" slot="end" tabindex="-1" (click)="resources.password.show = !resources.password.show">
-				<ion-icon name="eye" slot="icon-only" [hidden]="!resources.password.show"></ion-icon>
-				<ion-icon name="eye-off" slot="icon-only" [hidden]="resources.password.show"></ion-icon>
+			<ion-input required [type]="labels.password.show ? 'text' : 'password'" maxlength="150" [(ngModel)]="password"></ion-input>
+			<ion-button fill="clear" color="medium" slot="end" tabindex="-1" (click)="labels.password.show = !labels.password.show">
+				<ion-icon name="eye" slot="icon-only" [hidden]="!labels.password.show"></ion-icon>
+				<ion-icon name="eye-off" slot="icon-only" [hidden]="labels.password.show"></ion-icon>
 			</ion-button>
 		</ion-item>
 	</ion-list>
 	<ion-buttons *ngIf="provision.uri !== ''" class="ion-padding">
 		<ion-button fill="solid" color="primary" [disabled]="!password || !provision.value || provision.value.length < 5 || provision.value.length > 10" (click)="addAsync()">
 			<ion-icon name="done-all" slot="start"></ion-icon>
-			{{ resources.buttons.verify }}
+			{{ labels.buttons.verify }}
 		</ion-button>
 	</ion-buttons>
 </ion-content>

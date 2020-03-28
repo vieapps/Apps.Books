@@ -1,5 +1,5 @@
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, OnChanges, Input } from "@angular/core";
+import { Component, OnInit, OnDestroy, OnChanges, Input, Output, EventEmitter } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { AppUtility } from "../../components/app.utility";
 import { AppEvents } from "../../components/app.events";
@@ -17,10 +17,19 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
 	constructor(
 		public configSvc: ConfigurationService,
-		public booksSvc: BooksService
+		private booksSvc: BooksService
 	) {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
+
+	/** The flag to known the parent was changed */
+	@Input() changes: any;
+
+	/** The event handler to run when the controls was initialized */
+	@Output() init: EventEmitter<any> = new EventEmitter();
+
+	/** The event handler to run when the control was changed */
+	@Output() change = new EventEmitter<any>();
 
 	introduction = "";
 	labels = {
@@ -30,8 +39,6 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		books: "Articles & Books: "
 	};
 	books: Array<Book>;
-
-	@Input() changes: any;
 
 	get status() {
 		return this.configSvc.isReady ? this.booksSvc.status : undefined;
@@ -80,6 +87,8 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	}
 
 	ngOnDestroy() {
+		this.init.unsubscribe();
+		this.change.unsubscribe();
 		AppEvents.off("App", "AppReadyEventHandlerOfBookHomeScreen");
 		AppEvents.off("App", "LanguageChangedEventHandlerOfBookHomeScreen");
 		AppEvents.off("Books", "IntroductionsChangedEventHandlerOfBookHomeScreen");
@@ -101,6 +110,8 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		else {
 			this.updateBooks();
 		}
+
+		this.init.emit(this);
 	}
 
 	private async prepareResourcesAsync() {
@@ -114,10 +125,12 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
 	private updateIntroduction() {
 		this.introduction = (this.booksSvc.introductions[this.configSvc.appConfig.language] || {}).introduction;
+		this.change.emit(this);
 	}
 
 	private updateBooks() {
-		this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(book => book.LastUpdated).Take(40), 12);
+		this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(book => book.LastUpdated).Take(60), 12, book => Book.get(book.ID));
+		this.change.emit(this);
 	}
 
 	trackBook(index: number, book: Book) {

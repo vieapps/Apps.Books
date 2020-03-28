@@ -139,16 +139,16 @@ export class AppRTU {
 	public static unregister(identity: string, service: string, object?: string) {
 		if (AppUtility.isNotEmpty(identity) && AppUtility.isNotEmpty(service)) {
 			let handlers = this.getServiceHandlers(service);
-			let index = handlers.findIndex(handler => identity === handler.identity);
+			let index = handlers.findIndex(handler => AppUtility.isEquals(identity, handler.identity));
 			while (index > -1) {
 				AppUtility.removeAt(handlers, index);
-				index = handlers.findIndex(handler => identity === handler.identity);
+				index = handlers.findIndex(handler => AppUtility.isEquals(identity, handler.identity));
 			}
 			handlers = this.getObjectHandlers(service, object);
-			index = handlers.findIndex(handler => identity === handler.identity);
+			index = handlers.findIndex(handler => AppUtility.isEquals(identity, handler.identity));
 			while (index > -1) {
 				AppUtility.removeAt(handlers, index);
-				index = handlers.findIndex(handler => identity === handler.identity);
+				index = handlers.findIndex(handler => AppUtility.isEquals(identity, handler.identity));
 			}
 		}
 	}

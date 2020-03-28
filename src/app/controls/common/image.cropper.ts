@@ -1,7 +1,7 @@
-import { Component, OnInit, Input, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ViewChild } from "@angular/core";
 import { ImageCropperComponent as HtmlImageCropper, CropperSettings as HtmlImageCropperSettings } from "ng2-img-cropper";
 import { Crop as NativeImageCropper } from "@ionic-native/crop/ngx";
-import { AppFormsService } from "../../components/forms.service";
+import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../services/configuration.service";
 import { FilesService } from "../../services/files.service";
 
@@ -11,13 +11,13 @@ import { FilesService } from "../../services/files.service";
 	styleUrls: ["./image.cropper.scss"]
 })
 
-export class ImageCropperControl implements OnInit {
+export class ImageCropperControl implements OnInit, OnDestroy {
 
 	constructor(
-		public nativeImageCropper: NativeImageCropper,
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public filesSvc: FilesService
+		private appFormsSvc: AppFormsService,
+		private filesSvc: FilesService,
+		private nativeImageCropper: NativeImageCropper
 	) {
 	}
 
@@ -34,6 +34,15 @@ export class ImageCropperControl implements OnInit {
 		limitExceedMessage?: string;
 	};
 
+	/** The form control that contains this control */
+	@Input() control: AppFormsControl;
+
+	/** The event handler to run when the controls was initialized */
+	@Output() init: EventEmitter<any> = new EventEmitter();
+
+	/** The event handler to run when the control was changed */
+	@Output() change = new EventEmitter<any>();
+
 	htmlCropper: {
 		data: {
 			/** Gets the cropped image */
@@ -46,7 +55,7 @@ export class ImageCropperControl implements OnInit {
 
 	@ViewChild(HtmlImageCropper, { static: false }) private htmlImageCropper: HtmlImageCropper;
 
-	/*** Gets the data of image cropper */
+	/** Gets the data of image cropper */
 	get data() {
 		return this.configSvc.isNativeApp ? undefined : this.htmlCropper.data;
 	}
@@ -60,6 +69,12 @@ export class ImageCropperControl implements OnInit {
 		else {
 			this.prepareHtmlCropper();
 		}
+		this.init.emit(this);
+	}
+
+	ngOnDestroy() {
+		this.init.unsubscribe();
+		this.change.unsubscribe();
 	}
 
 	private prepareNativeCropper() {
@@ -84,6 +99,14 @@ export class ImageCropperControl implements OnInit {
 		};
 	}
 
+	private emitChanges() {
+		this.change.emit({
+			detail: {
+				value: this.data
+			}
+		});
+	}
+
 	prepareImage($event: any) {
 		const file: File = $event.target.files.length > 0 ? $event.target.files[0] : undefined;
 		if (file !== undefined && file.type.startsWith("image/")) {
@@ -106,6 +129,7 @@ export class ImageCropperControl implements OnInit {
 				const image = new Image();
 				image.src = data;
 				this.htmlImageCropper.setImage(image);
+				this.emitChanges();
 			},
 			this.settings.limitSize || 1024000,
 			async () => await this.appFormsSvc.showToastAsync(this.settings.limitExceedMessage || "Too big...")

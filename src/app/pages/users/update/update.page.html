@@ -25,27 +25,27 @@
 		[form]="update.form"
 		[config]="update.config"
 		[controls]="update.controls"
-		(initEvent)="onFormInitialized($event)"></app-form>
+		(init)="onFormInitialized($event)"></app-form>
 
 	<app-form *ngIf="mode === 'password' && password.config"
 		[color]="configSvc.color"
 		[form]="password.form"
 		[config]="password.config"
 		[controls]="password.controls"
-		(initEvent)="onFormInitialized($event)"></app-form>
+		(init)="onFormInitialized($event)"></app-form>
 
 	<app-form *ngIf="mode === 'email' && email.config"
 		[color]="configSvc.color"
 		[form]="email.form"
 		[config]="email.config"
 		[controls]="email.controls"
-		(initEvent)="onFormInitialized($event)"></app-form>
+		(init)="onFormInitialized($event)"></app-form>
 
 	<div *ngIf="mode === 'privileges' && services">
-		<control-service-privileges *ngFor="let service of services; let idx=index; trackBy: trackServicePrivileges"
-			[serviceName]="service"
+		<control-service-privileges *ngFor="let service of services; trackBy: trackServicePrivileges"
+			[service]="service"
 			[privileges]="getServicePrivileges(service)"
-			(changesEvent)="onServicePrivilegesChanged($event)"></control-service-privileges>
+			(change)="onServicePrivilegesChanged($event)"></control-service-privileges>
 	</div>
 
 </ion-content>

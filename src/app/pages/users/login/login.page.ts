@@ -4,7 +4,7 @@ import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../../components/app.crypto";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
+import { AppFormsControl, AppFormsControlConfig, AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
 import { AuthenticationService } from "../../../services/authentication.service";
 
@@ -29,7 +29,7 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 	login = {
 		form: new FormGroup({}),
 		controls: new Array<AppFormsControl>(),
-		config: undefined as Array<any>,
+		config: undefined as Array<AppFormsControlConfig>,
 		buttons: {
 			login: {
 				label: "Login",
@@ -45,18 +45,18 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 		providers: new Array<{ Info: string, Label: string, Time: Date, Type: string }>(),
 		form: new FormGroup({}),
 		controls: new Array<AppFormsControl>(),
-		config: undefined as Array<any>,
+		config: undefined as Array<AppFormsControlConfig>,
 		value: undefined as any,
 		button: {
 			label: "Verify",
 			icon: undefined as string
 		},
-		rxsub: undefined as Subscription
+		subscription: undefined as Subscription
 	};
 	reset = {
 		form: new FormGroup({}),
 		controls: new Array<AppFormsControl>(),
-		config: undefined as Array<any>,
+		config: undefined as Array<AppFormsControlConfig>,
 		button: {
 			label: "Forgot password",
 			icon: "key"
@@ -68,13 +68,9 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy() {
-		if (this.otp.rxsub !== undefined) {
-			this.otp.rxsub.unsubscribe();
+		if (this.otp.subscription !== undefined) {
+			this.otp.subscription.unsubscribe();
 		}
-	}
-
-	private setTitle() {
-		this.configSvc.appTitle = this.title;
 	}
 
 	async openLoginAsync() {
@@ -116,11 +112,11 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 		this.login.buttons.register.label = await this.configSvc.getResourceAsync("users.login.login.buttons.register");
 		this.reset.button.label = await this.configSvc.getResourceAsync("users.login.login.buttons.forgot");
 		this.mode = "login";
-		this.title = await this.configSvc.getResourceAsync("users.login.login.title");
-		this.setTitle();
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.login.login.title");
 	}
 
-	onLoginFormInitialized($event: any) {
+	onLoginFormInitialized(event: any) {
+		this.appFormsSvc.reset(event.form);
 		if (this.configSvc.appConfig.isWebApp) {
 			this.login.form.patchValue({ Persistence: this.configSvc.appConfig.app.persistence });
 		}
@@ -144,17 +140,10 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 			this.login.form.value.Email,
 			this.login.form.value.Password,
 			async data => await Promise.all([
-				TrackingUtility.trackAsync(this.title, "/users/login"),
-				this.appFormsSvc.hideLoadingAsync(async () => {
-					if (data.Require2FA) {
-						await this.openLoginOTPAsync(data);
-					}
-					else {
-						await this.closeAsync();
-					}
-				})
+				TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.users.login),
+				this.appFormsSvc.hideLoadingAsync(async () => await (data.Require2FA ? this.openLoginOTPAsync(data) : this.closeAsync()))
 			]),
-			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.login.controls.find(c => c.Name === "Email").focus())
+			async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.login.controls.find(c => AppUtility.isEquals(c.Name, "Email")).focus())
 		);
 	}
 
@@ -197,16 +186,15 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 				}
 			}
 		];
-		this.otp.rxsub = this.otp.form.valueChanges.subscribe(async value => {
-			const provider = this.otp.providers.find(p => p.Info === value.Provider) || this.otp.providers[0];
-			this.otp.controls.find(c => c.Name === "OTP").Options.Description = "SMS" === provider.Type
+		this.otp.subscription = this.otp.form.valueChanges.subscribe(async value => {
+			const provider = this.otp.providers.find(p => AppUtility.isEquals(p.Info, value.Provider)) || this.otp.providers[0];
+			this.otp.controls.find(c => AppUtility.isEquals(c.Name, "OTP")).Options.Description = AppUtility.isEquals("SMS", provider.Type)
 				? await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.sms")
 				: await this.configSvc.getResourceAsync("users.login.otp.controls.OTP.description.app", { label: provider.Label });
 		});
 		this.otp.button.label = await this.configSvc.getResourceAsync("users.login.otp.button");
 		this.mode = "otp";
-		this.title = await this.configSvc.getResourceAsync("users.login.otp.title");
-		this.setTitle();
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.login.otp.title");
 	}
 
 	async logInOTPAsync() {
@@ -220,11 +208,11 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 				this.otp.form.value.Provider,
 				this.otp.form.value.OTP,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "/users/otp"),
+					TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.users.otp),
 					this.appFormsSvc.hideLoadingAsync(async () => await this.closeAsync())
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
-					const control = this.otp.controls.find(c => c.Name === "OTP");
+					const control = this.otp.controls.find(c => AppUtility.isEquals(c.Name, "OTP"));
 					control.value = "";
 					control.focus();
 				})
@@ -262,8 +250,7 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 			icon: undefined
 		};
 		this.mode = "reset";
-		this.title = await this.configSvc.getResourceAsync("users.login.reset.title");
-		this.setTitle();
+		this.configSvc.appTitle = this.title = await this.configSvc.getResourceAsync("users.login.reset.title");
 	}
 
 	async resetPasswordAsync() {
@@ -276,7 +263,7 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 				this.reset.form.value.Email,
 				this.reset.form.value.Captcha,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(this.title, "/users/reset"),
+					TrackingUtility.trackAsync(this.title, `${this.configSvc.appConfig.url.users.root}/reset`),
 					this.appFormsSvc.showAlertAsync(
 						await this.configSvc.getResourceAsync("users.login.reset.title"),
 						undefined,
@@ -287,7 +274,7 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 				async error => await Promise.all([
 					this.refreshCaptchaAsync(),
 					this.appFormsSvc.showErrorAsync(error, undefined, () => {
-						const control = this.reset.controls.find(c => c.Name === "Captcha");
+						const control = this.reset.controls.find(c => AppUtility.isEquals(c.Name, "Captcha"));
 						control.value = "";
 						control.focus();
 					})
@@ -297,18 +284,17 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 	}
 
 	refreshCaptchaAsync(control?: AppFormsControl) {
-		return this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => c.Name === "Captcha")).captchaURI = this.configSvc.appConfig.session.captcha.uri);
+		return this.authSvc.registerCaptchaAsync(() => (control || this.reset.controls.find(c => AppUtility.isEquals(c.Name, "Captcha"))).captchaURI = this.configSvc.appConfig.session.captcha.uri);
 	}
 
-	onResetPasswordFormInitialized($event: any) {
+	onResetPasswordFormInitialized(event: any) {
 		this.refreshCaptchaAsync();
-		this.reset.form.patchValue({
-			Email: this.login.form.value.Email
-		});
+		this.appFormsSvc.reset(event.form);
+		this.reset.form.patchValue({ Email: this.login.form.value.Email });
 	}
 
-	onRefreshCaptcha($event: AppFormsControl) {
-		this.refreshCaptchaAsync($event);
+	onRefreshCaptcha(event: AppFormsControl) {
+		this.refreshCaptchaAsync(event);
 	}
 
 	closeAsync() {
@@ -322,12 +308,9 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 			}
 		}
 		else {
-			if (this.configSvc.previousUrl.startsWith("/users")) {
-				return this.configSvc.navigateHomeAsync();
-			}
-			else {
-				return this.configSvc.navigateBackAsync();
-			}
+			return this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.users.root)
+				? this.configSvc.navigateHomeAsync()
+				: this.configSvc.navigateBackAsync();
 		}
 	}
 

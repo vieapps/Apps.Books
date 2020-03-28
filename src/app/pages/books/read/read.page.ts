@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, NgZone } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { IonContent } from "@ionic/angular";
 import { AppEvents } from "../../../components/app.events";
@@ -18,11 +18,10 @@ import { Book } from "../../../models/book";
 
 export class BooksReadPage implements OnInit, OnDestroy {
 	constructor(
-		public zone: NgZone,
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public authSvc: AuthenticationService,
-		public booksSvc: BooksService
+		private appFormsSvc: AppFormsService,
+		private authSvc: AuthenticationService,
+		private booksSvc: BooksService
 	) {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
@@ -41,7 +40,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		icon: string,
 		handler: () => void
 	}>;
-	resources = {
+	labels = {
 		previous: "Previous",
 		next: "Next",
 		category: "Category",
@@ -53,7 +52,8 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		source: "Source",
 		chapters: "Number of chapters"
 	};
-	@ViewChild(IonContent, { static: false }) contentCtrl: IonContent;
+
+	@ViewChild(IonContent, { static: true }) contentCtrl: IonContent;
 
 	get locale() {
 		return this.configSvc.locale;
@@ -73,7 +73,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 			}
 			else if ("LanguageChanged" === info.args.Type) {
 				Promise.all([
-					this.prepareResourcesAsync(),
+					this.prepareLabelsAsync(),
 					this.prepareActionsAsync()
 				]);
 			}
@@ -156,7 +156,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 
 	async prepareAsync() {
 		await Promise.all([
-			this.prepareResourcesAsync(),
+			this.prepareLabelsAsync(),
 			this.prepareActionsAsync()
 		]);
 
@@ -183,8 +183,8 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		}
 	}
 
-	async prepareResourcesAsync() {
-		this.resources = {
+	async prepareLabelsAsync() {
+		this.labels = {
 			previous: await this.configSvc.getResourceAsync("books.read.navigate.previous"),
 			next: await this.configSvc.getResourceAsync("books.read.navigate.next"),
 			category: await this.configSvc.getResourceAsync("books.info.controls.Category"),
@@ -200,10 +200,10 @@ export class BooksReadPage implements OnInit, OnDestroy {
 
 	async prepareActionsAsync() {
 		this.actions = [
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", () => this.zone.run(async () => await this.openAuthorAsync())),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", () => this.zone.run(async () => await this.openInfoAsync())),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.author"), "bookmarks", async () => await this.openAuthorAsync()),
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.info"), "information-circle", async () => await this.openInfoAsync()),
 			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.toc"), "list", () => this.openTOCs()),
-			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", () => this.zone.run(async () => await this.openOptionsAsync()))
+			this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.options"), "options", async () => await this.openOptionsAsync())
 		];
 
 		if (true !== this.configSvc.appConfig.extras["Books-ShowTOCs"]) {
@@ -214,11 +214,11 @@ export class BooksReadPage implements OnInit, OnDestroy {
 
 		if (this.authSvc.isServiceModerator(this.booksSvc.name)) {
 			[
-				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", () => this.zone.run(async () => await this.openUpdateAsync())),
-				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.delete"), "trash", () => this.zone.run(async () => await this.deleteAsync()))
+				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.update"), "create", async () => await this.openUpdateAsync()),
+				this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("common.buttons.delete"), "trash", async () => await this.deleteAsync())
 			].forEach(action => this.actions.push(action));
 			if (this.book !== undefined && this.book.SourceUrl !== "") {
-				AppUtility.insertAt(this.actions, this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", () => this.zone.run(async () => await this.openRecrawlAsync())), this.actions.length - 2);
+				AppUtility.insertAt(this.actions, this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("books.read.actions.crawl"), "build", async () => await this.openRecrawlAsync()), this.actions.length - 2);
 			}
 		}
 	}

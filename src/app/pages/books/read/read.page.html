@@ -36,11 +36,11 @@
 				<ion-buttons>
 					<ion-button fill="clear" color="primary" (click)="goPreviousAsync()">
 						<ion-icon name="play-back" slot="start"></ion-icon>
-						{{ resources.previous }}
+						{{ labels.previous }}
 					</ion-button>
 					<ion-button fill="clear" color="primary" (click)="goNextAsync()">
 						<ion-icon name="play-forward" slot="end"></ion-icon>
-						{{ resources.next }}
+						{{ labels.next }}
 					</ion-button>
 				</ion-buttons>
 			</span>
@@ -59,7 +59,7 @@
 			</h1>
 			<div *ngIf="book.Original !== ''">
 				<span>
-					{{ resources.original }}:
+					{{ labels.original }}:
 				</span>
 				<label>
 					{{ book.Original }}
@@ -67,13 +67,13 @@
 			</div>
 			<div>
 				<span>
-					{{ resources.author }}:
+					{{ labels.author }}:
 				</span>
 				<label>
 					{{ book.Author }}
 				</label>
 				<span *ngIf="book.Translator !== ''">
-					{{ resources.translator }}:
+					{{ labels.translator }}:
 				</span>
 				<label *ngIf="book.Translator !== ''">
 					{{ book.Translator }}
@@ -81,13 +81,13 @@
 			</div>
 			<div *ngIf="book.Publisher !== '' || book.Producer !== ''">
 				<span [hidden]="book.Publisher === ''">
-					{{ resources.publisher }}:
+					{{ labels.publisher }}:
 				</span>
 				<label [hidden]="book.Publisher === ''">
 					{{ book.Publisher }}
 				</label>
 				<span [hidden]="book.Producer === ''">
-					{{ resources.producer }}:
+					{{ labels.producer }}:
 				</span>
 				<label [hidden]="book.Producer === ''">
 					{{ book.Producer }}
@@ -95,19 +95,19 @@
 			</div>
 			<div>
 				<span>
-					{{ resources.category }}:
+					{{ labels.category }}:
 				</span>
 				<label>
 					{{ book.Category }}
 				</label>
 				<span *ngIf="book.TotalChapters > 1">
-					{{ resources.chapters }}:
+					{{ labels.chapters }}:
 				</span>
 				<label *ngIf="book.TotalChapters > 1">
 					{{ book.TotalChapters | number:'':locale }}
 				</label>
 				<span *ngIf="book.Source !== ''">
-					{{ resources.source }}:
+					{{ labels.source }}:
 				</span>
 				<label *ngIf="book.Source !== ''">
 					{{ book.Source }}

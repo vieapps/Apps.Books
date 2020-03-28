@@ -1,0 +1,48 @@
+<ion-header>
+	<ion-toolbar [color]="configSvc.color">
+		<ion-buttons slot="start">
+			<ion-button color="secondary" (click)="closeAsync()">
+				{{ labels.cancel }}
+			</ion-button>
+		</ion-buttons>
+		<ion-buttons slot="end">
+			<ion-button color="primary" (click)="closeAsync(selected.toArray())">
+				{{ labels.select }}
+			</ion-button>
+		</ion-buttons>
+		<ion-title [hidden]="searching" class="ion-text-center">
+			<ion-button fill="clear" color="medium" (click)="openSearch()">
+				<ion-icon name="search"></ion-icon>
+				{{ labels.search }}
+			</ion-button>
+		</ion-title>
+		<ion-searchbar showCancelButton="always"
+			[cancelButtonText]="labels.cancel"
+			[hidden]="!searching"
+			(ionChange)="onStartSearch($event)"
+			(ionClear)="onClearSearch($event)"
+			(ionCancel)="onCancelSearch($event)"></ion-searchbar>
+	</ion-toolbar>
+</ion-header>
+
+<ion-content [color]="configSvc.color">
+	<ion-list class="ion-padding-end">
+		<ion-item *ngFor="let profile of profiles; trackBy: track" [color]="configSvc.color" detail="false">
+			<ion-checkbox slot="end" [checked]="selected.contains(profile.ID)" (ionChange)="select(profile.ID, $event)"></ion-checkbox>
+			<ion-label>
+				<ion-thumbnail class="ion-float-start ion-padding-end">
+					<img [src]="profile.avatarURI" />
+				</ion-thumbnail>
+				<span>
+					{{ profile.Name }}
+					<span class="ion-float-end">
+						{{ getEmail(profile) }}
+					</span>
+				</span>
+			</ion-label>
+		</ion-item>
+	</ion-list>
+	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onInfiniteScrollAsync()">
+		<ion-infinite-scroll-content></ion-infinite-scroll-content>
+	</ion-infinite-scroll>
+</ion-content>

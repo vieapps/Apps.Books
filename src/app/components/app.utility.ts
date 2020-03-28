@@ -72,11 +72,16 @@ export class AppUtility {
 			: -1;
 	}
 
-	/** Gets the state that determines the emai address is valid or not */
+	/** Gets the state that determines the email address is valid or not */
 	public static isValidEmail(email?: string) {
 		const atPos = this.isNotEmpty(email) ? email.indexOf("@") : -1;
 		const dotPos = this.isNotEmpty(email) ? email.indexOf(".", atPos + 1) : -1;
 		return atPos > 0 && dotPos > atPos;
+	}
+
+	/** Gets the hidden email address for displaying at the public */
+	public static getHiddenEmail(email: string) {
+		return `${email.substr(0, email.indexOf("@") - 2)}**@**${email.substr(email.indexOf("@") + 3)}`;
 	}
 
 	/** Parses the error */
@@ -333,29 +338,12 @@ export class AppUtility {
 	}
 
 	/** Gets the sub-sequence the sequence that ordering by the random scoring number */
-	public static getTopScores(sequence: Array<any> | List<any>, take?: number, excluded?: string, dontAddRandomScore?: boolean, nameOfRandomScore?: string) {
-		dontAddRandomScore = dontAddRandomScore !== undefined ? dontAddRandomScore : false;
-		nameOfRandomScore = nameOfRandomScore !== undefined ? nameOfRandomScore : "Score";
-
-		let list = this.isArray(sequence)
-			? new List(sequence as Array<any>)
-			: sequence as List<any>;
-
-		if (excluded !== undefined) {
-			list = list.Where(element => excluded !== element["ID"]);
-		}
-
-		list = list.Select(element => this.clone(element, undefined, undefined, obj => {
-			if (this.isFalse(dontAddRandomScore)) {
-				obj[nameOfRandomScore] = Math.random();
-			}
-		}));
-
-		if (this.isFalse(dontAddRandomScore)) {
-			list = list.OrderByDescending(element => element[nameOfRandomScore]);
-		}
-
-		return (take !== undefined && take > 0 ? list.Take(take) : list).ToArray();
+	public static getTopScores<T>(sequence: Array<any> | List<any>, take?: number, converter?: (element: any) => T): T[] | any[] {
+		const list = (this.isArray(sequence) ? new List(sequence as Array<any>) : sequence as List<any>).Select(element => this.clone(element, undefined, undefined, obj => obj["Score"] = Math.random())).OrderByDescending(element => element["Score"]);
+		const results = (take !== undefined && take > 0 ? list.Take(take) : list).ToArray();
+		return converter === undefined
+			? results
+			: results.map(element => converter(element));
 	}
 
 	/** Removes tags from the HTML content */

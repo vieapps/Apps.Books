@@ -29,7 +29,7 @@ export class AppCrypto {
 				result += "=";
 				break;
 			default:
-				throw new Error("Base64-url string is not well-form!");
+				throw new Error("Base64-url string is not well-form");
 		}
 		return result;
 	}
@@ -70,14 +70,14 @@ export class AppCrypto {
 	/** Encodes the JSON Web Token */
 	public static jwtEncode(jwt: any, key?: string) {
 		jwt.iat = Math.round(+new Date() / 1000);
-		const encoded = this.urlEncode(JSON.stringify({ typ: "JWT", alg: "HS256" })) + "." + this.urlEncode(JSON.stringify(jwt));
-		return encoded + "." + this.urlSign(encoded, key || this._jwt);
+		const encoded = `${this.urlEncode(JSON.stringify({ typ: "JWT", alg: "HS256" }))}.${this.urlEncode(JSON.stringify(jwt))}`;
+		return `${encoded}.${this.urlSign(encoded, key || this._jwt)}`;
 	}
 
 	/** Decodes the JSON Web Token */
 	public static jwtDecode(jwt: string, key?: string) {
 		const elements = jwt.split(".");
-		return elements.length > 2 && this.urlSign(elements[0] + "." + elements[1], key || this._jwt) === elements[2]
+		return elements.length > 2 && this.urlSign(`${elements[0]}.${elements[1]}`, key || this._jwt) === elements[2]
 			? JSON.parse(this.urlDecode(elements[1]))
 			: undefined;
 	}

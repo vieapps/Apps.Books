@@ -22,7 +22,7 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-footer *ngIf="buttons.invite || actions">
+<ion-footer *ngIf="buttons.invite || (mode === 'profile' && actions)">
 	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons *ngIf="buttons.invite" slot="start">
 			<ion-button (click)="buttons.invite.handler()">
@@ -30,7 +30,7 @@
 				{{ buttons.invite.text }}
 			</ion-button>
 		</ion-buttons>
-		<ion-buttons *ngIf="actions" slot="end">
+		<ion-buttons *ngIf="mode === 'profile' && actions" slot="end">
 			<ion-button color="primary" (click)="showActionsAsync()">
 				<ion-icon name="ellipsis-horizontal" slot="icon-only"></ion-icon>
 			</ion-button>
@@ -41,14 +41,12 @@
 <ion-content [color]="configSvc.color">
 
 	<div *ngIf="mode === 'profile' && profile">
-
 		<figure>
 			<img [src]="profile.avatarURI" />
 		</figure>
 		<h1>
 			{{ profile.Name }}
 		</h1>
-
 		<ion-list class="ion-padding-end">
 			<ion-list-header [color]="configSvc.color">
 				<ion-label>
@@ -75,9 +73,7 @@
 				</span>
 			</ion-item>
 		</ion-list>
-		
 		<control-book-bookmarks *ngIf="configSvc.appConfig.services.active === 'Books' && !id"></control-book-bookmarks>
-		
 	</div>
 
 	<div *ngIf="mode === 'invitation'" class="ion-padding">
@@ -86,10 +82,10 @@
 			[form]="invitation.form"
 			[config]="invitation.config"
 			[controls]="invitation.controls"
-			(initEvent)="onInvitationFormInitialized($event)"></app-form>
+			(init)="onInvitationFormInitialized($event)"></app-form>
 		<control-service-privileges *ngIf="authSvc.canSetServicePrivileges"
-			[serviceName]="configSvc.appConfig.services.active"
-			(changesEvent)="onServicePrivilegesChanged($event)"></control-service-privileges>
+			[service]="configSvc.appConfig.services.active"
+			(change)="onServicePrivilegesChanged($event)"></control-service-privileges>
 	</div>
 
 </ion-content>

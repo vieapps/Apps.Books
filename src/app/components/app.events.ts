@@ -8,7 +8,7 @@ export class AppEvents {
 	private static _handlers: {
 		[key: string]: Array<{ func: (info: { event: string, args: any }) => void, identity: string }>
 	} = {};
-	private static _subject: Subject<{ event: string, args: any }> = undefined;
+	private static _subject: Subject<{ event: string, args: any }>;
 	private static _electronService: ElectronService;
 
 	private static getHandlers(event: string) {
@@ -55,10 +55,10 @@ export class AppEvents {
 		this.initialize();
 		if (AppUtility.isNotEmpty(event) && AppUtility.isNotEmpty(identity)) {
 			const handlers = this.getHandlers(event);
-			let index = handlers.findIndex(handler => identity === handler.identity);
+			let index = handlers.findIndex(handler => AppUtility.isEquals(identity, handler.identity));
 			while (index > -1) {
 				AppUtility.removeAt(handlers, index);
-				index = handlers.findIndex(handler => identity === handler.identity);
+				index = handlers.findIndex(handler => AppUtility.isEquals(identity, handler.identity));
 			}
 		}
 	}

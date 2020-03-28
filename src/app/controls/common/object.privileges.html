@@ -1,0 +1,76 @@
+<ion-list>
+	<ion-item *ngIf="inheritFromParent.allow" [color]="configSvc.color">
+		<ion-label>{{ labels.inheritFromParent }}</ion-label>
+		<ion-toggle
+			[color]="configSvc.color"
+			[checked]="inheritFromParent.inherit"
+			(ionChange)="onInheritFromParentChanged($event)"></ion-toggle>
+	</ion-item>
+	<section *ngIf="initialized" [hidden]="inheritFromParent.inherit">
+		<div *ngFor="let name of names; trackBy: track">
+			<label class="header">
+				{{ labels.names[name].label }}
+			</label>
+			<ion-grid>
+				<ion-row>
+					<ion-col size-xs="12" size-lg="6">
+						<ion-list>
+							<ion-list-header [color]="configSvc.color">
+								<ion-label>
+									<span>
+										{{ labels.names[name].roles }}
+									</span>
+									<ion-buttons class="ion-float-end">
+										<ion-button fill="clear" color="primary" [title]="labels.buttons.add" (click)="addRolesAsync(name)">
+											<ion-icon name="add" slot="icon-only"></ion-icon>
+										</ion-button>
+										<ion-button fill="clear" color="danger"
+											[title]="labels.buttons.delete"
+											[disabled]="!selectedRoles[name] || selectedRoles[name].length < 1"
+											(click)="deleteRolesAsync(name)">
+											<ion-icon name="close" slot="icon-only"></ion-icon>
+										</ion-button>
+									</ion-buttons>
+								</ion-label>
+							</ion-list-header>
+							<ion-item *ngFor="let role of roles[name]; trackBy: track" [color]="configSvc.color">
+								<ion-checkbox slot="end" [checked]="isRoleChecked(name, role.id)" (ionChange)="selectRole(name, role.id, $event)"></ion-checkbox>
+								<ion-label>
+									{{ role.name }}
+								</ion-label>
+							</ion-item>
+						</ion-list>
+					</ion-col>
+					<ion-col size-xs="12" size-lg="6">
+						<ion-list>
+							<ion-list-header [color]="configSvc.color">
+								<ion-label>
+									<span>
+										{{ labels.names[name].users }}
+									</span>
+									<ion-buttons class="ion-float-end">
+										<ion-button fill="clear" color="primary" [title]="labels.buttons.add" (click)="addUsersAsync(name)">
+											<ion-icon name="add" slot="icon-only"></ion-icon>
+										</ion-button>
+										<ion-button fill="clear" color="danger"
+											[title]="labels.buttons.delete"
+											[disabled]="!selectedUsers[name] || selectedUsers[name].length < 1"
+											(click)="deleteUsersAsync(name)">
+											<ion-icon name="close" slot="icon-only"></ion-icon>
+										</ion-button>
+									</ion-buttons>
+								</ion-label>
+							</ion-list-header>
+							<ion-item *ngFor="let user of users[name]; trackBy: track" [color]="configSvc.color">
+								<ion-checkbox slot="end" [checked]="isUserChecked(name, user.id)" (ionChange)="selectUser(name, user.id, $event)"></ion-checkbox>
+								<ion-label>
+									{{ user.name }}
+								</ion-label>
+							</ion-item>
+						</ion-list>
+					</ion-col>
+				</ion-row>
+			</ion-grid>
+		</div>
+	</section>
+</ion-list>

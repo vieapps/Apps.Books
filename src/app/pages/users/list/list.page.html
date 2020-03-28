@@ -13,8 +13,8 @@
 		</ion-title>
 		<ion-searchbar [hidden]="!searching"
 			(ionChange)="onStartSearch($event)"
-			(ionCancel)="onCancelSearch()"
-			(ionClear)="onCancelSearch()"></ion-searchbar>
+			(ionClear)="onClearSearch($event)"
+			(ionCancel)="onCancelSearch($event)"></ion-searchbar>
 	</ion-toolbar>
 </ion-header>
 
@@ -37,7 +37,7 @@
 
 <ion-content [color]="configSvc.color">
 	<ion-list class="ion-padding-end">
-		<ion-item *ngFor="let profile of profiles; let idx=index; trackBy: track" [color]="configSvc.color" [routerLink]="profile.routerLink" [queryParams]="profile.routerParams" routerDirection="forward" detail="false">
+		<ion-item *ngFor="let profile of profiles; trackBy: track" [color]="configSvc.color" [routerLink]="profile.routerLink" [queryParams]="profile.routerParams" routerDirection="forward" detail="false">
 			<ion-label>
 				<ion-thumbnail class="ion-float-start ion-padding-end">
 					<img [src]="profile.avatarURI" />
@@ -64,7 +64,7 @@
 			</ion-label>
 		</ion-item>
 	</ion-list>
-	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onInfiniteAsync()">
+	<ion-infinite-scroll threshold="288px" position="bottom" (ionInfinite)="onInfiniteScrollAsync()">
 		<ion-infinite-scroll-content></ion-infinite-scroll-content>
 	</ion-infinite-scroll>
 </ion-content>

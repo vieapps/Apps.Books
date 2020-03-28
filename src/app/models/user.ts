@@ -113,7 +113,7 @@ export class UserProfile extends UserProfileBase {
 	LastSync = new Date();
 	RatingPoints = new Dictionary<string, RatingPoint>();
 
-	/** Gets all instances */
+	/** Gets all user profile instances */
 	public static get all() {
 		return this.instances.values() as Array<UserProfile>;
 	}

@@ -19,10 +19,9 @@ import { CounterInfo } from "../../../models/counters";
 
 export class BooksInfoPage implements OnInit, OnDestroy {
 	constructor(
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public authSvc: AuthenticationService,
-		public booksSvc: BooksService
+		private appFormsSvc: AppFormsService,
+		private booksSvc: BooksService
 	) {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
@@ -34,7 +33,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 		views: undefined as CounterInfo,
 		downloads: undefined as CounterInfo
 	};
-	resources = {
+	labels = {
 		category: "Category",
 		original: "Original",
 		author: "Author",
@@ -80,7 +79,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 
 		AppEvents.on("App", info => {
 			if ("LanguageChanged" === info.args.Type) {
-				this.prepareResourcesAsync();
+				this.prepareLabelsAsync();
 			}
 		}, "LanguageChangedEventHandlerOfViewBookInfoPage");
 
@@ -110,7 +109,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 		return this.booksSvc.getAsync(id, async () => {
 			this.book = Book.get(id);
 			if (this.book !== undefined) {
-				await this.prepareResourcesAsync();
+				await this.prepareLabelsAsync();
 				this.getStatistics();
 				this.title = this.configSvc.appTitle = this.book.Title + " - " + this.book.Author;
 				this.qrcode = this.configSvc.appConfig.isNativeApp
@@ -127,8 +126,8 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 		});
 	}
 
-	async prepareResourcesAsync() {
-		this.resources = {
+	async prepareLabelsAsync() {
+		this.labels = {
 			category: await this.configSvc.getResourceAsync("books.info.controls.Category"),
 			original: await this.configSvc.getResourceAsync("books.info.controls.Original"),
 			author: await this.configSvc.getResourceAsync("books.info.controls.Author"),

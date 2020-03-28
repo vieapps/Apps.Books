@@ -17,11 +17,15 @@
 			"no": "Không",
 			"done": "Hoàn thành",
 			"ok": "Đồng ý",
+			"add": "Thêm",
+			"create": "Tạo mới",
 			"update": "Cập nhật",
 			"delete": "Xoá",
 			"save": "Lưu",
 			"cancel": "Huỷ",
-			"close": "Đóng"
+			"close": "Đóng",
+			"select": "Chọn",
+			"search": "Tìm"
 		},
 		"messages": {
 			"loading": "Tải dữ liệu...",
@@ -32,13 +36,85 @@
 				"wrongAccountOrPassword": "Tài khoản hoặc mật khẩu không đúng!",
 				"wrongCaptcha": "Mã xác thực không đúng"
 			},
+			"delete": {
+				"normal": "Chắc chắn muốn xoá bỏ?",
+				"selected": "Chắc chắn muốn xoá bỏ các thông tin đã chọn?"
+			},
 			"completer": {
 				"searching": "tìm kiếm...",
 				"noresults": "không có kết quả phù hợp"
 			}
 		}
 	},
-	"homepage": {
-		"title": "Màn hình chính"
+	"privileges": {
+		"roles": {
+			"systems": {
+				"All": "Toàn bộ người dùng",
+				"Authorized": "Người dùng dã đăng nhập",
+				"SystemAdministrator": "Quản trị hệ thống"
+			},
+			"privileges": {
+				"Administrator": "Người quản trị",
+				"Moderator": "Người kiểm duyệt",
+				"Editor": "Người biên tập",
+				"Contributor": "Người cập nhật",
+				"Viewer": "Người đọc",
+				"Downloader": "Chỉ tải file"
+			}
+		},
+		"services": {
+			"role": "Vai trò chung trong '{{service}}'",
+			"other": "Vai trò khác",
+			"object": "Vai trò đối với '{{object}}'"
+		},
+		"objects": {
+			"inheritFromParent": "Kế thừa quyền truy cập từ cấp trên",
+			"Administrative": {
+				"label": "Quản trị",
+				"description": "",
+				"roles": "Các vai trò quản trị",
+				"users": "Các thành viên quản trị"
+			},
+			"Moderate": {
+				"label": "Kiểm duyệt",
+				"description": "",
+				"roles": "Các vai trò kiểm duyệt",
+				"users": "Các thành viên kiểm duyệt"
+			},
+			"Editable": {
+				"label": "Biên tập",
+				"description": "",
+				"roles": "Các vai trò biên tập",
+				"users": "Các thành viên biên tập"
+			},
+			"Contributive": {
+				"label": "Cập nhật",
+				"description": "",
+				"roles": "Các vai trò cập nhật",
+				"users": "Các thành viên cập nhật"
+			},
+			"Viewable": {
+				"label": "Chỉ đọc",
+				"description": "",
+				"roles": "Các vai trò đọc/xem",
+				"users": "Các thành viên đọc/xem"
+			},
+			"Downloadable": {
+				"label": "Tải file",
+				"description": "",
+				"roles": "Các vai trò chỉ tải file",
+				"users": "Các thành viên chỉ tải file"
+			}
+		}
+	},
+	"status": {
+		"approval": {
+			"Draft": "Bản nháp",
+			"Pending": "Đợi duyệt",
+			"Rejected": "Bị từ chối",
+			"Approved": "Đã duyệt",
+			"Published": "Xuất bản",
+			"Archieved": "Lưu trữ"
+		}
 	}
 }

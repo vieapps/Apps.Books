@@ -1,7 +1,7 @@
 import { Set } from "typescript-collections";
 import { AppUtility } from "../components/app.utility";
 
-/** Privilege of an individual business service */
+/** Working privileges of an individual business service */
 export class Privilege {
 
 	constructor(
@@ -26,6 +26,17 @@ export class Privilege {
 	Role = "Viewer";
 	Actions = new Array<string>();
 
+	/** Gets the collection of privilege roles */
+	public static get privilegeRoles() {
+		return ["Administrator", "Moderator", "Editor", "Contributor", "Viewer"];
+	}
+
+	/** Gets the collection of system roles */
+	public static get systemRoles() {
+		return ["All", "Authorized", "SystemAdministrator"];
+	}
+
+	/** Deserializes data to object */
 	public static deserialize(json: any, privilege?: Privilege) {
 		privilege = privilege || new Privilege();
 		AppUtility.copy(json, privilege);
@@ -34,10 +45,15 @@ export class Privilege {
 
 }
 
-/** Privilege of an individual business object */
+/** Working privileges of an individual business object */
 export class Privileges {
 
-	constructor() {
+	constructor(
+		visitorCanView: boolean = false
+	) {
+		if (visitorCanView) {
+			this.ViewableRoles.add("All");
+		}
 	}
 
 	DownloadableRoles = new Set<string>();
@@ -53,6 +69,12 @@ export class Privileges {
 	AdministrativeRoles = new Set<string>();
 	AdministrativeUsers = new Set<string>();
 
+	/** Gets the collection of privilege section names */
+	public static get sections() {
+		return ["Administrative", "Moderate", "Editable", "Contributive", "Viewable", "Downloadable"];
+	}
+
+	/** Deserializes data to object */
 	public static deserialize(json: any, privileges?: Privileges) {
 		privileges = privileges || new Privileges();
 		Object.getOwnPropertyNames(privileges).forEach(property => {
@@ -64,6 +86,19 @@ export class Privileges {
 			}
 		});
 		return privileges;
+	}
+
+	private isEmpty(roles: Set<string>, users: Set<string>) {
+		return (roles === undefined || roles.size() < 1) && (users === undefined || users.size() < 1);
+	}
+
+	public get isInheritFromParent() {
+		return this.isEmpty(this.AdministrativeRoles, this.AdministrativeUsers)
+			&& this.isEmpty(this.ModerateRoles, this.ModerateUsers)
+			&& this.isEmpty(this.EditableRoles, this.EditableUsers)
+			&& this.isEmpty(this.ContributiveRoles, this.ContributiveUsers)
+			&& this.isEmpty(this.ViewableRoles, this.ViewableUsers)
+			&& this.isEmpty(this.DownloadableRoles, this.DownloadableUsers);
 	}
 
 }

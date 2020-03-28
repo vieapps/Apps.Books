@@ -1,6 +1,36 @@
-<app-form *ngIf="config"
-	[color]="configSvc.color"
-	[form]="form"
-	[config]="config"
-	[controls]="controls"
-	(initEvent)="onFormInitialized($event)"></app-form>
+<ion-list>
+	<ion-item [color]="configSvc.color">
+		<ion-label [position]="labelPosition">
+			{{ labels.service }}
+		</ion-label>
+		<ion-select
+			[interface]="selectInterface"
+			[okText]="labels.buttons.ok"
+			[cancelText]="labels.buttons.cancel"
+			[value]="serviceRole"
+			(ionChange)="onServiceRoleChanged($event)">
+			<ion-select-option *ngFor="let role of roles; trackBy: track" [value]="role">{{ labels.roles[role] }}</ion-select-option>
+		</ion-select>
+	</ion-item>
+	<ion-list>
+		<ion-list-header [color]="configSvc.color">
+			<ion-label>
+				{{ labels.other }}
+			</ion-label>
+		</ion-list-header>
+		<ion-item *ngFor="let objectRole of objectRoles; trackBy: track" [color]="configSvc.color">
+			<ion-label [position]="labelPosition">
+				{{ labels.objects[objectRole.name] }}
+			</ion-label>
+			<ion-select
+				[disabled]="serviceRole !== 'Viewer'"
+				[interface]="selectInterface"
+				[okText]="labels.buttons.ok"
+				[cancelText]="labels.buttons.cancel"
+				[value]="objectRole.role"
+				(ionChange)="onObjectRoleChanged($event, objectRole.name)">
+				<ion-select-option *ngFor="let role of roles; trackBy: track" [value]="role">{{ labels.roles[role] }}</ion-select-option>
+			</ion-select>
+		</ion-item>
+	</ion-list>
+</ion-list>

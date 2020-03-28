@@ -15,6 +15,6 @@
 		[form]="form"
 		[config]="config"
 		[controls]="controls"
-		(initEvent)="onFormInitialized($event)"></app-form>
+		(init)="onFormInitialized($event)"></app-form>
 	<div class="ion-padding {{options.color}} {{options.font}} {{options.size}} {{options.paragraph}} {{options.align}}" [innerHTML]="sample"></div>
 </ion-content>

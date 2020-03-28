@@ -107,7 +107,7 @@ export class PlatformUtility {
 	/** Getst the state to determines that is Apple Safari */
 	public static isSafari(userAgent?: string) {
 		userAgent = userAgent || window.navigator.userAgent;
-		return userAgent.indexOf("Macintosh") > 0 && userAgent.indexOf("AppleWebKit") > 0 && userAgent.indexOf("Chrome") < 0 && userAgent.indexOf("Edge") < 0;
+		return userAgent.indexOf("Macintosh") > 0 && userAgent.indexOf("AppleWebKit") > 0 && userAgent.indexOf("Chrome") < 0 && userAgent.indexOf("Edge") < 0 && userAgent.indexOf("Edg") < 0;
 	}
 
 	/** Gets the avatar image */
@@ -120,12 +120,12 @@ export class PlatformUtility {
 		if (avatar === "" && AppUtility.isObject(data, true)) {
 			noAvatar = AppUtility.isNotEmpty(noAvatar)
 				? noAvatar
-				: AppConfig.URIs.files + "avatars/" + AppConfig.url.host + "-no-avatar.png";
+				: `${AppConfig.URIs.files}avatars/${AppConfig.url.host}-no-avatar.png`;
 			const email = AppUtility.isObject(data.Contact, true)
 				? data.Contact.Email
 				: data.Email;
 			return AppUtility.isNotEmpty(email)
-				? "https://secure.gravatar.com/avatar/" + AppCrypto.md5(email.toLowerCase().trim()) + "?s=300&d=" + encodeURIComponent(noAvatar)
+				? `https://secure.gravatar.com/avatar/${AppCrypto.md5(email.toLowerCase().trim())}?s=300&d=${encodeURIComponent(noAvatar)}`
 				: noAvatar;
 		}
 		return avatar;
@@ -270,7 +270,7 @@ export class PlatformUtility {
 
 	/** Opens Google Maps by address or location via query */
 	public static openGoogleMaps(info: string) {
-		this.openURI("https://www.google.com/maps?q=" + encodeURIComponent(info));
+		this.openURI(`https://www.google.com/maps?q=${encodeURIComponent(info)}`);
 	}
 
 	/** Copies the value into clipboard */
@@ -308,7 +308,7 @@ export class PlatformUtility {
 			this.appendElement({
 				id: "facebook-jssdk",
 				async: "true",
-				src: "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=" + AppConfig.facebook.version
+				src: `https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=${AppConfig.facebook.version}`
 			}, "script");
 			window["fbAsyncInit"] = function() {
 				FB.init({

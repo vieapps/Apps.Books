@@ -7,7 +7,7 @@
 			<img-cropper [image]="htmlCropper.data" [settings]="htmlCropper.settings"></img-cropper>
 		</div>
 		<div>
-			<img [src]="htmlCropper.data.image" [width]="htmlCropper.settings.croppedWidth" [height]="htmlCropper.settings.croppedHeight" />
+			<img *ngIf="htmlCropper.data.image" [src]="htmlCropper.data.image" [width]="htmlCropper.settings.croppedWidth" [height]="htmlCropper.settings.croppedHeight" />
 		</div>
 	</div>
 </ion-item>

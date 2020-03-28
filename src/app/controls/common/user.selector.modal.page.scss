@@ -1,0 +1,15 @@
+ion-item ion-thumbnail {
+	height: 32px;
+	width: 48px;
+}
+ion-item ion-thumbnail > img {
+	border-radius: 50%;
+}
+ion-item > ion-label > span {
+	display: block;
+	margin-top: 5px;
+}
+ion-item > ion-label > span > span {
+	display: inline-block;
+	font-size: 0.96em;
+}

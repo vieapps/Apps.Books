@@ -7,13 +7,13 @@
 				<ion-icon *ngIf="segment.Icon" [name]="segment.Icon"></ion-icon>
 			</ion-segment-button>
 		</ion-segment>
-		<ion-list *ngFor="let segment of segments.items" [hidden]="segment.Name !== segments.current">
+		<ion-list *ngFor="let segment of segments.items; trackBy: trackSegment" [hidden]="segment.Name !== segments.current">
 			<app-form-control *ngFor="let control of getControls(segment); trackBy: trackControl"
 				[formGroup]="form"
 				[control]="control"
 				[theme]="color"
-				(lastFocusEvent)="onLastFocus($event)"
-				(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form-control>
+				(lastFocus)="onLastFocus($event)"
+				(refreshCaptcha)="onRefreshCaptcha($event)"></app-form-control>
 		</ion-list>
 	</div>
 
@@ -22,8 +22,8 @@
 			[formGroup]="form"
 			[control]="control"
 			[theme]="color"
-			(lastFocusEvent)="onLastFocus($event)"
-			(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form-control>
+			(lastFocus)="onLastFocus($event)"
+			(refreshCaptcha)="onRefreshCaptcha($event)"></app-form-control>
 	</ion-list>
 
 </form>

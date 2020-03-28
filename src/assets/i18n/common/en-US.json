@@ -17,11 +17,15 @@
 			"no": "No",
 			"done": "Done",
 			"ok": "OK",
+			"add": "Add",
+			"create": "Create new",
 			"update": "Update",
 			"delete": "Delete",
 			"save": "Save",
 			"cancel": "Cancel",
-			"close": "Close"
+			"close": "Close",
+			"select": "Select",
+			"search": "Search"
 		},
 		"messages": {
 			"loading": "Loading...",
@@ -32,13 +36,85 @@
 				"wrongAccountOrPassword": "Wrong account or password!",
 				"wrongCaptcha": "Verification code is invalid"
 			},
+			"delete": {
+				"normal": "Sure to delete?",
+				"selected": "Are you sure you want to delete the selected information?"
+			},
 			"completer": {
 				"searching": "searching...",
 				"noresults": "no matched result is found"
 			}
 		}
 	},
-	"homepage": {
-		"title": "Home"
+	"privileges": {
+		"roles": {
+			"systems": {
+				"All": "All (include anonymous)",
+				"Authorized": "Authorized users",
+				"SystemAdministrator": "System Administrator"
+			},
+			"privileges": {
+				"Administrator": "Administrator",
+				"Moderator": "Moderator",
+				"Editor": "Editor",
+				"Contributor": "Contributor",
+				"Viewer": "Viewer (Read Only)",
+				"Downloader": "Downloader"
+			}
+		},
+		"services": {
+			"role": "Acting role in the '{{service}}'",
+			"other": "Other roles",
+			"object": "Acting role of '{{object}}'"
+		},
+		"objects": {
+			"inheritFromParent": "Inherit from parent",
+			"Administrative": {
+				"label": "Manage",
+				"description": "",
+				"roles": "Roles can manage",
+				"users": "Users can manage"
+			},
+			"Moderate": {
+				"label": "Moderate",
+				"description": "",
+				"roles": "Roles can moderate",
+				"users": "Users can moderate"
+			},
+			"Editable": {
+				"label": "Edit",
+				"description": "",
+				"roles": "Roles can edit",
+				"users": "Users can edit"
+			},
+			"Contributive": {
+				"label": "Contribute",
+				"description": "",
+				"roles": "Roles can contribute (create new)",
+				"users": "Users can contribute (create new)"
+			},
+			"Viewable": {
+				"label": "View (Read-Only)",
+				"description": "",
+				"roles": "Roles can view (read-only)",
+				"users": "Users can view (read-only)"
+			},
+			"Downloadable": {
+				"label": "Only download files",
+				"description": "",
+				"roles": "Roles can only download files (cannot view)",
+				"users": "Users can only download files (cannot view)"
+			}
+		}
+	},
+	"status": {
+		"approval": {
+			"Draft": "Draft",
+			"Pending": "Pending",
+			"Rejected": "Rejected",
+			"Approved": "Approved",
+			"Published": "Published",
+			"Archieved": "Archieved"
+		}
 	}
 }

@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppConfig } from "../app.config";
-import { AppFormsControl, AppFormsSegment, AppFormsService } from "./forms.service";
+import { AppFormsControl, AppFormsControlConfig, AppFormsSegment, AppFormsService } from "./forms.service";
+import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 
 @Component({
@@ -9,48 +10,48 @@ import { PlatformUtility } from "./app.utility.platform";
 	templateUrl: "./forms.component.html"
 })
 
-	/*** The configurable form */
-	export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
+/** The configurable form */
+export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor(
 		private appFormsSvc: AppFormsService
 	) {
 	}
 
-	/*** The color theme of the form ('dark' or 'light') */
+	/** The color theme of the form ('dark' or 'light') */
 	@Input() color: string;
 
-	/*** The instance of the form */
+	/** The instance of the form */
 	@Input() form: FormGroup;
 
-	/*** The configuration of the form controls */
-	@Input() config: Array<any>;
+	/** The configuration of the form controls */
+	@Input() config: Array<AppFormsControlConfig> | Array<any>;
 
-	/*** The configuration of the form segments */
+	/** The configuration of the form segments */
 	@Input() segments: { items: Array<AppFormsSegment>, default: string, current: string };
 
-	/*** The instance of the form controls */
+	/** The instance of the form controls */
 	@Input() controls: Array<AppFormsControl>;
 
-	/*** The value of the form controls */
+	/** The value of the form controls */
 	@Input() value: any;
 
-	/*** The event handler to run when the form was initialized */
-	@Output() initEvent: EventEmitter<any> = new EventEmitter();
+	/** The event handler to run when the form was initialized */
+	@Output() init: EventEmitter<any> = new EventEmitter();
 
-	/*** The event handler to run when the captcha code of form was refreshed */
-	@Output() refreshCaptchaEvent: EventEmitter<any> = new EventEmitter();
+	/** The event handler to run when the form was submitted */
+	@Output() submit: EventEmitter<any> = new EventEmitter();
 
-	/*** The event handler to run when the form was focused into last control */
-	@Output() lastFocusEvent: EventEmitter<any> = new EventEmitter();
+	/** The event handler to run when the captcha code of the form was refreshed */
+	@Output() refreshCaptcha: EventEmitter<any> = new EventEmitter();
 
-	/*** The event handler to run when the form was submitted */
-	@Output() submitEvent: EventEmitter<any> = new EventEmitter();
+	/** The event handler to run when the form was focused into last control */
+	@Output() lastFocus: EventEmitter<any> = new EventEmitter();
 
 	ngOnInit() {
 		this.segments = this.segments || { items: undefined, default: undefined, current: undefined };
 		if (this.segments.items !== undefined && this.segments.items.length > 0) {
-			this.segments.current = this.segments.default !== undefined && this.segments.items.findIndex(segment => segment.Name === this.segments.default) > -1
+			this.segments.current = this.segments.default !== undefined && this.segments.items.findIndex(segment => AppUtility.isEquals(segment.Name, this.segments.default)) > -1
 				? this.segments.default
 				: this.segments.items[0].Name;
 		}
@@ -69,7 +70,7 @@ import { PlatformUtility } from "./app.utility.platform";
 		else {
 			this.appFormsSvc.buildForm(this.form, this.controls, this.value);
 			this.form["_controls"] = this.controls;
-			this.initEvent.emit(this);
+			this.init.emit(this);
 		}
 	}
 
@@ -78,21 +79,22 @@ import { PlatformUtility } from "./app.utility.platform";
 	}
 
 	ngOnDestroy() {
-		this.initEvent.unsubscribe();
-		this.submitEvent.unsubscribe();
-		this.refreshCaptchaEvent.unsubscribe();
-	}
-
-	onRefreshCaptcha($event: any) {
-		this.refreshCaptchaEvent.emit($event);
-	}
-
-	onLastFocus($event: any) {
-		this.lastFocusEvent.emit($event);
+		this.init.unsubscribe();
+		this.submit.unsubscribe();
+		this.refreshCaptcha.unsubscribe();
+		this.lastFocus.unsubscribe();
 	}
 
 	onSubmit() {
-		this.submitEvent.emit(this.form.value);
+		this.submit.emit(this.form.value);
+	}
+
+	onRefreshCaptcha($event: any) {
+		this.refreshCaptcha.emit($event);
+	}
+
+	onLastFocus($event: any) {
+		this.lastFocus.emit($event);
 	}
 
 	get gotSegments() {
@@ -108,7 +110,7 @@ import { PlatformUtility } from "./app.utility.platform";
 	}
 
 	getControls(segment: AppFormsSegment) {
-		return this.controls.filter(control => control.Segment === segment.Name);
+		return this.controls.filter(control => AppUtility.isEquals(control.Segment, segment.Name));
 	}
 
 	trackControl(index: number, control: AppFormsControl) {

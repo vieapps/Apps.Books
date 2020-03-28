@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angular/core";
-import { FormGroup } from "@angular/forms";
 import { AppUtility } from "../../components/app.utility";
 import { AppFormsControl } from "../../components/forms.service";
 import { ConfigurationService } from "../../services/configuration.service";
@@ -18,135 +17,129 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 	) {
 	}
 
-	@Input() serviceName: string;
-	@Input() roles: Array<string>;
-	@Input() privileges: Array<Privilege>;
-	@Output() changesEvent = new EventEmitter<any>();
+	/** The form control that contains this control */
+	@Input() control: AppFormsControl;
 
-	form = new FormGroup({});
-	controls = new Array<AppFormsControl>();
-	config: Array<any>;
-	private objects: Array<{ Name: string, Role: string	}>;
-	private formChanged = this.form.valueChanges.subscribe(value => this.onFormChanged(value));
+	/** The name of the service */
+	@Input() service: string;
+
+	/** The privileges of the service */
+	@Input() privileges: Array<Privilege>;
+
+	/** The position of labels (default is 'stacked') */
+	@Input() labelPosition: string;
+
+	/** The interface of select boxes (default is 'alert') */
+	@Input() selectInterface: string;
+
+	/** The event handler to run when the controls was initialized */
+	@Output() init: EventEmitter<any> = new EventEmitter();
+
+	/** The event handler to run when the control was changed */
+	@Output() change = new EventEmitter<any>();
+
+	roles = Privilege.privilegeRoles;
+	labels = {
+		service: "",
+		other: "",
+		buttons: {
+			ok: "OK",
+			cancel: "Cancel"
+		},
+		roles: {} as { [key: string]: string },
+		objects: {} as { [key: string]: string }
+	};
+
+	objectRoles: Array<{ name: string; role: string }>;
+	get serviceRole() {
+		return ((this.privileges || []).find(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, "")) || new Privilege(this.service)).Role;
+	}
 
 	ngOnInit() {
-		this.initializeFormAsync();
+		this.service = this.service || this.configSvc.appConfig.services.active;
+		this.privileges = this.privileges || [];
+		this.labelPosition = this.labelPosition || "stacked";
+		this.selectInterface = this.selectInterface || "alert";
+
+		if (this.privileges.findIndex(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, "")) < 0) {
+			AppUtility.insertAt(this.privileges, new Privilege(this.service.toLowerCase()), 0);
+		}
+
+		(this.configSvc.appConfig.services.all.find(service => AppUtility.isEquals(service.name, this.service)).objects || []).forEach(object => {
+			if (this.privileges.findIndex(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, object)) < 0) {
+				this.privileges.push(new Privilege(this.service.toLowerCase(), object.toLowerCase()));
+			}
+		});
+
+		this.prepareObjectRoles();
+		Promise.all([this.prepareLabelsAsync()]).then(() => this.init.emit(this));
 	}
 
 	ngOnDestroy() {
-		this.formChanged.unsubscribe();
-		this.changesEvent.unsubscribe();
+		this.init.unsubscribe();
+		this.change.unsubscribe();
 	}
 
-	private async initializeFormAsync() {
-		if (this.privileges === undefined || this.privileges.length < 1) {
-			this.privileges = [new Privilege(this.serviceName.toLowerCase())];
-		}
-
-		if (this.roles === undefined || this.roles.length < 1) {
-			this.roles = ["Administrator", "Moderator", "Editor", "Contributor", "Viewer"];
-		}
-		const roles = this.roles.map(role => {
+	private prepareObjectRoles() {
+		this.objectRoles = this.privileges.filter(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && !AppUtility.isEquals(privilege.ObjectName, "")).map(privilege => {
 			return {
-				Value: role,
-				Label: ""
+				name: privilege.ObjectName,
+				role: privilege.Role
 			};
 		});
-		roles.forEach(async role => role.Label = await this.configSvc.getResourceAsync(`users.roles.${role.Value}`));
-
-		const resourceID = `${this.serviceName.toLowerCase()}.name`;
-		let serviceLabel = await this.configSvc.getResourceAsync(resourceID);
-		serviceLabel = await this.configSvc.getResourceAsync("users.privileges.role", { service: serviceLabel !== resourceID ? serviceLabel : this.serviceName });
-
-		const config: Array<any> = [{
-			Name: "Role",
-			Type: "Select",
-			Options: {
-				Label: serviceLabel,
-				SelectOptions: {
-					Values: roles
-				}
-			}
-		}];
-
-		const objects = (this.configSvc.appConfig.services.all.find(service => AppUtility.isEquals(service.name, this.serviceName)).objects || []).map(object => object.toLowerCase());
-		if (objects.length > 0) {
-			this.objects = objects.map(object => {
-				return {
-					Name: object,
-					Role: (this.privileges.find(privilege => AppUtility.isEquals(privilege.ServiceName, this.serviceName) && AppUtility.isEquals(privilege.ObjectName, object)) || new Privilege()).Role
-				};
-			});
-			const labels = {} as { [key: string]: string };
-			await Promise.all(objects.map(async object => {
-				const resID = `${this.serviceName.toLowerCase()}.objects.${object}`;
-				const name = await this.configSvc.getResourceAsync(resID);
-				const label = await this.configSvc.getResourceAsync("users.privileges.object", { object: name !== resID ? name : object });
-				labels[object] = label;
-			}));
-			config.push({
-				Name: "Objects",
-				Options: {
-					Label: await this.configSvc.getResourceAsync("users.privileges.other")
-				},
-				SubControls: {
-					Controls: this.objects.map(object => {
-						return {
-							Name: object.Name,
-							Type: "Select",
-							Options: {
-								Label: labels[object.Name],
-								SelectOptions: {
-									Values: roles
-								}
-							}
-						};
-					})
-				}
-			});
-		}
-
-		this.config = config;
 	}
 
-	public onFormInitialized($event: any) {
-		const role = this.privileges.find(privilege => AppUtility.isEquals(privilege.ServiceName, this.serviceName) && AppUtility.isEquals(privilege.ObjectName, ""));
-		const value = {
-			Role: role !== undefined ? role.Role : "Viewer",
-			Objects: {} as { [key: string]: string }
+	private async prepareLabelsAsync() {
+		this.labels.service = await this.configSvc.getResourceAsync(`${this.service.toLowerCase()}.name`);
+		this.labels.service = await this.configSvc.getResourceAsync("privileges.services.role", { service: AppUtility.isEquals(this.labels.service, `${this.service.toLowerCase()}.name`) ? this.service : this.labels.service });
+		this.labels.other = await this.configSvc.getResourceAsync("privileges.services.other");
+		this.labels.buttons = {
+			ok: await this.configSvc.getResourceAsync("common.buttons.ok"),
+			cancel: await this.configSvc.getResourceAsync("common.buttons.cancel")
 		};
-		(this.objects || []).forEach(object => value.Objects[object.Name] = object.Role);
-		this.form.patchValue(value);
+		await Promise.all([
+			Promise.all(this.roles.map(async role => this.labels.roles[role] = await this.configSvc.getResourceAsync(`privileges.roles.privileges.${role}`))),
+			Promise.all(this.objectRoles.map(objectRole => objectRole.name).map(async object => {
+				const label = await this.configSvc.getResourceAsync(`${this.service.toLowerCase()}.objects.${object}`);
+				this.labels.objects[object] = await this.configSvc.getResourceAsync("privileges.services.object", { object: AppUtility.isEquals(label, `${this.service.toLowerCase()}.objects.${object}`) ? object : label });
+			}))
+		]);
 	}
 
-	private onFormChanged(value: any) {
-		const privileges = [new Privilege(this.serviceName, undefined, value.Role)];
-
-		const subControls = this.controls.find(control => AppUtility.isEquals(control.Name, "Objects"));
-		if (subControls !== undefined) {
-			const objectControls = subControls.SubControls.Controls;
-			if (value.Role === "Viewer") {
-				objectControls.forEach(control => {
-					control.Options.Disabled = false;
-					const role = value.Objects[control.Name] as string;
-					if (role !== "Viewer") {
-						privileges.push(new Privilege(this.serviceName.toLowerCase(), control.Name, role));
-					}
-				});
-				if (privileges.length === 1) {
-					privileges.splice(0, 1);
-				}
-			}
-			else {
-				objectControls.forEach(control => control.Options.Disabled = true);
-			}
-		}
-
-		this.changesEvent.emit({
-			service: this.serviceName,
+	private emitChanges() {
+		const privileges = this.serviceRole === "Viewer"
+			? this.privileges.filter(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && (AppUtility.isEquals(privilege.ObjectName, "") || (privilege.ObjectName !== "" && privilege.Role !== "Viewer")))
+			: this.privileges.filter(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, ""));
+		this.change.emit({
+			control: this.control,
+			service: this.service,
 			privileges: privileges,
-			relatedInfo: undefined
+			relatedInfo: undefined,
+			detail: {
+				value: privileges
+			}
 		});
+	}
+
+	track(index: number, item: string) {
+		return `${item}@${index}`;
+	}
+
+	onServiceRoleChanged(event: any) {
+		this.privileges.find(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, "")).Role = event.detail.value;
+		if (event.detail.value !== "Viewer") {
+			this.privileges.filter(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && !AppUtility.isEquals(privilege.ObjectName, "")).forEach(privilege => privilege.Role = "Viewer");
+		}
+		else {
+			this.objectRoles.forEach(objectRole => this.privileges.find(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, objectRole.name)).Role = objectRole.role);
+		}
+		this.emitChanges();
+	}
+
+	onObjectRoleChanged(event: any, name: string) {
+		this.privileges.find(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, name)).Role = event.detail.value;
+		this.prepareObjectRoles();
+		this.emitChanges();
 	}
 
 }

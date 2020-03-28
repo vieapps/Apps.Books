@@ -1,19 +1,6 @@
 {
 	"users": {
 		"name": "Users",
-		"roles": {
-			"Administrator": "Administrator",
-			"Moderator": "Moderator",
-			"Editor": "Editor",
-			"Contributor": "Contributor",
-			"Viewer": "Viewer (Read Only)",
-			"Downloader": "Downloader"
-		},
-		"privileges": {
-			"role": "Acting role in the '{{service}}'",
-			"other": "Other roles",
-			"object": "Acting role of '{{object}}'"
-		},
 		"login": {
 			"login": {
 				"title": "Login",

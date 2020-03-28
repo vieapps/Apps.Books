@@ -3,7 +3,7 @@ import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppCrypto } from "../../../components/app.crypto";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
+import { AppFormsControl } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
 import { BooksService } from "../../../services/books.service";
 
@@ -15,9 +15,8 @@ import { BooksService } from "../../../services/books.service";
 
 export class BooksOptionsPage implements OnInit, OnDestroy {
 	constructor(
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public booksSvc: BooksService
+		private booksSvc: BooksService
 	) {
 	}
 
@@ -68,7 +67,7 @@ export class BooksOptionsPage implements OnInit, OnDestroy {
 		await TrackingUtility.trackAsync(this.title, "books/options");
 	}
 
-	onFormInitialized($event) {
+	onFormInitialized(event) {
 		this.form.patchValue(this.booksSvc.readingOptions);
 		this.hash = AppCrypto.hash(this.form.value);
 	}

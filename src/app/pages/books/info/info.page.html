@@ -24,7 +24,7 @@
 				<ion-list>
 					<ion-item *ngIf="book.Original !== ''" [color]="configSvc.color">
 						<span>
-							{{ resources.original }}:
+							{{ labels.original }}:
 						</span>
 						<label>
 							{{ book.Original }}
@@ -32,7 +32,7 @@
 					</ion-item>
 					<ion-item [color]="configSvc.color">
 						<span>
-							{{ resources.author }}:
+							{{ labels.author }}:
 						</span>
 						<label>
 							{{ book.Author }}
@@ -40,7 +40,7 @@
 					</ion-item>
 					<ion-item *ngIf="book.Translator !== ''" [color]="configSvc.color">
 						<span>
-							{{ resources.translator }}:
+							{{ labels.translator }}:
 						</span>
 						<label>
 							{{ book.Translator }}
@@ -48,7 +48,7 @@
 					</ion-item>
 					<ion-item *ngIf="book.Publisher !== ''" [color]="configSvc.color">
 						<span>
-							{{ resources.publisher }}:
+							{{ labels.publisher }}:
 						</span>
 						<label>
 							{{ book.Publisher }}
@@ -56,7 +56,7 @@
 					</ion-item>
 					<ion-item *ngIf="book.Producer !== ''" [color]="configSvc.color">
 						<span>
-							{{ resources.producer }}:
+							{{ labels.producer }}:
 						</span>
 						<label>
 							{{ book.Producer }}
@@ -64,7 +64,7 @@
 					</ion-item>
 					<ion-item *ngIf="book.TotalChapters > 1" [color]="configSvc.color">
 						<span>
-							{{ resources.chapters }}:
+							{{ labels.chapters }}:
 						</span>
 						<label>
 							{{ book.TotalChapters | number:'':locale }}
@@ -72,7 +72,7 @@
 					</ion-item>
 					<ion-item [color]="configSvc.color">
 						<span>
-							{{ resources.category }}:
+							{{ labels.category }}:
 						</span>
 						<label>
 							{{ book.Category }}
@@ -80,7 +80,7 @@
 					</ion-item>
 					<ion-item *ngIf="book.Source !== ''" [color]="configSvc.color">
 						<span>
-							{{ resources.source }}:
+							{{ labels.source }}:
 						</span>
 						<label *ngIf="!sourceUrl">
 							{{ book.Source }}
@@ -93,7 +93,7 @@
 					</ion-item>
 					<ion-item [color]="configSvc.color">
 						<span>
-							{{ resources.updated }}:
+							{{ labels.updated }}:
 						</span>
 						<label>
 							{{ book.LastUpdated | time:locale:'h:mm a @ d/M/y' }}
@@ -109,13 +109,13 @@
 									<span>
 										EPUB: {{ book.Files.Epub.Size }}
 									</span>
-									<ion-icon *ngIf="book.Files.Epub.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" class="ion-float-end"></ion-icon>
+									<ion-icon *ngIf="book.Files.Epub.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="labels.download" class="ion-float-end"></ion-icon>
 								</li>
 								<li (click)="downloadAsync('Mobi')">
 									<span>
 										MOBI: {{ book.Files.Mobi.Size }}
 									</span>
-									<ion-icon *ngIf="book.Files.Mobi.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="resources.download" class="ion-float-end"></ion-icon>
+									<ion-icon *ngIf="book.Files.Mobi.Size != 'generating...'" name="cloud-download" slot="icon-only" [title]="labels.download" class="ion-float-end"></ion-icon>
 								</li>
 							</ul>
 						</div>
@@ -126,13 +126,13 @@
 		<ion-row class="ion-padding-top">
 			<ion-col class="ion-padding-bottom ion-text-center qrcode" size-xs="12" size-sm="6" size-md="4" size-md="3">
 				<div class="ion-padding-bottom">
-					{{ resources.qrcode.header }}
+					{{ labels.qrcode.header }}
 				</div>
 				<div>
 					<qr-code [value]="qrcode" [size]="290"></qr-code>
 				</div>
 				<span>
-					{{ resources.qrcode.description }}
+					{{ labels.qrcode.description }}
 				</span>
 			</ion-col>
 			<ion-col size-xs="12" size-sm="6" size-md="8" size-md="9">
@@ -140,12 +140,12 @@
 					<ion-item *ngIf="statistics.views" [color]="configSvc.color">
 						<div>
 							<section>
-								{{ resources.statistics.views }}:
+								{{ labels.statistics.views }}:
 							</section>
 							<ul>
 								<li>
 									<span>
-										{{ resources.statistics.total }}:
+										{{ labels.statistics.total }}:
 									</span>
 									<label>
 										{{ statistics.views.Total | number:'':locale }}
@@ -153,7 +153,7 @@
 								</li>
 								<li>
 									<span>
-										{{ resources.statistics.month }}:
+										{{ labels.statistics.month }}:
 									</span>
 									<label>
 										{{ statistics.views.Month | number:'':locale }}
@@ -161,7 +161,7 @@
 								</li>
 								<li>
 									<span>
-										{{ resources.statistics.week }}:
+										{{ labels.statistics.week }}:
 									</span>
 									<label>
 										{{ statistics.views.Week | number:'':locale }}
@@ -173,12 +173,12 @@
 					<ion-item *ngIf="statistics.downloads" [color]="configSvc.color">
 						<div class="ion-padding-top">
 							<section>
-								{{ resources.statistics.downloads }}:
+								{{ labels.statistics.downloads }}:
 							</section>
 							<ul>
 								<li>
 									<span>
-										{{ resources.statistics.total }}:
+										{{ labels.statistics.total }}:
 									</span>
 									<label>
 										{{ statistics.downloads.Total | number:'':locale }}
@@ -186,7 +186,7 @@
 								</li>
 								<li>
 									<span>
-										{{ resources.statistics.month }}:
+										{{ labels.statistics.month }}:
 									</span>
 									<label>
 										{{ statistics.downloads.Month | number:'':locale }}
@@ -194,7 +194,7 @@
 								</li>
 								<li>
 									<span>
-										{{ resources.statistics.week }}:
+										{{ labels.statistics.week }}:
 									</span>
 									<label>
 										{{ statistics.downloads.Week | number:'':locale }}
@@ -211,7 +211,7 @@
 	<section class="ion-padding-vertical">
 		<ion-item [color]="configSvc.color">
 			<ion-label position="stacked">
-				{{ resources.link }}:
+				{{ labels.link }}:
 			</ion-label>
 			<ion-input [value]="redirectUrl" readonly></ion-input>
 			<ion-button slot="end" fill="clear" (click)="copyLinkAsync()">

@@ -6,6 +6,7 @@ import { Ng2CompleterModule } from "ng2-completer";
 import { AppFormsService } from "./forms.service";
 import { AppFormsComponent } from "./forms.component";
 import { AppFormsControlComponent } from "./forms.control.component";
+import { CommonControlsModule } from "../controls/common.controls.module";
 
 @NgModule({
 	providers: [AppFormsService],
@@ -13,7 +14,8 @@ import { AppFormsControlComponent } from "./forms.control.component";
 		CommonModule,
 		ReactiveFormsModule,
 		IonicModule,
-		Ng2CompleterModule
+		Ng2CompleterModule,
+		CommonControlsModule
 	],
 	exports: [
 		AppFormsComponent,

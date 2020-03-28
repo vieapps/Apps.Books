@@ -1,8 +1,9 @@
-import { Component, OnInit, NgZone } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
+import { AppEvents } from "../../../components/app.events";
 import { AppUtility } from "../../../components/app.utility";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsControl, AppFormsService } from "../../../components/forms.service";
+import { AppFormsControl, AppFormsControlConfig, AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
 import { AuthenticationService } from "../../../services/authentication.service";
 import { UsersService } from "../../../services/users.service";
@@ -19,7 +20,6 @@ import { UsersAvatarPage } from "../avatar/avatar.page";
 export class UsersProfilePage implements OnInit {
 
 	constructor(
-		public zone: NgZone,
 		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
 		public authSvc: AuthenticationService,
@@ -33,25 +33,25 @@ export class UsersProfilePage implements OnInit {
 	profile: UserProfile;
 	buttons = {
 		ok: undefined as {
-			text: string,
-			icon: string,
+			text: string;
+			icon?: string;
 			handler: () => void
 		},
 		cancel: undefined as {
-			text: string,
-			icon: string,
+			text: string;
+			icon?: string;
 			handler: () => void
 		},
 		invite: undefined as {
-			text: string,
-			icon: string,
+			text: string;
+			icon?: string;
 			handler: () => void
 		}
 	};
 	actions: Array<{
-		text: string,
-		role: string,
-		icon: string,
+		text: string;
+		role?: string;
+		icon?: string;
 		handler: () => void
 	}>;
 	labels = {
@@ -61,7 +61,7 @@ export class UsersProfilePage implements OnInit {
 	invitation = {
 		form: new FormGroup({}),
 		controls: new Array<AppFormsControl>(),
-		config: undefined as Array<any>,
+		config: undefined as Array<AppFormsControlConfig>,
 		privileges: undefined as Array<Privilege>,
 		relatedInfo: undefined as { [key: string]: any }
 	};
@@ -71,7 +71,7 @@ export class UsersProfilePage implements OnInit {
 	}
 
 	get canManageUsers() {
-		return this.authSvc.isSystemAdministrator() && !this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.users.list) && !this.configSvc.previousUrl.startsWith("/users/search");
+		return this.authSvc.isSystemAdministrator() && !this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.users.list) && !this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.users.search);
 	}
 
 	ngOnInit() {
@@ -91,8 +91,8 @@ export class UsersProfilePage implements OnInit {
 
 	async prepareButtonsAsync() {
 		if (this.mode === "invitation") {
-			this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), icon: undefined, handler: () => this.zone.run(() => this.showProfileAsync()) };
-			this.buttons.ok = { text: await this.configSvc.getResourceAsync("users.profile.buttons.invite"), icon: undefined, handler: () => this.zone.run(() => this.sendInvitationAsync()) };
+			this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), handler: () => this.showProfileAsync() };
+			this.buttons.ok = { text: await this.configSvc.getResourceAsync("users.profile.buttons.invite"), handler: () => this.sendInvitationAsync() };
 		}
 		else {
 			this.buttons.cancel = undefined;
@@ -100,39 +100,34 @@ export class UsersProfilePage implements OnInit {
 		}
 
 		this.buttons.invite = this.mode === "profile" && this.profile.ID === this.configSvc.getAccount().id && this.authSvc.canSendInvitations
-			? { text: await this.configSvc.getResourceAsync("users.profile.buttons.invitation"), icon: "people", handler: () => this.zone.run(() => this.openSendInvitationAsync()) }
+			? { text: await this.configSvc.getResourceAsync("users.profile.buttons.invitation"), icon: "people", handler: () => this.openSendInvitationAsync() }
 			: undefined;
 	}
 
 	async prepareActionsAsync() {
-		if (this.mode !== "profile") {
-			this.actions = undefined;
-		}
-		else {
+		if (this.mode === "profile") {
 			this.actions = [];
 
 			if (this.profile.ID === this.configSvc.getAccount().id) {
 				[
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.avatar"), "camera", () => this.zone.run(() => this.appFormsSvc.showModalAsync(UsersAvatarPage))),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", () => this.zone.run(() => this.openUpdateAsync("profile"))),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", () => this.zone.run(() => this.openUpdateAsync("password"))),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "at", () => this.zone.run(() => this.openUpdateAsync("email"))),
-					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "lock-open", () => this.zone.run(() => this.openOTPAsync()))
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.avatar"), "camera", () => this.openAvatarAsync()),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.profile"), "create", () => this.openUpdateAsync("profile")),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.password"), "key", () => this.openUpdateAsync("password")),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.email"), "at", () => this.openUpdateAsync("email")),
+					this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.otp"), "lock-open", () => this.openOTPAsync())
 				].forEach(action => this.actions.push(action));
 			}
 
 			else if (this.authSvc.canSetServicePrivileges) {
-				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", () => this.zone.run(() => this.openUpdateAsync("privileges"))));
+				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.privileges"), "settings", () => this.openUpdateAsync("privileges")));
 				this.usersSvc.getServicePrivilegesAsync(this.profile.ID);
 			}
 
 			if (this.id === undefined || this.id === this.configSvc.getAccount().id) {
-				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.logout"), "log-out", () => this.zone.run(() => this.logoutAsync())));
+				this.actions.push(this.appFormsSvc.getActionSheetButton(await this.configSvc.getResourceAsync("users.profile.actions.logout"), "log-out", () => this.logoutAsync()));
 			}
 
-			if (this.actions.length < 1) {
-				this.actions = undefined;
-			}
+			this.actions = this.actions.length > 0 ? this.actions : undefined;
 		}
 	}
 
@@ -141,29 +136,63 @@ export class UsersProfilePage implements OnInit {
 	}
 
 	async showProfileAsync(onNext?: () => void) {
-		if (this.profile === undefined && this.id !== undefined && !UserProfile.contains(this.id)) {
+		const onNextAsync = async () => {
+			this.profile = this.profile || UserProfile.get(this.id || this.configSvc.getAccount().id);
+			this.labels.header = await this.configSvc.getResourceAsync("users.profile.labels.header");
+			this.labels.lastAccess = await this.configSvc.getResourceAsync("users.profile.labels.lastAccess");
+			await Promise.all([
+				this.setModeAsync("profile", await this.configSvc.getResourceAsync("users.profile.title")),
+				TrackingUtility.trackAsync(`${await this.configSvc.getResourceAsync("users.profile.title")} [${this.profile.Name}]`, this.configSvc.appConfig.url.users.profile)
+			]).then(async () => await this.appFormsSvc.hideLoadingAsync(onNext));
+		};
+		if (this.profile === undefined) {
 			await this.appFormsSvc.showLoadingAsync();
+			await this.usersSvc.getProfileAsync(this.id, async () => await onNextAsync(), async error => await this.appFormsSvc.showErrorAsync(error));
 		}
-		await this.usersSvc.getProfileAsync(this.id,
-			async () => {
-				this.profile = this.profile || UserProfile.get(this.id || this.configSvc.getAccount().id);
-				this.labels.header = await this.configSvc.getResourceAsync("users.profile.labels.header");
-				this.labels.lastAccess = await this.configSvc.getResourceAsync("users.profile.labels.lastAccess");
-				await Promise.all([
-					this.setModeAsync("profile", await this.configSvc.getResourceAsync("users.profile.title")),
-					TrackingUtility.trackAsync(`${await this.configSvc.getResourceAsync("users.profile.title")} [${this.profile.Name}]`, this.configSvc.appConfig.url.users.profile)
-				]).then(async () => await this.appFormsSvc.hideLoadingAsync(onNext));
+		else {
+			await onNextAsync();
+		}
+	}
+
+	openAvatarAsync() {
+		return this.appFormsSvc.showModalAsync(
+			UsersAvatarPage,
+			{
+				mode: AppUtility.isEquals(this.profile.Avatar, "") || AppUtility.isEquals(this.profile.Avatar, this.profile.Gravatar) ? "Gravatar" : "Avatar",
+				avatarURI: this.profile.Avatar,
+				gravatarURI: this.profile.Gravatar
 			},
-			async error => await this.appFormsSvc.showErrorAsync(error)
+			async data => await this.updateAvatarAsync(data)
 		);
 	}
 
-	openUpdateAsync(mode?: string) {
-		return this.configSvc.navigateForwardAsync("/users/update/" + (this.id === undefined ? "my" : AppUtility.toANSI(this.profile.Name, true)) + "?x-request=" + AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" }));
+	async updateAvatarAsync(data: any) {
+		const mode = data.mode as string;
+		if (mode !== undefined) {
+			const imageURI = data.imageURI as string;
+			if (AppUtility.isEquals(mode, "Avatar") ? imageURI !== undefined : !AppUtility.isEquals(this.profile.Avatar, "")) {
+				await this.usersSvc.updateProfileAsync(
+					{
+						ID: this.profile.ID,
+						Avatar: imageURI || ""
+					},
+					async () => await this.configSvc.storeSessionAsync(async () => await Promise.all([
+						new Promise<void>(() => AppEvents.broadcast("Profile", { Type: "Updated" })),
+						TrackingUtility.trackAsync(`${await this.configSvc.getResourceAsync("users.profile.avatar.title")} [${this.profile.Name}]`, `${this.configSvc.appConfig.url.users.update}/avatar`),
+						this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.avatar.message"))
+					])),
+					error => console.error(`Error occurred while updating profile with new avatar image => ${AppUtility.getErrorMessage(error)}`, error)
+				);
+			}
+		}
 	}
 
-	openOTPAsync(mode?: string) {
-		return this.configSvc.navigateForwardAsync("/users/otp");
+	openUpdateAsync(mode?: string) {
+		return this.configSvc.navigateForwardAsync(`${this.configSvc.appConfig.url.users.update}/${(this.id === undefined ? "my" : AppUtility.toANSI(this.profile.Name, true))}?x-request=${AppUtility.toBase64Url({ ID: this.profile.ID, Mode: mode || "profile" })}`);
+	}
+
+	openOTPAsync() {
+		return this.configSvc.navigateForwardAsync(this.configSvc.appConfig.url.users.otp);
 	}
 
 	async openSendInvitationAsync() {
@@ -192,13 +221,13 @@ export class UsersProfilePage implements OnInit {
 		await this.setModeAsync("invitation", await this.configSvc.getResourceAsync("users.profile.invitation.title"));
 	}
 
-	onInvitationFormInitialized($event: any) {
-		this.appFormsSvc.reset($event.form);
+	onInvitationFormInitialized(event: any) {
+		this.appFormsSvc.reset(event.form);
 	}
 
-	onServicePrivilegesChanged($event: any) {
-		this.invitation.privileges = $event.privileges;
-		this.invitation.relatedInfo = $event.relatedInfo;
+	onServicePrivilegesChanged(event: any) {
+		this.invitation.privileges = event.privileges;
+		this.invitation.relatedInfo = event.relatedInfo;
 	}
 
 	async sendInvitationAsync() {
@@ -213,7 +242,7 @@ export class UsersProfilePage implements OnInit {
 				this.invitation.privileges,
 				this.invitation.relatedInfo,
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(`${this.title} [${this.profile.Name}]`, "users/invitation"),
+					TrackingUtility.trackAsync(`${this.title} [${this.profile.Name}]`, `${this.configSvc.appConfig.url.users.root}/invite`),
 					this.showProfileAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.invitation.message")))
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
@@ -228,9 +257,9 @@ export class UsersProfilePage implements OnInit {
 			await this.configSvc.getResourceAsync("users.profile.logout.confirm"),
 			async () => await this.authSvc.logOutAsync(
 				async () => await Promise.all([
-					TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), "users/logout"),
+					TrackingUtility.trackAsync(await this.configSvc.getResourceAsync("users.profile.buttons.logout"), `${this.configSvc.appConfig.url.users.root}/logout`),
 					this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.logout.success")),
-					this.configSvc.previousUrl.startsWith("/users") ? this.configSvc.navigateHomeAsync() : this.configSvc.navigateBackAsync()
+					this.configSvc.previousUrl.startsWith(this.configSvc.appConfig.url.users.root) ? this.configSvc.navigateHomeAsync() : this.configSvc.navigateBackAsync()
 				]),
 				async error => await this.appFormsSvc.showErrorAsync(error)
 			),

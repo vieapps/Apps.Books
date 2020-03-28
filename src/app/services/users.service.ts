@@ -28,7 +28,7 @@ export class UsersService extends BaseService {
 				const profile = UserProfile.deserialize(o);
 				return {
 					title: profile.Name,
-					description: profile.Email.substr(0, profile.Email.indexOf("@") + 1) + "...",
+					description: AppUtility.getHiddenEmail(profile.Email),
 					image: profile.avatarURI,
 					originalObject: profile
 				};

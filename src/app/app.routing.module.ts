@@ -3,7 +3,7 @@ import { RouterModule, Routes } from "@angular/router";
 import { AppModulePreloader } from "./components/app.preloader";
 import { AppReadyGuardService } from "./services/base.service";
 
-export const routes: Routes = [
+const routes: Routes = [
 	{
 		path: "home",
 		data: { preload: true },

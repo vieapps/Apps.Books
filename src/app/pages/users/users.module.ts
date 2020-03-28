@@ -4,15 +4,14 @@ import { RouterModule, Routes } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "../../services/base.service";
 
-import { UsersAvatarPageModule } from "./avatar/avatar.module";
-import { UsersListPageModule } from "./list/list.module";
-import { UsersLogInPageModule } from "./login/login.module";
-import { UsersOtpPageModule } from "./otp/otp.module";
-import { UsersProfilePageModule } from "./profile/profile.module";
 import { UsersRegisterPageModule } from "./register/register.module";
+import { UsersLogInPageModule } from "./login/login.module";
+import { UsersProfilePageModule } from "./profile/profile.module";
 import { UsersUpdatePageModule } from "./update/update.module";
+import { UsersOtpPageModule } from "./otp/otp.module";
+import { UsersListPageModule } from "./list/list.module";
 
-export const routes: Routes = [
+const routes: Routes = [
 	{
 		path: "login",
 		canActivate: [NotAuthenticatedGuardService],
@@ -61,13 +60,12 @@ export const routes: Routes = [
 	imports: [
 		CommonModule,
 		IonicModule,
-		UsersAvatarPageModule,
-		UsersListPageModule,
-		UsersLogInPageModule,
-		UsersOtpPageModule,
-		UsersProfilePageModule,
 		UsersRegisterPageModule,
+		UsersLogInPageModule,
+		UsersProfilePageModule,
 		UsersUpdatePageModule,
+		UsersOtpPageModule,
+		UsersListPageModule,
 		RouterModule.forChild(routes)
 	],
 	exports: [RouterModule],

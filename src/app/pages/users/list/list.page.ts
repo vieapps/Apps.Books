@@ -1,6 +1,6 @@
 import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
 import { AppUtility } from "../../../components/app.utility";
@@ -20,7 +20,7 @@ import { RatingPoint } from "../../../models/ratingpoint";
 	styleUrls: ["./list.page.scss"]
 })
 
-export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
+export class UsersListPage implements OnInit, OnDestroy {
 
 	constructor(
 		public appFormsSvc: AppFormsService,
@@ -44,8 +44,9 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 	};
 	sortBy = { Name: "Ascending" };
 	subscription: Subscription;
-	@ViewChild(IonSearchbar, { static: false }) searchCtrl: IonSearchbar;
-	@ViewChild(IonInfiniteScroll, { static: false }) infiniteScrollCtrl: IonInfiniteScroll;
+
+	@ViewChild(IonSearchbar, { static: true }) private searchCtrl: IonSearchbar;
+	@ViewChild(IonInfiniteScroll, { static: true }) private infiniteScrollCtrl: IonInfiniteScroll;
 
 	get locale() {
 		return this.configSvc.locale;
@@ -56,21 +57,15 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	ngOnInit() {
-		return this.authSvc.isServiceAdministrator()
-			? this.initializeAsync()
-			: Promise.all([
-					this.appFormsSvc.showToastAsync("Hmmm..."),
-					this.configSvc.navigateHomeAsync()
-				]);
-	}
-
-	ngAfterViewInit() {
-		return new Promise<void>(async () => {
-			if (this.searching) {
-				PlatformUtility.focus(this.searchCtrl);
-				this.searchCtrl.placeholder = await this.configSvc.getResourceAsync("users.list.searchbar");
-			}
-		});
+		if (this.authSvc.isServiceAdministrator()) {
+			this.initializeAsync();
+		}
+		else {
+			Promise.all([
+				this.appFormsSvc.showToastAsync("Hmmm..."),
+				this.configSvc.navigateHomeAsync()
+			]);
+		}
 	}
 
 	ngOnDestroy() {
@@ -80,16 +75,20 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	async initializeAsync() {
-		this.searching = this.configSvc.currentUrl.startsWith("/users/search");
+		this.searching = this.configSvc.currentUrl.startsWith(this.configSvc.appConfig.url.users.search);
 		this.configSvc.appTitle = this.title = this.searching
 			? await this.configSvc.getResourceAsync("users.list.title.search")
 			: await this.configSvc.getResourceAsync("users.list.title.list");
-		if (!this.searching) {
+		if (this.searching) {
+			PlatformUtility.focus(this.searchCtrl);
+			this.searchCtrl.placeholder = await this.configSvc.getResourceAsync("users.list.searchbar");
+		}
+		else {
 			this.ratings = {};
 			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.usersSvc.name) || AppPagination.getDefault();
 			this.pagination.PageNumber = this.pageNumber;
 			await this.appFormsSvc.showLoadingAsync();
-			await this.searchAsync(async () => this.appFormsSvc.hideLoadingAsync());
+			await this.searchAsync(async () => await this.appFormsSvc.hideLoadingAsync());
 		}
 	}
 
@@ -98,13 +97,13 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	openSearchAsync() {
-		return this.configSvc.navigateForwardAsync("/users/search");
+		return this.configSvc.navigateForwardAsync(this.configSvc.appConfig.url.users.search);
 	}
 
-	onStartSearch($event: any) {
+	onStartSearch(event: any) {
 		this.cancelSearch();
-		if (AppUtility.isNotEmpty($event.detail.value)) {
-			this.filterBy.Query = $event.detail.value;
+		if (AppUtility.isNotEmpty(event.detail.value)) {
+			this.filterBy.Query = event.detail.value;
 			if (this.searching) {
 				this.profiles = [];
 				this.ratings = {};
@@ -118,19 +117,19 @@ export class UsersListPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
-	onCancelSearch() {
+	onClearSearch(event: any) {
 		this.cancelSearch();
 		this.filterBy.Query = undefined;
-		if (this.searching) {
-			this.profiles = [];
-			this.ratings = {};
-		}
-		else {
-			this.prepareResults();
-		}
+		this.profiles = [];
+		this.ratings = {};
 	}
 
-	async onInfiniteAsync() {
+	onCancelSearch(event: any) {
+		this.onClearSearch(event);
+		this.prepareResults();
+	}
+
+	async onInfiniteScrollAsync() {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
 			await this.searchAsync(async () => {
 				if (this.infiniteScrollCtrl !== undefined) {

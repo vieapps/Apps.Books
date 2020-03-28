@@ -457,7 +457,7 @@ export class ConfigurationService extends BaseService {
 		this.appConfig.session.token = undefined;
 		this.appConfig.session.keys = undefined;
 		this.appConfig.session.account = this.getAccount(true);
-		return this.deleteSessionAsync(doStore ? async () => await this.storeSessionAsync(onNext) : onNext);
+		return this.deleteSessionAsync(doStore ? () => this.storeSessionAsync(onNext) : onNext);
 	}
 
 	/** Gets the information of the current/default account */

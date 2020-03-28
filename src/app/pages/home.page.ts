@@ -17,7 +17,7 @@ export class HomePage implements OnInit, OnDestroy {
 	}
 
 	title = "Home";
-	titleResource = "homepage.title";
+	titleResource = "common.sidebar.home";
 	changes: any;
 
 	ngOnInit() {
@@ -48,7 +48,7 @@ export class HomePage implements OnInit, OnDestroy {
 		}, "NavigatingEventHandlerOfHomePage");
 
 		AppEvents.on("SetHomepageTitleResource", info => {
-			this.titleResource = info.args.ResourceID || "homepage.title";
+			this.titleResource = info.args.ResourceID || "common.sidebar.home";
 		}, "SetTitleResourceEventHandlerOfHomePage");
 	}
 

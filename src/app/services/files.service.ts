@@ -23,10 +23,10 @@ export interface FilesHeader {
 export class FilesService extends BaseService {
 
 	constructor(
-		private http: HttpClient
+		http: HttpClient
 	) {
 		super("Files");
-		AppXHR.initialize(this.http);
+		AppXHR.initialize(http);
 	}
 
 	/** Reads the file content as data URL (base64-string) */

@@ -15,8 +15,8 @@
 		[form]="register.form"
 		[config]="register.config"
 		[controls]="register.controls"
-		(initEvent)="onFormInitialized($event)"
-		(refreshCaptchaEvent)="onRefreshCaptcha($event)"></app-form>
+		(init)="onFormInitialized($event)"
+		(refreshCaptcha)="onRefreshCaptcha($event)"></app-form>
 	<ion-buttons class="ion-padding">
 		<ion-button fill="solid" color="primary" (click)="registerAsync()">
 			<ion-icon *ngIf="register.button.icon" [icon]="register.button.icon" slot="start"></ion-icon>

@@ -16,7 +16,7 @@ export class TimePipe implements PipeTransform, OnDestroy {
 	) {
 	}
 
-	private static Resources = {
+	private static Resources: { [key: string]: { [key: string]: string } } = {
 		"en": {
 			"now": "just now",
 			"seconds": "a few seconds ",
@@ -45,9 +45,9 @@ export class TimePipe implements PipeTransform, OnDestroy {
 			"year": "một năm ",
 			"years": " năm "
 		}
-	} as { [key: string]: { [key: string]: string } };
+	};
 
-	private static Suffixes = {
+	private static Suffixes: { [key: string]: { [key: string]: string } } = {
 		"en": {
 			"past": "ago",
 			"future": "from now"
@@ -56,7 +56,7 @@ export class TimePipe implements PipeTransform, OnDestroy {
 			"past": "trước",
 			"future": "nữa"
 		}
-	} as { [key: string]: { [key: string]: string } };
+	};
 
 	private timer: Subscription;
 

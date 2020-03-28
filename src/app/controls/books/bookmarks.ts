@@ -1,5 +1,5 @@
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ViewChild } from "@angular/core";
 import { IonList } from "@ionic/angular";
 import { AppEvents } from "../../components/app.events";
 import { AppFormsService } from "../../components/forms.service";
@@ -17,16 +17,24 @@ import { Book, Bookmark } from "../../models/book";
 export class BookmarksControl implements OnInit, OnDestroy {
 
 	constructor(
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public booksSvc: BooksService
+		private appFormsSvc: AppFormsService,
+		private booksSvc: BooksService
 	) {
 	}
 
-	bookmarks = new Array<Bookmark>();
-	profile: UserProfile;
+	/** The user profile that contains the bookmarks */
+	@Input() profile: UserProfile;
 
-	resources = {
+	/** The event handler to run when the controls was initialized */
+	@Output() init: EventEmitter<any> = new EventEmitter();
+
+	/** The event handler to run when the control was changed */
+	@Output() change = new EventEmitter<any>();
+
+	bookmarks = new Array<Bookmark>();
+
+	labels = {
 		header: "Readings",
 		footer: "Sync time:",
 		chapter: "Chapter: ",
@@ -44,11 +52,12 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	ngOnInit() {
-		this.initializeAsync();
+		this.profile = this.profile || this.configSvc.getAccount().profile;
+		Promise.all([this.initializeAsync()]).then(() => this.init.emit(this));
 
 		AppEvents.on("App", info => {
 			if ("LanguageChanged" === info.args.Type) {
-				this.prepareResourcesAsync();
+				this.prepareLabelsAsync();
 			}
 		}, "LanguageChangedEventHandlerOfBookmarksControl");
 
@@ -62,27 +71,29 @@ export class BookmarksControl implements OnInit, OnDestroy {
 		AppEvents.on("Books", info => {
 			if ("BookmarksUpdated" === info.args.Type) {
 				this.prepareBookmarks();
+				this.emitChanges();
 			}
 		}, "BookmarksUpdatedEventHandlerOfBookmarksControl");
 	}
 
 	ngOnDestroy() {
 		this.list.closeSlidingItems();
+		this.init.unsubscribe();
+		this.change.unsubscribe();
 		AppEvents.off("App", "LanguageChangedEventHandlerOfBookmarksControl");
 		AppEvents.off("Session", "SessionEventHandlerOfBookmarksControl");
 		AppEvents.off("Books", "BookmarksUpdatedEventHandlerOfBookmarksControl");
 	}
 
 	private async initializeAsync() {
-		await this.prepareResourcesAsync();
+		await this.prepareLabelsAsync();
 		if (this.configSvc.isAuthenticated) {
-			this.profile = this.configSvc.getAccount().profile;
 			this.prepareBookmarks();
 		}
 	}
 
-	private async prepareResourcesAsync() {
-		this.resources = {
+	private async prepareLabelsAsync() {
+		this.labels = {
 			header: await this.configSvc.getResourceAsync("books.bookmarks.header"),
 			footer: await this.configSvc.getResourceAsync("books.bookmarks.footer"),
 			chapter: await this.configSvc.getResourceAsync("books.bookmarks.chapter"),
@@ -96,6 +107,16 @@ export class BookmarksControl implements OnInit, OnDestroy {
 
 	private prepareBookmarks() {
 		this.bookmarks = new List(this.booksSvc.bookmarks.values()).OrderByDescending(o => o.Time).ToArray();
+	}
+
+	private emitChanges() {
+		this.change.emit({
+			id: this.profile.ID,
+			bookmarks: this.bookmarks,
+			detail: {
+				value: this.bookmarks
+			}
+		});
 	}
 
 	trackBookmark(index: number, bookmark: Bookmark) {
@@ -112,7 +133,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	getPosition(bookmark: Bookmark) {
 		const book = Book.get(bookmark.ID);
 		return book !== undefined
-			? (bookmark.Chapter > 0 ? this.resources.chapter + bookmark.Chapter : "") + (bookmark.Position > 0 ?  (bookmark.Chapter > 0 ? " - " : "") + this.resources.position + bookmark.Position : "")
+			? (bookmark.Chapter > 0 ? this.labels.chapter + bookmark.Chapter : "") + (bookmark.Position > 0 ?  (bookmark.Chapter > 0 ? " - " : "") + this.labels.position + bookmark.Position : "")
 			: `${bookmark.Chapter}#${bookmark.Position}`;
 	}
 
@@ -126,7 +147,10 @@ export class BookmarksControl implements OnInit, OnDestroy {
 
 	async deleteAsync(bookmark: Bookmark) {
 		await this.list.closeSlidingItems();
-		this.booksSvc.deleteBookmark(bookmark.ID, () => this.prepareBookmarks());
+		this.booksSvc.deleteBookmark(bookmark.ID, () => {
+			this.prepareBookmarks();
+			this.emitChanges();
+		});
 	}
 
 	async sendAsync() {

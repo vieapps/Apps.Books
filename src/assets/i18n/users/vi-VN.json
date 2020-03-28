@@ -1,19 +1,6 @@
 {
 	"users": {
 		"name": "Người dùng hệ thống",
-		"roles": {
-			"Administrator": "Người quản trị",
-			"Moderator": "Người kiểm duyệt",
-			"Editor": "Người biên tập",
-			"Contributor": "Người cập nhật",
-			"Viewer": "Người đọc",
-			"Downloader": "Chỉ tải file"
-		},
-		"privileges": {
-			"role": "Vai trò chung trong '{{service}}'",
-			"other": "Vai trò khác",
-			"object": "Vai trò đối với '{{object}}'"
-		},
 		"login": {
 			"login": {
 				"title": "Đăng nhập",

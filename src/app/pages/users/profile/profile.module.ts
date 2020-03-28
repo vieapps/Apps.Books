@@ -5,9 +5,9 @@ import { IonicModule } from "@ionic/angular";
 import { AppFormsModule } from "../../../components/forms.module";
 import { TimePipeModule } from "../../../components/time.pipe";
 import { CommonControlsModule } from "../../../controls/common.controls.module";
-import { BookControlsModule } from "../../../controls/books.controls.module";
 import { UsersAvatarPageModule } from "../avatar/avatar.module";
 import { UsersProfilePage } from "./profile.page";
+import { BookControlsModule } from "../../../controls/books.controls.module";
 
 @NgModule({
 	providers: [],
@@ -17,8 +17,8 @@ import { UsersProfilePage } from "./profile.page";
 		AppFormsModule,
 		TimePipeModule,
 		CommonControlsModule,
-		BookControlsModule,
 		UsersAvatarPageModule,
+		BookControlsModule,
 		RouterModule.forChild([{ path: "", component: UsersProfilePage }])
 	],
 	exports: [],

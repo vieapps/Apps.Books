@@ -1,13 +1,13 @@
 <ion-header>
 	<ion-toolbar [color]="configSvc.color">
 		<ion-buttons slot="start">
-			<ion-button color="secondary" [disabled]="processing" (click)="cancelAsync()">
-				{{ resources.cancel }}
+			<ion-button color="secondary" [disabled]="processing" (click)="closeAsync()">
+				{{ labels.cancel }}
 			</ion-button>
 		</ion-buttons>
 		<ion-buttons slot="end">
 			<ion-button color="primary" [disabled]="processing" (click)="updateAsync()">
-				{{ resources.update }}
+				{{ labels.update }}
 			</ion-button>
 		</ion-buttons>
 		<ion-title>
@@ -16,30 +16,30 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color" class="ion-padding">
+<ion-content [color]="configSvc.color" class="ion-padding-end">
 	<ion-list>
 		<ion-radio-group [value]="mode" (ionChange)="mode = $event.detail.value">
 			<ion-list-header [color]="configSvc.color">
 				<ion-label>
-					{{ resources.header }}
+					{{ labels.header }}
 				</ion-label>
 			</ion-list-header>
 			<ion-item [color]="configSvc.color">
 				<ion-label>
-					{{ resources.avatar }}
+					{{ labels.avatar }}
 				</ion-label>
 				<ion-radio value="Avatar"></ion-radio>
 			</ion-item>
 			<ion-item [color]="configSvc.color">
 				<ion-label>
-					{{ resources.gravatar }}
+					{{ labels.gravatar }}
 				</ion-label>
 				<ion-radio value="Gravatar"></ion-radio>
 			</ion-item>
 		</ion-radio-group>
 		<control-image-cropper [settings]="imageCropperSettings" [hidden]="mode !== 'Avatar'"></control-image-cropper>
 		<ion-item [color]="configSvc.color" [hidden]="mode !== 'Gravatar'">
-			<img [src]="profile.Gravatar" />
+			<img [src]="gravatarURI" />
 		</ion-item>
 	</ion-list>
 </ion-content>

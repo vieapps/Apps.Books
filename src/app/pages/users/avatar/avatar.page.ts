@@ -1,12 +1,8 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
-import { AppFormsService } from "../../../components/forms.service";
-import { AppEvents } from "../../../components/app.events";
+import { Component, OnInit, Input, ViewChild } from "@angular/core";
 import { AppUtility } from "../../../components/app.utility";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
+import { AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
-import { UsersService } from "../../../services/users.service";
 import { FilesService } from "../../../services/files.service";
-import { UserProfile } from "../../../models/user";
 import { ImageCropperControl } from "../../../controls/common/image.cropper";
 
 @Component({
@@ -18,17 +14,18 @@ import { ImageCropperControl } from "../../../controls/common/image.cropper";
 export class UsersAvatarPage implements OnInit {
 
 	constructor(
-		public appFormsSvc: AppFormsService,
+		private appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public filesSvc: FilesService,
-		public usersSvc: UsersService
+		private filesSvc: FilesService
 	) {
 	}
 
+	@Input() mode: string;
+	@Input() avatarURI: string;
+	@Input() gravatarURI: string;
+
 	title = "Avatar";
-	mode = "Avatar";
-	profile: UserProfile;
-	resources = {
+	labels = {
 		cancel: "Cancel",
 		update: "Update",
 		header: "Avatar type",
@@ -37,18 +34,17 @@ export class UsersAvatarPage implements OnInit {
 	};
 	processing = false;
 	imageCropperSettings = { currentImage: undefined };
-	@ViewChild(ImageCropperControl, { static: false }) imageCropper: ImageCropperControl;
+
+	@ViewChild(ImageCropperControl, { static: true }) private imageCropper: ImageCropperControl;
 
 	ngOnInit() {
-		this.profile = this.configSvc.getAccount().profile;
-		this.mode = this.profile.Avatar === "" || this.profile.Avatar === this.profile.Gravatar ? "Gravatar" : "Avatar";
-		this.imageCropperSettings.currentImage = this.profile.Avatar;
+		this.imageCropperSettings.currentImage = AppUtility.isNotEmpty(this.avatarURI) ? this.avatarURI : undefined;
 		this.initializeResourcesAsync();
 	}
 
-	async initializeResourcesAsync() {
+	private async initializeResourcesAsync() {
 		this.title = await this.configSvc.getResourceAsync("users.profile.avatar.title");
-		this.resources = {
+		this.labels = {
 			cancel: await this.configSvc.getResourceAsync("common.buttons.cancel"),
 			update: await this.configSvc.getResourceAsync("common.buttons.update"),
 			header: await this.configSvc.getResourceAsync("users.profile.avatar.header"),
@@ -57,50 +53,25 @@ export class UsersAvatarPage implements OnInit {
 		};
 	}
 
-	updateProfileAsync() {
-		return this.usersSvc.updateProfileAsync(
-			{
-				ID: this.profile.ID,
-				Avatar: this.profile.Avatar
-			},
-			async () => await this.configSvc.storeSessionAsync(async () => {
-				AppEvents.broadcast("Profile", { Type: "Updated" });
-				await TrackingUtility.trackAsync(`${this.title} [${this.profile.Name}]`, "users/update/avatar");
-				await this.cancelAsync(async () => await this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("users.profile.avatar.message")));
-			}),
-			error => {
-				this.processing = false;
-				console.error(`Error occurred while updating profile with new avatar image => ${AppUtility.getErrorMessage(error)}`, error);
-			}
-		);
-	}
-
 	updateAsync() {
 		this.processing = true;
-		if (this.mode === "Avatar" && this.imageCropper.data.original !== undefined) {
-			return this.filesSvc.uploadAvatarAsync(
-				this.imageCropper.data.image,
-				async data => {
-					this.profile.Avatar = data.URI;
-					await this.updateProfileAsync();
-				},
-				error => {
-					console.error(`Error occurred while uploading avatar image => ${AppUtility.getErrorMessage(error)}`);
-					this.processing = false;
-				}
-			);
-		}
-		else if (this.mode === "Gravatar" && this.profile.Avatar !== "") {
-			this.profile.Avatar = "";
-			return this.updateProfileAsync();
-		}
-		else {
-			return this.cancelAsync();
-		}
+		return AppUtility.isEquals(this.mode, "Avatar") && this.imageCropper.data.original !== undefined
+			? this.filesSvc.uploadAvatarAsync(
+					this.imageCropper.data.image,
+					async data => await this.closeAsync(this.mode, data.URI),
+					error => {
+						console.error(`Error occurred while uploading avatar image => ${AppUtility.getErrorMessage(error)}`);
+						this.processing = false;
+					}
+				)
+			: this.closeAsync(this.mode);
 	}
 
-	cancelAsync(onNext?: () => void) {
-		return this.appFormsSvc.hideModalAsync(onNext);
+	closeAsync(mode?: string, imageURI?: string) {
+		return this.appFormsSvc.hideModalAsync({
+			mode: mode,
+			imageURI: imageURI
+		});
 	}
 
 }
