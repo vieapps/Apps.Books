@@ -81,11 +81,11 @@ export class AppComponent implements OnInit {
 		}
 	};
 
-	public get color() {
+	get color() {
 		return this.configSvc.color;
 	}
 
-	public get profileURI() {
+	get profileURI() {
 		return `${this.configSvc.appConfig.url.users.profile}/my`;
 	}
 
