@@ -85,6 +85,10 @@ export class AppComponent implements OnInit {
 		return this.configSvc.color;
 	}
 
+	public get profileURI() {
+		return `${this.configSvc.appConfig.url.users.profile}/my`;
+	}
+
 	ngOnInit() {
 		this.router.events.subscribe(event => {
 			if (event instanceof RoutesRecognized) {

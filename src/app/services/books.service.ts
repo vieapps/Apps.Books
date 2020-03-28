@@ -161,7 +161,7 @@ export class BooksService extends BaseService {
 			items: this.categories.map(category => {
 				return {
 					title: category.Name,
-					url: `/books/list-by-category/${AppUtility.toANSI(category.Name, true)}`,
+					url: `/books/category/${AppUtility.toANSI(category.Name, true)}`,
 					queryParams: {
 						"x-request": AppUtility.toBase64Url({ Category: category.Name })
 					},

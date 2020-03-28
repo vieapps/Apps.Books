@@ -291,7 +291,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 	}
 
 	openAuthorAsync() {
-		return this.configSvc.navigateForwardAsync(`/books/list-by-author/${AppUtility.toANSI(this.book.Author, true)}?x-request=${AppUtility.toBase64Url({ Author: this.book.Author })}`);
+		return this.configSvc.navigateForwardAsync(`/books/author/${AppUtility.toANSI(this.book.Author, true)}?x-request=${AppUtility.toBase64Url({ Author: this.book.Author })}`);
 	}
 
 	openInfoAsync() {

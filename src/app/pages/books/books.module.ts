@@ -18,11 +18,11 @@ const routes: Routes = [
 		loadChildren: "../books/list/list.module#BooksListPageModule"
 	},
 	{
-		path: "list-by-category/:data",
+		path: "category/:data",
 		loadChildren: "../books/list/list.module#BooksListPageModule"
 	},
 	{
-		path: "list-by-author/:data",
+		path: "author/:data",
 		loadChildren: "../books/list/list.module#BooksListPageModule"
 	},
 	{

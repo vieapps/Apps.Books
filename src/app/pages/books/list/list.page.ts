@@ -222,8 +222,8 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		this.uri = this.searching
 				? "/books/search"
 				: category !== undefined
-					? `/books/list-by-category/${AppUtility.toANSI(category, true)}?x-request=`
-					: `/books/list-by-author/${AppUtility.toANSI(author, true)}?x-request=`;
+					? `/books/category/${AppUtility.toANSI(category, true)}?x-request=`
+					: `/books/author/${AppUtility.toANSI(author, true)}?x-request=`;
 
 		if (!this.searching) {
 			if (category === undefined && author === undefined) {
