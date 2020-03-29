@@ -1,5 +1,5 @@
-import { PreloadingStrategy, Route } from "@angular/router";
 import { Observable, of } from "rxjs";
+import { PreloadingStrategy, Route } from "@angular/router";
 
 /** Preloader for all modules */
 export class AppModulePreloader implements PreloadingStrategy {

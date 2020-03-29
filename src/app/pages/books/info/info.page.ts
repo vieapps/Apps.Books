@@ -156,14 +156,14 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 	async downloadAsync(type: string) {
 		if (this.configSvc.isAuthenticated) {
 			await Promise.all([
-				TrackingUtility.trackAsync(`Download: ${this.title}`, "books/download/success"),
-				TrackingUtility.trackAsync(`Download: ${this.title}`, `books/download/${type.toLowerCase()}`)
+				TrackingUtility.trackAsync(`Download: ${this.title}`, "/books/download/success"),
+				TrackingUtility.trackAsync(`Download: ${this.title}`, `/books/download/${type.toLowerCase()}`)
 			]);
 			PlatformUtility.openURI(this.book.Files[type].Url + "?" + AppUtility.getQueryOfJson(this.configSvc.appConfig.getAuthenticatedHeaders()));
 		}
 		else {
 			await Promise.all([
-				TrackingUtility.trackAsync(`Download: ${this.title}`, "books/download/failed"),
+				TrackingUtility.trackAsync(`Download: ${this.title}`, "/books/download/failed"),
 				this.appFormsSvc.showAlertAsync(undefined, undefined, await this.configSvc.getResourceAsync("books.info.notAuthenticated"))
 			]);
 		}

@@ -20,8 +20,8 @@ import { UserProfile } from "../../models/user";
 export class UsersSelectorModalPage implements OnInit, OnDestroy {
 
 	constructor(
-		private appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
+		private appFormsSvc: AppFormsService,
 		private usersSvc: UsersService
 	) {
 	}

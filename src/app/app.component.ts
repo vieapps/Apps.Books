@@ -25,7 +25,6 @@ export class AppComponent implements OnInit {
 
 	constructor(
 		private router: Router,
-		private http: HttpClient,
 		private platform: Platform,
 		private menuController: MenuController,
 		private splashScreen: SplashScreen,
@@ -34,18 +33,24 @@ export class AppComponent implements OnInit {
 		private configSvc: ConfigurationService,
 		private authSvc: AuthenticationService,
 		private usersSvc: UsersService,
-		private booksSvc: BooksService
+		private booksSvc: BooksService,
+		http: HttpClient
 	) {
 		if (this.configSvc.isDebug) {
 			console.log("<AppComponent>: Initializing...");
 		}
-		AppXHR.initialize(this.http);
+		AppXHR.initialize(http);
 	}
 
 	sidebar = {
 		left: {
-			title: undefined as string,
-			avatar: undefined as string,
+			header: {
+				image: undefined as string,
+				title: undefined as string,
+				routerLink: undefined as string,
+				routerParams: undefined as { [key: string]: any },
+				routerDirection: "forward"
+			},
 			menu: new Array<{
 				title: string,
 				icon: string,
@@ -69,6 +74,17 @@ export class AppComponent implements OnInit {
 				}>
 			}>()
 		},
+		right: {
+			icon: undefined as string,
+			onClick: undefined as (event: any) => void,
+			header: {
+				image: undefined as string,
+				title: undefined as string,
+				routerLink: undefined as string,
+				routerParams: undefined as { [key: string]: any },
+				routerDirection: "forward"
+			}
+		},
 		home: {
 			title: "common.sidebar.home",
 			url: this.configSvc.appConfig.url.home,
@@ -83,10 +99,6 @@ export class AppComponent implements OnInit {
 
 	get color() {
 		return this.configSvc.color;
-	}
-
-	get profileURI() {
-		return `${this.configSvc.appConfig.url.users.profile}/my`;
 	}
 
 	ngOnInit() {
@@ -124,17 +136,12 @@ export class AppComponent implements OnInit {
 				}
 			}
 
-			const isActivate = this.configSvc.isWebApp && "activate" === this.configSvc.queryParams["prego"];
-			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(`common.messages.${isActivate ? "activating" : "loading"}`));
+			this.sidebar.left.header.title = this.configSvc.appConfig.app.name;
 			await this.updateSidebarAsync();
-			this.sidebar.left.title = this.configSvc.appConfig.app.name;
 
-			if (isActivate) {
-				await this.activateAsync();
-			}
-			else {
-				await this.initializeAsync();
-			}
+			const isActivate = this.configSvc.isWebApp && AppUtility.isEquals("activate", this.configSvc.queryParams["prego"]);
+			await this.appFormsSvc.showLoadingAsync(await this.configSvc.getResourceAsync(`common.messages.${isActivate ? "activating" : "loading"}`));
+			await (isActivate ? this.activateAsync() : this.initializeAsync());
 		});
 	}
 
@@ -308,7 +315,7 @@ export class AppComponent implements OnInit {
 		AppEvents.on("AddSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, -1, info.args.ItemInfo));
 		AppEvents.on("UpdateSidebarItem", info => this.updateSidebarItem(info.args.MenuIndex !== undefined ? info.args.MenuIndex : -1, info.args.ItemIndex !== undefined ? info.args.ItemIndex : -1, info.args.ItemInfo));
 
-		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.title);
+		AppEvents.on("UpdateSidebarTitle", info => this.sidebar.left.header.title = AppUtility.isNotEmpty(info.args.Title) ? info.args.Title : this.sidebar.left.header.title);
 		AppEvents.on("UpdateSidebarHome", info => this.sidebar.home = info.args);
 
 		AppEvents.on("Navigate", async info => {
@@ -335,8 +342,17 @@ export class AppComponent implements OnInit {
 		AppEvents.on("Profile", async info => {
 			if ("Updated" === info.args.Type) {
 				const profile = this.configSvc.getAccount().profile;
-				this.sidebar.left.title = profile !== undefined ? profile.Name : this.configSvc.appConfig.app.name;
-				this.sidebar.left.avatar = profile !== undefined ? profile.avatarURI : undefined;
+				if (profile !== undefined) {
+					this.sidebar.left.header.title = profile.Name;
+					this.sidebar.left.header.image = profile.avatarURI;
+					this.sidebar.left.header.routerLink = `${this.configSvc.appConfig.url.users.profile}/my`;
+					this.sidebar.left.header.routerParams = undefined;
+					this.sidebar.left.header.routerDirection = "forward";
+				}
+				else {
+					this.sidebar.left.header.title = this.configSvc.appConfig.app.name;
+					this.sidebar.left.header.image = this.sidebar.left.header.routerLink = undefined;
+				}
 				await this.normalizeSidebarMenuAsync();
 			}
 		});
@@ -440,7 +456,7 @@ export class AppComponent implements OnInit {
 
 	private finalize(onNext?: () => void) {
 		const appConfig = this.configSvc.appConfig;
-		console.log("<AppComponent>: The app is initialized", this.configSvc.isNativeApp ? JSON.stringify(appConfig.app) : appConfig.app);
+		console.log("<AppComponent>: The app was initialized", this.configSvc.isNativeApp ? JSON.stringify(appConfig.app) : appConfig.app);
 		if (this.configSvc.isWebApp) {
 			PlatformUtility.preparePWAEnvironment(() => this.configSvc.watchFacebookConnect());
 		}
@@ -472,12 +488,12 @@ export class AppComponent implements OnInit {
 						try {
 							redirect = AppCrypto.urlDecode(redirect);
 							if (this.configSvc.isDebug) {
-								console.warn(`<AppComponent>: Redirect to the requested url => ${redirect}`);
+								console.warn(`<AppComponent>: Redirect to the requested URI => ${redirect}`);
 							}
 							await this.configSvc.navigateForwardAsync(redirect);
 						}
 						catch (error) {
-							console.error(`<AppComponent>: Url for redirecting is not well-form => ${redirect}`, this.configSvc.isNativeApp ? JSON.stringify(error) : error);
+							console.error(`<AppComponent>: The requested URI for redirecting is not well-form => ${redirect}`, this.configSvc.isNativeApp ? JSON.stringify(error) : error);
 						}
 					}
 				}

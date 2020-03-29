@@ -145,6 +145,7 @@ export class BooksUpdatePage implements OnInit {
 		}
 
 		this.update.config = config;
+		await TrackingUtility.trackAsync(`${this.title} - ${this.book.Title}`, "/books/update/open");
 	}
 
 	onFormInitialized(event: any) {
@@ -184,7 +185,7 @@ export class BooksUpdatePage implements OnInit {
 					bookInfo,
 					async () => {
 						await Promise.all([
-							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(`${this.title} - ${this.book.Title}`, "/books/request-update")),
+							this.appFormsSvc.hideLoadingAsync(async () => await TrackingUtility.trackAsync(`${this.title} - ${this.book.Title}`, "/books/update/request")),
 							this.appFormsSvc.showToastAsync(await this.configSvc.getResourceAsync("books.update.messages.sent"))
 						]);
 						await this.configSvc.navigateBackAsync();

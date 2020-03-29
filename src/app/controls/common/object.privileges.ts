@@ -16,9 +16,9 @@ import { UsersSelectorModalPage } from "./user.selector.modal.page";
 export class ObjectPrivilegesControl implements OnInit, OnDestroy {
 
 	constructor(
-		public appFormsSvc: AppFormsService,
 		public configSvc: ConfigurationService,
-		public userSvc: UsersService
+		private appFormsSvc: AppFormsService,
+		private userSvc: UsersService
 	) {
 	}
 

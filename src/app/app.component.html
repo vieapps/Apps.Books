@@ -1,17 +1,17 @@
 <ion-app>
 	<ion-split-pane when="lg" contentId="main">
-		<ion-menu contentId="main">
+		<ion-menu side="start" menuId="left" contentId="main">
 			<ion-header>
 				<ion-toolbar [color]="color">
-					<ion-thumbnail *ngIf="sidebar.left.avatar" slot="start">
+					<ion-thumbnail *ngIf="sidebar.left.header.image" slot="start">
 						<ion-menu-toggle auto-hide="false">
-							<a [routerLink]="profileURI" routerDirection="forward">
-								<img [src]="sidebar.left.avatar" />
+							<a [routerLink]="sidebar.left.header.routerLink" [queryParams]="sidebar.left.header.routerParams" [routerDirection]="sidebar.left.header.routerDirection">
+								<img [src]="sidebar.left.header.image" />
 							</a>
 						</ion-menu-toggle>
 					</ion-thumbnail>
 					<ion-title>
-						{{ sidebar.left.title }}
+						{{ sidebar.left.header.title }}
 					</ion-title>
 				</ion-toolbar>
 			</ion-header>

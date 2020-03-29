@@ -48,6 +48,10 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	/** The event handler to run when the form was focused into last control */
 	@Output() lastFocus: EventEmitter<any> = new EventEmitter();
 
+	get gotSegments() {
+		return this.segments !== undefined && this.segments.items !== undefined && this.segments.items.length > 0;
+	}
+
 	ngOnInit() {
 		this.segments = this.segments || { items: undefined, default: undefined, current: undefined };
 		if (this.segments.items !== undefined && this.segments.items.length > 0) {
@@ -70,8 +74,9 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		else {
 			this.appFormsSvc.buildForm(this.form, this.controls, this.value);
 			this.form["_controls"] = this.controls;
-			this.init.emit(this);
 		}
+
+		this.init.emit(this);
 	}
 
 	ngAfterViewInit() {
@@ -85,36 +90,32 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.lastFocus.unsubscribe();
 	}
 
-	onSubmit() {
-		this.submit.emit(this.form.value);
-	}
-
-	onRefreshCaptcha($event: any) {
-		this.refreshCaptcha.emit($event);
-	}
-
-	onLastFocus($event: any) {
-		this.lastFocus.emit($event);
-	}
-
-	get gotSegments() {
-		return this.segments !== undefined && this.segments.items !== undefined && this.segments.items.length > 0;
-	}
-
-	onSegmentChanged($event: any) {
-		this.segments.current = $event.detail.value;
-	}
-
 	trackSegment(index: number, segment: AppFormsSegment) {
 		return `${segment.Name}@${index}`;
+	}
+
+	trackControl(index: number, control: AppFormsControl) {
+		return `${control.Name}@${index}`;
 	}
 
 	getControls(segment: AppFormsSegment) {
 		return this.controls.filter(control => AppUtility.isEquals(control.Segment, segment.Name));
 	}
 
-	trackControl(index: number, control: AppFormsControl) {
-		return `${control.Name}@${index}`;
+	onSubmit(event: any) {
+		this.submit.emit(event);
+	}
+
+	onSegmentChanged(event: any) {
+		this.segments.current = event.detail.value;
+	}
+
+	onRefreshCaptcha(event: any) {
+		this.refreshCaptcha.emit(event);
+	}
+
+	onLastFocus(event: any) {
+		this.lastFocus.emit(event);
 	}
 
 }
