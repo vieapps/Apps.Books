@@ -234,7 +234,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 			}
 			else {
 				this.ratings = {};
-				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.booksSvc.name) || AppPagination.getDefault();
+				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, `book@${this.booksSvc.name}`.toLowerCase()) || AppPagination.getDefault();
 				this.pagination.PageNumber = this.pageNumber;
 				await this.searchAsync(async () => await this.prepareActionsAsync());
 			}
@@ -292,7 +292,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		const onNextAsync = async (data: any) => {
 			this.pageNumber++;
-			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.booksSvc.name);
+			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, `book@${this.booksSvc.name}`.toLowerCase());
 			this.pagination.PageNumber = this.pageNumber;
 			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
 			await TrackingUtility.trackAsync(this.title + ` [${this.pageNumber}]`, this.uri);

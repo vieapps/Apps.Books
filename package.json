@@ -1,6 +1,6 @@
 {
 	"name": "net.vieapps.books",
-	"version": "1.8.1",
+	"version": "1.8.4",
 	"author": "VIEApps.net",
 	"homepage": "https://viebooks.net/",
 	"description": "Online books from VIEApps.net",
@@ -21,7 +21,7 @@
 		"@angular/platform-browser": "^8.2.14",
 		"@angular/platform-browser-dynamic": "^8.2.14",
 		"@angular/router": "^8.2.14",
-		"@capacitor/core": "1.5.1",
+		"@capacitor/core": "1.5.2",
 		"@ionic-native/app-version": "^5.23.0",
 		"@ionic-native/clipboard": "^5.23.0",
 		"@ionic-native/core": "^5.23.0",

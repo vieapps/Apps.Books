@@ -87,22 +87,12 @@ export class Base {
 			}
 		}
 		if (useWS) {
-			const uri = PlatformUtility.parseURI(request.Path);
-			const serviceName = uri.Paths[0];
-			const objectName = uri.Paths.length > 1 ? uri.Paths[1] : "";
-			const query = uri.QueryParams;
-			if (uri.Paths.length > 2) {
-				let objectIdentity = "";
-				for (let index = 2; index < uri.Paths.length; index++) {
-					objectIdentity += (objectIdentity !== "" ? "/" : "") + uri.Paths[index];
-				}
-				query["object-identity"] = objectIdentity;
-			}
+			const requestedPath = this.parseRequestedPath(request.Path);
 			this.send({
-				ServiceName: serviceName,
-				ObjectName: objectName,
+				ServiceName: requestedPath.serviceName,
+				ObjectName: requestedPath.objectName,
+				Query: requestedPath.query,
 				Verb: request.Verb,
-				Query: query,
 				Body: request.Body,
 				Header: request.Header,
 				Extra: request.Extra
@@ -128,6 +118,21 @@ export class Base {
 				}
 			}
 		}
+	}
+
+	/** Parses the requested path to get related information */
+	protected parseRequestedPath(path: string) {
+		const uri = PlatformUtility.parseURI(path);
+		const requestedPath = {
+			serviceName: uri.Paths[0],
+			objectName: uri.Paths.length > 1 ? uri.Paths[1] : "",
+			objectIdentity: undefined as string,
+			query: uri.QueryParams
+		};
+		if (uri.Paths.length > 2) {
+			requestedPath.objectIdentity = requestedPath.query["object-identity"] = uri.Paths[2];
+		}
+		return requestedPath;
 	}
 
 	/**
@@ -172,7 +177,8 @@ export class Base {
 		return AppXHR.get(AppUtility.format(path, { request: AppUtility.toBase64Url(request) })).subscribe(
 			data => {
 				if (AppUtility.isFalse(dontProcessPagination)) {
-					AppPagination.set(data, this.name);
+					const requestedPath = this.parseRequestedPath(path);
+					AppPagination.set(data, `${requestedPath.objectName}@${requestedPath.serviceName}`.toLowerCase());
 				}
 				if (onNext !== undefined) {
 					onNext(data);
@@ -192,7 +198,8 @@ export class Base {
 	*/
 	protected searchAsync(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean, useXHR: boolean = false) {
 		const processPagination = AppUtility.isFalse(dontProcessPagination);
-		const pagination = processPagination ? AppPagination.get(request, this.name) : undefined;
+		const requestedPath = processPagination ? this.parseRequestedPath(path) : undefined;
+		const pagination = processPagination ? AppPagination.get(request, `${requestedPath.objectName}@${requestedPath.serviceName}`.toLowerCase()) : undefined;
 		const pageNumber = processPagination && request.Pagination !== undefined ? request.Pagination.PageNumber : pagination !== undefined ? pagination.PageNumber : 0;
 		if (pagination !== undefined && (pageNumber < pagination.PageNumber || pagination.TotalPages <= pagination.PageNumber)) {
 			return new Promise<void>(onNext !== undefined ? () => onNext() : () => {});
@@ -208,7 +215,7 @@ export class Base {
 				},
 				data => {
 					if (processPagination) {
-						AppPagination.set(data, this.name);
+						AppPagination.set(data, `${requestedPath.objectName}@${requestedPath.serviceName}`.toLowerCase());
 					}
 					if (onNext !== undefined) {
 						onNext(data);

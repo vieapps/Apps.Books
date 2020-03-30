@@ -6,7 +6,6 @@ import { PlatformUtility } from "../../../components/app.utility.platform";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { AppFormsService } from "../../../components/forms.service";
 import { ConfigurationService } from "../../../services/configuration.service";
-import { AuthenticationService } from "../../../services/authentication.service";
 import { BooksService } from "../../../services/books.service";
 import { Book } from "../../../models/book";
 import { CounterInfo } from "../../../models/counters";
@@ -70,7 +69,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 
 	get redirectUrl() {
 		return this.book !== undefined
-			? PlatformUtility.getRedirectURI(this.book.getRouterURI({ Service: this.booksSvc.name, Object: "book", ID: this.book.ID })) + "&ngx=redirect"
+			? PlatformUtility.getRedirectURI(this.book.routerURI, false)
 			: this.configSvc.appConfig.URIs.activations;
 	}
 

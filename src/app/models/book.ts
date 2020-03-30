@@ -65,6 +65,7 @@ export class Book extends BaseModel {
 				: book.Chapters;
 
 			book.ansiTitle = AppUtility.toANSI(`${book.Title} ${book.Author}`).toLowerCase();
+			book.routerParams["x-request"] = AppUtility.toBase64Url({ Service: "books", Object: "book", ID: book.ID });
 		});
 		return book;
 	}

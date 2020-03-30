@@ -841,6 +841,14 @@ export class AppFormsService {
 	public highlightInvalids(form: FormGroup) {
 		const control = this.highlightInvalidsFormGroup(form, form["_controls"] as Array<AppFormsControl>);
 		if (control !== undefined) {
+			if (AppUtility.isNotEmpty(control.Segment) && form["_segments"] !== undefined) {
+				try {
+					form["_segments"].current = control.Segment;
+				}
+				catch (error) {
+					console.error("[Forms]: Cannot update form's segment", error);
+				}
+			}
 			console.warn(`[Forms]: Invalid => ${control.Name}`);
 			control.focus();
 		}
