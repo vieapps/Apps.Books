@@ -1,5 +1,5 @@
 import { List } from "linqts";
-import { Component, OnInit, OnDestroy, OnChanges, Input, Output, EventEmitter } from "@angular/core";
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, EventEmitter } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { AppUtility } from "../../components/app.utility";
 import { AppEvents } from "../../components/app.events";
@@ -80,7 +80,10 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		}, "IntroductionsChangedEventHandlerOfBookHomeScreen");
 	}
 
-	ngOnChanges() {
+	ngOnChanges(changes: SimpleChanges) {
+		if (this.configSvc.isDebug) {
+			console.log("Changed properties", changes);
+		}
 		if (this.configSvc.isReady) {
 			this.updateBooks();
 		}
