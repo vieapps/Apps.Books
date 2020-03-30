@@ -59,7 +59,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		if (this.isCompleter && this._completerInitialValue !== undefined && AppUtility.isEquals(this.control.Options.Type, "Address")) {
 			this.changeDetector.detectChanges();
 		}
-		else if (this.isControl("YesNo")) {
+		else if (this.isYesNoControl) {
 			this.changeDetector.detectChanges();
 		}
 	}
@@ -67,7 +67,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	ngOnDestroy() {
 		this.refreshCaptcha.unsubscribe();
 		this.lastFocus.unsubscribe();
-		if (this.control.Options.LookupOptions !== undefined && this.control.Options.LookupOptions.CompleterOptions !== undefined && this.control.Options.LookupOptions.CompleterOptions.DataSource !== undefined) {
+		if (this.control.Options.LookupOptions.CompleterOptions.DataSource !== undefined) {
 			this.control.Options.LookupOptions.CompleterOptions.DataSource.cancel();
 		}
 	}
@@ -374,6 +374,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			}
 		}
 		return this._selectValues.indexOf(value) > -1;
+	}
+
+	trackOption(index: number, option: { Value: string, Label: string }) {
+		return `${option.Value}@${index}`;
 	}
 
 	get isCompleter() {

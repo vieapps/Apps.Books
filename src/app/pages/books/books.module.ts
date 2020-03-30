@@ -26,6 +26,14 @@ const routes: Routes = [
 		loadChildren: "../books/list/list.module#BooksListPageModule"
 	},
 	{
+		path: "list-by-category/:data",
+		loadChildren: "../books/list/list.module#BooksListPageModule"
+	},
+	{
+		path: "list-by-author/:data",
+		loadChildren: "../books/list/list.module#BooksListPageModule"
+	},
+	{
 		path: "options",
 		loadChildren: "../books/options/options.module#BooksOptionsPageModule"
 	},
@@ -45,7 +53,7 @@ const routes: Routes = [
 	},
 	{
 		path: "**",
-		redirectTo: "search",
+		redirectTo: "/books/search",
 		pathMatch: "full"
 	}
 ];

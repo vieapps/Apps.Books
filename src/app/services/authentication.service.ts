@@ -9,6 +9,7 @@ import { Base as BaseService } from "./base.service";
 import { ConfigurationService } from "./configuration.service";
 
 @Injectable()
+
 export class AuthenticationService extends BaseService {
 
 	constructor(

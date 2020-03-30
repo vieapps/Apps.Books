@@ -7,7 +7,7 @@
 	[class.select-dropdown]="selectAsDropdown">
 
 	<ion-button *ngIf="icon" fill="clear" slot="start" tabindex="-1">
-		<ion-icon *ngIf="icon" [name]="icon" slot="icon-only"></ion-icon>
+		<ion-icon [name]="icon" slot="icon-only"></ion-icon>
 	</ion-button>
 
 	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="show = !show">
@@ -59,7 +59,7 @@
 		[disabled]="disabled"
 		[placeholder]="placeholder"
 		(ionChange)="onChanged($event)">
-		<ion-select-option *ngFor="let option of selectOptions" [value]="option.Value">{{ option.Label }}</ion-select-option>
+		<ion-select-option *ngFor="let option of selectOptions; trackBy: trackOption" [value]="option.Value">{{ option.Label }}</ion-select-option>
 	</ion-select>
 
 	<div *ngIf="selectAsDropdown">
@@ -68,7 +68,7 @@
 			[name]="name"
 			[class]="css.control"
 			(change)="onChanged(this.value)">
-			<option *ngFor="let option of selectOptions" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</option>
+			<option *ngFor="let option of selectOptions; trackBy: trackOption" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</option>
 		</select>
 	</div>
 
@@ -161,10 +161,10 @@
 	[class.invalid]="invalid"
 	[value]="value"
 	(ionChange)="onChanged($event)">
-	<ion-list-header *ngIf="label"
-		[color]="theme"
-		[class]="css.label">{{ label }}</ion-list-header>
-	<ion-item *ngFor="let option of selectOptions" [color]="theme">
+	<ion-list-header *ngIf="label" [color]="theme">
+		<ion-label [class]="css.label">{{ label }}</ion-label>
+	</ion-list-header>
+	<ion-item *ngFor="let option of selectOptions; trackBy: trackOption" [color]="theme">
 		<ion-label>{{ option.Label }}</ion-label>
 		<ion-radio [value]="option.Value"></ion-radio>
 	</ion-item>
@@ -177,16 +177,18 @@
 			[color]="color.label"
 			[position]="position"
 			[class]="css.label">{{ label }}</ion-label>
-		<ion-input type="text" style="text-transform:uppercase" #elementRef
+		<ion-input type="text" #elementRef
 			[formControlName]="formControlName"
 			[name]="name"
 			[placeholder]="placeholder"
+			[class]="css.control"
 			[required]="required"
 			[readonly]="readonly"
 			[min]="minValue"
 			[max]="maxValue"
 			[minlength]="minLength"
 			[maxlength]="maxLength"
+			[attr.style]="style.control"
 			(keyup)="onKeyUp($event)"></ion-input>
 		<label *ngIf="description"
 			[class]="css.description"
@@ -202,9 +204,9 @@
 
 </div>
 
-<ion-list-header *ngIf="visible && label && (isFormGroup || isFormArray)"
-	[color]="theme"
-	[class]="css.label">{{ label }}</ion-list-header>
+<ion-list-header *ngIf="visible && label && (isFormGroup || isFormArray)"	[color]="theme">
+	<ion-label [class]="css.label">{{ label }}</ion-label>
+</ion-list-header>
 
 <div *ngIf="visible && isFormGroup">
 	<app-form-control *ngFor="let ctrl of subControls; trackBy: trackControl"
@@ -223,9 +225,9 @@
 
 <div *ngIf="visible && isComplexFormArray">
 	<div *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl">
-		<ion-list-header *ngIf="getSubLabel(ctrl)"
-			[color]="getSubColor(ctrl)"
-			[class]="getSubCss(ctrl)">{{ getSubLabel(ctrl) }}</ion-list-header>
+		<ion-list-header *ngIf="getSubLabel(ctrl)" [color]="getSubColor(ctrl)">
+			<ion-label [class]="getSubCss(ctrl)">{{ getSubLabel(ctrl) }}</ion-label>
+		</ion-list-header>
 		<app-form-control *ngFor="let subctrl of getSubControls(ctrl); trackBy: trackControl"
 			[formGroup]="getSubFormGroup(idx)"
 			[control]="subctrl"

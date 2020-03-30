@@ -20,6 +20,7 @@ export interface FilesHeader {
 }
 
 @Injectable()
+
 export class FilesService extends BaseService {
 
 	constructor(

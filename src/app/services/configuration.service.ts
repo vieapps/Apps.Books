@@ -26,6 +26,7 @@ import { UserProfile } from "../models/user";
 import { Base as BaseService } from "./base.service";
 
 @Injectable()
+
 export class ConfigurationService extends BaseService {
 
 	constructor(

@@ -12,7 +12,7 @@ export class AppConfig {
 		/** APIs */
 		apis: "https://apis.vieapps.net/",
 
-		/** Real-time Updater */
+		/** Real-time Updater (if not provided, then use the APIs) */
 		updates: "https://rt.vieapps.net/",
 
 		/** Files HTTP service */
@@ -27,7 +27,7 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.8.0",
+		version: "1.8.1",
 		copyright: "© 2016 - 2020 VIEApps.net",
 		license: "Apache-2.0",
 		frameworks: "ionic 5.0 - angular 8.2 - cordova 9.0",
@@ -162,7 +162,7 @@ export class AppConfig {
 		id: undefined as string,
 		token: undefined as string,
 		url: undefined as string,
-		version: "v3.1",
+		version: "v6.0",
 	};
 
 	/** Refer informaion */
@@ -172,9 +172,7 @@ export class AppConfig {
 	};
 
 	/** Extra configuration */
-	public static extras: {
-		[key: string]: any
-	} = {};
+	public static extras: { [key: string]: any } = {};
 
 	/** Gets the state that determines the app is ready to go */
 	public static get isReady() {
@@ -188,12 +186,12 @@ export class AppConfig {
 
 	/** Gets the state that determines is native app */
 	public static get isNativeApp() {
-		return "NTA" === this.app.mode;
+		return AppUtility.isEquals("NTA", this.app.mode);
 	}
 
 	/** Gets the state that determines is web progressive app */
 	public static get isWebApp() {
-		return "PWA" === this.app.mode;
+		return AppUtility.isEquals("PWA", this.app.mode);
 	}
 
 	/** Gets the state that determines the app is running on iOS (native or web browser) */
@@ -256,9 +254,11 @@ export class AppConfig {
 	public static getRelatedJson(service?: string, additional?: { [key: string]: string }) {
 		const json: { [key: string]: string } = {
 			"language": this.language,
-			"host": this.url.host,
-			"related-service": (AppUtility.isNotEmpty(service) ? service : this.services.active).toLowerCase()
+			"host": this.url.host
 		};
+		if (AppUtility.isNotEmpty(service) && !AppUtility.isEquals(service, this.services.active)) {
+			json["related-service"] = service.trim().toLowerCase();
+		}
 		if (AppUtility.isObject(additional, true)) {
 			Object.keys(additional).forEach(key => json[key] = additional[key]);
 		}
