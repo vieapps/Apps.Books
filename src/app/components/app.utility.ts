@@ -287,6 +287,21 @@ export class AppUtility {
 	}
 
 	/**
+	 * Moves an item of the sequence to new position
+	 * @param sequence The sequence for processing
+	 * @param oldIndex The zero-based index to move from
+	 * @param newIndex The zero-based index to move to
+	*/
+	public static moveTo<T>(sequence: Array<T>, oldIndex: number, newIndex: number) {
+		if (oldIndex !== newIndex && oldIndex > -1 && oldIndex < sequence.length && newIndex > -1 && newIndex < sequence.length) {
+			const items = sequence.splice(oldIndex, 1);
+			if (items !== undefined && items.length > 0) {
+				sequence.splice(newIndex < oldIndex ? newIndex : newIndex - 1, 0, items[0]);
+			}
+		}
+	}
+
+	/**
 	 * Filters and sorts the sequence by the specified conditions
 	 * @param sequence The sequence for processing
 	 * @param filter The callback function to filter the sequence

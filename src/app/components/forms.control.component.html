@@ -1,18 +1,27 @@
-<ion-item *ngIf="visible && isFormControl && !isCaptchaControl && !selectAsRadioBoxes && !isCustomControl"
+<ion-item *ngIf="visible && isFormControl && !isCaptchaControl && !selectAsRadioBoxes && !selectAsCheckBoxes && !isCustomControl()"
 	[color]="theme"
 	[formGroup]="formGroup"
 	[class.invalid]="invalid"
-	[class.select-file]="isFilePickerControl"
+	[class.file-picker]="isFilePickerControl"
 	[class.completer-container]="isCompleter"
-	[class.select-dropdown]="selectAsDropdown">
+	[class.select-dropdown]="selectAsDropdown"
+	[class.select-multiple]="selectAsMultiple">
 
 	<ion-button *ngIf="icon" fill="clear" slot="start" tabindex="-1">
 		<ion-icon [name]="icon" slot="icon-only"></ion-icon>
 	</ion-button>
 
-	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="show = !show">
-		<ion-icon name="eye" slot="icon-only" [hidden]="type === 'password'"></ion-icon>
-		<ion-icon name="eye-off" slot="icon-only" [hidden]="type !== 'password'"></ion-icon>
+	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="switchPasswordControl()">
+		<ion-icon name="eye" slot="icon-only" [hidden]="!show"></ion-icon>
+		<ion-icon name="eye-off" slot="icon-only" [hidden]="show"></ion-icon>
+	</ion-button>
+
+	<ion-button *ngIf="isAllowDelete" fill="clear" color="medium" slot="end" tabindex="-1" (click)="deleteValue()">
+		<ion-icon [name]="deleteIcon" slot="icon-only"></ion-icon>
+	</ion-button>
+
+	<ion-button *ngIf="isCompleterAllowLookupByModal" fill="clear" color="medium" slot="end" tabindex="-1" (click)="completerLookupAsync()">
+		<ion-icon [name]="completerLookupByModalButtonIcon" slot="icon-only"></ion-icon>
 	</ion-button>
 
 	<ion-label *ngIf="label"
@@ -34,7 +43,9 @@
 		[maxlength]="maxLength"
 		[clearOnEdit]="clearOnEdit"
 		[attr.style]="style.control"
-		(keyup)="onKeyUp($event)"></ion-input>
+		(keyup)="onKeyUp($event)"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"></ion-input>
 
 	<ion-textarea *ngIf="isTextAreaControl" #elementRef
 		[formControlName]="formControlName"
@@ -45,8 +56,10 @@
 		[readonly]="readonly"
 		[minlength]="minLength"
 		[maxlength]="maxLength"
-		[rows]="textareaRows" 
-		[attr.style]="style.control"></ion-textarea>
+		[rows]="rows" 
+		[attr.style]="style.control"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"></ion-textarea>
 
 	<ion-select *ngIf="isSelectControl && !selectAsDropdown" #elementRef
 		[name]="name"
@@ -58,19 +71,11 @@
 		[value]="value"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"
 		(ionChange)="onChanged($event)">
 		<ion-select-option *ngFor="let option of selectOptions; trackBy: trackOption" [value]="option.Value">{{ option.Label }}</ion-select-option>
 	</ion-select>
-
-	<div *ngIf="selectAsDropdown">
-		<select #elementRef
-			[formControlName]="formControlName"
-			[name]="name"
-			[class]="css.control"
-			(change)="onChanged(this.value)">
-			<option *ngFor="let option of selectOptions; trackBy: trackOption" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</option>
-		</select>
-	</div>
 
 	<ion-datetime *ngIf="isDatePickerControl" #elementRef
 		[displayFormat]="datetimeDisplayFormat"
@@ -86,31 +91,62 @@
 		[value]="datetimeValue"
 		[disabled]="disabled"
 		[placeholder]="placeholder"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"
 		(ionChange)="onChanged($event)"></ion-datetime>
 
-	<ion-checkbox *ngIf="isYesNoControl && type !== 'toggle'" slot="end" #elementRef
+	<ion-toggle *ngIf="isToggleControl" slot="end" #elementRef
 		[name]="name"
 		[disabled]="disabled"
 		[color]="color.control"
-		[checked]="checked"
-		(ionChange)="onChanged($event)"></ion-checkbox>
-
-	<ion-toggle *ngIf="isYesNoControl && type === 'toggle'" slot="end" #elementRef
-		[name]="name"
-		[disabled]="disabled"
-		[color]="color.control"
-		[checked]="checked"
+		[checked]="yesnoChecked"
+		[title]="description"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"
 		(ionChange)="onChanged($event)"></ion-toggle>
+
+	<ion-checkbox *ngIf="isCheckboxControl" slot="end" #elementRef
+		[name]="name"
+		[disabled]="disabled"
+		[color]="color.control"
+		[checked]="yesnoChecked"
+		[title]="description"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"
+		(ionChange)="onChanged($event)"></ion-checkbox>
 
 	<ion-range *ngIf="isRangeControl" #elementRef
 		[name]="name"
 		[color]="color.control"
 		[disabled]="disabled"
-		[pin]="true"
+		[pin]="rangeOptions.AllowPin"
+		[snaps]="rangeOptions.AllowSnaps"
+		[dualKnobs]="rangeOptions.AllowDualKnobs"
+		[ticks]="rangeOptions.AllowTicks"
+		[step]="rangeOptions.Step"
 		[min]="minValue"
 		[max]="maxValue"
 		[value]="value"
-		(ionChange)="onChanged($event)"></ion-range>
+		[title]="description"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"
+		(ionChange)="onChanged($event)">
+		<ion-icon *ngIf="rangeOptions.Icons.Start" [name]="rangeOptions.Icons.Start" size="small" slot="start"></ion-icon>
+		<ion-icon *ngIf="rangeOptions.Icons.End" [name]="rangeOptions.Icons.End" size="small" slot="end"></ion-icon>
+	</ion-range>
+
+	<select *ngIf="selectAsDropdown || selectAsMultiple" #elementRef
+		[formControlName]="formControlName"
+		[name]="name"
+		[multiple]="selectMultiple"
+		[size]="rows" 
+		[class]="css.control"
+		[attr.style]="style.control"
+		(focus)="onFocus($event)"
+		(blur)="onBlur($event)"
+		(change)="onChanged(this.value)">
+		<option *ngFor="let option of selectOptions; trackBy: trackOption" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</option>
+	</select>
 
 	<ng2-completer *ngIf="isCompleter" #elementRef
 		[inputName]="name"
@@ -124,50 +160,80 @@
 		[textNoResults]="completerNoResultsText"
 		[datasource]="completerDataSource"
 		[initialValue]="completerInitialValue"
-		(selected)="onChanged($event)"
-		(keyup)="onKeyUp($event)"></ng2-completer>
-	<ion-button *ngIf="isCompleterAllowLookupByModal" fill="clear" slot="end" (click)="completerLookupAsync()">
-		<ion-icon [name]="completerLookupByModalButtonIcon" slot="icon-only"></ion-icon>
-	</ion-button>
+		(keyup)="onKeyUp($event, !completerClearSelected)"
+		(focus)="onFocus($event)"
+		(blur)="onBlur($event)"
+		(selected)="onChanged($event)"></ng2-completer>
 	
-	<div *ngIf="isFilePickerControl" class="file-picker">
-		<input type="file" #elementRef
-			[accept]="control.Options.FilePickerOptions.Accept"
-			[multiple]="control.Options.FilePickerOptions.AllowMultiple"
-			[placeholder]="placeholder"
-			(change)="onChanged($event)" />
+	<div *ngIf="isFilePickerControl">
+		<div class="file-picker-input">
+			<input type="file" #elementRef
+				[accept]="control.Options.FilePickerOptions.Accept"
+				[multiple]="control.Options.FilePickerOptions.Multiple"
+				[placeholder]="placeholder"
+				(change)="onChanged($event)" />
+		</div>
+		<div *ngIf="isAllowImagePreview" class="image-picker-preview ion-padding">
+			<div *ngIf="value.current">
+				<img [src]="value.current" />
+			</div>
+			<div *ngIf="value.new">
+				<img [src]="value.new" />
+			</div>
+		</div>
 	</div>
-	<ion-button *ngIf="isImagePickerControl && control.Options.FilePickerOptions.AllowDelete && value && value.new" fill="clear" slot="end" (click)="onDeleted($event)">
-		<ion-icon name="trash" slot="icon-only"></ion-icon>
-	</ion-button>
 	
-	<label *ngIf="description"
+	<label *ngIf="description && !isYesNoControl && !isRangeControl"
 		[class]="css.description"
-		[style]="style.description">{{ description }}</label>
-
+		[style]="style.description"
+		[innerHTML]="description"></label>
+	
 </ion-item>
 
-<div *ngIf="visible && isImagePickerControl && control.Options.FilePickerOptions.AllowPreview && value" class="image-picker-preview ion-padding">
-	<div *ngIf="value.current">
-		<img [src]="value.current" />
-	</div>
-	<div *ngIf="value.new">
-		<img [src]="value.new" />
-	</div>
-</div>
+<ion-item *ngIf="(isCompleter || isModal) && control.Options.LookupOptions.Multiple && control.Options.LookupOptions.DisplayValues && control.Options.LookupOptions.DisplayValues.length > 0">
+	<ion-chip *ngFor="let chip of control.Options.LookupOptions.DisplayValues">
+		<ion-label>{{ chip.Label }}</ion-label>
+		<ion-icon name="close-circle" (click)="deleteValue(chip.Value)"></ion-icon>
+	</ion-chip>
+</ion-item>
+
+<ion-list *ngIf="visible && selectAsCheckBoxes" #elementRef>
+
+	<ion-list-header *ngIf="label" [color]="theme">
+		<ion-label [class]="css.label">{{ label }}</ion-label>
+	</ion-list-header>
+
+	<ion-item *ngFor="let option of selectOptions; trackBy: trackOption" [color]="theme">
+		<ion-label>{{ option.Label }}</ion-label>
+		<ion-checkbox slot="end" [checked]="selectOptionIsChecked(option.Value)" [value]="option.Value" (ionChange)="onChanged($event)"></ion-checkbox>
+	</ion-item>
+
+	<ion-item *ngIf="description" [color]="theme">
+		<label
+			[class]="css.description"
+			[style]="style.description"
+			[innerHTML]="description"></label>
+	</ion-item>
+
+</ion-list>
 
 <ion-radio-group *ngIf="visible && selectAsRadioBoxes" #elementRef
 	[name]="name"
 	[class.invalid]="invalid"
 	[value]="value"
+	(ionFocus)="onFocus($event)"
+	(ionBlur)="onBlur($event)"
 	(ionChange)="onChanged($event)">
+
 	<ion-list-header *ngIf="label" [color]="theme">
 		<ion-label [class]="css.label">{{ label }}</ion-label>
 	</ion-list-header>
+
 	<ion-item *ngFor="let option of selectOptions; trackBy: trackOption" [color]="theme">
 		<ion-label>{{ option.Label }}</ion-label>
 		<ion-radio [value]="option.Value"></ion-radio>
 	</ion-item>
+
 </ion-radio-group>
 	
 <div *ngIf="visible && isCaptchaControl">
@@ -189,10 +255,13 @@
 			[minlength]="minLength"
 			[maxlength]="maxLength"
 			[attr.style]="style.control"
-			(keyup)="onKeyUp($event)"></ion-input>
+			(keyup)="onKeyUp($event)"
+			(ionFocus)="onFocus($event)"
+			(ionBlur)="onBlur($event)"></ion-input>
 		<label *ngIf="description"
 			[class]="css.description"
-			[style]="style.description">{{ description }}</label>
+			[style]="style.description"
+			[innerHTML]="description"></label>
 	</ion-item>
 
 	<ion-item [color]="theme">
@@ -204,51 +273,72 @@
 
 </div>
 
-<ion-list-header *ngIf="visible && label && (isFormGroup || isFormArray)"	[color]="theme">
-	<ion-label [class]="css.label">{{ label }}</ion-label>
-</ion-list-header>
+<ion-item *ngIf="visible && (isFormGroup || isFormArray) && description" [color]="theme">
+	<label
+		[class]="css.description"
+		[style]="style.description"
+		[innerHTML]="description"></label>
+</ion-item>
 
-<div *ngIf="visible && isFormGroup">
-	<app-form-control *ngFor="let ctrl of subControls; trackBy: trackControl"
-		[formGroup]="subFormGroup"
-		[control]="ctrl"
-		[theme]="theme"></app-form-control>
-</div>
-
-<div *ngIf="visible && isSimpleFormArray">
-	<app-form-control *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl"
-		[formGroup]="subFormGroup"
-		[formArrayIndex]="idx"
-		[control]="ctrl"
-		[theme]="theme"></app-form-control>
-</div>
-
-<div *ngIf="visible && isComplexFormArray">
-	<div *ngFor="let ctrl of subControls; let idx = index; trackBy: trackControl">
-		<ion-list-header *ngIf="getSubLabel(ctrl)" [color]="getSubColor(ctrl)">
-			<ion-label [class]="getSubCss(ctrl)">{{ getSubLabel(ctrl) }}</ion-label>
-		</ion-list-header>
-		<app-form-control *ngFor="let subctrl of getSubControls(ctrl); trackBy: trackControl"
-			[formGroup]="getSubFormGroup(idx)"
-			[control]="subctrl"
+<ion-list *ngIf="visible && (isFormGroup || isFormArray) && !isFormButtons">
+	
+	<ion-list-header *ngIf="label" [color]="theme">
+		<ion-label [class]="css.label">{{ label }}</ion-label>
+	</ion-list-header>
+	
+	<div *ngIf="isFormGroup">
+		<app-form-control *ngFor="let ctrl of control.SubControls.Controls; trackBy: trackControl"
+			[formGroup]="formControlAsFormGroup"
+			[control]="ctrl"
 			[theme]="theme"></app-form-control>
 	</div>
-</div>
+	
+	<div *ngIf="isSimpleFormArray">
+		<app-form-control *ngFor="let ctrl of control.SubControls.Controls; let idx = index; trackBy: trackControl"
+			[formGroup]="formControlAsFormGroup"
+			[formArrayIndex]="idx"
+			[control]="ctrl"
+			[theme]="theme"></app-form-control>
+	</div>
+	
+	<div *ngIf="isComplexFormArray">
+		<ion-list *ngFor="let ctrl of control.SubControls.Controls; let idx = index; trackBy: trackControl">
+			<ion-list-header *ngIf="ctrl.Options.Label" [color]="ctrl.Options.LabelOptions.Color">
+				<ion-label [class]="ctrl.Options.LabelOptions.Css">{{ ctrl.Options.Label }}</ion-label>
+			</ion-list-header>
+			<app-form-control *ngFor="let subctrl of ctrl.SubControls.Controls; trackBy: trackControl"
+				[formGroup]="formControlAsFormGroup.controls[idx]"
+				[control]="subctrl"
+				[theme]="theme"></app-form-control>
+		</ion-list>
+	</div>
 
-<control-image-cropper *ngIf="visible && isCustomControl && control.Options.Type === 'image-cropper'" #elementRef
+</ion-list>
+
+<ion-buttons *ngIf="visible && isFormButtons" class="ion-padding" style="background-color:var(--ion-color-base)">
+	<ion-button *ngFor="let ctrl of control.SubControls.Controls; trackBy: trackControl"
+		[fill]="ctrl.Options.ButtonOptions.Fill"
+		[color]="ctrl.Options.ButtonOptions.Color"
+		(click)="clickButton(ctrl, formControlAsFormGroup)">
+		<ion-icon *ngIf="ctrl.Options.ButtonOptions.Icon.Name" [icon]="ctrl.Options.ButtonOptions.Icon.Name" [slot]="ctrl.Options.ButtonOptions.Icon.Slot"></ion-icon>
+		{{ ctrl.Options.Label }}
+	</ion-button>
+</ion-buttons>
+
+<control-image-cropper *ngIf="visible && isCustomControl('image-cropper')" #elementRef
 	[formGroup]="formGroup"
 	[control]="control"
 	[settings]="value"
 	(change)="onChanged($event)"></control-image-cropper>
 
-<control-object-privileges *ngIf="visible && isCustomControl && control.Options.Type === 'object-privileges'" #elementRef
+<control-object-privileges *ngIf="visible && isCustomControl('object-privileges')" #elementRef
 	[formGroup]="formGroup"
 	[control]="control"
 	[privileges]="value"
 	[allowInheritFromParent]="control.Extras['AllowInheritFromParent'] || control.Extras['allowInheritFromParent']"
 	(change)="onChanged($event)"></control-object-privileges>
 
-<control-service-privileges *ngIf="visible && isCustomControl && control.Options.Type === 'service-privileges'" #elementRef
+<control-service-privileges *ngIf="visible && isCustomControl('service-privileges')" #elementRef
 	[formGroup]="formGroup"
 	[control]="control"
 	[privileges]="value"

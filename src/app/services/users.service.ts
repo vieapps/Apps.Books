@@ -12,7 +12,6 @@ import { Base as BaseService } from "./base.service";
 import { ConfigurationService } from "./configuration.service";
 
 @Injectable()
-
 export class UsersService extends BaseService {
 
 	constructor(
@@ -23,17 +22,19 @@ export class UsersService extends BaseService {
 	}
 
 	public get completerDataSource() {
+		const convertFn = (data: any) => {
+			const profile = data instanceof UserProfile ? data as UserProfile : UserProfile.deserialize(data);
+			return {
+				title: profile.Name,
+				description: AppUtility.getHiddenEmail(profile.Email),
+				image: profile.avatarURI,
+				originalObject: profile
+			};
+		};
 		return new AppCustomCompleter(
 			term => AppUtility.format(super.getSearchURI("profile", this.configSvc.relatedQuery), { request: AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })) }),
-			data => (data.Objects as Array<any> || []).map(o => {
-				const profile = UserProfile.deserialize(o);
-				return {
-					title: profile.Name,
-					description: AppUtility.getHiddenEmail(profile.Email),
-					image: profile.avatarURI,
-					originalObject: profile
-				};
-			})
+			data => (data.Objects as Array<any> || []).map(o => convertFn(o)),
+			convertFn
 		);
 	}
 
@@ -79,14 +80,15 @@ export class UsersService extends BaseService {
 		);
 	}
 
-	public registerAsync(body: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		body["Email"] = AppCrypto.rsaEncrypt(body["Email"]);
-		body["Password"] = AppCrypto.rsaEncrypt(body["Password"]);
-		body["ReferID"] = this.configSvc.appConfig.refer.id;
-		body["ReferSection"] = this.configSvc.appConfig.refer.section;
+	public registerAsync(registerInfo: any, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
 		return super.createAsync(
 			super.getURI("account", undefined, `uri=${this.configSvc.activateURI}&${this.configSvc.relatedQuery}`),
-			body,
+			AppUtility.clone(registerInfo, ["ConfirmEmail", "ConfirmPassword", "Captcha"], undefined, body => {
+				body.Email = AppCrypto.rsaEncrypt(body.Email);
+				body.Password = AppCrypto.rsaEncrypt(body.Password);
+				body["ReferID"] = this.configSvc.appConfig.refer.id;
+				body["ReferSection"] = this.configSvc.appConfig.refer.section;
+			}),
 			onNext,
 			onError,
 			this.configSvc.appConfig.getCaptchaHeaders(captcha)
@@ -138,7 +140,7 @@ export class UsersService extends BaseService {
 		}
 	}
 
-	public getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+	public getProfileAsync(id?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, useXHR: boolean = false) {
 		id = id || this.configSvc.getAccount().id;
 		return UserProfile.contains(id)
 			? new Promise<void>(onNext !== undefined ? () => onNext() : () => {})
@@ -155,7 +157,9 @@ export class UsersService extends BaseService {
 						if (onError !== undefined) {
 							onError(error);
 						}
-					}
+					},
+					undefined,
+					useXHR
 				);
 	}
 

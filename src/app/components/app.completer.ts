@@ -7,26 +7,50 @@ import { AppUtility } from "./app.utility";
 export class AppCustomCompleter extends Subject<CompleterItem[]> implements CompleterData {
 
 	constructor(
-		public onRequest: (term: string) => string,
-		public onConvert: (data: any) => Array<CompleterItem>,
-		public onCancel?: () => void
+		private onSearch: (term: string) => string,
+		private onConvertArrayOfItems?: (data: any) => CompleterItem[],
+		private onConvertOneItem?: (data: any) => CompleterItem,
+		private onCancel?: () => void
 	) {
 		super();
 	}
 
-	private _subscription: Subscription;
+	private subscription: Subscription;
 
-	private _unsubscribe() {
-		if (this._subscription !== undefined) {
-			this._subscription.unsubscribe();
-			this._subscription = undefined;
+	private cancelSearch() {
+		if (this.subscription !== undefined) {
+			this.subscription.unsubscribe();
+			this.subscription = undefined;
 		}
 	}
 
 	public search(term: string) {
-		this._unsubscribe();
-		this._subscription = AppXHR.get(this.onRequest(term)).subscribe(
-			response => this.next(this.onConvert(response)),
+		this.cancelSearch();
+		this.subscription = AppXHR.get(this.onSearch(term)).subscribe(
+			response => {
+				const items = AppUtility.isArray(response, true)
+					? (response as Array<any>).map(data => {
+							return this.onConvertOneItem !== undefined
+								? this.onConvertOneItem(data)
+								: {
+										title: data.toString(),
+										originalObject: data
+									} as CompleterItem;
+						})
+					: this.onConvertArrayOfItems !== undefined
+						? this.onConvertArrayOfItems(response)
+						: AppUtility.isArray(response["Objects"], true)
+							? (response["Objects"] as Array<any>).map(data => {
+									return this.onConvertOneItem !== undefined
+										? this.onConvertOneItem(data)
+										: {
+												title: data.toString(),
+												originalObject: data
+											} as CompleterItem;
+								})
+							: [];
+				this.next(items);
+			},
 			error => console.error(`[Custom Completer]: Error occurred while fetching remote data => ${AppUtility.getErrorMessage(error)}`, error)
 		);
 	}
@@ -35,6 +59,16 @@ export class AppCustomCompleter extends Subject<CompleterItem[]> implements Comp
 		if (this.onCancel !== undefined) {
 			this.onCancel();
 		}
-		this._unsubscribe();
+		this.cancelSearch();
 	}
+
+	public convertToItem(data: any) {
+		return this.onConvertOneItem !== undefined
+			? this.onConvertOneItem(data)
+			: {
+					title: data.toString(),
+					originalObject: data
+				} as CompleterItem;
+	}
+
 }

@@ -214,17 +214,19 @@ export class BooksService extends BaseService {
 	}
 
 	public get completerDataSource() {
+		const convertFn = (data: any) => {
+			const book = data instanceof Book ? data as Book : Book.deserialize(data);
+			return {
+				title: book.Title,
+				description: `${book.Author} - ${book.Category}`,
+				image: book.Cover,
+				originalObject: book
+			};
+		};
 		return new AppCustomCompleter(
 			term => AppUtility.format(super.getSearchURI("book", this.configSvc.relatedQuery), { request: AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })) }),
-			data => (data.Objects as Array<any> || []).map(o => {
-				const book = Book.deserialize(o);
-				return {
-					title: book.Title,
-					description: book.Category,
-					image: book.Cover,
-					originalObject: book
-				};
-			})
+			data => (data.Objects as Array<any> || []).map(o => convertFn(o)),
+			convertFn
 		);
 	}
 

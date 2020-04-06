@@ -88,7 +88,7 @@ export class BooksUpdatePage implements OnInit {
 				Segment: "others",
 				Options: {
 					Label: "{{books.info.controls.TOCs}}",
-					TextAreaRows: 20
+					Rows: 20
 				}
 			},
 			{
@@ -97,26 +97,26 @@ export class BooksUpdatePage implements OnInit {
 				Segment: "others",
 				Options: {
 					Label: "{{books.info.controls.Cover}}",
+					OnChanged: event => {
+						const file: File = event.target.files !== undefined && event.target.files.length > 0 ? event.target.files[0] : undefined;
+						if (file !== undefined) {
+							this.filesSvc.readAsDataURL(
+								file,
+								data => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: data }),
+								1024000,
+								async () => await this.appFormsSvc.showToastAsync("Too big...")
+							);
+						}
+						else {
+							this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined });
+						}
+					},
 					FilePickerOptions: {
 						Accept: "image/png, image/jpeg",
-						AllowMultiple: false,
+						Multiple: false,
 						AllowPreview: true,
 						AllowDelete: true,
-						OnChanged: event => {
-							const file: File = event.target.files !== undefined && event.target.files.length > 0 ? event.target.files[0] : undefined;
-							if (file !== undefined) {
-								this.filesSvc.readAsDataURL(
-									file,
-									data => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: data }),
-									1024000,
-									async () => await this.appFormsSvc.showToastAsync("Too big...")
-								);
-							}
-							else {
-								this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined });
-							}
-						},
-						OnDeleted: _ => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined })
+						OnDelete: _ => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined })
 					}
 				}
 			}
@@ -132,11 +132,12 @@ export class BooksUpdatePage implements OnInit {
 						Value: language.Value.substr(0, 2),
 						Label: language.Label
 					};
-				})
+				}),
+				Interface: "popover"
 			};
 		}
 
-		ctrl = config.find(control => control.Options !== undefined && true === control.Options.AutoFocus);
+		ctrl = config.find(control => control.Options !== undefined && control.Options.AutoFocus);
 		if (ctrl === undefined) {
 			ctrl = config.find(control => control.Type === "TextBox" && control.Options !== undefined && !control.Hidden);
 			if (ctrl !== undefined) {

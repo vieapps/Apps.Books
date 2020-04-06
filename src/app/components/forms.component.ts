@@ -25,7 +25,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Input() form: FormGroup;
 
 	/** The configuration of the form controls */
-	@Input() config: Array<AppFormsControlConfig> | Array<any>;
+	@Input() config: Array<AppFormsControlConfig>;
 
 	/** The configuration of the form segments */
 	@Input() segments: { items: Array<AppFormsSegment>, default: string, current: string };

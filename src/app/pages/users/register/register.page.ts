@@ -195,7 +195,7 @@ export class UsersRegisterPage implements OnInit {
 		else {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.usersSvc.registerAsync(
-				AppUtility.clone(this.register.form.value, ["ConfirmEmail", "ConfirmPassword", "Captcha"]),
+				this.register.form.value,
 				this.register.form.value.Captcha,
 				async () => await Promise.all([
 					TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.users.register),

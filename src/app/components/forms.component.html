@@ -1,10 +1,10 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit($event)">
 
 	<div *ngIf="gotSegments">
-		<ion-segment [value]="segments.current" (ionChange)="onSegmentChanged($event)">
+		<ion-segment class="segments" [color]="color" [value]="segments.current" (ionChange)="onSegmentChanged($event)">
 			<ion-segment-button *ngFor="let segment of segments.items; trackBy: trackSegment" [value]="segment.Name">
+				<ion-icon *ngIf="segment.Icon" [name]="segment.Icon" slot="start"></ion-icon>
 				<ion-label>{{ segment.Label }}</ion-label>
-				<ion-icon *ngIf="segment.Icon" [name]="segment.Icon"></ion-icon>
 			</ion-segment-button>
 		</ion-segment>
 		<ion-list *ngFor="let segment of segments.items; trackBy: trackSegment" [hidden]="segment.Name !== segments.current">
