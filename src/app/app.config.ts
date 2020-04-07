@@ -254,11 +254,9 @@ export class AppConfig {
 	public static getRelatedJson(service?: string, additional?: { [key: string]: string }) {
 		const json: { [key: string]: string } = {
 			"language": this.language,
-			"host": this.url.host
+			"host": this.url.host,
+			"related-service": (AppUtility.isNotEmpty(service) ? service : this.services.active).trim().toLowerCase()
 		};
-		if (AppUtility.isNotEmpty(service) && !AppUtility.isEquals(service, this.services.active)) {
-			json["related-service"] = service.trim().toLowerCase();
-		}
 		if (AppUtility.isObject(additional, true)) {
 			Object.keys(additional).forEach(key => json[key] = additional[key]);
 		}

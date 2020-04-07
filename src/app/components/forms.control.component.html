@@ -16,7 +16,7 @@
 		<ion-icon name="eye-off" slot="icon-only" [hidden]="show"></ion-icon>
 	</ion-button>
 
-	<ion-button *ngIf="isAllowDelete" fill="clear" color="medium" slot="end" tabindex="-1" (click)="deleteValue()">
+	<ion-button *ngIf="isImagePickerControl && isAllowDelete" fill="clear" color="medium" slot="end" tabindex="-1" (click)="deleteValueAsync()">
 		<ion-icon [name]="deleteIcon" slot="icon-only"></ion-icon>
 	</ion-button>
 
@@ -190,10 +190,10 @@
 	
 </ion-item>
 
-<ion-item *ngIf="(isCompleter || isModal) && control.Options.LookupOptions.Multiple && control.Options.LookupOptions.DisplayValues && control.Options.LookupOptions.DisplayValues.length > 0">
+<ion-item *ngIf="isLookupControl && isAllowDelete">
 	<ion-chip *ngFor="let chip of control.Options.LookupOptions.DisplayValues">
 		<ion-label>{{ chip.Label }}</ion-label>
-		<ion-icon name="close-circle" (click)="deleteValue(chip.Value)"></ion-icon>
+		<ion-icon name="close-circle" (click)="deleteValueAsync(chip.Value)"></ion-icon>
 	</ion-chip>
 </ion-item>
 
@@ -273,7 +273,11 @@
 
 </div>
 
-<ion-item *ngIf="visible && (isFormGroup || isFormArray) && description" [color]="theme">
+<ion-item *ngIf="visible && (isFormGroup || isFormArray) && (label || description)" [color]="theme">
+	<ion-label *ngIf="label"
+		[color]="color.label"
+		[position]="position"
+		[class]="css.label">{{ label }}</ion-label>
 	<label
 		[class]="css.description"
 		[style]="style.description"

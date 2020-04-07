@@ -18,21 +18,37 @@ export class AppFormsSegment {
 		label?: string,
 		icon?: string
 	) {
-		this.Name = name || "";
-		this.Label = label || "";
-		this.Icon = icon;
+		this.name = name || "";
+		this.label = label || "";
+		this.icon = icon;
 	}
 
-	Name: string;
-	Icon: string;
-	Label: string;
+	private name: string;
+	private label: string;
+	private icon: string;
+
+	/** Gets the name of the segment */
+	get Name() {
+		return this.name;
+	}
+
+	/** Gets the lable of the segment */
+	get Label() {
+		return this.label;
+	}
+
+	/** Gets the icon name of the segment */
+	get Icon() {
+		return this.icon;
+	}
+
 }
 
 //  ---------------------------------------------------------------
 
 /** Presents the configuration of a control in the dynamic forms */
 export interface AppFormsControlConfig {
-	Name: string;
+	Name?: string;
 	Order?: number;
 	Segment?: string;
 	Type?: string;
@@ -42,7 +58,6 @@ export interface AppFormsControlConfig {
 	AsyncValidators?: Array<AsyncValidatorFn> | Array<string>;
 	Extras?: { [key: string]: any };
 	Options?: {
-		Type?: string;
 		Label?: string;
 		LabelOptions?: {
 			Position?: string;
@@ -54,8 +69,9 @@ export interface AppFormsControlConfig {
 			Css?: string;
 			Style?: string;
 		};
-		Icon?: string;
+		Type?: string;
 		Name?: string;
+		Icon?: string;
 		Css?: string;
 		Color?: string;
 		PlaceHolder?: string;
@@ -109,12 +125,10 @@ export interface AppFormsControlConfig {
 				BackdropDismiss?: boolean;
 				SwipeToClose?: boolean
 				OnDismiss?: (data?: any) => void;
-				AllowSelect?: boolean;
-				AllowDelete?: boolean;
 			};
 			Multiple?: boolean;
-			DisplayValues?: Array<{ Value: string, Label: string }>;
-			OnDeleteValue?: (value: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
+			OnDelete?: (value: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
+			WarningOnDelete?: string;
 		};
 		DatePickerOptions?: {
 			AllowTimes?: boolean;
@@ -134,6 +148,7 @@ export interface AppFormsControlConfig {
 			AllowPreview?: boolean;
 			AllowDelete?: boolean;
 			OnDelete?: (name: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
+			WarningOnDelete?: string;
 		};
 		RangeOptions?: {
 			AllowPin?: boolean;
@@ -186,7 +201,6 @@ export class AppFormsControl {
 	AsyncValidators: Array<AsyncValidatorFn> | Array<string>;
 	Extras: { [key: string]: any };
 	Options = {
-		Type: "text",
 		Label: undefined as string,
 		LabelOptions: {
 			Position: "stacked",
@@ -198,8 +212,9 @@ export class AppFormsControl {
 			Css: "description",
 			Style: ""
 		},
-		Icon: "",
+		Type: "text",
 		Name: "",
+		Icon: "",
 		Css: "",
 		Color: "",
 		PlaceHolder: undefined as string,
@@ -252,13 +267,12 @@ export class AppFormsControl {
 				ComponentProps: undefined as { [key: string]: any },
 				BackdropDismiss: false,
 				SwipeToClose: false,
-				OnDismiss: undefined as (data?: any) => void,
-				AllowSelect: true,
-				AllowDelete: true
+				OnDismiss: undefined as (data?: any) => void
 			},
 			Multiple: false,
-			DisplayValues: undefined as Array<{ Value: string, Label: string }>,
-			OnDeleteValue: undefined as (value: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void
+			OnDelete: undefined as (value: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
+			WarningOnDelete: undefined as string,
+			DisplayValues: undefined as Array<{ Value: string, Label: string }>
 		},
 		DatePickerOptions: {
 			AllowTimes: false,
@@ -277,7 +291,9 @@ export class AppFormsControl {
 			Multiple: true,
 			AllowPreview: false,
 			AllowDelete: true,
-			OnDelete: undefined as (name: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void
+			OnDelete: undefined as (name: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
+			WarningOnDelete: undefined as string,
+			SelectedFiles: undefined as Array<File>
 		},
 		RangeOptions: {
 			AllowPin: true,
@@ -307,12 +323,12 @@ export class AppFormsControl {
 
 	/** Gets uri of the captcha image */
 	public get captchaURI() {
-		return this.Extras["_data:CaptchaUri"];
+		return this.Extras["_data:CaptchaURI"];
 	}
 
 	/** Sets uri of the captcha image */
 	public set captchaURI(value: string) {
-		this.Extras["_data:CaptchaUri"] = value;
+		this.Extras["_data:CaptchaURI"] = value;
 	}
 
 	/** Gets the reference to the UI element of this control */
@@ -394,8 +410,6 @@ export class AppFormsControl {
 
 		const controlOptions = options.Options || options.options;
 		if (controlOptions !== undefined) {
-			control.Options.Type = controlOptions.Type || controlOptions.type || "text";
-
 			control.Options.Label = controlOptions.Label || controlOptions.label;
 			const labelOptions = controlOptions.LabelOptions || controlOptions.labeloptions;
 			if (labelOptions !== undefined) {
@@ -411,11 +425,12 @@ export class AppFormsControl {
 				control.Options.DescriptionOptions.Style = descriptionOptions.Style || descriptionOptions.style || "";
 			}
 
-			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeHolder || controlOptions.placeholder;
+			control.Options.Type = controlOptions.Type || controlOptions.type || "text";
+			control.Options.Name = controlOptions.Name || controlOptions.name || (alternativeName !== undefined ? `${alternativeName}-${control.Name}` : `${control.Name}`);
+			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
 			control.Options.Color = controlOptions.Color || controlOptions.color;
-			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
-			control.Options.Name = controlOptions.Name || controlOptions.name || (alternativeName !== undefined ? `${alternativeName}-${control.Name}` : `${control.Name}`);
+			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeHolder || controlOptions.placeholder;
 			control.Options.ValidatePattern = controlOptions.ValidatePattern || controlOptions.validatePattern || controlOptions.validatepattern;
 
 			control.Options.Disabled = !!(controlOptions.Disabled || controlOptions.disabled);
@@ -430,7 +445,6 @@ export class AppFormsControl {
 
 			control.Options.Width = controlOptions.Width || controlOptions.width;
 			control.Options.Height = controlOptions.Height || controlOptions.height;
-
 			control.Options.Rows = controlOptions.Rows || controlOptions.rows;
 
 			control.Options.OnFocus = controlOptions.OnFocus || controlOptions.onFocus || controlOptions.onfocus;
@@ -496,13 +510,12 @@ export class AppFormsControl {
 						ComponentProps: modalOptions.ComponentProps || modalOptions.componentProps || modalOptions.componentprops,
 						BackdropDismiss: !!(modalOptions.BackdropDismiss || modalOptions.backdropDismiss || modalOptions.backdropdismiss),
 						SwipeToClose: !!(modalOptions.SwipeToClose || modalOptions.swipeToClose || modalOptions.swipetoclose),
-						OnDismiss: modalOptions.OnDismiss || modalOptions.onDismiss || modalOptions.ondismiss,
-						AllowSelect: modalOptions.AllowSelect !== undefined || modalOptions.allowSelect !== undefined || modalOptions.allowselect !== undefined ? modalOptions.AllowSelect || modalOptions.allowSelect || modalOptions.allowselect : true,
-						AllowDelete: modalOptions.AllowDelete !== undefined || modalOptions.allowDelete !== undefined || modalOptions.allowdelete !== undefined ? modalOptions.AllowDelete || modalOptions.allowDelete || modalOptions.allowdelete : true
+						OnDismiss: modalOptions.OnDismiss || modalOptions.onDismiss || modalOptions.ondismiss
 					},
 					Multiple: multiple,
+					OnDelete: multiple ? lookupOptions.OnDeleteValue || lookupOptions.onDeleteValue || lookupOptions.ondeletevalue : undefined,
+					WarningOnDelete: multiple ? lookupOptions.WarningOnDelete || lookupOptions.warningOnDelete || lookupOptions.warningondelete : undefined,
 					DisplayValues: multiple ? [] : undefined,
-					OnDeleteValue: lookupOptions.OnDeleteValue || lookupOptions.onDeleteValue || lookupOptions.ondeletevalue
 				};
 			}
 
@@ -524,12 +537,15 @@ export class AppFormsControl {
 
 			const filepickerOptions = controlOptions.FilePickerOptions || controlOptions.filePickerOptions || controlOptions.filepickerOptions || controlOptions.filepickeroptions;
 			if (filepickerOptions !== undefined) {
+				const allowDelete = !!(filepickerOptions.AllowDelete || filepickerOptions.allowDelete || filepickerOptions.allowdelete);
 				control.Options.FilePickerOptions = {
 					Accept: filepickerOptions.Accept || filepickerOptions.accept || "*",
 					Multiple: !!(filepickerOptions.Multiple || filepickerOptions.multiple),
 					AllowPreview: !!(filepickerOptions.AllowPreview || filepickerOptions.allowPreview || filepickerOptions.allowpreview),
-					AllowDelete: !!(filepickerOptions.AllowDelete || filepickerOptions.allowDelete || filepickerOptions.allowdelete),
-					OnDelete: filepickerOptions.OnDelete || filepickerOptions.onDelete || filepickerOptions.ondelete
+					AllowDelete: allowDelete,
+					OnDelete: allowDelete ? filepickerOptions.OnDelete || filepickerOptions.onDelete || filepickerOptions.ondelete : undefined,
+					WarningOnDelete: allowDelete ? filepickerOptions.WarningOnDelete || filepickerOptions.warningOnDelete || filepickerOptions.warningondelete : undefined,
+					SelectedFiles: allowDelete ? [] : undefined
 				};
 			}
 
@@ -594,6 +610,7 @@ export class AppFormsControl {
 		options.Options.OnBlur = this.Options.OnBlur;
 		options.Options.OnChanged = this.Options.OnChanged;
 		options.Options.SelectOptions.InterfaceOptions = this.Options.SelectOptions.InterfaceOptions;
+		options.Options.LookupOptions.OnDelete = this.Options.LookupOptions.OnDelete;
 		options.Options.LookupOptions.CompleterOptions.DataSource = this.Options.LookupOptions.CompleterOptions.DataSource;
 		options.Options.LookupOptions.CompleterOptions.GetInitialValue = this.Options.LookupOptions.CompleterOptions.GetInitialValue;
 		options.Options.LookupOptions.CompleterOptions.OnInitialized = this.Options.LookupOptions.CompleterOptions.OnInitialized;
@@ -601,7 +618,6 @@ export class AppFormsControl {
 		options.Options.LookupOptions.CompleterOptions.OnModalDismiss = this.Options.LookupOptions.CompleterOptions.OnModalDismiss;
 		options.Options.LookupOptions.ModalOptions.Component = this.Options.LookupOptions.ModalOptions.Component;
 		options.Options.LookupOptions.ModalOptions.OnDismiss = this.Options.LookupOptions.ModalOptions.OnDismiss;
-		options.Options.LookupOptions.OnDeleteValue = this.Options.LookupOptions.OnDeleteValue;
 		options.Options.FilePickerOptions.OnDelete = this.Options.FilePickerOptions.OnDelete;
 		options.Options.ButtonOptions.OnClick = this.Options.ButtonOptions.OnClick;
 		if (onPreCompleted !== undefined) {
@@ -721,6 +737,9 @@ export class AppFormsService {
 				control.Options.SelectOptions.CancelText = await this.normalizeResourceAsync(control.Options.SelectOptions.CancelText);
 			}
 			else if (AppUtility.isEquals(control.Type, "Lookup")) {
+				if (AppUtility.isNotEmpty(control.Options.LookupOptions.WarningOnDelete)) {
+					control.Options.LookupOptions.WarningOnDelete = await this.normalizeResourceAsync(control.Options.LookupOptions.WarningOnDelete);
+				}
 				control.Options.LookupOptions.CompleterOptions.SearchingText = await this.normalizeResourceAsync(control.Options.LookupOptions.CompleterOptions.SearchingText);
 				control.Options.LookupOptions.CompleterOptions.NoResultsText = await this.normalizeResourceAsync(control.Options.LookupOptions.CompleterOptions.NoResultsText);
 			}
@@ -737,6 +756,9 @@ export class AppFormsService {
 					control.Options.DatePickerOptions.DoneText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.DoneText);
 					control.Options.DatePickerOptions.CancelText = await this.normalizeResourceAsync(control.Options.DatePickerOptions.CancelText);
 				}
+			}
+			else if (AppUtility.isEquals(control.Type, "FilePicker") && AppUtility.isNotEmpty(control.Options.FilePickerOptions.WarningOnDelete)) {
+				control.Options.FilePickerOptions.WarningOnDelete = await this.normalizeResourceAsync(control.Options.FilePickerOptions.WarningOnDelete);
 			}
 			if (control.SubControls !== undefined) {
 				await this.prepareControlsAsync(control.SubControls.Controls, modifyDatePickers);

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter, ViewChild, ChangeDetectorRef } from "@angular/core";
-import { FormGroup, FormArray } from "@angular/forms";
+import { FormGroup } from "@angular/forms";
 import { CompleterService } from "ng2-completer";
 import { AppUtility } from "./app.utility";
 import { AppFormsControl, AppFormsService } from "./forms.service";
@@ -162,7 +162,15 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get isAllowDelete() {
-		return this.isImagePickerControl ? this.control.Options.FilePickerOptions.AllowDelete && this.value !== undefined && this.value.new !== undefined : false;
+		return this.isLookupControl
+			? this.control.Options.LookupOptions.Multiple && this.control.Options.LookupOptions.DisplayValues && this.control.Options.LookupOptions.DisplayValues.length > 0
+			: this.isDatePickerControl
+				? this.control.Options.DatePickerOptions.AllowDelete
+				: this.isFilePickerControl
+					? this.isImagePickerControl
+						? this.control.Options.FilePickerOptions.AllowDelete && this.value !== undefined && this.value.new !== undefined
+						: this.control.Options.FilePickerOptions.AllowDelete
+					: false;
 	}
 
 	get deleteIcon() {
@@ -217,11 +225,11 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get type() {
-		return (this.isPasswordControl && this.show ? "text" : this.control.Options.Type || "text").trim().toLowerCase();
+		return (this.isPasswordControl && this.show ? "text" : this.control.Options.Type).trim().toLowerCase();
 	}
 
 	get required() {
-		return this.visible && this.control.Required ? true : undefined;
+		return this.control.Required ? true : undefined;
 	}
 
 	get disabled() {
@@ -522,24 +530,62 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	clickButton(control: AppFormsControl, formGroup: FormGroup) {
-		if (control.Options.ButtonOptions.OnClick !== undefined) {
+		if (control !== undefined && control.Options.ButtonOptions.OnClick !== undefined) {
 			control.Options.ButtonOptions.OnClick(control, formGroup);
 		}
 	}
 
-	deleteValue(value?: any) {
-		if (this.isFilePickerControl) {
-			if (this.control.Options.FilePickerOptions.OnDelete !== undefined) {
-				this.control.Options.FilePickerOptions.OnDelete(value as string, this.control, this.formControl, this.formGroup);
+	get captchaURI() {
+		return this.control.captchaURI;
+	}
+
+	refreshCaptchaImage() {
+		this.deleteValueAsync();
+		this.refreshCaptcha.emit(this.control);
+	}
+
+	trackControl(index: number, control: AppFormsControl) {
+		return `${control.Name}@${index}`;
+	}
+
+	async deleteValueAsync(value?: any) {
+		if (this.isLookupControl) {
+			if (this.control.Options.LookupOptions.OnDelete !== undefined) {
+				if (AppUtility.isNotEmpty(this.control.Options.LookupOptions.WarningOnDelete)) {
+					await this.appFormsSvc.showAlertAsync(
+						undefined,
+						undefined,
+						this.control.Options.LookupOptions.WarningOnDelete,
+						() => this.control.Options.LookupOptions.OnDelete(value as string, this.control, this.formControl, this.formGroup),
+						await this.appFormsSvc.getResourceAsync("common.buttons.ok"),
+						await this.appFormsSvc.getResourceAsync("common.buttons.cancel")
+					);
+				}
+				else {
+					this.control.Options.LookupOptions.OnDelete(value as string, this.control, this.formControl, this.formGroup);
+				}
 			}
 		}
-		else if (this.isCompleter || this.isModal) {
-			if (this.control.Options.LookupOptions.OnDeleteValue !== undefined) {
-				this.control.Options.LookupOptions.OnDeleteValue(value as string, this.control, this.formControl, this.formGroup);
+		else if (this.isFilePickerControl) {
+			if (this.control.Options.FilePickerOptions.OnDelete !== undefined) {
+				if (AppUtility.isNotEmpty(this.control.Options.FilePickerOptions.WarningOnDelete)) {
+					await this.appFormsSvc.showAlertAsync(
+						undefined,
+						undefined,
+						this.control.Options.FilePickerOptions.WarningOnDelete,
+						() => this.control.Options.FilePickerOptions.OnDelete(value as string, this.control, this.formControl, this.formGroup),
+						await this.appFormsSvc.getResourceAsync("common.buttons.ok"),
+						await this.appFormsSvc.getResourceAsync("common.buttons.cancel")
+					);
+				}
+				else {
+					this.control.Options.FilePickerOptions.OnDelete(value as string, this.control, this.formControl, this.formGroup);
+				}
 			}
 		}
 		else if (this.formControl !== undefined) {
 			this.formControl.setValue(undefined);
+			this.control.focus();
 		}
 	}
 
@@ -607,7 +653,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		// special control: completer
 		else if (this.isCompleter) {
 			if (this.isCompleterOfAddress) {
-				let address = event !== undefined ? event.originalObject : undefined;
+				let address = AppUtility.isObject(event, true) ? event.originalObject : undefined;
 				if (address === undefined && AppUtility.isEquals(this._step, "ngAfterViewInit") && this.completerInitialValue !== undefined) {
 					address = this.completerInitialValue;
 					this._step = "ngDone";
@@ -624,7 +670,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			}
 		}
 
-		// special control: checkboxes or drop-down
+		// special control: check-boxes or drop-down
 		else if (this.selectAsCheckBoxes || (this.selectAsDropdown && this.selectMultiple)) {
 			if (AppUtility.isArray(event)) {
 				this._selectValues = event as Array<string>;
@@ -652,20 +698,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				this.focusNext();
 			}
 		}
-	}
-
-	get captchaURI() {
-		return this.control.captchaURI;
-	}
-
-	refreshCaptchaImage() {
-		this.control.value = "";
-		this.control.focus();
-		this.refreshCaptcha.emit(this.control);
-	}
-
-	trackControl(index: number, control: AppFormsControl) {
-		return `${control.Name}@${index}`;
 	}
 
 }
