@@ -8,8 +8,8 @@ import { AppConfig } from "../app.config";
 import { AppXHR } from "./app.apis";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
-import { ConfigurationService } from "../services/configuration.service";
 import { AppFormsControlComponent } from "./forms.control.component";
+import { ConfigurationService } from "../services/configuration.service";
 
 /** Presents the settings of a segment (means a tab that contains group of controls) in the dynamic forms */
 export class AppFormsSegment {
@@ -72,7 +72,6 @@ export interface AppFormsControlConfig {
 		};
 		Type?: string;
 		Name?: string;
-		Icon?: string;
 		Css?: string;
 		Color?: string;
 		PlaceHolder?: string;
@@ -91,6 +90,11 @@ export interface AppFormsControlConfig {
 		OnKeyUp?: (event: KeyboardEvent, control: AppFormsControlComponent) => void;
 		OnBlur?: (event: any, control: AppFormsControlComponent) => void;
 		OnChanged?: (event: any, control: AppFormsControlComponent) => void;
+		Icon?: {
+			Name?: string;
+			Slot?: string;
+			OnClick?: (control: AppFormsControlComponent) => void;
+		};
 		SelectOptions?: {
 			Values?: string | Array<string> | Array<{ Value: string, Label: string }>;
 			RemoteURI?: string;
@@ -116,7 +120,6 @@ export interface AppFormsControlConfig {
 				OnInitialized?: (control: AppFormsControlComponent) => void;
 				OnSelected?: (item: any, control: AppFormsControlComponent) => void;
 				AllowLookupByModal?: boolean;
-				LookupByModalButtonIcon?: string;
 				OnModalDismiss?: (data?: any, control?: AppFormsControlComponent) => any;
 			};
 			AsModal?: boolean;
@@ -215,7 +218,6 @@ export class AppFormsControl {
 		},
 		Type: "text",
 		Name: "",
-		Icon: "",
 		Css: "",
 		Color: "",
 		PlaceHolder: undefined as string,
@@ -234,6 +236,11 @@ export class AppFormsControl {
 		OnKeyUp: undefined as (event: KeyboardEvent, control: AppFormsControlComponent) => void,
 		OnBlur: undefined as (event: any, control: AppFormsControlComponent) => void,
 		OnChanged: undefined as (event: any, control: AppFormsControlComponent) => void,
+		Icon: {
+			Name: undefined as string,
+			Slot: undefined as string,
+			OnClick: undefined as (control: AppFormsControlComponent) => void
+		},
 		SelectOptions: {
 			Values: undefined as Array<{ Value: string, Label: string }>,
 			RemoteURI: undefined as string,
@@ -259,7 +266,6 @@ export class AppFormsControl {
 				OnInitialized: undefined as (control: AppFormsControlComponent) => void,
 				OnSelected: undefined as (item: any, control: AppFormsControlComponent) => void,
 				AllowLookupByModal: false,
-				LookupByModalButtonIcon: undefined as string,
 				OnModalDismiss: undefined as (data?: any, control?: AppFormsControlComponent) => any
 			},
 			AsModal: false,
@@ -324,73 +330,73 @@ export class AppFormsControl {
 
 	/** Gets uri of the captcha image */
 	public get captchaURI() {
-		return this.Extras["_data:CaptchaURI"];
+		return this.Extras["_captchaURI"];
 	}
 
 	/** Sets uri of the captcha image */
 	public set captchaURI(value: string) {
-		this.Extras["_data:CaptchaURI"] = value;
+		this.Extras["_captchaURI"] = value;
 	}
 
 	/** Gets the reference to the UI element */
 	public get elementRef() {
-		return this.Extras["_ctrl:ElementRef"];
+		return this.Extras["_elementRef"];
 	}
 
 	/** Sets the reference to the UI element */
 	public set elementRef(value: any) {
-		this.Extras["_ctrl:ElementRef"] = value;
+		this.Extras["_elementRef"] = value;
 	}
 
 	/** Gets the reference to the form control */
 	public get formControlRef() {
-		return this.Extras["_ctrl:FormControlRef"];
+		return this.Extras["_formRef"];
 	}
 
 	/** Sets the reference to the form control */
 	public set formControlRef(value: AbstractControl) {
-		this.Extras["_ctrl:FormControlRef"] = value;
+		this.Extras["_formRef"] = value;
 	}
 
 	/** Gets the reference to the form control component */
 	public get controlRef() {
-		return this.Extras["_ctrl:ControlRef"];
+		return this.Extras["_controlRef"];
 	}
 
 	/** Sets the reference to the form control component */
 	public set controlRef(value: AppFormsControlComponent) {
-		this.Extras["_ctrl:ControlRef"] = value;
+		this.Extras["_controlRef"] = value;
 	}
 
 	/** Gets the reference to the next sibling */
 	public get next() {
-		return this.Extras["_cfg:Next"];
+		return this.Extras["_nextControl"];
 	}
 
 	/** Sets the reference to the next sibling */
 	public set next(value: AppFormsControl) {
-		this.Extras["_cfg:Next"] = value;
+		this.Extras["_nextControl"] = value;
 	}
 
 	/** Gets the reference to the parent sibling */
 	public get parent() {
-		return this.Extras["_cfg:Parent"];
+		return this.Extras["_parentControl"];
 	}
 
 	/** Sets the reference to the parent sibling */
 	public set parent(value: AppFormsControl) {
-		this.Extras["_cfg:Parent"] = value;
+		this.Extras["_parentControl"] = value;
 	}
 
 	/** Gets the index of segment (if has) */
 	public get segmentIndex() {
-		const index = this.Extras["_cfg:SegmentIndex"];
+		const index = this.Extras["_segmentIndex"];
 		return index !== undefined ? index as number : 0;
 	}
 
 	/** Sets the index of segment (if has) */
 	public set segmentIndex(value: number) {
-		this.Extras["_cfg:SegmentIndex"] = value;
+		this.Extras["_segmentIndex"] = value;
 	}
 
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeName?: string) {
@@ -428,7 +434,6 @@ export class AppFormsControl {
 
 			control.Options.Type = controlOptions.Type || controlOptions.type || "text";
 			control.Options.Name = controlOptions.Name || controlOptions.name || (alternativeName !== undefined ? `${alternativeName}-${control.Name}` : `${control.Name}`);
-			control.Options.Icon = controlOptions.Icon || controlOptions.icon;
 			control.Options.Css = controlOptions.Css || controlOptions.css || "";
 			control.Options.Color = controlOptions.Color || controlOptions.color;
 			control.Options.PlaceHolder = controlOptions.PlaceHolder || controlOptions.placeHolder || controlOptions.placeholder;
@@ -452,6 +457,15 @@ export class AppFormsControl {
 			control.Options.OnKeyUp = controlOptions.OnKeyUp || controlOptions.onKeyUp || controlOptions.onkeyup;
 			control.Options.OnBlur = controlOptions.OnBlur || controlOptions.onBlur || controlOptions.onblur;
 			control.Options.OnChanged = controlOptions.OnChanged || controlOptions.onChanged || controlOptions.onchanged;
+
+			let icon = controlOptions.Icon || controlOptions.icon;
+			if (icon !== undefined) {
+				control.Options.Icon = {
+					Name: icon.Name || icon.name,
+					Slot: icon.Slot || icon.slot,
+					OnClick: icon.OnClick || icon.onClick || icon.onclick,
+				};
+			}
 
 			const selectOptions = controlOptions.SelectOptions || controlOptions.selectOptions || controlOptions.selectoptions;
 			if (selectOptions !== undefined) {
@@ -502,7 +516,6 @@ export class AppFormsControl {
 						OnInitialized: completerOptions.OnInitialized || completerOptions.onInitialized || completerOptions.oninitialized,
 						OnSelected: completerOptions.OnSelected || completerOptions.onSelected || completerOptions.onselected,
 						AllowLookupByModal: !!(completerOptions.AllowLookupByModal || completerOptions.allowLookupByModal || completerOptions.allowlookupbymodal),
-						LookupByModalButtonIcon: completerOptions.LookupByModalButtonIcon || completerOptions.lookupByModalButtonIcon || completerOptions.lookupbymodalbuttonicon || "duplicate",
 						OnModalDismiss: completerOptions.OnModalDismiss || completerOptions.onModalDismiss || completerOptions.onmodaldismiss
 					},
 					AsModal: asModal,
@@ -514,7 +527,7 @@ export class AppFormsControl {
 						OnDismiss: modalOptions.OnDismiss || modalOptions.onDismiss || modalOptions.ondismiss
 					},
 					Multiple: multiple,
-					OnDelete: multiple ? lookupOptions.OnDeleteValue || lookupOptions.onDeleteValue || lookupOptions.ondeletevalue : undefined,
+					OnDelete: multiple ? lookupOptions.OnDelete || lookupOptions.onDelete || lookupOptions.ondelete : undefined,
 					WarningOnDelete: multiple ? lookupOptions.WarningOnDelete || lookupOptions.warningOnDelete || lookupOptions.warningondelete : undefined,
 					DisplayValues: multiple ? [] : undefined,
 				};
@@ -568,7 +581,7 @@ export class AppFormsControl {
 
 			const buttonOptions = controlOptions.ButtonOptions || controlOptions.buttonOptions || controlOptions.buttonoptions;
 			if (buttonOptions !== undefined) {
-				const icon = buttonOptions.Icon || buttonOptions.icon || {};
+				icon = buttonOptions.Icon || buttonOptions.icon || {};
 				control.Options.ButtonOptions = {
 					OnClick: buttonOptions.OnClick || buttonOptions.onClick || buttonOptions.onclick,
 					Fill: buttonOptions.Fill || buttonOptions.fill || "solid",
@@ -610,6 +623,7 @@ export class AppFormsControl {
 		options.Options.OnKeyUp = this.Options.OnKeyUp;
 		options.Options.OnBlur = this.Options.OnBlur;
 		options.Options.OnChanged = this.Options.OnChanged;
+		options.Options.Icon.OnClick = this.Options.Icon.OnClick;
 		options.Options.SelectOptions.InterfaceOptions = this.Options.SelectOptions.InterfaceOptions;
 		options.Options.LookupOptions.OnDelete = this.Options.LookupOptions.OnDelete;
 		options.Options.LookupOptions.CompleterOptions.DataSource = this.Options.LookupOptions.CompleterOptions.DataSource;
@@ -931,6 +945,12 @@ export class AppFormsService {
 	private getAsyncValidators(control: AppFormsControl) {
 		const asyncValidators = new Array<AsyncValidatorFn>();
 		return asyncValidators;
+	}
+
+	/** Validates the form, highlight and return the invalid control (if has) */
+	validate(form: FormGroup) {
+		form.updateValueAndValidity();
+		return form.invalid ? this.highlightInvalids(form) : undefined;
 	}
 
 	/** Highlights all invalid controls (by mark as dirty on all invalid controls) and set focus into first invalid control */

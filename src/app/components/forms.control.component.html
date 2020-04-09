@@ -7,21 +7,13 @@
 	[class.select-dropdown]="selectAsDropdown"
 	[class.select-multiple]="selectAsMultiple">
 
-	<ion-button *ngIf="icon" fill="clear" slot="start" tabindex="-1">
+	<ion-button *ngIf="icon" fill="clear" tabindex="-1" [slot]="iconSlot" (click)="clickOnIcon()">
 		<ion-icon [name]="icon" slot="icon-only"></ion-icon>
 	</ion-button>
 
 	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="switchPasswordControlOnOff()">
 		<ion-icon name="eye" slot="icon-only" [hidden]="!showPassword"></ion-icon>
 		<ion-icon name="eye-off" slot="icon-only" [hidden]="showPassword"></ion-icon>
-	</ion-button>
-
-	<ion-button *ngIf="isImagePickerControl && isAllowDelete" fill="clear" color="medium" slot="end" tabindex="-1" (click)="deleteValueAsync()">
-		<ion-icon [name]="deleteIcon" slot="icon-only"></ion-icon>
-	</ion-button>
-
-	<ion-button *ngIf="isCompleterAllowLookupByModal" fill="clear" color="medium" slot="end" tabindex="-1" (click)="completerLookupAsync()">
-		<ion-icon [name]="completerLookupByModalButtonIcon" slot="icon-only"></ion-icon>
 	</ion-button>
 
 	<ion-label *ngIf="label"
@@ -191,9 +183,9 @@
 </ion-item>
 
 <ion-item *ngIf="isLookupControl && isAllowDelete">
-	<ion-chip *ngFor="let chip of lookupDisplayValues">
-		<ion-label>{{ chip.Label }}</ion-label>
-		<ion-icon name="close-circle" (click)="deleteValueAsync(chip.Value)"></ion-icon>
+	<ion-chip *ngFor="let lookup of lookupDisplayValues">
+		<ion-label>{{ lookup.Label }}</ion-label>
+		<ion-icon name="close-circle" (click)="deleteValue(lookup.Value)"></ion-icon>
 	</ion-chip>
 </ion-item>
 
@@ -322,12 +314,12 @@
 </ion-list>
 
 <ion-buttons *ngIf="visible && isFormButtons" class="ion-padding" style="background-color:var(--ion-color-base)">
-	<ion-button *ngFor="let ctrl of control.SubControls.Controls; trackBy: trackControl"
-		[fill]="ctrl.Options.ButtonOptions.Fill"
-		[color]="ctrl.Options.ButtonOptions.Color"
-		(click)="clickOnButton(ctrl, formControlAsFormGroup)">
-		<ion-icon *ngIf="ctrl.Options.ButtonOptions.Icon.Name" [icon]="ctrl.Options.ButtonOptions.Icon.Name" [slot]="ctrl.Options.ButtonOptions.Icon.Slot"></ion-icon>
-		{{ ctrl.Options.Label }}
+	<ion-button *ngFor="let button of control.SubControls.Controls; trackBy: trackControl"
+		[fill]="button.Options.ButtonOptions.Fill"
+		[color]="button.Options.ButtonOptions.Color"
+		(click)="clickOnButton(button, formControlAsFormGroup)">
+		<ion-icon *ngIf="button.Options.ButtonOptions.Icon.Name" [icon]="button.Options.ButtonOptions.Icon.Name" [slot]="button.Options.ButtonOptions.Icon.Slot || 'start'"></ion-icon>
+		{{ button.Options.Label }}
 	</ion-button>
 </ion-buttons>
 

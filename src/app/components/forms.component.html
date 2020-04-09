@@ -1,4 +1,4 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit($event)">
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
 
 	<div *ngIf="gotSegments">
 		<ion-segment class="segments" [color]="color" [value]="segments.current" (ionChange)="onSegmentChanged($event)">

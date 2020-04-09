@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitte
 import { FormGroup } from "@angular/forms";
 import { AppConfig } from "../app.config";
 import { AppFormsControl, AppFormsControlConfig, AppFormsSegment, AppFormsService } from "./forms.service";
+import { AppFormsControlComponent } from "./forms.control.component";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 
@@ -37,16 +38,16 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Input() value: any;
 
 	/** The event handler to run when the form was initialized */
-	@Output() init: EventEmitter<any> = new EventEmitter();
+	@Output() init: EventEmitter<AppFormsComponent> = new EventEmitter<AppFormsComponent>();
 
 	/** The event handler to run when the form was submitted */
-	@Output() submit: EventEmitter<any> = new EventEmitter();
+	@Output() submit: EventEmitter<AppFormsComponent> = new EventEmitter<AppFormsComponent>();
 
 	/** The event handler to run when the captcha code of the form was refreshed */
-	@Output() refreshCaptcha: EventEmitter<any> = new EventEmitter();
+	@Output() refreshCaptcha: EventEmitter<AppFormsControlComponent> = new EventEmitter<AppFormsControlComponent>();
 
 	/** The event handler to run when the form was focused into last control */
-	@Output() lastFocus: EventEmitter<any> = new EventEmitter();
+	@Output() lastFocus: EventEmitter<AppFormsControlComponent> = new EventEmitter<AppFormsControlComponent>();
 
 	ngOnInit() {
 		this.segments = this.segments || { items: undefined, default: undefined, current: undefined };
@@ -86,15 +87,15 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.lastFocus.unsubscribe();
 	}
 
-	onSubmit(event: any) {
-		this.submit.emit(event);
+	onSubmit() {
+		this.submit.emit(this);
 	}
 
-	onRefreshCaptcha(event: any) {
+	onRefreshCaptcha(event: AppFormsControlComponent) {
 		this.refreshCaptcha.emit(event);
 	}
 
-	onLastFocus(event: any) {
+	onLastFocus(event: AppFormsControlComponent) {
 		this.lastFocus.emit(event);
 	}
 
