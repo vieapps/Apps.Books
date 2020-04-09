@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, Input, 
 import { AppUtility } from "../../components/app.utility";
 import { AppFormsControl, AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../services/configuration.service";
+import { AuthenticationService } from "../../services/authentication.service";
 import { UsersService } from "../../services/users.service";
 import { Privilege, Privileges } from "../../models/privileges";
 import { UserProfile } from "../../models/user";
@@ -19,6 +20,7 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		public configSvc: ConfigurationService,
 		private changeDetector: ChangeDetectorRef,
 		private appFormsSvc: AppFormsService,
+		private authSvc: AuthenticationService,
 		private userSvc: UsersService
 	) {
 	}
@@ -42,7 +44,7 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 	@Input() roleComponentProps: { [key: string]: any };
 
 	/** The event handler to run when the controls was initialized */
-	@Output() init: EventEmitter<any> = new EventEmitter();
+	@Output() init: EventEmitter<ObjectPrivilegesControl> = new EventEmitter<ObjectPrivilegesControl>();
 
 	/** The event handler to run when the control was changed */
 	@Output() change = new EventEmitter<any>();
@@ -61,7 +63,7 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		},
 		inheritFromParent: "Inherit from parent",
 		confirmDelete: "Are you sure you want to delete?",
-		names: {} as {
+		sections: {} as {
 			[key: string]: {
 				label: string;
 				description: string;
@@ -72,7 +74,7 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 	};
 
 	initialized = false;
-	names = Privileges.sections;
+	sections = Privileges.sections;
 
 	roles = {} as { [key: string]: Array<{ id: string, name: string }> };
 	users = {} as { [key: string]: Array<{ id: string, name: string }> };
@@ -131,24 +133,24 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		this.labels.inheritFromParent = await this.configSvc.getResourceAsync("privileges.objects.inheritFromParent");
 		this.labels.confirmDelete = await this.configSvc.getResourceAsync("common.messages.delete.selected");
 
-		this.names.forEach(name => this.labels.names[name] = {
+		this.sections.forEach(name => this.labels.sections[name] = {
 			label: `privileges.objects.${name}.label`,
 			description: `privileges.objects.${name}.description`,
 			roles: `privileges.objects.${name}.roles`,
 			users: `privileges.objects.${name}.users`
 		});
 
-		await Promise.all(this.names.map(async name => {
-			this.labels.names[name].label = await this.appFormsSvc.getResourceAsync(this.labels.names[name].label);
-			this.labels.names[name].description = await this.appFormsSvc.getResourceAsync(this.labels.names[name].description);
-			this.labels.names[name].roles = await this.appFormsSvc.getResourceAsync(this.labels.names[name].roles);
-			this.labels.names[name].users = await this.appFormsSvc.getResourceAsync(this.labels.names[name].users);
+		await Promise.all(this.sections.map(async name => {
+			this.labels.sections[name].label = await this.appFormsSvc.getResourceAsync(this.labels.sections[name].label);
+			this.labels.sections[name].description = await this.appFormsSvc.getResourceAsync(this.labels.sections[name].description);
+			this.labels.sections[name].roles = await this.appFormsSvc.getResourceAsync(this.labels.sections[name].roles);
+			this.labels.sections[name].users = await this.appFormsSvc.getResourceAsync(this.labels.sections[name].users);
 		}));
 	}
 
-	private prepareRolesAndUsers(names?: Array<string>) {
-		const arraysOfPrivileges = Privileges.getPrivileges(this.privileges, names);
-		(names || this.names).forEach(name => {
+	private prepareRolesAndUsers(sections?: Array<string>) {
+		const arraysOfPrivileges = Privileges.getPrivileges(this.privileges, sections);
+		(sections || this.sections).forEach(name => {
 			this.roles[name] = arraysOfPrivileges[`${name}Roles`].map(id => {
 				return { id: id, name: undefined };
 			});
@@ -158,8 +160,8 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		});
 	}
 
-	private prepareNamesOfRolesAndUsersAsync(names?: Array<string>) {
-		return Promise.all((names || this.names).map(async name => await Promise.all([
+	private prepareNamesOfRolesAndUsersAsync(sections?: Array<string>) {
+		return Promise.all((sections || this.sections).map(async name => await Promise.all([
 			Promise.all(this.roles[name].filter(role => role.name === undefined).map(async role => {
 				if (Privilege.systemRoles.indexOf(role.id) > -1) {
 					role.name = await this.appFormsSvc.getResourceAsync(`privileges.roles.systems.${role.id}`);
@@ -192,15 +194,15 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		this.emitChanges();
 	}
 
-	isRoleChecked(name: string, id: string) {
-		const roles = this.selectedRoles[name];
+	isRoleChecked(section: string, id: string) {
+		const roles = this.selectedRoles[section];
 		return roles !== undefined && roles.length > 0 && roles.indexOf(id) > -1;
 	}
 
-	selectRole(name: string, id: string, event: any) {
-		let roles = this.selectedRoles[name];
+	selectRole(section: string, id: string, event: any) {
+		let roles = this.selectedRoles[section];
 		if (roles === undefined) {
-			roles = this.selectedRoles[name] = new Array<string>();
+			roles = this.selectedRoles[section] = new Array<string>();
 		}
 		if (!event.detail.checked) {
 			AppUtility.removeAt(roles, roles.indexOf(id));
@@ -210,7 +212,7 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		}
 	}
 
-	addRolesAsync(name: string) {
+	addRolesAsync(section: string) {
 		if (this.roleComponent === undefined) {
 			return this.appFormsSvc.showAlertAsync(undefined, undefined, "Role component is invalid");
 		}
@@ -219,43 +221,43 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		if (this.roleComponentProps !== undefined) {
 			Object.keys(this.roleComponentProps).forEach(key => componentProps[key] = this.roleComponentProps[key]);
 		}
-		componentProps["name"] = name;
+		componentProps["section"] = section;
 		componentProps["multiple"] = true;
 
 		return this.appFormsSvc.showModalAsync(this.roleComponent, componentProps, async roles => {
-			AppUtility.updateSet(this.privileges.getRoles(name), roles as Array<string>);
-			this.prepareRolesAndUsers([name]);
+			AppUtility.updateSet(this.privileges.getRoles(section), roles as Array<string>);
+			this.prepareRolesAndUsers([section]);
 			this.emitChanges();
-			await this.prepareNamesOfRolesAndUsersAsync([name]);
+			await this.prepareNamesOfRolesAndUsersAsync([section]);
 		});
 	}
 
-	async deleteRolesAsync(name: string) {
+	async deleteRolesAsync(section: string) {
 		return this.appFormsSvc.showAlertAsync(
 			undefined,
 			undefined,
 			this.labels.confirmDelete,
 			async () => {
-				AppUtility.updateSet(this.privileges.getRoles(name), this.selectedRoles[name], false);
-				this.selectedRoles[name] = [];
-				this.prepareRolesAndUsers([name]);
+				AppUtility.updateSet(this.privileges.getRoles(section), this.selectedRoles[section], false);
+				this.selectedRoles[section] = [];
+				this.prepareRolesAndUsers([section]);
 				this.emitChanges();
-				await this.prepareNamesOfRolesAndUsersAsync([name]);
+				await this.prepareNamesOfRolesAndUsersAsync([section]);
 			},
 			this.labels.buttons.ok,
 			this.labels.buttons.cancel
 		);
 	}
 
-	isUserChecked(name: string, id: string) {
-		const users = this.selectedUsers[name];
+	isUserChecked(section: string, id: string) {
+		const users = this.selectedUsers[section];
 		return users !== undefined && users.length > 0 && users.indexOf(id) > -1;
 	}
 
-	selectUser(name: string, id: string, event: any) {
-		let users = this.selectedUsers[name];
+	selectUser(section: string, id: string, event: any) {
+		let users = this.selectedUsers[section];
 		if (users === undefined) {
-			users = this.selectedUsers[name] = new Array<string>();
+			users = this.selectedUsers[section] = new Array<string>();
 		}
 		if (!event.detail.checked) {
 			AppUtility.removeAt(users, users.indexOf(id));
@@ -265,26 +267,26 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		}
 	}
 
-	async addUsersAsync(name: string) {
-		return this.appFormsSvc.showModalAsync(UsersSelectorModalPage, { name: name, multiple: true }, async users => {
-			AppUtility.updateSet(this.privileges.getUsers(name), users as Array<string>);
-			this.prepareRolesAndUsers([name]);
+	async addUsersAsync(section: string) {
+		return this.appFormsSvc.showModalAsync(UsersSelectorModalPage, { section: section, multiple: true, hideEmails: !this.authSvc.isSystemAdministrator() }, async users => {
+			AppUtility.updateSet(this.privileges.getUsers(section), users as Array<string>);
+			this.prepareRolesAndUsers([section]);
 			this.emitChanges();
-			await this.prepareNamesOfRolesAndUsersAsync([name]);
+			await this.prepareNamesOfRolesAndUsersAsync([section]);
 		});
 	}
 
-	async deleteUsersAsync(name: string) {
+	async deleteUsersAsync(section: string) {
 		return this.appFormsSvc.showAlertAsync(
 			undefined,
 			undefined,
 			this.labels.confirmDelete,
 			async () => {
-				AppUtility.updateSet(this.privileges.getUsers(name), this.selectedUsers[name], false);
-				this.selectedUsers[name] = [];
-				this.prepareRolesAndUsers([name]);
+				AppUtility.updateSet(this.privileges.getUsers(section), this.selectedUsers[section], false);
+				this.selectedUsers[section] = [];
+				this.prepareRolesAndUsers([section]);
 				this.emitChanges();
-				await this.prepareNamesOfRolesAndUsersAsync([name]);
+				await this.prepareNamesOfRolesAndUsersAsync([section]);
 			},
 			this.labels.buttons.ok,
 			this.labels.buttons.cancel

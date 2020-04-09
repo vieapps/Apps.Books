@@ -8,6 +8,7 @@ import { PlatformUtility } from "../../components/app.utility.platform";
 import { AppPagination, AppDataPagination, AppDataRequest } from "../../components/app.pagination";
 import { AppFormsService } from "../../components/forms.service";
 import { ConfigurationService } from "../../services/configuration.service";
+import { AuthenticationService } from "../../services/authentication.service";
 import { UsersService } from "../../services/users.service";
 import { UserProfile } from "../../models/user";
 
@@ -22,6 +23,7 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 	constructor(
 		public configSvc: ConfigurationService,
 		private appFormsSvc: AppFormsService,
+		private authSvc: AuthenticationService,
 		private usersSvc: UsersService
 	) {
 	}
@@ -54,12 +56,8 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 	@ViewChild(IonInfiniteScroll, { static: true }) private infiniteScrollCtrl: IonInfiniteScroll;
 
 	ngOnInit() {
-		if (this.multiple === undefined) {
-			this.multiple = true;
-		}
-		if (this.hideEmails === undefined) {
-			this.hideEmails = true;
-		}
+		this.multiple = this.multiple === undefined ? true : this.multiple;
+		this.hideEmails = this.hideEmails === undefined ? !this.authSvc.isSystemAdministrator() : this.hideEmails;
 		this.initializeAsync();
 	}
 
@@ -82,10 +80,6 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 
 	track(index: number, profile: UserProfile) {
 		return this.searching ? `${index}.${profile.ID}` : `${profile.ID}@${index}`;
-	}
-
-	getEmail(profile: UserProfile) {
-		return this.hideEmails ? AppUtility.getHiddenEmail(profile.Email) : profile.Email;
 	}
 
 	openSearch() {
@@ -117,11 +111,7 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 
 	async onInfiniteScrollAsync() {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
-			await this.searchAsync(async () => {
-				if (this.infiniteScrollCtrl !== undefined) {
-					await this.infiniteScrollCtrl.complete();
-				}
-			});
+			await this.searchAsync(async () => await (this.infiniteScrollCtrl !== undefined ? this.infiniteScrollCtrl.complete() : new Promise<void>(() => {})));
 		}
 		else if (this.infiniteScrollCtrl !== undefined) {
 			await this.infiniteScrollCtrl.complete();
@@ -129,13 +119,13 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 		}
 	}
 
-	async startSearchAsync(onNext?: () => void, pagination?: AppDataPagination) {
+	private async startSearchAsync(onNext?: () => void, pagination?: AppDataPagination) {
 		this.pagination = pagination || AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, `profile@${this.usersSvc.name}`.toLowerCase()) || AppPagination.getDefault();
 		this.pagination.PageNumber = this.pageNumber = 0;
 		await this.searchAsync(onNext);
 	}
 
-	async searchAsync(onNext?: () => void) {
+	private async searchAsync(onNext?: () => void) {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		const onNextAsync = async (data: any) => {
 			this.pageNumber++;
@@ -151,7 +141,7 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 		}
 	}
 
-	cancelSearch(dontDisableInfiniteScroll?: boolean) {
+	private cancelSearch(dontDisableInfiniteScroll?: boolean) {
 		if (this.subscription !== undefined) {
 			this.subscription.unsubscribe();
 			this.subscription = undefined;
@@ -161,7 +151,7 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 		}
 	}
 
-	prepareResults(onNext?: () => void, results?: Array<any>) {
+	private prepareResults(onNext?: () => void, results?: Array<any>) {
 		if (this.searching) {
 			(results || []).forEach(o => this.profiles.push(UserProfile.get(o.ID)));
 		}

@@ -33,7 +33,7 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 	@Input() selectInterface: string;
 
 	/** The event handler to run when the controls was initialized */
-	@Output() init: EventEmitter<any> = new EventEmitter();
+	@Output() init: EventEmitter<ServicePrivilegesControl> = new EventEmitter<ServicePrivilegesControl>();
 
 	/** The event handler to run when the control was changed */
 	@Output() change = new EventEmitter<any>();
@@ -58,8 +58,8 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 	ngOnInit() {
 		this.service = this.service || this.configSvc.appConfig.services.active;
 		this.privileges = this.privileges || [];
-		this.labelPosition = this.labelPosition || "stacked";
-		this.selectInterface = this.selectInterface || "popover";
+		this.labelPosition = (this.labelPosition || "stacked").trim().toLowerCase();
+		this.selectInterface = (this.selectInterface || "popover").trim().toLowerCase();
 
 		if (this.privileges.findIndex(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, "")) < 0) {
 			AppUtility.insertAt(this.privileges, new Privilege(this.service.toLowerCase()), 0);
