@@ -92,6 +92,8 @@ export interface AppFormsControlConfig {
 		OnChanged?: (event: any, control: AppFormsControlComponent) => void;
 		Icon?: {
 			Name?: string;
+			Fill?: string;
+			Color?: string;
 			Slot?: string;
 			OnClick?: (control: AppFormsControlComponent) => void;
 		};
@@ -238,6 +240,8 @@ export class AppFormsControl {
 		OnChanged: undefined as (event: any, control: AppFormsControlComponent) => void,
 		Icon: {
 			Name: undefined as string,
+			Fill: undefined as string,
+			Color: undefined as string,
 			Slot: undefined as string,
 			OnClick: undefined as (control: AppFormsControlComponent) => void
 		},
@@ -462,6 +466,8 @@ export class AppFormsControl {
 			if (icon !== undefined) {
 				control.Options.Icon = {
 					Name: icon.Name || icon.name,
+					Fill: icon.Fill || icon.fill,
+					Color: icon.Color || icon.color,
 					Slot: icon.Slot || icon.slot,
 					OnClick: icon.OnClick || icon.onClick || icon.onclick,
 				};
@@ -585,7 +591,7 @@ export class AppFormsControl {
 				control.Options.ButtonOptions = {
 					OnClick: buttonOptions.OnClick || buttonOptions.onClick || buttonOptions.onclick,
 					Fill: buttonOptions.Fill || buttonOptions.fill || "solid",
-					Color: buttonOptions.Color || buttonOptions.Color,
+					Color: buttonOptions.Color || buttonOptions.color,
 					Icon: {
 						Name: icon.Name || icon.name,
 						Slot: icon.Slot || icon.slot || "start"

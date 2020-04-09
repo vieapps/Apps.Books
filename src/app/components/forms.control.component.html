@@ -7,13 +7,10 @@
 	[class.select-dropdown]="selectAsDropdown"
 	[class.select-multiple]="selectAsMultiple">
 
-	<ion-button *ngIf="icon" fill="clear" tabindex="-1" [slot]="iconSlot" (click)="clickOnIcon()">
-		<ion-icon [name]="icon" slot="icon-only"></ion-icon>
-	</ion-button>
-
-	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="switchPasswordControlOnOff()">
-		<ion-icon name="eye" slot="icon-only" [hidden]="!showPassword"></ion-icon>
-		<ion-icon name="eye-off" slot="icon-only" [hidden]="showPassword"></ion-icon>
+	<ion-button *ngIf="icon || isPasswordControl" tabindex="-1" [fill]="iconFill" [color]="iconColor" [slot]="iconSlot" (click)="clickOnIcon()">
+		<ion-icon *ngIf="icon" [name]="icon" slot="icon-only"></ion-icon>
+		<ion-icon *ngIf="isPasswordControl" name="eye" slot="icon-only" [hidden]="!showPassword"></ion-icon>
+		<ion-icon *ngIf="isPasswordControl" name="eye-off" slot="icon-only" [hidden]="showPassword"></ion-icon>
 	</ion-button>
 
 	<ion-label *ngIf="label"
@@ -318,7 +315,7 @@
 		[fill]="button.Options.ButtonOptions.Fill"
 		[color]="button.Options.ButtonOptions.Color"
 		(click)="clickOnButton(button, formControlAsFormGroup)">
-		<ion-icon *ngIf="button.Options.ButtonOptions.Icon.Name" [icon]="button.Options.ButtonOptions.Icon.Name" [slot]="button.Options.ButtonOptions.Icon.Slot || 'start'"></ion-icon>
+		<ion-icon *ngIf="button.Options.ButtonOptions.Icon.Name" [icon]="button.Options.ButtonOptions.Icon.Name" [slot]="button.Options.ButtonOptions.Icon.Slot"></ion-icon>
 		{{ button.Options.Label }}
 	</ion-button>
 </ion-buttons>

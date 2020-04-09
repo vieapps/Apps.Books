@@ -585,11 +585,6 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return `${control.Name}@${index}`;
 	}
 
-	switchPasswordControlOnOff() {
-		this.showPassword = !this.showPassword;
-		this.focus();
-	}
-
 	refreshCaptchaImage() {
 		this.deleteValue();
 		this.refreshCaptcha.emit(this);
@@ -659,7 +654,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			}
 		}
 		else if (this.formControl !== undefined) {
-			this.resetValue(undefined, options, updateValueAndValidity);
+			this.setValue(undefined, options, updateValueAndValidity);
 			this.focus();
 		}
 	}
@@ -674,12 +669,26 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 					: undefined;
 	}
 
+	get iconFill() {
+		return (this.control.Options.Icon.Fill || "clear").trim().toLowerCase();
+	}
+
+	get iconColor() {
+		return (this.control.Options.Icon.Color || "medium").trim().toLowerCase();
+	}
+
 	get iconSlot() {
 		return (this.control.Options.Icon.Slot || "end").trim().toLowerCase();
 	}
 
 	clickOnIcon() {
-		if (this.isImagePickerControl && this.isAllowDelete) {
+		if (this.isPasswordControl) {
+			this.showPassword = !this.showPassword;
+			if (this.showPassword) {
+				this.focus();
+			}
+		}
+		else if (this.isImagePickerControl && this.isAllowDelete) {
 			this.deleteValue();
 		}
 		else if (this.isCompleterAllowLookupByModal) {
