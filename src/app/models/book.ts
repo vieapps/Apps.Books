@@ -9,6 +9,7 @@ export class Book extends BaseModel {
 	constructor() {
 		super();
 		delete this["Privileges"];
+		delete this["OriginalPrivileges"];
 	}
 
 	/** All instances of book */

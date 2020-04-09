@@ -10,6 +10,7 @@ export class UserProfileBase extends BaseModel {
 	constructor() {
 		super();
 		delete this["Privileges"];
+		delete this["OriginalPrivileges"];
 	}
 
 	/** All user profile instances */
@@ -93,6 +94,10 @@ export class UserProfileBase extends BaseModel {
 				onCompleted(data);
 			}
 		});
+	}
+
+	public getEmail(hideEmail: boolean = true) {
+		return hideEmail ? AppUtility.getHiddenEmail(this.Email) : this.Email;
 	}
 
 }

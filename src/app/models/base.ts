@@ -10,6 +10,9 @@ export abstract class Base {
 	/** The working privileges */
 	public Privileges: Privileges;
 
+	/** The original privileges */
+	public OriginalPrivileges: Privileges;
+
 	/** Gets the link for working with router */
 	public abstract get routerLink(): string;
 
@@ -39,6 +42,9 @@ export abstract class Base {
 		AppUtility.copy(source, this, data => {
 			if (AppUtility.isObject(data.Privileges, true)) {
 				this.Privileges = Privileges.deserialize(data.Privileges);
+			}
+			if (AppUtility.isObject(data.OriginalPrivileges, true)) {
+				this.OriginalPrivileges = Privileges.deserialize(data.OriginalPrivileges);
 			}
 			if (onCompleted !== undefined) {
 				onCompleted(data);
