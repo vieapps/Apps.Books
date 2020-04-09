@@ -4,6 +4,7 @@ import { AppCrypto } from "../../../components/app.crypto";
 import { AppEvents } from "../../../components/app.events";
 import { AppUtility } from "../../../components/app.utility";
 import { AppFormsControl, AppFormsControlConfig, AppFormsService } from "../../../components/forms.service";
+import { AppFormsComponent } from "../../../components/forms.component";
 import { TrackingUtility } from "../../../components/app.utility.trackings";
 import { ConfigurationService } from "../../../services/configuration.service";
 import { AuthenticationService } from "../../../services/authentication.service";
@@ -107,7 +108,7 @@ export class UsersUpdatePage implements OnInit {
 		);
 	}
 
-	onFormInitialized(event: any) {
+	onFormInitialized(event: AppFormsComponent) {
 		if (this.update.config === event.config) {
 			this.update.form.patchValue(this.profile);
 			this.update.form.controls.DarkTheme.setValue(this.update.darkTheme);
@@ -263,8 +264,8 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async updateProfileAsync() {
-		if (this.update.form.invalid) {
-			this.appFormsSvc.highlightInvalids(this.update.form);
+		if (!this.appFormsSvc.validate(this.update.form)) {
+			return;
 		}
 		else if (this.update.hash === AppCrypto.hash(this.update.form.value)) {
 			await this.showProfileAsync();
@@ -338,10 +339,7 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async updatePasswordAsync() {
-		if (this.password.form.invalid) {
-			this.appFormsSvc.highlightInvalids(this.password.form);
-		}
-		else {
+		if (this.appFormsSvc.validate(this.password.form)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.usersSvc.updatePasswordAsync(
 				this.password.form.value.OldPassword,
@@ -395,10 +393,7 @@ export class UsersUpdatePage implements OnInit {
 	}
 
 	async updateEmailAsync() {
-		if (this.email.form.invalid) {
-			this.appFormsSvc.highlightInvalids(this.email.form);
-		}
-		else {
+		if (this.appFormsSvc.validate(this.email.form)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			await this.usersSvc.updateEmailAsync(
 				this.email.form.value.OldPassword,

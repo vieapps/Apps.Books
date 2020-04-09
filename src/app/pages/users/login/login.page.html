@@ -17,7 +17,7 @@
 			[form]="login.form"
 			[config]="login.config"
 			[controls]="login.controls"
-			(init)="onLoginFormInitialized($event)"></app-form>
+			(init)="onLoginFormInitialized()"></app-form>
 		<ion-buttons class="ion-padding">
 			<ion-button fill="solid" color="primary" (click)="logInAsync()">
 				<ion-icon *ngIf="login.buttons.login.icon" [icon]="login.buttons.login.icon" slot="start"></ion-icon>
@@ -55,8 +55,8 @@
 			[form]="reset.form"
 			[config]="reset.config"
 			[controls]="reset.controls"
-			(init)="onResetPasswordFormInitialized($event)"
-			(refreshCaptcha)="onRefreshCaptcha($event)"></app-form>
+			(init)="onResetPasswordFormInitialized()"
+			(refreshCaptcha)="onRefreshCaptcha()"></app-form>
 		<ion-buttons class="ion-padding">
 			<ion-button fill="solid" color="primary" (click)="resetPasswordAsync()">
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>

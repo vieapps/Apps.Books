@@ -76,10 +76,10 @@ export class BooksUpdatePage implements OnInit {
 			new AppFormsSegment("others", await this.configSvc.getResourceAsync("books.update.segments.others"))
 		];
 
-		const config: Array<AppFormsControlConfig> = await this.configSvc.getDefinitionAsync(this.booksSvc.name.toLowerCase(), "book", "form-controls");
-		config.forEach(control => control.Segment = "meta");
+		const formConfig: Array<AppFormsControlConfig> = await this.configSvc.getDefinitionAsync(this.booksSvc.name.toLowerCase(), "book", "form-controls");
+		formConfig.forEach(ctrl => ctrl.Segment = "meta");
 
-		config.push(
+		formConfig.push(
 			{
 				Name: "TOCs",
 				Type: "TextArea",
@@ -97,18 +97,18 @@ export class BooksUpdatePage implements OnInit {
 				Segment: "others",
 				Options: {
 					Label: "{{books.info.controls.Cover}}",
-					OnChanged: (event, control) => {
+					OnChanged: (event, formControl) => {
 						const file: File = event.target.files !== undefined && event.target.files.length > 0 ? event.target.files[0] : undefined;
 						if (file !== undefined) {
 							this.filesSvc.readAsDataURL(
 								file,
-								data => control.setValue({ current: control.formControl.value.current, new: data }),
+								data => formControl.setValue({ current: formControl.value.current, new: data }),
 								1024000,
 								async () => await this.appFormsSvc.showToastAsync("Too big...")
 							);
 						}
 						else {
-							control.setValue({ current: control.formControl.value.current, new: undefined });
+							formControl.setValue({ current: formControl.value.current, new: undefined });
 						}
 					},
 					FilePickerOptions: {
@@ -116,17 +116,17 @@ export class BooksUpdatePage implements OnInit {
 						Multiple: false,
 						AllowPreview: true,
 						AllowDelete: true,
-						OnDelete: (_, control) => control.setValue({ current: control.formControl.value.current, new: undefined })
+						OnDelete: (_, formControl) => formControl.setValue({ current: formControl.value.current, new: undefined })
 					}
 				}
 			}
 		);
 
-		let ctrl = config.find(control => control.Name === "Language");
-		if (ctrl !== undefined && ctrl.Type === "TextBox") {
-			ctrl.Type = "Select";
-			ctrl.Options = ctrl.Options || {};
-			ctrl.Options.SelectOptions = {
+		let control = formConfig.find(ctrl => ctrl.Name === "Language");
+		if (control !== undefined && control.Type === "TextBox") {
+			control.Type = "Select";
+			control.Options = control.Options || {};
+			control.Options.SelectOptions = {
 				Values: this.configSvc.languages.map(language => {
 					return {
 						Value: language.Value.substr(0, 2),
@@ -137,19 +137,19 @@ export class BooksUpdatePage implements OnInit {
 			};
 		}
 
-		ctrl = config.find(control => control.Options !== undefined && control.Options.AutoFocus);
-		if (ctrl === undefined) {
-			ctrl = config.find(control => control.Type === "TextBox" && control.Options !== undefined && !control.Hidden);
-			if (ctrl !== undefined) {
-				ctrl.Options.AutoFocus = true;
+		control = formConfig.find(ctrl => ctrl.Options !== undefined && ctrl.Options.AutoFocus);
+		if (control === undefined) {
+			control = formConfig.find(ctrl => ctrl.Type === "TextBox" && ctrl.Options !== undefined && !ctrl.Hidden);
+			if (control !== undefined) {
+				control.Options.AutoFocus = true;
 			}
 		}
 
-		this.update.config = config;
+		this.update.config = formConfig;
 		await TrackingUtility.trackAsync(`${this.title} - ${this.book.Title}`, "/books/update/open");
 	}
 
-	onFormInitialized(event: any) {
+	onFormInitialized() {
 		this.update.form.patchValue(this.book);
 		this.update.form.controls.TOCs.setValue(this.book.TOCs.join("\n"));
 		this.update.form.controls.CoverImage.setValue({ current: AppUtility.isNotEmpty(this.book.Cover) ? this.book.Cover : undefined, new: undefined });
@@ -217,10 +217,7 @@ export class BooksUpdatePage implements OnInit {
 	}
 
 	async updateAsync() {
-		if (this.update.form.invalid) {
-			this.appFormsSvc.highlightInvalids(this.update.form);
-		}
-		else {
+		if (this.appFormsSvc.validate(this.update.form)) {
 			await this.appFormsSvc.showLoadingAsync(this.title);
 			if (this.update.form.controls.CoverImage.value.new !== undefined) {
 				await this.uploadCoverAsync(async () => await this.updateBookAsync());
