@@ -953,10 +953,14 @@ export class AppFormsService {
 		return asyncValidators;
 	}
 
-	/** Validates the form, highlight and return the invalid control (if has) */
-	validate(form: FormGroup) {
+	/** Validates the form and highlights all invalid controls (if has) */
+	public validate(form: FormGroup) {
 		form.updateValueAndValidity();
-		return form.invalid ? this.highlightInvalids(form) : undefined;
+		if (form.invalid) {
+			this.highlightInvalids(form);
+			return false;
+		}
+		return true;
 	}
 
 	/** Highlights all invalid controls (by mark as dirty on all invalid controls) and set focus into first invalid control */
