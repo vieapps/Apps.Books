@@ -113,13 +113,10 @@ export class UsersUpdatePage implements OnInit {
 			this.update.form.controls.DarkTheme.setValue(this.update.darkTheme);
 			this.update.hash = AppCrypto.hash(this.update.form.value);
 		}
-		else {
-			this.appFormsSvc.reset(event.form);
-		}
 	}
 
 	async prepareButtonsAsync() {
-		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), handler: () => this.showProfileAsync() };
+		this.buttons.cancel = { text: await this.configSvc.getResourceAsync("common.buttons.cancel"), handler: async () => await this.showProfileAsync() };
 		this.buttons.ok = { text: await this.configSvc.getResourceAsync("common.buttons.update"), handler: undefined };
 
 		if (this.mode === "profile") {
@@ -131,18 +128,18 @@ export class UsersUpdatePage implements OnInit {
 				await this.configSvc.getResourceAsync("common.buttons.ok"),
 				await this.configSvc.getResourceAsync("common.buttons.cancel")
 			);
-			this.buttons.ok.handler = () => this.updateProfileAsync();
+			this.buttons.ok.handler = async () => await this.updateProfileAsync();
 		}
 		else if (this.mode === "password") {
 			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.password");
-			this.buttons.ok.handler = () => this.updatePasswordAsync();
+			this.buttons.ok.handler = async () => await this.updatePasswordAsync();
 		}
 		else if (this.mode === "email") {
 			this.buttons.ok.text = await this.configSvc.getResourceAsync("users.profile.buttons.email");
-			this.buttons.ok.handler = () => this.updateEmailAsync();
+			this.buttons.ok.handler = async () => await this.updateEmailAsync();
 		}
 		else if (this.mode === "privileges") {
-			this.buttons.ok.handler = () => this.updateServicePrivilegesAsync();
+			this.buttons.ok.handler = async () => await this.updateServicePrivilegesAsync();
 		}
 		else {
 			this.buttons.cancel = undefined;

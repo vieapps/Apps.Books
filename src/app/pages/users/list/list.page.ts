@@ -33,7 +33,7 @@ export class UsersListPage implements OnInit, OnDestroy {
 
 	title = "Account Profiles";
 	profiles = new Array<UserProfile>();
-	ratings: { [key: string]: RatingPoint };
+	ratings: { [key: string]: RatingPoint } = {};
 	searching = false;
 	pageNumber = 0;
 	pagination: AppDataPagination;
@@ -84,11 +84,8 @@ export class UsersListPage implements OnInit, OnDestroy {
 			this.searchCtrl.placeholder = await this.configSvc.getResourceAsync("users.list.searchbar");
 		}
 		else {
-			this.ratings = {};
-			this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, `profile@${this.usersSvc.name}`.toLowerCase()) || AppPagination.getDefault();
-			this.pagination.PageNumber = this.pageNumber;
 			await this.appFormsSvc.showLoadingAsync();
-			await this.searchAsync(async () => await this.appFormsSvc.hideLoadingAsync());
+			await this.startSearchAsync(async () => await this.appFormsSvc.hideLoadingAsync());
 		}
 	}
 
@@ -126,21 +123,23 @@ export class UsersListPage implements OnInit, OnDestroy {
 
 	onCancelSearch(event: any) {
 		this.onClearSearch(event);
-		this.prepareResults();
+		this.startSearchAsync();
 	}
 
 	async onInfiniteScrollAsync() {
 		if (this.pagination.PageNumber < this.pagination.TotalPages) {
-			await this.searchAsync(async () => {
-				if (this.infiniteScrollCtrl !== undefined) {
-					await this.infiniteScrollCtrl.complete();
-				}
-			});
+			await this.searchAsync(async () => await (this.infiniteScrollCtrl !== undefined ? this.infiniteScrollCtrl.complete() : new Promise<void>(() => {})));
 		}
 		else if (this.infiniteScrollCtrl !== undefined) {
 			await this.infiniteScrollCtrl.complete();
 			this.infiniteScrollCtrl.disabled = true;
 		}
+	}
+
+	private async startSearchAsync(onNext?: () => void, pagination?: AppDataPagination) {
+		this.pagination = pagination || AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, `profile@${this.usersSvc.name}`.toLowerCase()) || AppPagination.getDefault();
+		this.pagination.PageNumber = this.pageNumber = 0;
+		await this.searchAsync(onNext);
 	}
 
 	private async searchAsync(onNext?: () => void) {

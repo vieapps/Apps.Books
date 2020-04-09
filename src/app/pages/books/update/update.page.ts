@@ -97,18 +97,18 @@ export class BooksUpdatePage implements OnInit {
 				Segment: "others",
 				Options: {
 					Label: "{{books.info.controls.Cover}}",
-					OnChanged: event => {
+					OnChanged: (event, control) => {
 						const file: File = event.target.files !== undefined && event.target.files.length > 0 ? event.target.files[0] : undefined;
 						if (file !== undefined) {
 							this.filesSvc.readAsDataURL(
 								file,
-								data => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: data }),
+								data => control.setValue({ current: control.formControl.value.current, new: data }),
 								1024000,
 								async () => await this.appFormsSvc.showToastAsync("Too big...")
 							);
 						}
 						else {
-							this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined });
+							control.setValue({ current: control.formControl.value.current, new: undefined });
 						}
 					},
 					FilePickerOptions: {
@@ -116,7 +116,7 @@ export class BooksUpdatePage implements OnInit {
 						Multiple: false,
 						AllowPreview: true,
 						AllowDelete: true,
-						OnDelete: _ => this.update.form.controls.CoverImage.setValue({ current: this.update.form.controls.CoverImage.value.current, new: undefined })
+						OnDelete: (_, control) => control.setValue({ current: control.formControl.value.current, new: undefined })
 					}
 				}
 			}

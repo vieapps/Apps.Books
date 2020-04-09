@@ -115,7 +115,6 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 	}
 
 	onLoginFormInitialized(event: any) {
-		this.appFormsSvc.reset(event.form);
 		if (this.configSvc.appConfig.isWebApp) {
 			this.login.form.patchValue({ Persistence: this.configSvc.appConfig.app.persistence });
 		}
@@ -210,11 +209,7 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 					TrackingUtility.trackAsync(this.title, this.configSvc.appConfig.url.users.otp),
 					this.appFormsSvc.hideLoadingAsync(async () => await this.closeAsync())
 				]),
-				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => {
-					const control = this.otp.controls.find(c => AppUtility.isEquals(c.Name, "OTP"));
-					control.value = "";
-					control.focus();
-				})
+				async error => await this.appFormsSvc.showErrorAsync(error, undefined, () => this.otp.controls.find(c => AppUtility.isEquals(c.Name, "OTP")).controlRef.deleteValueAsync())
 			);
 		}
 	}
@@ -272,11 +267,7 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 				]),
 				async error => await Promise.all([
 					this.refreshCaptchaAsync(),
-					this.appFormsSvc.showErrorAsync(error, undefined, () => {
-						const control = this.reset.controls.find(c => AppUtility.isEquals(c.Name, "Captcha"));
-						control.value = "";
-						control.focus();
-					})
+					this.appFormsSvc.showErrorAsync(error, undefined, () => this.reset.controls.find(c => AppUtility.isEquals(c.Name, "Captcha")).controlRef.deleteValueAsync())
 				])
 			);
 		}
@@ -288,7 +279,6 @@ export class UsersLogInPage implements OnInit, OnDestroy {
 
 	onResetPasswordFormInitialized(event: any) {
 		this.refreshCaptchaAsync();
-		this.appFormsSvc.reset(event.form);
 		this.reset.form.patchValue({ Email: this.login.form.value.Email });
 	}
 

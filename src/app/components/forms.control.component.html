@@ -11,9 +11,9 @@
 		<ion-icon [name]="icon" slot="icon-only"></ion-icon>
 	</ion-button>
 
-	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="switchPasswordControl()">
-		<ion-icon name="eye" slot="icon-only" [hidden]="!show"></ion-icon>
-		<ion-icon name="eye-off" slot="icon-only" [hidden]="show"></ion-icon>
+	<ion-button *ngIf="isPasswordControl" fill="clear" color="medium" slot="end" tabindex="-1" (click)="switchPasswordControlOnOff()">
+		<ion-icon name="eye" slot="icon-only" [hidden]="!showPassword"></ion-icon>
+		<ion-icon name="eye-off" slot="icon-only" [hidden]="showPassword"></ion-icon>
 	</ion-button>
 
 	<ion-button *ngIf="isImagePickerControl && isAllowDelete" fill="clear" color="medium" slot="end" tabindex="-1" (click)="deleteValueAsync()">
@@ -191,13 +191,15 @@
 </ion-item>
 
 <ion-item *ngIf="isLookupControl && isAllowDelete">
-	<ion-chip *ngFor="let chip of control.Options.LookupOptions.DisplayValues">
+	<ion-chip *ngFor="let chip of lookupDisplayValues">
 		<ion-label>{{ chip.Label }}</ion-label>
 		<ion-icon name="close-circle" (click)="deleteValueAsync(chip.Value)"></ion-icon>
 	</ion-chip>
 </ion-item>
 
-<ion-list *ngIf="visible && selectAsCheckBoxes" #elementRef>
+<ion-list *ngIf="visible && selectAsCheckBoxes" #elementRef
+	[formGroup]="formGroup"
+	[class.invalid]="invalid">
 
 	<ion-list-header *ngIf="label" [color]="theme">
 		<ion-label [class]="css.label">{{ label }}</ion-label>
@@ -219,6 +221,7 @@
 
 <ion-radio-group *ngIf="visible && selectAsRadioBoxes" #elementRef
 	[name]="name"
+	[formGroup]="formGroup"
 	[class.invalid]="invalid"
 	[value]="value"
 	(ionFocus)="onFocus($event)"
@@ -236,42 +239,41 @@
 
 </ion-radio-group>
 	
-<div *ngIf="visible && isCaptchaControl">
-
-	<ion-item [color]="theme" [formGroup]="formGroup" [class.invalid]="invalid">
-		<ion-label *ngIf="label"
-			[color]="color.label"
-			[position]="position"
-			[class]="css.label">{{ label }}</ion-label>
-		<ion-input type="text" #elementRef
-			[formControlName]="formControlName"
-			[name]="name"
-			[placeholder]="placeholder"
-			[class]="css.control"
-			[required]="required"
-			[readonly]="readonly"
-			[min]="minValue"
-			[max]="maxValue"
-			[minlength]="minLength"
-			[maxlength]="maxLength"
-			[attr.style]="style.control"
-			(keyup)="onKeyUp($event)"
-			(ionFocus)="onFocus($event)"
-			(ionBlur)="onBlur($event)"></ion-input>
-		<label *ngIf="description"
-			[class]="css.description"
-			[style]="style.description"
-			[innerHTML]="description"></label>
-	</ion-item>
-
-	<ion-item [color]="theme">
-		<ion-button fill="clear" (click)="refreshCaptchaImage()">
-			<ion-icon icon="refresh" slot="icon-only"></ion-icon>
-		</ion-button>
-		<img *ngIf="captchaURI" slot="start" [src]="captchaURI"/>
-	</ion-item>
-
-</div>
+<ion-item *ngIf="visible && isCaptchaControl"
+	[color]="theme"
+	[formGroup]="formGroup"
+	[class.invalid]="invalid">
+	<ion-label *ngIf="label"
+		[color]="color.label"
+		[position]="position"
+		[class]="css.label">{{ label }}</ion-label>
+	<ion-input type="text" #elementRef
+		[formControlName]="formControlName"
+		[name]="name"
+		[placeholder]="placeholder"
+		[class]="css.control"
+		[required]="required"
+		[readonly]="readonly"
+		[min]="minValue"
+		[max]="maxValue"
+		[minlength]="minLength"
+		[maxlength]="maxLength"
+		[attr.style]="style.control"
+		(keyup)="onKeyUp($event)"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"></ion-input>
+	<label *ngIf="description"
+		[class]="css.description"
+		[style]="style.description"
+		[innerHTML]="description"></label>
+</ion-item>
+<ion-item *ngIf="visible && isCaptchaControl"
+	[color]="theme">
+	<ion-button fill="clear" (click)="refreshCaptchaImage()">
+		<ion-icon icon="refresh" slot="icon-only"></ion-icon>
+	</ion-button>
+	<img *ngIf="captchaURI" slot="start" [src]="captchaURI"/>
+</ion-item>
 
 <ion-item *ngIf="visible && (isFormGroup || isFormArray) && (label || description)" [color]="theme">
 	<ion-label *ngIf="label"
@@ -323,7 +325,7 @@
 	<ion-button *ngFor="let ctrl of control.SubControls.Controls; trackBy: trackControl"
 		[fill]="ctrl.Options.ButtonOptions.Fill"
 		[color]="ctrl.Options.ButtonOptions.Color"
-		(click)="clickButton(ctrl, formControlAsFormGroup)">
+		(click)="clickOnButton(ctrl, formControlAsFormGroup)">
 		<ion-icon *ngIf="ctrl.Options.ButtonOptions.Icon.Name" [icon]="ctrl.Options.ButtonOptions.Icon.Name" [slot]="ctrl.Options.ButtonOptions.Icon.Slot"></ion-icon>
 		{{ ctrl.Options.Label }}
 	</ion-button>

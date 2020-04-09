@@ -225,7 +225,10 @@ export class BooksService extends BaseService {
 		};
 		return new AppCustomCompleter(
 			term => AppUtility.format(super.getSearchURI("book", this.configSvc.relatedQuery), { request: AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })) }),
-			data => (data.Objects as Array<any> || []).map(o => convertFn(o)),
+			data => (data.Objects as Array<any> || []).map(o => {
+				Book.update(o);
+				return convertFn(o);
+			}),
 			convertFn
 		);
 	}

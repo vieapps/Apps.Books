@@ -33,7 +33,10 @@ export class UsersService extends BaseService {
 		};
 		return new AppCustomCompleter(
 			term => AppUtility.format(super.getSearchURI("profile", this.configSvc.relatedQuery), { request: AppUtility.toBase64Url(AppPagination.buildRequest({ Query: term })) }),
-			data => (data.Objects as Array<any> || []).map(o => convertFn(o)),
+			data => (data.Objects as Array<any> || []).map(o => {
+				UserProfile.update(o);
+				return convertFn(o);
+			}),
 			convertFn
 		);
 	}

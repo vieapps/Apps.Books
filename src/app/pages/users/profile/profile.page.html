@@ -81,8 +81,7 @@
 			[color]="configSvc.color"
 			[form]="invitation.form"
 			[config]="invitation.config"
-			[controls]="invitation.controls"
-			(init)="onInvitationFormInitialized($event)"></app-form>
+			[controls]="invitation.controls"></app-form>
 		<control-service-privileges *ngIf="authSvc.canSetServicePrivileges"
 			[service]="configSvc.appConfig.services.active"
 			(change)="onServicePrivilegesChanged($event)"></control-service-privileges>

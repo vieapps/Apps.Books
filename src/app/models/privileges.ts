@@ -56,18 +56,18 @@ export class Privileges {
 		}
 	}
 
-	DownloadableRoles = new Set<string>();
-	DownloadableUsers = new Set<string>();
-	ViewableRoles = new Set<string>();
-	ViewableUsers = new Set<string>();
-	ContributiveRoles = new Set<string>();
-	ContributiveUsers = new Set<string>();
-	EditableRoles = new Set<string>();
-	EditableUsers = new Set<string>();
-	ModerateRoles = new Set<string>();
-	ModerateUsers = new Set<string>();
 	AdministrativeRoles = new Set<string>();
 	AdministrativeUsers = new Set<string>();
+	ModerateRoles = new Set<string>();
+	ModerateUsers = new Set<string>();
+	EditableRoles = new Set<string>();
+	EditableUsers = new Set<string>();
+	ContributiveRoles = new Set<string>();
+	ContributiveUsers = new Set<string>();
+	ViewableRoles = new Set<string>();
+	ViewableUsers = new Set<string>();
+	DownloadableRoles = new Set<string>();
+	DownloadableUsers = new Set<string>();
 
 	/** Gets the collection of privilege section names */
 	public static get sections() {
@@ -88,10 +88,43 @@ export class Privileges {
 		return privileges;
 	}
 
+	/** Gets the arrays of privileges */
+	public static getPrivileges(privileges: Privileges, sections?: Array<string>) {
+		privileges = privileges || new Privileges();
+		const arraysOfPrivileges: { [key: string]: Array<string> } = {};
+		(sections || this.sections).forEach(section => {
+			arraysOfPrivileges[`${section}Roles`] = AppUtility.getArray(privileges[`${section}Roles`]);
+			arraysOfPrivileges[`${section}Users`] = AppUtility.getArray(privileges[`${section}Users`]);
+		});
+		return arraysOfPrivileges;
+	}
+
+	/** Resets the privileges from the arrays of privileges */
+	public static resetPrivileges(privileges: Privileges, arraysOfPrivileges: { [key: string]: Array<string> }) {
+		privileges = privileges || new Privileges();
+		arraysOfPrivileges = arraysOfPrivileges || {};
+		this.sections.forEach(section => {
+			privileges[`${section}Roles`] = AppUtility.toSet(arraysOfPrivileges[`${section}Roles`]);
+			privileges[`${section}Users`] = AppUtility.toSet(arraysOfPrivileges[`${section}Users`]);
+		});
+		return privileges;
+	}
+
+	/** Gets the collection of roles */
+	public getRoles(section: string) {
+		return (AppUtility.isNotEmpty(section) ? this[`${section}Roles`] as Set<string> : undefined) || new Set<string>();
+	}
+
+	/** Gets the collection of users */
+	public getUsers(section: string) {
+		return (AppUtility.isNotEmpty(section) ? this[`${section}Users`] as Set<string> : undefined) || new Set<string>();
+	}
+
 	private isEmpty(roles: Set<string>, users: Set<string>) {
 		return (roles === undefined || roles.size() < 1) && (users === undefined || users.size() < 1);
 	}
 
+	/** Gets the state that determines is inherit from parent or not */
 	public get isInheritFromParent() {
 		return this.isEmpty(this.AdministrativeRoles, this.AdministrativeUsers)
 			&& this.isEmpty(this.ModerateRoles, this.ModerateUsers)

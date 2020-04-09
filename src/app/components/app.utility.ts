@@ -1,4 +1,5 @@
 import { List } from "linqts";
+import { Set } from "typescript-collections";
 import { HttpErrorResponse } from "@angular/common/http";
 import { AppCrypto } from "./app.crypto";
 
@@ -62,7 +63,7 @@ export class AppUtility {
 
 	/** Compares two strings to see is equals or not */
 	public static isEquals(str1: string, str2: string) {
-		return str1 !== undefined && str2 !== undefined && str1.toLowerCase() === str2.toLowerCase();
+		return this.isNotNull(str1) && this.isNotNull(str2) && str1.toLowerCase() === str2.toLowerCase();
 	}
 
 	/** Gets the position of the sub-string in the string */
@@ -402,6 +403,41 @@ export class AppUtility {
 		return template.replace(/{{([^{}]*)}}/g, (str, param) => (params[param.trim()] || "").toString());
 	}
 
+	/** Gets the values as an array from a set */
+	public static getArray<T>(set: Set<T>) {
+		return set === undefined
+			? new Array<T>()
+			: set.toArray();
+	}
+
+	/** Updates the values of a set from values of an array */
+	public static updateSet<T>(set: Set<T>, array: Array<T>, add: boolean = true, clearBeforeUpdating: boolean = false) {
+		set = set || new Set<T>();
+		if (clearBeforeUpdating) {
+			set.clear();
+		}
+		if (array !== undefined && array.length > 0) {
+			array.forEach(value => {
+				if (add) {
+					set.add(value);
+				}
+				else {
+					set.remove(value);
+				}
+			});
+		}
+		return set;
+	}
+
+	/** Converts the array to a set */
+	public static toSet<T>(array: Array<T>) {
+		const set = new Set<T>();
+		if (array !== undefined && array.length > 0) {
+			array.forEach(value => set.add(value));
+		}
+		return set;
+	}
+
 	/** Stringifys the JSON and encode as base64-url */
 	public static toBase64Url(json: any) {
 		return this.isObject(json, true)
@@ -455,19 +491,32 @@ export class AppUtility {
 			: 0;
 	}
 
-	/** Converts date-time object to ISO string to use with date-picker */
-	public static toIsoDateTime(date: Date, seconds: boolean = false, miliseconds: boolean = false, useLocalTimezone: boolean = true) {
+	/**
+	 * Converts date-time object to ISO 8601 date time string to use with date-picker
+	 * @param date the date value to convert
+	 * @param seconds true to include the value of seconds
+	 * @param miliseconds true to include the value of mili-seconds
+	 * @param useLocalTimezone true to use local time zone
+	*/
+	public static toIsoDateTime(date: string | number | Date, seconds: boolean = false, miliseconds: boolean = false, useLocalTimezone: boolean = true) {
 		const datetime = new Date(date);
 		if (useLocalTimezone) {
 			const timeOffsetInHours = (datetime.getTimezoneOffset() / 60) * (-1);
 			datetime.setHours(datetime.getHours() + timeOffsetInHours);
 		}
-		let iso = datetime.toJSON().replace("Z", "");
+		let isoDateTime = datetime.toJSON().replace("Z", "");
 		if (miliseconds) {
-			return iso;
+			return isoDateTime;
 		}
-		iso = iso.substr(0, 19);
-		return seconds ? iso : iso.substr(0, 16);
+		isoDateTime = isoDateTime.substr(0, 19);
+		return seconds ? isoDateTime : isoDateTime.substr(0, 16);
+	}
+
+	/** Converts date-time object to ISO 8601 date string to use with date-picker */
+	public static toIsoDate(date: string | number | Date) {
+		return date === undefined || "-" === date
+			? undefined
+			: this.toIsoDateTime(date, true, true).substr(0, 10);
 	}
 
 	/** Converts the ANSI string to a string that can use in an URI */

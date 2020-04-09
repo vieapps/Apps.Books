@@ -221,10 +221,6 @@ export class UsersProfilePage implements OnInit {
 		await this.setModeAsync("invitation", await this.configSvc.getResourceAsync("users.profile.invitation.title"));
 	}
 
-	onInvitationFormInitialized(event: any) {
-		this.appFormsSvc.reset(event.form);
-	}
-
 	onServicePrivilegesChanged(event: any) {
 		this.invitation.privileges = event.privileges;
 		this.invitation.relatedInfo = event.relatedInfo;

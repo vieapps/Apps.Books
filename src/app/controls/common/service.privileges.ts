@@ -29,7 +29,7 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 	/** The position of labels (default is 'stacked') */
 	@Input() labelPosition: string;
 
-	/** The interface of select boxes (default is 'alert') */
+	/** The interface of select boxes (default is 'popover') */
 	@Input() selectInterface: string;
 
 	/** The event handler to run when the controls was initialized */
@@ -59,7 +59,7 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 		this.service = this.service || this.configSvc.appConfig.services.active;
 		this.privileges = this.privileges || [];
 		this.labelPosition = this.labelPosition || "stacked";
-		this.selectInterface = this.selectInterface || "alert";
+		this.selectInterface = this.selectInterface || "popover";
 
 		if (this.privileges.findIndex(privilege => AppUtility.isEquals(privilege.ServiceName, this.service) && AppUtility.isEquals(privilege.ObjectName, "")) < 0) {
 			AppUtility.insertAt(this.privileges, new Privilege(this.service.toLowerCase()), 0);

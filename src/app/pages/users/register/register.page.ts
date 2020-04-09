@@ -168,11 +168,11 @@ export class UsersRegisterPage implements OnInit {
 		];
 
 		config.forEach(options => {
-			if (this.configSvc.appConfig.accountRegistrations.hidden.findIndex(value => AppUtility.isEquals(value, options.Name)) > -1) {
+			if (this.configSvc.appConfig.accountRegistrations.hidden.indexOf(options.Name) > -1) {
 				options.Hidden = true;
 				options.Required = false;
 			}
-			else if (!options.Required && this.configSvc.appConfig.accountRegistrations.required.findIndex(value => AppUtility.isEquals(value, options.Name)) > -1) {
+			else if (!options.Required && this.configSvc.appConfig.accountRegistrations.required.indexOf(options.Name) > -1) {
 				options.Required = true;
 			}
 		});
@@ -184,7 +184,6 @@ export class UsersRegisterPage implements OnInit {
 
 	onFormInitialized(event: any) {
 		this.refreshCaptchaAsync();
-		this.appFormsSvc.reset(event.form);
 		this.register.form.patchValue({ Gender: "NotProvided" });
 	}
 
@@ -210,9 +209,7 @@ export class UsersRegisterPage implements OnInit {
 					this.refreshCaptchaAsync(),
 					this.appFormsSvc.showErrorAsync(error, undefined, () => {
 						if (AppUtility.isGotCaptchaException(error)) {
-							const control = this.register.controls.find(c => AppUtility.isEquals(c.Name, "Captcha"));
-							control.value = "";
-							control.focus();
+							this.register.controls.find(c => AppUtility.isEquals(c.Name, "Captcha")).controlRef.deleteValueAsync();
 						}
 					})
 				])

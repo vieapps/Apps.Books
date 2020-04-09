@@ -9,6 +9,7 @@ import { AppXHR } from "./app.apis";
 import { AppUtility } from "./app.utility";
 import { PlatformUtility } from "./app.utility.platform";
 import { ConfigurationService } from "../services/configuration.service";
+import { AppFormsControlComponent } from "./forms.control.component";
 
 /** Presents the settings of a segment (means a tab that contains group of controls) in the dynamic forms */
 export class AppFormsSegment {
@@ -86,10 +87,10 @@ export interface AppFormsControlConfig {
 		Width?: string;
 		Height?: string;
 		Rows?: number;
-		OnFocus?: (event: any, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
-		OnKeyUp?: (event: KeyboardEvent, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
-		OnBlur?: (event: any, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
-		OnChanged?: (event: any, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
+		OnFocus?: (event: any, control: AppFormsControlComponent) => void;
+		OnKeyUp?: (event: KeyboardEvent, control: AppFormsControlComponent) => void;
+		OnBlur?: (event: any, control: AppFormsControlComponent) => void;
+		OnChanged?: (event: any, control: AppFormsControlComponent) => void;
 		SelectOptions?: {
 			Values?: string | Array<string> | Array<{ Value: string, Label: string }>;
 			RemoteURI?: string;
@@ -111,12 +112,12 @@ export interface AppFormsControlConfig {
 				ClearSelected?: boolean;
 				DataSource?: CompleterData;
 				InitialValue?: any;
-				GetInitialValue?: (control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => any;
-				OnInitialized?: (control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
-				OnSelected?: (item: any, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
+				GetInitialValue?: (control: AppFormsControlComponent) => any;
+				OnInitialized?: (control: AppFormsControlComponent) => void;
+				OnSelected?: (item: any, control: AppFormsControlComponent) => void;
 				AllowLookupByModal?: boolean;
 				LookupByModalButtonIcon?: string;
-				OnModalDismiss?: (data?: any) => any;
+				OnModalDismiss?: (data?: any, control?: AppFormsControlComponent) => any;
 			};
 			AsModal?: boolean;
 			ModalOptions?: {
@@ -124,10 +125,10 @@ export interface AppFormsControlConfig {
 				ComponentProps?: { [key: string]: any };
 				BackdropDismiss?: boolean;
 				SwipeToClose?: boolean
-				OnDismiss?: (data?: any) => void;
+				OnDismiss?: (data?: any, control?: AppFormsControlComponent) => void;
 			};
 			Multiple?: boolean;
-			OnDelete?: (value: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
+			OnDelete?: (value: string, control: AppFormsControlComponent) => void;
 			WarningOnDelete?: string;
 		};
 		DatePickerOptions?: {
@@ -147,7 +148,7 @@ export interface AppFormsControlConfig {
 			Multiple?: boolean;
 			AllowPreview?: boolean;
 			AllowDelete?: boolean;
-			OnDelete?: (name: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void;
+			OnDelete?: (name: string, control: AppFormsControlComponent) => void;
 			WarningOnDelete?: string;
 		};
 		RangeOptions?: {
@@ -229,10 +230,10 @@ export class AppFormsControl {
 		Width: undefined as string,
 		Height: undefined as string,
 		Rows: undefined as number,
-		OnFocus: undefined as (event: any, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
-		OnKeyUp: undefined as (event: KeyboardEvent, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
-		OnBlur: undefined as (event: any, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
-		OnChanged: undefined as (event: any, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
+		OnFocus: undefined as (event: any, control: AppFormsControlComponent) => void,
+		OnKeyUp: undefined as (event: KeyboardEvent, control: AppFormsControlComponent) => void,
+		OnBlur: undefined as (event: any, control: AppFormsControlComponent) => void,
+		OnChanged: undefined as (event: any, control: AppFormsControlComponent) => void,
 		SelectOptions: {
 			Values: undefined as Array<{ Value: string, Label: string }>,
 			RemoteURI: undefined as string,
@@ -254,12 +255,12 @@ export class AppFormsControl {
 				ClearSelected: false,
 				DataSource: undefined as CompleterData,
 				InitialValue: undefined as any,
-				GetInitialValue: undefined as (control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => any,
-				OnInitialized: undefined as (control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
-				OnSelected: undefined as (item: any, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
+				GetInitialValue: undefined as (control: AppFormsControlComponent) => any,
+				OnInitialized: undefined as (control: AppFormsControlComponent) => void,
+				OnSelected: undefined as (item: any, control: AppFormsControlComponent) => void,
 				AllowLookupByModal: false,
 				LookupByModalButtonIcon: undefined as string,
-				OnModalDismiss: undefined as (data?: any) => any
+				OnModalDismiss: undefined as (data?: any, control?: AppFormsControlComponent) => any
 			},
 			AsModal: false,
 			ModalOptions: {
@@ -267,10 +268,10 @@ export class AppFormsControl {
 				ComponentProps: undefined as { [key: string]: any },
 				BackdropDismiss: false,
 				SwipeToClose: false,
-				OnDismiss: undefined as (data?: any) => void
+				OnDismiss: undefined as (data?: any, control?: AppFormsControlComponent) => void
 			},
 			Multiple: false,
-			OnDelete: undefined as (value: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
+			OnDelete: undefined as (value: string, control: AppFormsControlComponent) => void,
 			WarningOnDelete: undefined as string,
 			DisplayValues: undefined as Array<{ Value: string, Label: string }>
 		},
@@ -291,7 +292,7 @@ export class AppFormsControl {
 			Multiple: true,
 			AllowPreview: false,
 			AllowDelete: true,
-			OnDelete: undefined as (name: string, control: AppFormsControl, formControl: AbstractControl, formGroup: FormGroup) => void,
+			OnDelete: undefined as (name: string, control: AppFormsControlComponent) => void,
 			WarningOnDelete: undefined as string,
 			SelectedFiles: undefined as Array<File>
 		},
@@ -331,24 +332,34 @@ export class AppFormsControl {
 		this.Extras["_data:CaptchaURI"] = value;
 	}
 
-	/** Gets the reference to the UI element of this control */
+	/** Gets the reference to the UI element */
 	public get elementRef() {
 		return this.Extras["_ctrl:ElementRef"];
 	}
 
-	/** Sets the reference to the UI element of this control */
+	/** Sets the reference to the UI element */
 	public set elementRef(value: any) {
 		this.Extras["_ctrl:ElementRef"] = value;
 	}
 
-	/** Gets the reference to the form element of this control */
-	public get formRef() {
-		return this.Extras["_ctrl:FormRef"];
+	/** Gets the reference to the form control */
+	public get formControlRef() {
+		return this.Extras["_ctrl:FormControlRef"];
 	}
 
-	/** Sets the reference to the form element of this control */
-	public set formRef(value: AbstractControl) {
-		this.Extras["_ctrl:FormRef"] = value;
+	/** Sets the reference to the form control */
+	public set formControlRef(value: AbstractControl) {
+		this.Extras["_ctrl:FormControlRef"] = value;
+	}
+
+	/** Gets the reference to the form control component */
+	public get controlRef() {
+		return this.Extras["_ctrl:ControlRef"];
+	}
+
+	/** Sets the reference to the form control component */
+	public set controlRef(value: AppFormsControlComponent) {
+		this.Extras["_ctrl:ControlRef"] = value;
 	}
 
 	/** Gets the reference to the next sibling */
@@ -380,16 +391,6 @@ export class AppFormsControl {
 	/** Sets the index of segment (if has) */
 	public set segmentIndex(value: number) {
 		this.Extras["_cfg:SegmentIndex"] = value;
-	}
-
-	/** Sets the value of the control */
-	public set value(value: any) {
-		this.formRef.setValue(value);
-	}
-
-	/** Gets the value of the control */
-	public get value() {
-		return this.formRef.value;
 	}
 
 	private assign(options: any, control?: AppFormsControl, order?: number, alternativeName?: string) {
@@ -873,7 +874,7 @@ export class AppFormsService {
 	}
 
 	private getFormControl(control: AppFormsControl) {
-		return new FormControl("", this.getValidators(control), this.getAsyncValidators(control));
+		return new FormControl(undefined, this.getValidators(control), this.getAsyncValidators(control));
 	}
 
 	private getValidators(control: AppFormsControl) {
@@ -932,20 +933,6 @@ export class AppFormsService {
 		return asyncValidators;
 	}
 
-	/** Sets value of the form (also modify the FormArray controls if the length is not matched) */
-	public setValue(form: FormGroup, controls: Array<AppFormsControl>, value: any = {}) {
-		Object.keys(form.controls).forEach(key => delete form.controls[key]);
-		this.buildForm(form, controls, value);
-	}
-
-	/** Resets the form values */
-	public reset(form: FormGroup) {
-		if (form !== undefined) {
-			const controls = form.controls;
-			Object.keys(controls).forEach(key => controls[key].setValue(undefined));
-		}
-	}
-
 	/** Highlights all invalid controls (by mark as dirty on all invalid controls) and set focus into first invalid control */
 	public highlightInvalids(form: FormGroup) {
 		const control = this.highlightInvalidsFormGroup(form, form["_controls"] as Array<AppFormsControl>);
@@ -958,9 +945,10 @@ export class AppFormsService {
 					console.error("[Forms]: Cannot update form's segment", error);
 				}
 			}
-			console.warn(`[Forms]: Invalid => ${control.Name}`);
+			console.warn(`[Forms]: Invalid => ${control.Name}`, control.formControlRef.value);
 			control.focus();
 		}
+		return control;
 	}
 
 	private highlightInvalidsFormGroup(formGroup: FormGroup, controls: Array<AppFormsControl>) {
