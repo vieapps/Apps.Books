@@ -7,11 +7,13 @@ import { RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardS
 const routes: Routes = [
 	{
 		path: "login",
+		data: { preload: true },
 		canActivate: [NotAuthenticatedGuardService],
 		loadChildren: "../users/login/login.module#UsersLogInPageModule"
 	},
 	{
 		path: "register",
+		data: { preload: true },
 		canActivate: [RegisterGuardService, NotAuthenticatedGuardService],
 		loadChildren: "../users/register/register.module#UsersRegisterPageModule"
 	},
