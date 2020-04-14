@@ -27,7 +27,7 @@ export class AppConfig {
 		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
 		description: "Online Books from VIEApps.net",
-		version: "1.8.9",
+		version: "1.8.10",
 		copyright: "© 2016 - 2020 VIEApps.net",
 		license: "Apache-2.0",
 		frameworks: "ionic 5.0 - angular 8.2 - cordova 9.0",

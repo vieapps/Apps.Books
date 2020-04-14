@@ -3,13 +3,7 @@ import { CommonModule } from "@angular/common";
 import { RouterModule, Routes } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { AuthenticatedGuardService } from "../../services/base.service";
-
 import { BookControlsModule } from "../../controls/books.controls.module";
-import { BooksInfoPageModule } from "./info/info.module";
-import { BooksListPageModule } from "./list/list.module";
-import { BooksOptionsPageModule } from "./options/options.module";
-import { BooksReadPageModule } from "./read/read.module";
-import { BooksUpdatePageModule } from "./update/update.module";
 
 const routes: Routes = [
 	{
@@ -50,11 +44,6 @@ const routes: Routes = [
 		path: "update/:data",
 		canActivate: [AuthenticatedGuardService],
 		loadChildren: "../books/update/update.module#BooksUpdatePageModule"
-	},
-	{
-		path: "**",
-		redirectTo: "/books/search",
-		pathMatch: "full"
 	}
 ];
 
@@ -64,11 +53,6 @@ const routes: Routes = [
 		CommonModule,
 		IonicModule,
 		BookControlsModule,
-		BooksInfoPageModule,
-		BooksListPageModule,
-		BooksOptionsPageModule,
-		BooksReadPageModule,
-		BooksUpdatePageModule,
 		RouterModule.forChild(routes)
 	],
 	exports: [RouterModule],

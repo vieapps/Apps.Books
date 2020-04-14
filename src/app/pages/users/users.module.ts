@@ -4,13 +4,6 @@ import { RouterModule, Routes } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
 import { RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "../../services/base.service";
 
-import { UsersRegisterPageModule } from "./register/register.module";
-import { UsersLogInPageModule } from "./login/login.module";
-import { UsersProfilePageModule } from "./profile/profile.module";
-import { UsersUpdatePageModule } from "./update/update.module";
-import { UsersOtpPageModule } from "./otp/otp.module";
-import { UsersListPageModule } from "./list/list.module";
-
 const routes: Routes = [
 	{
 		path: "login",
@@ -47,11 +40,6 @@ const routes: Routes = [
 		path: "search",
 		canActivate: [AuthenticatedGuardService],
 		loadChildren: "../users/list/list.module#UsersListPageModule"
-	},
-	{
-		path: "**",
-		redirectTo: "/home",
-		pathMatch: "full"
 	}
 ];
 
@@ -60,12 +48,6 @@ const routes: Routes = [
 	imports: [
 		CommonModule,
 		IonicModule,
-		UsersRegisterPageModule,
-		UsersLogInPageModule,
-		UsersProfilePageModule,
-		UsersUpdatePageModule,
-		UsersOtpPageModule,
-		UsersListPageModule,
 		RouterModule.forChild(routes)
 	],
 	exports: [RouterModule],

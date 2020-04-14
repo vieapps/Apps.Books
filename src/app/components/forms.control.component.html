@@ -8,9 +8,9 @@
 	[class.select-multiple]="selectAsMultiple">
 
 	<ion-button *ngIf="icon || isPasswordControl" tabindex="-1" [fill]="iconFill" [color]="iconColor" [slot]="iconSlot" (click)="clickOnIcon()">
-		<ion-icon *ngIf="icon" [name]="icon" slot="icon-only"></ion-icon>
-		<ion-icon *ngIf="isPasswordControl" name="eye" slot="icon-only" [hidden]="!showPassword"></ion-icon>
-		<ion-icon *ngIf="isPasswordControl" name="eye-off" slot="icon-only" [hidden]="showPassword"></ion-icon>
+		<ion-icon *ngIf="icon && !isPasswordControl" [name]="icon" slot="icon-only"></ion-icon>
+		<ion-icon *ngIf="isPasswordControl" name="eye" slot="icon-only" [hidden]="showPassword"></ion-icon>
+		<ion-icon *ngIf="isPasswordControl" name="eye-off" slot="icon-only" [hidden]="!showPassword"></ion-icon>
 	</ion-button>
 
 	<ion-label *ngIf="label"

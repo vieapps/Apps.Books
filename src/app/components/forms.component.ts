@@ -38,16 +38,16 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	@Input() value: any;
 
 	/** The event handler to run when the form was initialized */
-	@Output() init: EventEmitter<AppFormsComponent> = new EventEmitter<AppFormsComponent>();
+	@Output() init = new EventEmitter<AppFormsComponent>();
 
 	/** The event handler to run when the form was submitted */
-	@Output() submit: EventEmitter<AppFormsComponent> = new EventEmitter<AppFormsComponent>();
+	@Output() submit = new EventEmitter<AppFormsComponent>();
 
 	/** The event handler to run when the captcha code of the form was refreshed */
-	@Output() refreshCaptcha: EventEmitter<AppFormsControlComponent> = new EventEmitter<AppFormsControlComponent>();
+	@Output() refreshCaptcha = new EventEmitter<AppFormsControlComponent>();
 
 	/** The event handler to run when the form was focused into last control */
-	@Output() lastFocus: EventEmitter<AppFormsControlComponent> = new EventEmitter<AppFormsControlComponent>();
+	@Output() lastFocus = new EventEmitter<AppFormsControlComponent>();
 
 	ngOnInit() {
 		this.segments = this.segments || { items: undefined, default: undefined, current: undefined };
@@ -62,7 +62,7 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		}
 
 		if (this.controls === undefined) {
-			throw new Error("Controls or config of the form need to be initialized first (controls/config attributes)");
+			throw new Error("[Forms]: Controls or config of the form need to be initialized first (controls/config attributes)");
 		}
 
 		if (this.controls.length < 1) {
