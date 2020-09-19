@@ -1,8 +1,13 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter, ViewChild, ChangeDetectorRef } from "@angular/core";
-import { FormGroup } from "@angular/forms";
+import { FormGroup, FormArray } from "@angular/forms";
 import { CompleterService } from "ng2-completer";
-import { AppUtility } from "./app.utility";
-import { AppFormsControl, AppFormsService } from "./forms.service";
+import * as CKEditor from "@components/ckeditor";
+import "@components/ckeditor.vi";
+import { AppFormsControl, AppFormsService, AppFormsLookupValue } from "@components/forms.service";
+import { AppUtility } from "@components/app.utility";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { ConfigurationService } from "@services/configuration.service";
+import { FilesService } from "@services/files.service";
 
 @Component({
 	selector: "app-form-control",
@@ -12,8 +17,10 @@ import { AppFormsControl, AppFormsService } from "./forms.service";
 export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	constructor(
-		private changeDetector: ChangeDetectorRef,
+		private configSvc: ConfigurationService,
+		private filesSvc: FilesService,
 		private appFormsSvc: AppFormsService,
+		private changeDetector: ChangeDetectorRef,
 		private completerSvc: CompleterService
 	) {
 	}
@@ -21,6 +28,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	private _style: string;
 	private _completerInitialValue: any;
 	private _selectOptions: Array<string>;
+	private _ckEditorConfig: { [key: string]: any };
 
 	public showPassword = false;
 
@@ -47,7 +55,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	ngOnInit() {
 		this.control.controlRef = this;
 		this.control.formControlRef = this.formControl;
-		if (this.isCompleter) {
+		if (this.isLookupControl && this.isCompleter) {
 			this.completerInit();
 			this.completerGetInitialValue();
 		}
@@ -55,7 +63,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	ngAfterViewInit() {
 		this.control.elementRef = this.elementRef;
-		if (this.isYesNoControl || (this.isCompleter && this.completerInitialValue !== undefined)) {
+		if (this.control.Options.OnAfterViewInit !== undefined) {
+			this.control.Options.OnAfterViewInit(this);
+		}
+		if (this.control.Options.OnAfterViewInit !== undefined || this.isYesNoControl || (this.isCompleter && this.completerInitialValue !== undefined)) {
 			this.changeDetector.detectChanges();
 		}
 	}
@@ -108,6 +119,18 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.isFormControl && this.isControl("TextArea");
 	}
 
+	get isTextEditorControl() {
+		return this.isFormControl && this.isControl("TextEditor");
+	}
+
+	get isTextDisplayControl() {
+		return this.isFormControl && this.isControl("Text");
+	}
+
+	get isTextDatePickerControl() {
+		return this.isTextBoxControl && (AppUtility.isEquals(this.control.Options.Type, "date") || AppUtility.isEquals(this.control.Options.Type, "datetime-local"));
+	}
+
 	get isSelectControl() {
 		return this.isFormControl && this.isControl("Select");
 	}
@@ -148,24 +171,26 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.isFormControl && this.isControl("FilePicker");
 	}
 
-	get isImagePickerControl() {
-		return this.isFilePickerControl && !this.control.Options.FilePickerOptions.Multiple && this.control.Options.FilePickerOptions.Accept !== undefined && this.control.Options.FilePickerOptions.Accept.indexOf("image/") > -1;
+	private get isImagePickerControl() {
+		return this.isFilePickerControl && !this.control.Options.FilePickerOptions.Multiple && AppUtility.indexOf(this.control.Options.FilePickerOptions.Accept, "image/") > -1;
 	}
 
 	get isAllowImagePreview() {
 		return this.isImagePickerControl && this.control.Options.FilePickerOptions.AllowPreview && this.value !== undefined;
 	}
 
-	get isAllowDelete() {
+	private get isAllowDelete() {
 		return this.isLookupControl
-			? this.lookupDisplayValues && this.lookupDisplayValues.length > 0
-			: this.isDatePickerControl
-				? this.control.Options.DatePickerOptions.AllowDelete
-				: this.isFilePickerControl
-					? this.isImagePickerControl
-						? this.control.Options.FilePickerOptions.AllowDelete && this.value !== undefined && this.value.new !== undefined
-						: this.control.Options.FilePickerOptions.AllowDelete
-					: false;
+			? (this.isCompleter || this.isModal) && this.lookupDisplayValues.length > 0
+			: this.isFilePickerControl
+				? this.isImagePickerControl
+					? this.control.Options.FilePickerOptions.AllowDelete && AppUtility.isObject(this.value, true) && this.value.new !== undefined
+					: this.control.Options.FilePickerOptions.AllowDelete
+				: this.isDatePickerControl
+					? this.control.Options.DatePickerOptions.AllowDelete
+					: this.isTextDatePickerControl
+						? true
+						: false;
 	}
 
 	/** Gets the reference to the object that contains settings and data of the parent control */
@@ -180,6 +205,10 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	get formControlAsFormGroup() {
 		return this.formControl as FormGroup;
+	}
+
+	get formControlAsFormArray() {
+		return this.formControl as FormArray;
 	}
 
 	get formControlName() {
@@ -310,7 +339,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	/** Gets the value of this control */
 	get value() {
-		return this.isDatePickerControl
+		return this.isDatePickerControl || this.isTextDatePickerControl
 			? AppUtility.toIsoDateTime(new Date(this.formControl.value), true)
 			: this.formControl.value;
 	}
@@ -412,7 +441,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	}
 
 	get selectOptions() {
-		return this.control.Options.SelectOptions.Values || new Array<{ Value: string, Label: string }>();
+		return this.control.Options.SelectOptions.Values || new Array<AppFormsLookupValue>();
 	}
 
 	selectOptionIsChecked(selectOption: string) {
@@ -428,7 +457,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				this._selectOptions = (AppUtility.toArray(values) as Array<any>).map(value => value.toString());
 			}
 			else {
-				this._selectOptions = [values.toString()];
+				this._selectOptions = AppUtility.isNotNull(values) ? [values.toString()] : [];
 			}
 			this._selectOptions = this._selectOptions.filter(value => value !== "");
 		}
@@ -443,12 +472,20 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this.control.Options.RangeOptions;
 	}
 
+	get isModal() {
+		return this.isLookupControl && this.control.Options.LookupOptions.AsModal;
+	}
+
 	get isCompleter() {
 		return this.isLookupControl && this.control.Options.LookupOptions.AsCompleter;
 	}
 
-	get isCompleterAllowLookupByModal() {
-		return this.control.Options.LookupOptions.CompleterOptions.AllowLookupByModal && this.control.Options.LookupOptions.ModalOptions.Component !== undefined;
+	get isSelector() {
+		return this.isLookupControl && this.control.Options.LookupOptions.AsSelector;
+	}
+
+	private get isCompleterAllowLookupByModal() {
+		return this.isCompleter && this.control.Options.LookupOptions.CompleterOptions.AllowLookupByModal && this.control.Options.LookupOptions.ModalOptions.Component !== undefined;
 	}
 
 	private get isCompleterOfAddress() {
@@ -521,32 +558,45 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return this._completerInitialValue;
 	}
 
+	/** Gets the initial value of the completer */
 	get completerInitialValue() {
 		return this._completerInitialValue || this.completerGetInitialValue();
 	}
 
-	completerLookupAsync() {
-		return this.appFormsSvc.showModalAsync(
-			this.control.Options.LookupOptions.ModalOptions.Component,
-			this.control.Options.LookupOptions.ModalOptions.ComponentProps,
-			data => {
-				this._completerInitialValue = this.control.Options.LookupOptions.CompleterOptions.OnModalDismiss !== undefined
-					? this.control.Options.LookupOptions.CompleterOptions.OnModalDismiss(data, this)
-					: data;
-				this.changeDetector.detectChanges();
-			}
-		);
+	/** Sets the initial value of the completer */
+	set completerInitialValue(value: any) {
+		this._completerInitialValue = value;
+		this.changeDetector.detectChanges();
 	}
 
-	get isModal() {
-		return this.isLookupControl && this.control.Options.LookupOptions.AsModal;
+	private async lookupAsync() {
+		if (this.control.Options.LookupOptions.ModalOptions.Component === undefined) {
+			await this.appFormsSvc.showAlertAsync(undefined, "Lookup component is invalid");
+		}
+		else {
+			await this.appFormsSvc.showModalAsync(
+				this.control.Options.LookupOptions.ModalOptions.Component,
+				this.control.Options.LookupOptions.ModalOptions.ComponentProps,
+				data => {
+					if (this.control.Options.LookupOptions.ModalOptions.OnDismiss !== undefined) {
+						this.control.Options.LookupOptions.ModalOptions.OnDismiss(data, this);
+					}
+				},
+				this.control.Options.LookupOptions.ModalOptions.BackdropDismiss,
+				this.control.Options.LookupOptions.ModalOptions.SwipeToClose
+			);
+		}
+	}
+
+	/** Gets the state to lookup multiple items */
+	get lookupMultiple() {
+		return this.isLookupControl && this.control.Options.LookupOptions.Multiple;
 	}
 
 	/** Gets the values of this lookup control */
 	get lookupValues() {
-		return this.control.Options.LookupOptions.Multiple
-			? this.formControl.value as Array<string>
-			: [this.formControl.value !== undefined ? this.formControl.value.toString() : ""];
+		const value = this.formControl.value;
+		return (this.lookupMultiple ? value as Array<string> : value !== undefined ? [value.toString()] : []) || [];
 	}
 
 	/** Sets the values of this lookup control */
@@ -556,19 +606,94 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 
 	/** Gets the values for displaying of this lookup control */
 	get lookupDisplayValues() {
-		return this.control.Options.LookupOptions.Multiple
-			? this.control.Options.LookupOptions.DisplayValues
-			: undefined;
+		return this.control.Extras["LookupDisplayValues"] || [];
 	}
 
 	/** Sets the values for displaying of this lookup control */
-	set lookupDisplayValues(values: Array<{ Value: string, Label: string }>) {
-		this.control.Options.LookupOptions.DisplayValues = values;
+	set lookupDisplayValues(values: Array<AppFormsLookupValue>) {
+		this.control.Extras["LookupDisplayValues"] = AppUtility.isArray(values, true)
+			? values.map(value => {
+					return {
+						Value: value["Value"],
+						Label: value["Label"],
+						Description: value["Description"] || value["Summary"],
+						Image: value["Image"],
+						Extras: value["Extras"],
+						Children: value["Children"]
+					};
+				})
+			: AppUtility.isObject(values, true)
+				? [{
+						Value: values["Value"],
+						Label: values["Label"],
+						Description: values["Description"] || values["Summary"],
+						Image: values["Image"],
+						Extras: values["Extras"],
+						Children: values["Children"]
+					}]
+				: new Array<AppFormsLookupValue>();
+	}
+
+	/** Gets the single value for displaying of this lookup control */
+	get lookupDisplayValue() {
+		return this.lookupDisplayValues.length > 0 ? this.lookupDisplayValues[0].Label : undefined;
+	}
+
+	get lookupResources() {
+		return {
+			header: this.control.Options.LookupOptions.SelectorOptions.HeaderText,
+			confirm: this.control.Options.LookupOptions.WarningOnDelete,
+			ok: this.control.Options.LookupOptions.SelectorOptions.OkText,
+			cancel: this.control.Options.LookupOptions.SelectorOptions.CancelText
+		};
+	}
+
+	get lookupHandlers() {
+		return {
+			add: () => {
+				if (this.isSelector && this.control.Options.LookupOptions.SelectorOptions.OnAdd !== undefined) {
+					this.control.Options.LookupOptions.SelectorOptions.OnAdd(this);
+				}
+			},
+			delete: (values: Array<string>) => this.deleteValue(values)
+		};
+	}
+
+	get isTextDisplayAsBoxControl() {
+		const type = this.type;
+		return this.isTextDisplayControl && type !== "textarea" && type !== "label" && type !== "paragraph";
+	}
+
+	get isTextDisplayAsTexAreaControl() {
+		return this.isTextDisplayControl && this.type === "textarea";
+	}
+
+	get isTextDisplayAsLabelControl() {
+		return this.isTextDisplayControl && this.type === "label";
+	}
+
+	get isTextDisplayAsParagraphControl() {
+		return this.isTextDisplayControl && this.type === "paragraph";
+	}
+
+	/** Sets the text for displaying of this text control */
+	set text(value: string) {
+		this.control.Extras["Text"] = value;
+	}
+
+	/** Gets the text for displaying of this text control */
+	get text() {
+		return this.control.Extras["Text"];
 	}
 
 	/** Gets the URI for displaying captcha image of this control */
 	get captchaURI() {
 		return this.control.captchaURI;
+	}
+
+	/** Sets the URI for displaying captcha image of this control */
+	set captchaURI(uri: string) {
+		this.control.captchaURI = uri;
 	}
 
 	/** Sets focus into this control */
@@ -617,22 +742,31 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 	async deleteValue(value?: any, options?: Object, updateValueAndValidity: boolean = false) {
 		if (this.isLookupControl) {
 			if (this.control.Options.LookupOptions.OnDelete !== undefined) {
-				if (AppUtility.isNotEmpty(this.control.Options.LookupOptions.WarningOnDelete)) {
-					await this.appFormsSvc.showAlertAsync(
-						undefined,
-						undefined,
-						this.control.Options.LookupOptions.WarningOnDelete,
-						() => {
-							this.control.Options.LookupOptions.OnDelete(value as string, this);
-							this.focus();
-						},
-						await this.appFormsSvc.getResourceAsync("common.buttons.ok"),
-						await this.appFormsSvc.getResourceAsync("common.buttons.cancel")
-					);
+				if (this.isSelector) {
+					this.control.Options.LookupOptions.OnDelete(AppUtility.isArray(value) ? value : [value], this);
 				}
 				else {
-					this.control.Options.LookupOptions.OnDelete(value as string, this);
-					this.focus();
+					if (AppUtility.isNotEmpty(this.control.Options.LookupOptions.WarningOnDelete)) {
+						await this.appFormsSvc.showAlertAsync(
+							undefined,
+							undefined,
+							this.control.Options.LookupOptions.WarningOnDelete,
+							() => {
+								this.control.Options.LookupOptions.OnDelete(AppUtility.isArray(value) ? value : [value], this);
+								if (this.isCompleter && this.lookupMultiple) {
+									this.focus();
+								}
+							},
+							await this.appFormsSvc.getResourceAsync("common.buttons.ok"),
+							await this.appFormsSvc.getResourceAsync("common.buttons.cancel")
+						);
+					}
+					else {
+						this.control.Options.LookupOptions.OnDelete(AppUtility.isArray(value) ? value : [value], this);
+						if (this.isCompleter && this.lookupMultiple) {
+							this.focus();
+						}
+					}
 				}
 			}
 		}
@@ -653,20 +787,45 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 				}
 			}
 		}
+		else if (this.isCustomControl()) {
+			if (this.control.Options.LookupOptions.OnDelete !== undefined) {
+				this.control.Options.LookupOptions.OnDelete(value, this);
+			}
+		}
 		else if (this.formControl !== undefined) {
 			this.setValue(undefined, options, updateValueAndValidity);
 			this.focus();
 		}
 	}
 
+	addControlOfFormArray() {
+		const control = this.appFormsSvc.copyControl(this.control.SubControls.Controls[0], ctrl => {
+			ctrl.Name = `${this.control.Name}_${this.control.SubControls.Controls.length}`;
+			ctrl.Order = this.control.SubControls.Controls.length;
+			ctrl.Options.Label = `#${this.control.SubControls.Controls.length + 1}`;
+		});
+		this.formControlAsFormArray.push(
+			control.SubControls === undefined || control.SubControls.Controls === undefined || control.SubControls.Controls.length < 1
+				? this.appFormsSvc.getFormControl(control)
+				: control.SubControls.AsArray
+					? this.appFormsSvc.getFormArray(control)
+					: this.appFormsSvc.getFormGroup(control.SubControls.Controls)
+		);
+		this.control.SubControls.Controls.push(control);
+	}
+
 	get icon() {
-		return this.isImagePickerControl && this.isAllowDelete
+		return (this.isImagePickerControl || this.isDatePickerControl || this.isTextDatePickerControl) && this.isAllowDelete
 			? "trash"
-			: this.isCompleterAllowLookupByModal
-				? (this.control.Options.Icon.Name || "duplicate").trim().toLowerCase()
+			: this.isCompleterAllowLookupByModal || this.isModal
+				? (this.control.Options.Icon.Name || "add").trim().toLowerCase()
 				: AppUtility.isNotEmpty(this.control.Options.Icon.Name)
 					? this.control.Options.Icon.Name.trim().toLowerCase()
 					: undefined;
+	}
+
+	get iconSlot() {
+		return (this.control.Options.Icon.Slot || "end").trim().toLowerCase();
 	}
 
 	get iconFill() {
@@ -677,35 +836,31 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		return (this.control.Options.Icon.Color || "medium").trim().toLowerCase();
 	}
 
-	get iconSlot() {
-		return (this.control.Options.Icon.Slot || "end").trim().toLowerCase();
-	}
-
-	async clickOnIcon() {
+	async clickOnIcon(event: Event) {
 		if (this.isPasswordControl) {
 			this.showPassword = !this.showPassword;
 			if (this.showPassword) {
 				this.focus();
 			}
 		}
-		else if (this.isImagePickerControl && this.isAllowDelete) {
+		else if ((this.isImagePickerControl || this.isDatePickerControl || this.isTextDatePickerControl) && this.isAllowDelete) {
 			await this.deleteValue();
 		}
-		else if (this.isCompleterAllowLookupByModal) {
-			await this.completerLookupAsync();
+		else if (this.isCompleterAllowLookupByModal || this.isModal) {
+			await this.lookupAsync();
 		}
 		else if (this.control.Options.Icon.OnClick !== undefined) {
-			this.control.Options.Icon.OnClick(this);
+			this.control.Options.Icon.OnClick(event, this);
 		}
 	}
 
-	clickOnButton(control: AppFormsControl, formGroup: FormGroup) {
+	clickOnButton(event: Event, control: AppFormsControl) {
 		if (control !== undefined && control.Options.ButtonOptions.OnClick !== undefined) {
-			control.Options.ButtonOptions.OnClick(control, formGroup);
+			control.Options.ButtonOptions.OnClick(event, control);
 		}
 	}
 
-	onFocus(event: any) {
+	onFocus(event: Event) {
 		if (this.control.Options.OnFocus !== undefined) {
 			this.control.Options.OnFocus(event, this);
 		}
@@ -720,7 +875,7 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		}
 	}
 
-	onBlur(event: any) {
+	onBlur(event: Event) {
 		if (this.control.Options.OnBlur !== undefined) {
 			this.control.Options.OnBlur(event, this);
 		}
@@ -800,6 +955,14 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 			this.setValue(this._selectOptions);
 		}
 
+		// special control: text editor
+		else if (this.isTextEditorControl) {
+			const data = AppUtility.isObject(event.editor, true) ? event.editor.getData() : undefined;
+			if (data !== undefined) {
+				this.setValue(data);
+			}
+		}
+
 		// normal control
 		else if (!this.isFilePickerControl) {
 			// set value
@@ -815,6 +978,101 @@ export class AppFormsControlComponent implements OnInit, OnDestroy, AfterViewIni
 		if (this.control.Options.OnChanged !== undefined) {
 			this.control.Options.OnChanged(event, this);
 		}
+	}
+
+	get ckEditor() {
+		return CKEditor;
+	}
+
+	get ckEditorConfig() {
+		if (this._ckEditorConfig === undefined) {
+			this._ckEditorConfig = {
+				language: this.configSvc.appConfig.language.substr(0, 2),
+				fontSize: this.control.Extras["ckEditorFontSize"] || {
+					options: [10, 11, 12, "default", 14, 16, 18, 20, 24, 28, 34, 38, 40, 46, 50],
+					supportAllValues: true
+				},
+				fontFamily: this.control.Extras["ckEditorFontFamily"] || { options: [
+					"default",
+					"Arial, Helvetica, sans-serif",
+					"Courier New, Courier, monospace",
+					"Georgia, serif",
+					"Lucida Sans Unicode, Lucida Grande, sans-serif",
+					"Roboto, sans-serif",
+					"Tahoma, Geneva, sans-serif",
+					"Times New Roman, Times, serif",
+					"Trebuchet MS, Helvetica, sans-serif",
+					"Verdana, Geneva, sans-serif"
+				]},
+				mediaEmbed: {
+					extraProviders: [{
+						name: this.configSvc.appConfig.app.name,
+						url: AppUtility.toRegExp(`/^${PlatformUtility.parseURI(this.configSvc.appConfig.URIs.files).Host}/`)
+					}]
+				}
+			};
+			const hosts = this.control.Extras["ckEditorTrustedHosts"];
+			if (AppUtility.isArray(hosts, true)) {
+				(hosts as Array<string>).filter(host => AppUtility.isNotEmpty(host)).forEach(host => {
+					this._ckEditorConfig.mediaEmbed.extraProviders.push({
+						name: host,
+						url: AppUtility.toRegExp(`/^${host}/`)
+					});
+				});
+			}
+			const linkSelector = this.control.Extras["ckEditorLinkSelector"];
+			if (AppUtility.isObject(linkSelector, true) && (AppUtility.isObject(linkSelector.content, true) || AppUtility.isObject(linkSelector.file, true))) {
+				this._ckEditorConfig.link = this._ckEditorConfig.link || {};
+				this._ckEditorConfig.link.selector = linkSelector;
+			}
+			const mediaSelector = this.control.Extras["ckEditorMediaSelector"];
+			if (AppUtility.isObject(mediaSelector, true) && typeof mediaSelector.selectMedia === "function") {
+				this._ckEditorConfig.media = this._ckEditorConfig.media || {};
+				this._ckEditorConfig.media.selector = mediaSelector;
+			}
+			const removePlugins: Array<string> = this.control.Extras["ckEditorRemovePlugins"] || [];
+			const simpleUploadOptions = this.control.Extras["ckEditorSimpleUpload"];
+			if (AppUtility.isObject(simpleUploadOptions, true)) {
+				this._ckEditorConfig.simpleUpload = {
+					uploadUrl: this.configSvc.appConfig.URIs.files + "one.image",
+					headers: this.filesSvc.getUploadHeaders(simpleUploadOptions)
+				};
+			}
+			else {
+				removePlugins.push("ImageUpload", "MediaSelector");
+			}
+			if (this.control.Extras["ckEditorPageBreakIsAvailable"] === undefined) {
+				removePlugins.push("PageBreak");
+			}
+			if (this.control.Extras["ckEditorHighlightIsAvailable"] === undefined) {
+				removePlugins.push("Highlight");
+			}
+			if (this.control.Extras["ckEditorCodeIsAvailable"] === undefined) {
+				removePlugins.push("Code", "CodeBlock");
+			}
+			if (removePlugins.length > 0) {
+				this._ckEditorConfig.removePlugins = removePlugins.filter((id, index, array) => array.indexOf(id) === index);
+			}
+			const toolbar = this.control.Extras["ckEditorToolbar"];
+			if (AppUtility.isObject(toolbar, true) || AppUtility.isArray(toolbar, true)) {
+				this._ckEditorConfig.toolbar = toolbar;
+			}
+			if (this.configSvc.isDebug) {
+				console.log("CKEditor --------------------------------");
+				console.log("+ Plugins:", this.ckEditor.builtinPlugins.map(plugin => plugin.pluginName));
+				console.log("+ Default configuration:", this.ckEditor.defaultConfig);
+				console.log("+ Runtime configuration:", this._ckEditorConfig);
+				console.log("-----------------------------------------");
+			}
+		}
+		return this._ckEditorConfig;
+	}
+
+	ckEditorOnReady(editor: any) {
+		editor.ui.getEditableElement().parentElement.insertBefore(
+			editor.ui.view.toolbar.element,
+			editor.ui.getEditableElement()
+		);
 	}
 
 }

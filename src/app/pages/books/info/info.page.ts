@@ -1,14 +1,14 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { AppEvents } from "../../../components/app.events";
-import { AppUtility } from "../../../components/app.utility";
-import { PlatformUtility } from "../../../components/app.utility.platform";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { BooksService } from "../../../services/books.service";
-import { Book } from "../../../models/book";
-import { CounterInfo } from "../../../models/counters";
+import { AppEvents } from "@components/app.events";
+import { AppUtility } from "@components/app.utility";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { BooksService } from "@services/books.service";
+import { Book } from "@models/book";
+import { CounterInfo } from "@models/counters";
 
 @Component({
 	selector: "page-books-info",
@@ -68,9 +68,7 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 	}
 
 	get redirectUrl() {
-		return this.book !== undefined
-			? PlatformUtility.getRedirectURI(this.book.routerURI, false)
-			: this.configSvc.appConfig.URIs.activations;
+		return PlatformUtility.getRedirectURI(this.book !== undefined ? this.book.routerURI : undefined);
 	}
 
 	ngOnInit() {
@@ -98,8 +96,8 @@ export class BooksInfoPage implements OnInit, OnDestroy {
 
 	getStatistics() {
 		this.statistics = {
-			views: this.book.Counters.getValue("View") || new CounterInfo(),
-			downloads: this.book.Counters.getValue("Download") || new CounterInfo()
+			views: this.book.Counters.get("View") || new CounterInfo(),
+			downloads: this.book.Counters.get("Download") || new CounterInfo()
 		};
 	}
 

@@ -1,7 +1,7 @@
 import { Component, Input } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { ConfigurationService } from "../../services/configuration.service";
-import { Book } from "../../models/book";
+import { ConfigurationService } from "@services/configuration.service";
+import { Book } from "@models/book";
 
 @Component({
 	selector: "control-book-linear-item",
@@ -12,7 +12,7 @@ import { Book } from "../../models/book";
 export class BookLinearItemControl {
 
 	constructor(
-		public configSvc: ConfigurationService
+		private configSvc: ConfigurationService
 	) {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
 	}
@@ -20,6 +20,10 @@ export class BookLinearItemControl {
 	@Input() book: Book;
 	@Input() hideAuthor: boolean;
 	@Input() hideCategory: boolean;
+
+	get color() {
+		return this.configSvc.color;
+	}
 
 	get locale() {
 		return this.configSvc.locale;

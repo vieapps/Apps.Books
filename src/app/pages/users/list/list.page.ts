@@ -1,18 +1,17 @@
 import { Subscription } from "rxjs";
-import { List } from "linqts";
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
-import { AppUtility } from "../../../components/app.utility";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { PlatformUtility } from "../../../components/app.utility.platform";
-import { AppPagination, AppDataPagination, AppDataRequest } from "../../../components/app.pagination";
-import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { AuthenticationService } from "../../../services/authentication.service";
-import { UsersService } from "../../../services/users.service";
-import { UserProfile } from "../../../models/user";
-import { RatingPoint } from "../../../models/ratingpoint";
+import { AppUtility } from "@components/app.utility";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { AppPagination, AppDataPagination, AppDataRequest } from "@components/app.pagination";
+import { AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { UsersService } from "@services/users.service";
+import { UserProfile } from "@models/user";
+import { RatingPoint } from "@models/rating.point";
 
 @Component({
 	selector: "page-users-list",
@@ -23,7 +22,7 @@ import { RatingPoint } from "../../../models/ratingpoint";
 export class UsersListPage implements OnInit, OnDestroy {
 
 	constructor(
-		public configSvc: ConfigurationService,
+		private configSvc: ConfigurationService,
 		private appFormsSvc: AppFormsService,
 		private authSvc: AuthenticationService,
 		private usersSvc: UsersService
@@ -47,6 +46,10 @@ export class UsersListPage implements OnInit, OnDestroy {
 
 	@ViewChild(IonSearchbar, { static: true }) private searchCtrl: IonSearchbar;
 	@ViewChild(IonInfiniteScroll, { static: true }) private infiniteScrollCtrl: IonInfiniteScroll;
+
+	get color() {
+		return this.configSvc.color;
+	}
 
 	get locale() {
 		return this.configSvc.locale;
@@ -114,15 +117,15 @@ export class UsersListPage implements OnInit, OnDestroy {
 		}
 	}
 
-	onClearSearch(event: any) {
+	onClearSearch() {
 		this.cancelSearch();
 		this.filterBy.Query = undefined;
 		this.profiles = [];
 		this.ratings = {};
 	}
 
-	onCancelSearch(event: any) {
-		this.onClearSearch(event);
+	onCancelSearch() {
+		this.onClearSearch();
 		this.startSearchAsync();
 	}
 
@@ -172,20 +175,25 @@ export class UsersListPage implements OnInit, OnDestroy {
 	private prepareResults(onNext?: () => void, results?: Array<any>) {
 		if (this.searching) {
 			(results || []).forEach(o => {
-				const profile = UserProfile.get(o.ID);
+				const profile = UserProfile.deserialize(o, UserProfile.get(o.ID));
 				this.profiles.push(profile);
-				this.ratings[profile.ID] = profile.RatingPoints.getValue("General");
+				this.ratings[profile.ID] = profile.RatingPoints.get("General");
 			});
 		}
 		else {
-			let objects = new List(results === undefined ? UserProfile.all : results.map(o => UserProfile.get(o.ID))).OrderBy(o => o.Name).ThenByDescending(o => o.LastAccess);
+			let objects = results === undefined
+				? UserProfile.instances.toList().Select(obj => obj as UserProfile)
+				: UserProfile.toList(results);
+			objects = objects.OrderBy(obj => obj.Name).ThenByDescending(obj => obj.LastAccess);
 			if (results === undefined) {
-				objects = objects.Take(this.pageNumber * this.pagination.PageSize);
-				objects.ForEach(o => this.ratings[o.ID] = o.RatingPoints.getValue("General"));
+				if (this.pagination !== undefined) {
+					objects = objects.Take(this.pageNumber * this.pagination.PageSize);
+				}
+				objects.ForEach(o => this.ratings[o.ID] = o.RatingPoints.get("General"));
 				this.profiles = objects.ToArray();
 			}
 			else {
-				objects.ForEach(o => this.ratings[o.ID] = o.RatingPoints.getValue("General"));
+				objects.ForEach(o => this.ratings[o.ID] = o.RatingPoints.get("General"));
 				this.profiles = this.profiles.concat(objects.ToArray());
 			}
 		}

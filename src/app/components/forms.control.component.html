@@ -1,17 +1,23 @@
-<ion-item *ngIf="visible && isFormControl && !isCaptchaControl && !selectAsRadioBoxes && !selectAsCheckBoxes && !isCustomControl()"
+<ion-item *ngIf="visible && isFormControl && !isTextEditorControl && !isCaptchaControl && !selectAsRadioBoxes && !selectAsCheckBoxes && !isSelector && !isCustomControl()"
 	[color]="theme"
 	[formGroup]="formGroup"
+	[lines]="lookupMultiple ? 'none' : undefined"
 	[class.invalid]="invalid"
 	[class.file-picker]="isFilePickerControl"
 	[class.completer-container]="isCompleter"
 	[class.select-dropdown]="selectAsDropdown"
 	[class.select-multiple]="selectAsMultiple">
 
-	<ion-button *ngIf="icon || isPasswordControl" tabindex="-1" [fill]="iconFill" [color]="iconColor" [slot]="iconSlot" (click)="clickOnIcon()">
-		<ion-icon *ngIf="icon && !isPasswordControl" [name]="icon" slot="icon-only"></ion-icon>
-		<ion-icon *ngIf="isPasswordControl" name="eye" slot="icon-only" [hidden]="showPassword"></ion-icon>
-		<ion-icon *ngIf="isPasswordControl" name="eye-off" slot="icon-only" [hidden]="!showPassword"></ion-icon>
-	</ion-button>
+	<ion-buttons *ngIf="icon || isPasswordControl" style="background-color:var(--ion-color-base)" [slot]="iconSlot">
+		<ion-button tabindex="-1" [disabled]="!!disabled" [fill]="iconFill" [color]="iconColor" (click)="clickOnIcon($event)">
+			<ion-icon *ngIf="icon && !isPasswordControl" [name]="icon" slot="icon-only"></ion-icon>
+			<ion-icon *ngIf="isPasswordControl" name="eye" slot="icon-only" [hidden]="showPassword"></ion-icon>
+			<ion-icon *ngIf="isPasswordControl" name="eye-off" slot="icon-only" [hidden]="!showPassword"></ion-icon>
+		</ion-button>
+		<ion-button *ngIf="isModal && !lookupMultiple" tabindex="-1" [disabled]="disabled || !lookupDisplayValue" [fill]="iconFill" [color]="iconColor" (click)="deleteValue()">
+			<ion-icon name="close" slot="icon-only"></ion-icon>
+		</ion-button>
+	</ion-buttons>
 
 	<ion-label *ngIf="label"
 		[color]="color.label"
@@ -25,7 +31,7 @@
 		[placeholder]="placeholder"
 		[class]="css.control"
 		[required]="required"
-		[readonly]="readonly"
+		[readonly]="readonly || !!disabled"
 		[min]="minValue"
 		[max]="maxValue"
 		[minlength]="minLength"
@@ -42,7 +48,7 @@
 		[placeholder]="placeholder"
 		[class]="css.control"
 		[required]="required"
-		[readonly]="readonly"
+		[readonly]="readonly || !!disabled"
 		[minlength]="minLength"
 		[maxlength]="maxLength"
 		[rows]="rows" 
@@ -58,7 +64,7 @@
 		[cancelText]="selectCancelText"
 		[okText]="selectOkText"
 		[value]="value"
-		[disabled]="disabled"
+		[disabled]="!!disabled"
 		[placeholder]="placeholder"
 		(ionFocus)="onFocus($event)"
 		(ionBlur)="onBlur($event)"
@@ -78,7 +84,8 @@
 		[min]="minValue"
 		[max]="maxValue"
 		[value]="datetimeValue"
-		[disabled]="disabled"
+		[readonly]="readonly"
+		[disabled]="!!disabled"
 		[placeholder]="placeholder"
 		(ionFocus)="onFocus($event)"
 		(ionBlur)="onBlur($event)"
@@ -86,7 +93,7 @@
 
 	<ion-toggle *ngIf="isToggleControl" slot="end" #elementRef
 		[name]="name"
-		[disabled]="disabled"
+		[disabled]="!!disabled"
 		[color]="color.control"
 		[checked]="yesnoChecked"
 		[title]="description"
@@ -96,7 +103,7 @@
 
 	<ion-checkbox *ngIf="isCheckboxControl" slot="end" #elementRef
 		[name]="name"
-		[disabled]="disabled"
+		[disabled]="!!disabled"
 		[color]="color.control"
 		[checked]="yesnoChecked"
 		[title]="description"
@@ -107,7 +114,7 @@
 	<ion-range *ngIf="isRangeControl" #elementRef
 		[name]="name"
 		[color]="color.control"
-		[disabled]="disabled"
+		[disabled]="!!disabled"
 		[pin]="rangeOptions.AllowPin"
 		[snaps]="rangeOptions.AllowSnaps"
 		[dualKnobs]="rangeOptions.AllowDualKnobs"
@@ -127,6 +134,7 @@
 	<select *ngIf="selectAsDropdown || selectAsMultiple" #elementRef
 		[formControlName]="formControlName"
 		[name]="name"
+		[disabled]="!!disabled"
 		[multiple]="selectMultiple"
 		[size]="rows" 
 		[class]="css.control"
@@ -136,6 +144,14 @@
 		(change)="onChanged(this.value)">
 		<option *ngFor="let option of selectOptions; trackBy: trackOption" [value]="option.Value" [selected]="selectOptionIsChecked(option.Value)">{{ option.Label }}</option>
 	</select>
+
+	<ion-input *ngIf="isModal && !lookupMultiple" readonly #elementRef
+		[value]="lookupDisplayValue"
+		[placeholder]="placeholder"
+		[class]="css.control"
+		[required]="required"		
+		[disabled]="!!disabled"
+		[attr.style]="style.control"></ion-input>
 
 	<ng2-completer *ngIf="isCompleter" #elementRef
 		[inputName]="name"
@@ -153,16 +169,17 @@
 		(focus)="onFocus($event)"
 		(blur)="onBlur($event)"
 		(selected)="onChanged($event)"></ng2-completer>
-	
+
 	<div *ngIf="isFilePickerControl">
 		<div class="file-picker-input">
 			<input type="file" #elementRef
 				[accept]="control.Options.FilePickerOptions.Accept"
 				[multiple]="control.Options.FilePickerOptions.Multiple"
 				[placeholder]="placeholder"
+				[disabled]="!!disabled"
 				(change)="onChanged($event)" />
 		</div>
-		<div *ngIf="isAllowImagePreview" class="image-picker-preview ion-padding">
+		<div *ngIf="isAllowImagePreview && value" class="image-picker-preview ion-padding-vertical">
 			<div *ngIf="value.current">
 				<img [src]="value.current" />
 			</div>
@@ -172,18 +189,49 @@
 		</div>
 	</div>
 	
+	<ion-input *ngIf="isTextDisplayAsBoxControl" #elementRef
+		[value]="text"
+		[readonly]="readonly"
+		[disabled]="!!disabled"
+		[class]="css.control"
+		[attr.style]="style.control"></ion-input>
+
+	<ion-textarea *ngIf="isTextDisplayAsTexAreaControl" #elementRef
+		[value]="text"
+		[readonly]="readonly"
+		[disabled]="!!disabled"
+		[rows]="rows" 
+		[class]="css.control"
+		[attr.style]="style.control"
+		(ionFocus)="onFocus($event)"
+		(ionBlur)="onBlur($event)"></ion-textarea>
+	
+	<span *ngIf="isTextDisplayAsLabelControl" [innerHTML]="text" class="text" #elementRef></span>
+	
+	<div *ngIf="isTextDisplayAsParagraphControl" [innerHTML]="text" class="text" #elementRef></div>
+
 	<label *ngIf="description && !isYesNoControl && !isRangeControl"
 		[class]="css.description"
 		[style]="style.description"
+		[ngClass]="{'text-area':isTextAreaControl}"
 		[innerHTML]="description"></label>
 	
 </ion-item>
 
-<ion-item *ngIf="isLookupControl && isAllowDelete">
-	<ion-chip *ngFor="let lookup of lookupDisplayValues">
-		<ion-label>{{ lookup.Label }}</ion-label>
-		<ion-icon name="close-circle" (click)="deleteValue(lookup.Value)"></ion-icon>
-	</ion-chip>
+<ion-item *ngIf="visible && (isCompleter || isModal) && lookupMultiple" [color]="theme">
+	<ion-label class="ion-text-wrap">
+		<ion-chip *ngFor="let lookup of lookupDisplayValues">
+			<ion-label>
+				<ion-thumbnail *ngIf="lookup.Image" class="ion-float-start">
+					<img [src]="lookup.Image" />
+				</ion-thumbnail>
+				<span>
+					{{ lookup.Label }}
+				</span>
+			</ion-label>
+			<ion-icon *ngIf="!disabled" name="close-circle" (click)="deleteValue(lookup.Value)"></ion-icon>
+		</ion-chip>
+	</ion-label>
 </ion-item>
 
 <ion-list *ngIf="visible && selectAsCheckBoxes" #elementRef
@@ -223,7 +271,7 @@
 
 	<ion-item *ngFor="let option of selectOptions; trackBy: trackOption" [color]="theme">
 		<ion-label>{{ option.Label }}</ion-label>
-		<ion-radio [value]="option.Value"></ion-radio>
+		<ion-radio [value]="option.Value" [disabled]="!!disabled"></ion-radio>
 	</ion-item>
 
 </ion-radio-group>
@@ -243,6 +291,7 @@
 		[class]="css.control"
 		[required]="required"
 		[readonly]="readonly"
+		[disabled]="!!disabled"
 		[min]="minValue"
 		[max]="maxValue"
 		[minlength]="minLength"
@@ -264,7 +313,7 @@
 	<img *ngIf="captchaURI" slot="start" [src]="captchaURI"/>
 </ion-item>
 
-<ion-item *ngIf="visible && (isFormGroup || isFormArray) && description" [color]="theme">
+<ion-item *ngIf="visible && description && !label && (isFormGroup || isFormArray)" [color]="theme">
 	<label
 		[class]="css.description"
 		[style]="style.description"
@@ -274,7 +323,16 @@
 <ion-list *ngIf="visible && (isFormGroup || isFormArray) && !isFormButtons">
 	
 	<ion-list-header *ngIf="label" [color]="theme">
-		<ion-label [class]="css.label">{{ label }}</ion-label>
+		<ion-label [class]="css.label">
+			<span>
+				{{ label }}
+			</span>
+			<ion-buttons *ngIf="isFormArray" style="background-color:var(--ion-color-base);padding-right:16px" class="ion-float-end">
+				<ion-button fill="clear" color="medium" [disabled]="!!disabled" (click)="addControlOfFormArray()">
+					<ion-icon name="add" slot="icon-only"></ion-icon>
+				</ion-button>
+			</ion-buttons>
+		</ion-label>
 	</ion-list-header>
 	
 	<div *ngIf="isFormGroup">
@@ -306,16 +364,49 @@
 
 </ion-list>
 
-<ion-buttons *ngIf="visible && isFormButtons" class="ion-padding" style="background-color:var(--ion-color-base)">
+<ion-buttons *ngIf="visible && isFormButtons" style="background-color:var(--ion-color-base)" [class]="css.control || 'ion-padding'">
 	<ion-button *ngFor="let button of control.SubControls.Controls; trackBy: trackControl"
 		[fill]="button.Options.ButtonOptions.Fill"
 		[color]="button.Options.ButtonOptions.Color"
-		(click)="clickOnButton(button, formControlAsFormGroup)">
+		[disabled]="button.Options.Disabled"
+		[class]="button.Options.Css"
+		(click)="clickOnButton($event, button)">
 		<ion-icon *ngIf="button.Options.ButtonOptions.Icon.Name" [icon]="button.Options.ButtonOptions.Icon.Name" [slot]="button.Options.ButtonOptions.Icon.Slot"></ion-icon>
 		{{ button.Options.Label }}
 	</ion-button>
 </ion-buttons>
 
+<div *ngIf="visible && isTextEditorControl" class="text-editor">
+	<ion-item *ngIf="label" [color]="theme" lines="none">
+		<ion-label
+			[color]="color.label"
+			[position]="position"
+			[class]="css.label">{{ label }}</ion-label>
+	</ion-item>
+	<ckeditor #elementRef
+		[editor]="ckEditor"
+		[config]="ckEditorConfig"
+		[data]="value"
+		(ready)="ckEditorOnReady($event)"
+		(change)="onChanged($event)"></ckeditor>
+</div>
+
+<control-data-selector *ngIf="visible && (isSelector || isCustomControl('data-selector'))" #elementRef
+	[formGroup]="formGroup"
+	[control]="control"
+	[items]="lookupDisplayValues"
+	[resources]="lookupResources"
+	[handlers]="lookupHandlers"
+	[multiple]="lookupMultiple"></control-data-selector>
+<ion-item *ngIf="visible && description && (isSelector || isCustomControl('data-selector'))" [color]="theme">
+	<label
+		[class]="css.description"
+		[style]="style.description"
+		[innerHTML]="description"></label>
+</ion-item>
+
+<control-files-selector *ngIf="visible && isCustomControl('files-selector')" [control]="control" #elementRef></control-files-selector>
+	
 <control-image-cropper *ngIf="visible && isCustomControl('image-cropper')" #elementRef
 	[formGroup]="formGroup"
 	[control]="control"
@@ -326,7 +417,6 @@
 	[formGroup]="formGroup"
 	[control]="control"
 	[privileges]="value"
-	[allowInheritFromParent]="control.Extras['AllowInheritFromParent'] || control.Extras['allowInheritFromParent']"
 	(change)="onChanged($event)"></control-object-privileges>
 
 <control-service-privileges *ngIf="visible && isCustomControl('service-privileges')" #elementRef
@@ -334,3 +424,4 @@
 	[control]="control"
 	[privileges]="value"
 	(change)="onChanged($event)"></control-service-privileges>
+	

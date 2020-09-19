@@ -1,14 +1,14 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<form *ngIf="!asViewControls" [formGroup]="form" (ngSubmit)="onSubmit()">
 
 	<div *ngIf="gotSegments">
 		<ion-segment class="segments" [color]="color" [value]="segments.current" (ionChange)="onSegmentChanged($event)">
-			<ion-segment-button *ngFor="let segment of segments.items; trackBy: trackSegment" [value]="segment.Name">
+			<ion-segment-button *ngFor="let segment of segments.items; trackBy: track" [value]="segment.Name">
 				<ion-icon *ngIf="segment.Icon" [name]="segment.Icon" slot="start"></ion-icon>
 				<ion-label>{{ segment.Label }}</ion-label>
 			</ion-segment-button>
 		</ion-segment>
-		<ion-list *ngFor="let segment of segments.items; trackBy: trackSegment" [hidden]="segment.Name !== segments.current">
-			<app-form-control *ngFor="let control of getControls(segment); trackBy: trackControl"
+		<ion-list *ngFor="let segment of segments.items; trackBy: track" [hidden]="segment.Name !== segments.current">
+			<app-form-control *ngFor="let control of getControls(segment); trackBy: track"
 				[formGroup]="form"
 				[control]="control"
 				[theme]="color"
@@ -18,7 +18,7 @@
 	</div>
 
 	<ion-list *ngIf="!gotSegments">
-		<app-form-control *ngFor="let control of controls; trackBy: trackControl"
+		<app-form-control *ngFor="let control of controls; trackBy: track"
 			[formGroup]="form"
 			[control]="control"
 			[theme]="color"
@@ -27,3 +27,27 @@
 	</ion-list>
 
 </form>
+
+<div *ngIf="asViewControls">
+
+	<div *ngIf="gotSegments">
+		<ion-segment class="segments" [color]="color" [value]="segments.current" (ionChange)="onSegmentChanged($event)">
+			<ion-segment-button *ngFor="let segment of segments.items; trackBy: track" [value]="segment.Name">
+				<ion-icon *ngIf="segment.Icon" [name]="segment.Icon" slot="start"></ion-icon>
+				<ion-label>{{ segment.Label }}</ion-label>
+			</ion-segment-button>
+		</ion-segment>
+		<ion-list *ngFor="let segment of segments.items; trackBy: track" [hidden]="segment.Name !== segments.current">
+			<app-form-view *ngFor="let control of getControls(segment); trackBy: track"
+				[control]="control"
+				[theme]="color"></app-form-view>
+		</ion-list>
+	</div>
+
+	<ion-list *ngIf="!gotSegments">
+		<app-form-view *ngFor="let control of controls; trackBy: track"
+			[control]="control"
+			[theme]="color"></app-form-view>
+	</ion-list>
+
+</div>

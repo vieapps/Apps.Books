@@ -15,17 +15,23 @@
 		"buttons": {
 			"yes": "Có",
 			"no": "Không",
-			"done": "Hoàn thành",
 			"ok": "Đồng ý",
+			"done": "Hoàn thành",
 			"add": "Thêm",
+			"moderate": "Kiểm duyệt",
 			"create": "Tạo mới",
 			"update": "Cập nhật",
 			"delete": "Xoá",
+			"edit": "Cập nhật",
+			"view": "Xem",
 			"save": "Lưu",
 			"cancel": "Huỷ",
 			"close": "Đóng",
 			"select": "Chọn",
-			"search": "Tìm"
+			"search": "Tìm",
+			"upload": "Tải lên",
+			"download": "Tải xuống",
+			"refresh": "Làm tươi"
 		},
 		"messages": {
 			"loading": "Tải dữ liệu...",
@@ -44,6 +50,11 @@
 				"searching": "tìm kiếm...",
 				"noresults": "không có kết quả phù hợp"
 			}
+		},
+		"audits": {
+			"identity": "Mã định danh",
+			"label": "Thông tin quản trị",
+			"info": "{{creator}} khởi tạo lúc {{created}} - {{modifier}} cập nhật lần cuối lúc {{modified}}"
 		}
 	},
 	"privileges": {
@@ -109,12 +120,41 @@
 	},
 	"status": {
 		"approval": {
+			"label": "Trạng thái",
 			"Draft": "Bản nháp",
 			"Pending": "Đợi duyệt",
 			"Rejected": "Bị từ chối",
 			"Approved": "Đã duyệt",
 			"Published": "Xuất bản",
 			"Archieved": "Lưu trữ"
+		}
+	},
+	"events": {
+		"label": "Sự kiện",
+		"Create": "Tạo mới",
+		"Update": "Cập nhật",
+		"Delete": "Xoá"
+	},
+	"files": {
+		"thumbnails": {
+			"label": "Ảnh đại diện",
+			"current": "Ảnh hiện tại",
+			"new": "Ảnh mới"
+		},
+		"attachments": {
+			"segment": "Tệp đính kèm",
+			"label": "Các tệp đính kèm",
+			"confirm": "Chắc chắn muốn xoá tệp tin '{{name}}'?",
+			"upload": "Tải lên",
+			"download": "Tải xuống",
+			"controls": {
+				"title": "Tiêu đề",
+				"description": "Diễn giải",
+				"shared": "Chia sẻ dùng chung trong toàn bộ hệ thống",
+				"tracked": "Lưu toàn bộ log truy cập (bao gồm cả xem)",
+				"filename": "Tên tệp tin",
+				"uri": "Liên kết xem/tải tệp tin"
+			}
 		}
 	}
 }

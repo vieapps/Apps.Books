@@ -1,17 +1,17 @@
 import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { AppCrypto } from "../../../components/app.crypto";
-import { AppEvents } from "../../../components/app.events";
-import { AppUtility } from "../../../components/app.utility";
-import { AppFormsControl, AppFormsControlConfig, AppFormsService } from "../../../components/forms.service";
-import { AppFormsComponent } from "../../../components/forms.component";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { AuthenticationService } from "../../../services/authentication.service";
-import { UsersService } from "../../../services/users.service";
-import { UserProfile } from "../../../models/user";
-import { Account } from "../../../models/account";
-import { Privilege } from "../../../models/privileges";
+import { AppCrypto } from "@components/app.crypto";
+import { AppEvents } from "@components/app.events";
+import { AppUtility } from "@components/app.utility";
+import { AppFormsControl, AppFormsControlConfig, AppFormsService } from "@components/forms.service";
+import { AppFormsComponent } from "@components/forms.component";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { UsersService } from "@services/users.service";
+import { UserProfile } from "@models/user";
+import { Account } from "@models/account";
+import { Privilege } from "@models/privileges";
 
 @Component({
 	selector: "page-users-update",
@@ -22,7 +22,7 @@ import { Privilege } from "../../../models/privileges";
 export class UsersUpdatePage implements OnInit {
 
 	constructor(
-		public configSvc: ConfigurationService,
+		private configSvc: ConfigurationService,
 		private appFormsSvc: AppFormsService,
 		private authSvc: AuthenticationService,
 		private usersSvc: UsersService
@@ -69,6 +69,10 @@ export class UsersUpdatePage implements OnInit {
 		privileges: {} as { [key: string]: Array<Privilege> },
 		hash: ""
 	};
+
+	get color() {
+		return this.configSvc.color;
+	}
 
 	ngOnInit() {
 		this.prepareAsync();
@@ -207,7 +211,12 @@ export class UsersUpdatePage implements OnInit {
 				Options: {
 					Type: "Address",
 					PlaceHolder: await this.configSvc.getResourceAsync("users.register.controls.Address.placeholder"),
-					MinLength: 2
+					MinLength: 2,
+					LookupOptions: {
+						Multiple: false,
+						AsModal: false,
+						AsCompleter: true
+					}
 				}
 			},
 			{

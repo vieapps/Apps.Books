@@ -20,26 +20,27 @@ import { FileTransfer } from "@ionic-native/file-transfer/ngx";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
 
-import { AppConfig } from "./app.config";
-import { AppComponent } from "./app.component";
-import { AppRoutingModule } from "./app.routing.module";
-import { AppFormsModule } from "./components/forms.module";
-import { AppFormsService } from "./components/forms.service";
-import { AppModulePreloader } from "./components/app.preloader";
-import { TimePipeModule } from "./components/time.pipe";
-import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "./services/base.service";
-import { ConfigurationService } from "./services/configuration.service";
-import { AuthenticationService } from "./services/authentication.service";
-import { UsersService } from "./services/users.service";
-import { FilesService } from "./services/files.service";
-import { BooksService } from "./services/books.service";
+import { AppConfig } from "@app/app.config";
+import { AppComponent } from "@app/app.component";
+import { AppRoutingModule } from "@app/app.routing.module";
+import { AppFormsModule } from "@components/forms.module";
+import { AppFormsService } from "@components/forms.service";
+import { AppModulePreloader } from "@components/app.preloader";
+import { TimePipeModule } from "@components/time.pipe";
+import { AppReadyGuardService, RegisterGuardService, AuthenticatedGuardService, NotAuthenticatedGuardService } from "@services/base.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { UsersService } from "@services/users.service";
+import { FilesService } from "@services/files.service";
+import { BooksService } from "@services/books.service";
+import { FilesProcessorModalPageModule } from "@controls/common/file.processor.modal.module";
 
 // ngx-translate factories
 export function HttpLoaderFactory(http: HttpClient) {
 	return new MultiTranslateHttpLoader(http, [
 		{ prefix: "./assets/i18n/common/", suffix: ".json" },
 		{ prefix: "./assets/i18n/users/", suffix: ".json" },
-		{ prefix: "./assets/i18n/books/", suffix: ".json" },
+		{ prefix: "./assets/i18n/books/", suffix: ".json" }
 	]);
 }
 
@@ -87,6 +88,7 @@ export class HammerConfig extends HammerGestureConfig {
 			useFactory: HttpLoaderFactory,
 			deps: [HttpClient]
 		}}),
+		FilesProcessorModalPageModule,
 		TimePipeModule,
 		AppFormsModule,
 		AppRoutingModule

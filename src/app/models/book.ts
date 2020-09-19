@@ -1,8 +1,8 @@
-import { Dictionary } from "typescript-collections";
-import { AppUtility } from "../components/app.utility";
-import { Base as BaseModel } from "./base";
-import { RatingPoint } from "./ratingpoint";
-import { CounterInfo } from "./counters";
+import { List } from "linqts";
+import { AppUtility, Dictionary } from "@components/app.utility";
+import { Base as BaseModel } from "@models/base";
+import { RatingPoint } from "@models/rating.point";
+import { CounterInfo } from "@models/counters";
 
 export class Book extends BaseModel {
 
@@ -56,17 +56,20 @@ export class Book extends BaseModel {
 		book = book || new Book();
 		book.copy(json, data => {
 			book.Counters = new Dictionary<string, CounterInfo>();
-			(data.Counters as Array<any>).forEach(o => book.Counters.setValue(o.Type, CounterInfo.deserialize(o)));
+			(data.Counters as Array<any>).forEach(obj => book.Counters.set(obj.Type, CounterInfo.deserialize(obj)));
 
 			book.RatingPoints = new Dictionary<string, RatingPoint>();
-			(data.RatingPoints as Array<any>).forEach(o => book.RatingPoints.setValue(o.Type, RatingPoint.deserialize(o)));
+			(data.RatingPoints as Array<any>).forEach(obj => book.RatingPoints.set(obj.Type, RatingPoint.deserialize(obj)));
 
-			book.Chapters = book.TotalChapters > 1 && book.Chapters.length < 1
-				? book.TOCs.map(o => "")
+			book.Chapters = book.TotalChapters > 1 && (book.Chapters === undefined || book.Chapters.length < 1)
+				? book.TOCs.map(_ => "")
 				: book.Chapters;
 
 			book.ansiTitle = AppUtility.toANSI(`${book.Title} ${book.Author}`).toLowerCase();
 			book.routerParams["x-request"] = AppUtility.toBase64Url({ Service: "books", Object: "book", ID: book.ID });
+
+			delete book["Privileges"];
+			delete book["OriginalPrivileges"];
 		});
 		return book;
 	}
@@ -74,16 +77,14 @@ export class Book extends BaseModel {
 	/** Gets by identity */
 	public static get(id: string) {
 		return id !== undefined
-			? this.instances.getValue(id)
+			? this.instances.get(id)
 			: undefined;
 	}
 
 
 	/** Sets by identity */
 	public static set(book: Book) {
-		return book === undefined
-			? undefined
-			: this.instances.setValue(book.ID, book) || book;
+		return book !== undefined ? this.instances.add(book.ID, book) : book;
 	}
 
 	/** Updates into dictionary */
@@ -91,6 +92,16 @@ export class Book extends BaseModel {
 		return AppUtility.isObject(data, true)
 			? this.set(data instanceof Book ? data as Book : this.deserialize(data, this.get(data.ID)))
 			: undefined;
+	}
+
+	/** Checks to see the dictionary is contains the object by identity or not */
+	public static contains(id: string) {
+		return id !== undefined && this.instances.contains(id);
+	}
+
+	/** Converts the array of objects to list */
+	public static toList(objects: Array<any>) {
+		return new List(objects.map(obj => this.get(obj.ID) || this.deserialize(obj, this.get(obj.ID))));
 	}
 
 	public get routerLink() {

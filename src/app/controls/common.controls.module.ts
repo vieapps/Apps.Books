@@ -3,10 +3,13 @@ import { CommonModule } from "@angular/common";
 import { IonicModule } from "@ionic/angular";
 import { ImageCropperModule as HtmlImageCropper } from "ng2-img-cropper";
 import { Crop as NativeImageCropper } from "@ionic-native/crop/ngx";
-import { ImageCropperControl } from "./common/image.cropper";
-import { ObjectPrivilegesControl } from "./common/object.privileges";
-import { ServicePrivilegesControl } from "./common/service.privileges";
-import { UsersSelectorModule } from "./common/user.selector.module";
+import { DataSelectorControl } from "@controls/common/data.selector";
+import { FilesSelectorControl } from "@controls/common/file.selector.control";
+import { ImageCropperControl } from "@controls/common/image.cropper";
+import { ObjectPrivilegesControl } from "@controls/common/object.privileges";
+import { ServicePrivilegesControl } from "@controls/common/service.privileges";
+import { FilesProcessorModalPageModule } from "@controls/common/file.processor.modal.module";
+import { UsersSelectorModalPageModule } from "@controls/common/user.selector.modal.module";
 
 @NgModule({
 	providers: [NativeImageCropper],
@@ -14,14 +17,19 @@ import { UsersSelectorModule } from "./common/user.selector.module";
 		CommonModule,
 		IonicModule,
 		HtmlImageCropper,
-		UsersSelectorModule
+		UsersSelectorModalPageModule,
+		FilesProcessorModalPageModule
 	],
 	exports: [
+		DataSelectorControl,
+		FilesSelectorControl,
 		ImageCropperControl,
 		ObjectPrivilegesControl,
 		ServicePrivilegesControl
 	],
 	declarations: [
+		DataSelectorControl,
+		FilesSelectorControl,
 		ImageCropperControl,
 		ObjectPrivilegesControl,
 		ServicePrivilegesControl

@@ -1,14 +1,14 @@
 import { Component, OnInit, OnDestroy, ViewChild } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
 import { IonContent } from "@ionic/angular";
-import { AppEvents } from "../../../components/app.events";
-import { AppUtility } from "../../../components/app.utility";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { AuthenticationService } from "../../../services/authentication.service";
-import { BooksService } from "../../../services/books.service";
-import { Book } from "../../../models/book";
+import { AppEvents } from "@components/app.events";
+import { AppUtility } from "@components/app.utility";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { BooksService } from "@services/books.service";
+import { Book } from "@models/book";
 
 @Component({
 	selector: "page-books-read",
@@ -140,13 +140,17 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		const id = this.configSvc.requestParams["ID"];
 		await this.booksSvc.getAsync(
 			id,
-			async () => {
+			async data => {
 				this.book = Book.get(id);
 				if (this.book !== undefined) {
 					this.title = this.configSvc.appTitle = `${this.book.Title} - ${this.book.Author}`;
 					await this.prepareAsync();
+					if (this.configSvc.isDebug) {
+						console.log("<Books>", this.book, data);
+					}
 				}
 				else {
+					console.log("<Books>: Not found", id, data);
 					await this.appFormsSvc.hideLoadingAsync(async () => await this.configSvc.navigateBackAsync());
 				}
 			},
@@ -161,7 +165,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 		]);
 
 		if (this.chapter === 0) {
-			const bookmark = this.booksSvc.bookmarks.getValue(this.book.ID);
+			const bookmark = this.booksSvc.bookmarks.get(this.book.ID);
 			if (bookmark !== undefined) {
 				this.chapter = bookmark.Chapter;
 				this.scrollOffset = bookmark.Position;
@@ -244,7 +248,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 
 	async goPreviousAsync() {
 		if (this.book.TotalChapters < 2) {
-			const books = Book.instances.values().filter(book => book.Category === this.book.Category);
+			const books = Book.instances.toArray(book => book.Category === this.book.Category);
 			const index = books.findIndex(book => book.ID === this.book.ID);
 			if (index > 0) {
 				await this.configSvc.navigateForwardAsync(books[index - 1].routerURI);
@@ -259,7 +263,7 @@ export class BooksReadPage implements OnInit, OnDestroy {
 
 	async goNextAsync() {
 		if (this.book.TotalChapters < 2) {
-			const books = Book.instances.values().filter(book => book.Category === this.book.Category);
+			const books = Book.instances.toArray(book => book.Category === this.book.Category);
 			const index = books.findIndex(book => book.ID === this.book.ID);
 			if (index > -1 && index < books.length - 2) {
 				await this.configSvc.navigateForwardAsync(books[index + 1].routerURI);

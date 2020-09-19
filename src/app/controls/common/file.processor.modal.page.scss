@@ -1,0 +1,35 @@
+ion-list.select > ion-item > ion-label > span {
+	line-height: 20px;
+} 
+ion-list.select > ion-item > ion-label > span > ion-icon {
+	width: 20px;
+	height: 20px;
+	margin-right: 8px;
+}
+ion-list.select > ion-item > ion-label > div > span {
+	font-size: 90%;
+} 
+ion-list.select > ion-item > ion-label > div > a {
+	display: inline-block;
+	margin: 10px;
+	cursor: pointer;
+}
+ion-list.select > ion-item > ion-label > div > a > ion-icon {
+	width: 18px;
+	height: 18px;
+}
+div.upload > ion-list > ion-item > ion-label > div {
+	width: 100%;
+	padding-top: 7px;
+}
+div.upload > ion-list > ion-item > ion-label > section {
+	height: 7px;
+	width: 100%;
+}
+div.upload > ion-list > ion-item > ion-label > section > div {
+	display: block;
+	height: 7px;
+	background-color: darkgreen;
+	float: left;
+	width: 0%;
+}

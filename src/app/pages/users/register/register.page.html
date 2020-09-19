@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar [color]="configSvc.color">
+	<ion-toolbar [color]="color">
 		<ion-buttons slot="start">
 			<ion-back-button text="" icon="close"></ion-back-button>
 		</ion-buttons>
@@ -9,9 +9,9 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color" class="ion-padding">
+<ion-content [color]="color" class="ion-padding">
 	<app-form *ngIf="register.config"
-		[color]="configSvc.color"
+		[color]="color"
 		[form]="register.form"
 		[config]="register.config"
 		[controls]="register.controls"

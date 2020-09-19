@@ -1,6 +1,6 @@
 import { Subject } from "rxjs";
 import { ElectronService } from "ngx-electron";
-import { AppUtility } from "./app.utility";
+import { AppUtility } from "@components/app.utility";
 
 /** Servicing component for working with app events */
 export class AppEvents {
@@ -85,7 +85,12 @@ export class AppEvents {
 	*/
 	public static sendToElectron(event: string, args?: any) {
 		if (this._electronService !== undefined) {
-			this._electronService.ipcRenderer.send(event, args || {});
+			try {
+				this._electronService.ipcRenderer.send(event, AppUtility.clone(args || {}));
+			}
+			catch (error) {
+				console.error("Error occrred while sending an IPC message to Eletron", error, event, args);
+			}
 		}
 	}
 

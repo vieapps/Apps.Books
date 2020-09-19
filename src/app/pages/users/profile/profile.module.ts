@@ -2,12 +2,11 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { IonicModule } from "@ionic/angular";
-import { AppFormsModule } from "../../../components/forms.module";
-import { TimePipeModule } from "../../../components/time.pipe";
-import { CommonControlsModule } from "../../../controls/common.controls.module";
+import { AppFormsModule } from "@components/forms.module";
+import { TimePipeModule } from "@components/time.pipe";
+import { CommonControlsModule } from "@controls/common.controls.module";
 import { UsersAvatarPageModule } from "../avatar/avatar.module";
 import { UsersProfilePage } from "./profile.page";
-import { BookControlsModule } from "../../../controls/books.controls.module";
 
 @NgModule({
 	providers: [],
@@ -18,7 +17,6 @@ import { BookControlsModule } from "../../../controls/books.controls.module";
 		TimePipeModule,
 		CommonControlsModule,
 		UsersAvatarPageModule,
-		BookControlsModule,
 		RouterModule.forChild([{ path: "", component: UsersProfilePage }])
 	],
 	exports: [],

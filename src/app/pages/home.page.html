@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar [color]="configSvc.color">
+	<ion-toolbar [color]="color">
 		<ion-buttons slot="start">
 			<ion-menu-button></ion-menu-button>
 		</ion-buttons>
@@ -9,6 +9,6 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color">
-	<control-book-home-screen *ngIf="configSvc.appConfig.services.active === 'Books'" [changes]="changes"></control-book-home-screen>
+<ion-content [color]="color">
+	<control-book-home-screen *ngIf="activeService === 'Books'" [changes]="changes"></control-book-home-screen>
 </ion-content>

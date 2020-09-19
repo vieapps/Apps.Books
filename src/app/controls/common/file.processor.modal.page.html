@@ -1,0 +1,125 @@
+<ion-header>
+	<ion-toolbar [color]="color">
+		<ion-buttons slot="start">
+			<ion-button color="secondary" [disabled]="processing" (click)="closeAsync()">
+				{{ buttons.cancel }}
+			</ion-button>
+		</ion-buttons>
+		<ion-buttons slot="end">
+			<ion-button *ngIf="mode === 'select'" color="primary" [disabled]="processing" (click)="closeAsync(selected.toArray())">
+				{{ buttons.select }}
+			</ion-button>
+			<ion-button *ngIf="mode === 'edit'" color="primary" [disabled]="processing" (click)="updateAsync()">
+				{{ buttons.update }}
+			</ion-button>
+			<ion-button *ngIf="mode === 'upload'" color="primary" [disabled]="processing" (click)="uploadFiles()">
+				{{ buttons.upload }}
+			</ion-button>
+		</ion-buttons>
+	</ion-toolbar>
+</ion-header>
+
+<ion-content [color]="color">
+
+	<ion-list *ngIf="mode === 'select'" class="select">
+		<ion-item *ngFor="let attachment of attachments; trackBy: track" [color]="color">
+			<ion-checkbox *ngIf="allowSelect" slot="end" [checked]="selected.contains(attachment.ID)" (ionChange)="onSelect($event, attachment)"></ion-checkbox>
+			<ion-label>
+				<ion-buttons *ngIf="allowEdit || allowDelete" class="ion-float-end">
+					<ion-button *ngIf="allowEdit" fill="clear" color="medium" (click)="onEdit($event, attachment)">
+						<ion-icon name="trash" slot="icon-only"></ion-icon>
+					</ion-button>
+					<ion-button *ngIf="allowDelete" fill="clear" color="medium" (click)="onDelete($event, attachment)">
+						<ion-icon name="create" slot="icon-only"></ion-icon>
+					</ion-button>
+				</ion-buttons>
+				<span>
+					<ion-icon [name]="attachment.icon" class="ion-float-start"></ion-icon>
+					{{ attachment.Filename }}
+				</span>
+				<div *ngIf="showIcons">
+					<span>
+						{{ attachment.Size | number:'':locale }} bytes
+					</span>
+					<a [href]="attachment.URIs.Direct" target="_blank" class="ion-padding-start">
+						<ion-icon name="link" color="medium" slot="icon-only" title="Direct URL"></ion-icon>
+					</a>
+					<a [href]="attachment.URIs.Download" target="_blank" class="ion-padding-start">
+						<ion-icon name="download" color="medium" slot="icon-only" title="Download URL"></ion-icon>
+					</a>
+					<a class="ion-padding-start">
+						<ion-icon *ngIf="attachment.IsShared" name="share-social" color="medium" slot="icon-only"></ion-icon>
+					</a>
+					<a class="ion-padding-start">
+						<ion-icon *ngIf="attachment.IsTracked" name="analytics" color="medium" slot="icon-only"></ion-icon>
+					</a>
+				</div>
+			</ion-label>
+		</ion-item>
+	</ion-list>
+
+	<form *ngIf="mode === 'edit' && form !== undefined" [formGroup]="form" class="edit ion-padding">
+		<ion-list>
+			<ion-item [color]="color">
+				<ion-label position="stacked">
+					{{ labels.title }}
+				</ion-label>
+				<ion-input formControlName="Title" name="Title" maxlength="250" required></ion-input>
+			</ion-item>
+			<ion-item [color]="color">
+				<ion-label position="stacked">
+					{{ labels.description }}
+				</ion-label>
+				<ion-textarea formControlName="Description" name="Description" maxlength="1000" rows="2"></ion-textarea>
+			</ion-item>
+			<ion-item [color]="color">
+				<ion-label>
+					{{ labels.shared }}
+				</ion-label>
+				<ion-toggle formControlName="IsShared" name="IsShared" slot="end"></ion-toggle>
+			</ion-item>
+			<ion-item [color]="color">
+				<ion-label>
+					{{ labels.tracked }}
+				</ion-label>
+				<ion-toggle formControlName="IsTracked" name="IsTracked" slot="end"></ion-toggle>
+			</ion-item>
+			<ion-item [color]="color">
+				<ion-label position="stacked">
+					{{ labels.filename }}
+				</ion-label>
+				<ion-input formControlName="Filename" name="Filename" readonly></ion-input>
+			</ion-item>
+			<ion-item [color]="color">
+				<ion-label position="stacked">
+					{{ labels.uri }}
+				</ion-label>
+				<ion-input formControlName="URI" name="URI" readonly></ion-input>
+			</ion-item>
+		</ion-list>
+	</form>
+
+	<div *ngIf="mode === 'upload'" class="upload">
+		<ion-list>
+			<ion-item class="file-picker" [color]="color">
+				<div class="file-picker-input">
+					<input type="file" multiple="true" [accept]="accept" (change)="onSelectFiles($event)" #filesSelector />
+				</div>
+			</ion-item>
+			<ion-item *ngFor="let file of files; let idx = index; trackBy: trackFile" [color]="color">
+				<ion-label>
+					<div>
+						{{ file.data.name }} ({{ file.data.size | number:'':locale }} bytes)
+					</div>
+					<section>
+						<div [style.width]="file.percentage"></div>
+					</section>
+				</ion-label>
+				<ion-button slot="end" color="medium" fill="clear" (click)="onDeleteQueuedFile($event, idx)">
+					<ion-icon name="trash"></ion-icon>
+				</ion-button>
+			</ion-item>
+		</ion-list>
+	</div>
+
+</ion-content>

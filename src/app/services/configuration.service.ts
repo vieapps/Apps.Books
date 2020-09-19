@@ -1,5 +1,4 @@
 declare var FB: any;
-import { List } from "linqts";
 import { Injectable } from "@angular/core";
 import { PlatformLocation } from "@angular/common";
 import { Title as BrowserTitle } from "@angular/platform-browser";
@@ -13,20 +12,19 @@ import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
 import { TranslateService } from "@ngx-translate/core";
 import { ElectronService } from "ngx-electron";
-import { AppConfig } from "../app.config";
-import { AppStorage } from "../components/app.storage";
-import { AppCrypto } from "../components/app.crypto";
-import { AppEvents } from "../components/app.events";
-import { AppUtility } from "../components/app.utility";
-import { PlatformUtility } from "../components/app.utility.platform";
-import { TrackingUtility } from "../components/app.utility.trackings";
-import { Account } from "../models/account";
-import { Privilege } from "../models/privileges";
-import { UserProfile } from "../models/user";
-import { Base as BaseService } from "./base.service";
+import { AppConfig } from "@app/app.config";
+import { AppStorage } from "@components/app.storage";
+import { AppCrypto } from "@components/app.crypto";
+import { AppEvents } from "@components/app.events";
+import { AppUtility } from "@components/app.utility";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { Account } from "@models/account";
+import { Privilege } from "@models/privileges";
+import { UserProfile } from "@models/user";
+import { Base as BaseService } from "@services/base.service";
 
 @Injectable()
-
 export class ConfigurationService extends BaseService {
 
 	constructor(
@@ -167,7 +165,7 @@ export class ConfigurationService extends BaseService {
 
 	/** Gets the URI for activating new account/password */
 	public get activateURI() {
-		return AppCrypto.urlEncode(PlatformUtility.getRedirectURI("prego=activate&mode={mode}&code={code}", false));
+		return AppCrypto.urlEncode(PlatformUtility.getRedirectURI("home?prego=activate&mode={{mode}}&code={{code}}"));
 	}
 
 	/** Sets the app title (means title of the browser) */
@@ -197,13 +195,28 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Gets the width (pixels) of the screen */
-	public get screenWidth() {
+	public get screenWidth(): number {
 		return this.platform.width();
 	}
 
 	/** Gets the width (pixels) of the screen */
-	public get screenHeight() {
+	public get screenHeight(): number {
 		return this.platform.height();
+	}
+
+	/** Gets the file-size limits */
+	public get fileLimits() {
+		let limits = this.appConfig.options.extras.fileLimits as { avatar: number; thumbnail: number; file: number };
+		if (!AppUtility.isObject(limits, true)) {
+			limits = {
+				avatar: 1024000,
+				thumbnail: 524288,
+				file: 819200000
+			};
+			this.appConfig.options.extras.fileLimits = limits;
+			this.storeOptionsAsync(() => console.log("[Configuration]: file limits were updated"));
+		}
+		return limits;
 	}
 
 	/** Prepare the configuration of the app */
@@ -213,24 +226,24 @@ export class ConfigurationService extends BaseService {
 
 		this.appConfig.app.mode = isNativeApp ? "NTA" : "PWA";
 		this.appConfig.app.os = PlatformUtility.getOSPlatform();
+		this.appConfig.url.host = PlatformUtility.getHost();
 
 		if (isNativeApp) {
+			this.appConfig.url.base = "";
 			this.appConfig.app.platform = this.device.platform;
 			this.appConfig.session.device = this.device.uuid + "@" + this.appConfig.app.id;
-			this.appConfig.url.base = "/";
 		}
 
 		else {
-			this.appConfig.app.platform = PlatformUtility.getAppPlatform() + " " + this.appConfig.app.mode;
-			this.appConfig.url.host = PlatformUtility.getHost();
 			this.appConfig.url.base = this.platformLocation.getBaseHrefFromDOM();
+			this.appConfig.app.platform = `${PlatformUtility.getAppPlatform()} ${this.appConfig.app.mode}`;
 		}
 
 		if (isCordova) {
 			if (isNativeApp) {
 				this.appVersion.getVersionCode()
 					.then(version => this.appConfig.app.version = isNativeApp && !this.isRunningOnIOS ? (version + "").replace(/0/g, ".") : version + "")
-					.catch(error => console.error(super.getErrorMessage("Error occurred while preparing app version", error)));
+					.catch(error => console.error(super.getErrorMessage("Error occurred while preparing the app version", error)));
 				PlatformUtility.setInAppBrowser(this.inappBrowser);
 				PlatformUtility.setClipboard(this.clipboard);
 				if (!this.isRunningOnIOS) {
@@ -248,6 +261,9 @@ export class ConfigurationService extends BaseService {
 			AppEvents.initializeElectronService(this.electronSvc);
 			PlatformUtility.setElectronService(this.electronSvc);
 			this.appConfig.app.shell = "Electron";
+			this.appConfig.app.mode = "Desktop";
+			this.appConfig.url.base = "";
+			this.appConfig.app.platform = `${this.appConfig.app.os} Desktop`;
 			this.electronSvc.ipcRenderer.on("electron.ipc2app", ($event: any, $info: any) => {
 				$info = $info || {};
 				if (AppUtility.isNotEmpty($info.event)) {
@@ -284,15 +300,15 @@ export class ConfigurationService extends BaseService {
 		}
 	}
 
-	/** Initializes the session with REST API */
-	public initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.fetchAsync(
+	/** Initializes the session with remote APIs */
+	public async initializeSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.fetchAsync(
 			"users/session",
 			async data => {
 				if (this.isDebug) {
 					console.log(super.getLogMessage("The session is initialized by APIs"));
 				}
-				await this.updateSessionAsync(data, () => {
+				await this.updateSessionAsync(data, _ => {
 					this.appConfig.session.account = this.getAccount(!this.isAuthenticated);
 					if (this.isAuthenticated) {
 						this.appConfig.session.account.id = this.appConfig.session.token.uid;
@@ -307,11 +323,11 @@ export class ConfigurationService extends BaseService {
 		);
 	}
 
-	/** Registers the initialized session (anonymous) with REST API */
-	public registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.fetchAsync(
+	/** Registers the initialized session (anonymous) with remote APIs */
+	public async registerSessionAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.fetchAsync(
 			`users/session?register=${this.appConfig.session.id}`,
-			async () => {
+			async _ => {
 				this.appConfig.session.account = this.getAccount(true);
 				if (this.isDebug) {
 					console.log(super.getLogMessage("The session is registered by APIs"));
@@ -369,14 +385,12 @@ export class ConfigurationService extends BaseService {
 			super.send({
 				ServiceName: "Users",
 				ObjectName: "Account",
-				Query: {
-					"x-status": ""
-				}
+				Query: this.appConfig.getRelatedJson({ "x-status": "" })
 			});
 			super.send({
 				ServiceName: "Users",
 				ObjectName: "Profile",
-				Query: this.appConfig.getRelatedJson(undefined, { "object-identity": this.appConfig.session.account.id })
+				Query: this.appConfig.getRelatedJson({ "object-identity": this.appConfig.session.account.id })
 			});
 		}
 
@@ -453,20 +467,17 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Resets session information and re-store into storage */
-	public resetSessionAsync(onNext?: (data?: any) => void, doStore: boolean = true) {
+	public async resetSessionAsync(onNext?: (data?: any) => void, doStore: boolean = true) {
 		this.appConfig.session.id = undefined;
 		this.appConfig.session.token = undefined;
 		this.appConfig.session.keys = undefined;
 		this.appConfig.session.account = this.getAccount(true);
-		return this.deleteSessionAsync(doStore ? () => this.storeSessionAsync(onNext) : onNext);
+		await this.deleteSessionAsync(doStore ? async () => await this.storeSessionAsync(onNext) : onNext);
 	}
 
 	/** Gets the information of the current/default account */
 	public getAccount(getDefault: boolean = false) {
-		const account = getDefault || this.appConfig.session.account === undefined
-			? undefined
-			: this.appConfig.session.account;
-		return account || new Account();
+		return (getDefault ? undefined : this.appConfig.session.account) || new Account();
 	}
 
 	/** Updates information of the account */
@@ -479,11 +490,11 @@ export class ConfigurationService extends BaseService {
 		}
 
 		if (AppUtility.isArray(data.Roles, true)) {
-			account.roles = new List<string>(data.Roles).Select(r => r.trim()).Distinct().ToArray();
+			account.roles = (data.Roles as Array<string>).filter((role, index, array) => array.indexOf(role) === index);
 		}
 
 		if (AppUtility.isArray(data.Privileges, true)) {
-			account.privileges = (data.Privileges as Array<any>).map(p => Privilege.deserialize(p));
+			account.privileges = (data.Privileges as Array<any>).map(privilege => Privilege.deserialize(privilege));
 		}
 
 		if (AppUtility.isNotEmpty(data.Status)) {
@@ -585,18 +596,18 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Sends a request to navigates to home screen */
-	public navigateHomeAsync(url?: string, extras?: { [key: string]: any }) {
-		return this.navController.navigateRoot(url || this.appConfig.url.home, extras);
+	public async navigateHomeAsync(url?: string, extras?: { [key: string]: any }) {
+		await this.navController.navigateRoot(url || this.appConfig.url.home, extras);
 	}
 
 	/** Sends a request to navigates back one step */
-	public navigateBackAsync(url?: string, extras?: { [key: string]: any }) {
-		return this.navController.navigateBack(url || this.previousUrl, extras);
+	public async navigateBackAsync(url?: string, extras?: { [key: string]: any }) {
+		await this.navController.navigateBack(url || this.previousUrl, extras);
 	}
 
 	/** Sends a request to navigates forward one step */
-	public navigateForwardAsync(url: string, extras?: { [key: string]: any }) {
-		return this.navController.navigateForward(url || this.appConfig.url.home, extras);
+	public async navigateForwardAsync(url: string, extras?: { [key: string]: any }) {
+		await this.navController.navigateForward(url || this.appConfig.url.home, extras);
 	}
 
 	private async loadGeoMetaAsync() {
@@ -623,14 +634,14 @@ export class ConfigurationService extends BaseService {
 		);
 	}
 
-	private saveGeoMetaAsync(data: any, onNext?: (data?: any) => void) {
+	private async saveGeoMetaAsync(data: any, onNext?: (data?: any) => void) {
 		if (AppUtility.isObject(data, true) && AppUtility.isNotEmpty(data.code) && AppUtility.isArray(data.provinces, true)) {
 			this.appConfig.geoMeta.provinces[data.code] = data;
 		}
 		else if (AppUtility.isObject(data, true) && AppUtility.isArray(data.countries, true)) {
 			this.appConfig.geoMeta.countries = data.countries;
 		}
-		return Promise.all([
+		await Promise.all([
 			AppStorage.setAsync("GeoMeta-Country", this.appConfig.geoMeta.country),
 			AppStorage.setAsync("GeoMeta-Countries", this.appConfig.geoMeta.countries),
 			AppStorage.setAsync("GeoMeta-Provinces", this.appConfig.geoMeta.provinces)
@@ -655,8 +666,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Stores the URI settings of the app */
-	public storeURIsAsync(onNext?: (data?: any) => void) {
-		return AppStorage.setAsync("URIs", this.appConfig.URIs).then(() => {
+	public async storeURIsAsync(onNext?: (data?: any) => void) {
+		await AppStorage.setAsync("URIs", this.appConfig.URIs).then(() => {
 			AppEvents.broadcast("App", { Type: "URIsUpdated" });
 			if (this.isDebug) {
 				console.log(super.getLogMessage("URIs are updated"), this.appConfig.URIs);
@@ -683,8 +694,8 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Stores the options of the app */
-	public storeOptionsAsync(onNext?: (data?: any) => void) {
-		return AppStorage.setAsync("Options", this.appConfig.options).then(() => {
+	public async storeOptionsAsync(onNext?: (data?: any) => void) {
+		await AppStorage.setAsync("Options", this.appConfig.options).then(() => {
 			AppEvents.broadcast("App", { Type: "OptionsUpdated" });
 			if (this.isDebug) {
 				console.log(super.getLogMessage("Options are updated"), this.appConfig.options);
@@ -696,34 +707,34 @@ export class ConfigurationService extends BaseService {
 	}
 
 	/** Prepares the UI languages */
-	public prepareLanguagesAsync() {
+	public async prepareLanguagesAsync() {
 		this.translateSvc.addLangs(this.languages.map(language => language.Value));
 		this.translateSvc.setDefaultLang(this.appConfig.language);
-		return this.setResourceLanguageAsync(this.appConfig.language);
+		await this.setResourceLanguageAsync(this.appConfig.language);
 	}
 
 	/** Changes the language & locale of resources to use in the app */
-	public changeLanguageAsync(language: string, storeOptions: boolean = true) {
+	public async changeLanguageAsync(language: string, storeOptions: boolean = true) {
 		this.appConfig.options.i18n = language;
-		return Promise.all([
+		await Promise.all([
 			storeOptions ? this.storeOptionsAsync() : new Promise<void>(() => {}),
 			this.setResourceLanguageAsync(language)
 		]).then(() => AppEvents.broadcast("App", { Type: "LanguageChanged" }));
 	}
 
 	/** Sets the language & locale of resources to use in the app */
-	public setResourceLanguageAsync(language: string) {
-		return this.translateSvc.use(language).toPromise<void>();
+	public async setResourceLanguageAsync(language: string) {
+		await this.translateSvc.use(language).toPromise<void>();
 	}
 
 	/** Gets the resource (of the current language) by a key */
-	public getResourceAsync(key: string, interpolateParams?: object) {
-		return this.translateSvc.get(key, interpolateParams).toPromise<string>();
+	public async getResourceAsync(key: string, interpolateParams?: object) {
+		return await this.translateSvc.get(key, interpolateParams).toPromise<string>();
 	}
 
 	/** Gets the resources (of the current language) by a key */
-	public getResourcesAsync(key: string) {
-		return this.translateSvc.get(key).toPromise<{ [key: string]: string }>();
+	public async getResourcesAsync(key: string) {
+		return await this.translateSvc.get(key).toPromise<{ [key: string]: string }>();
 	}
 
 	/** Definitions (forms, views, resources, ...) */
@@ -735,43 +746,51 @@ export class ConfigurationService extends BaseService {
 		return this._definitions[AppCrypto.md5(path.toLowerCase())];
 	}
 
-	public async fetchDefinitionAsync(path: string) {
-		if (this.getDefinition(path) === undefined) {
+	public async fetchDefinitionAsync(path: string, doClone: boolean = true) {
+		let definition = this.getDefinition(path);
+		if (definition === undefined) {
 			await super.fetchAsync(
 				path,
 				data => this.addDefinition(path, data),
 				error => super.showError("Error occurred while working with definitions", error)
 			);
+			definition = this.getDefinition(path);
 		}
-		return AppUtility.clone(this.getDefinition(path));
+		return doClone ? AppUtility.clone(definition) : definition;
 	}
 
-	private getDefinitionPath(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
-		let path = "discovery/definitions?" + this.relatedQuery;
+	public getDefinitionPath(serviceName?: string, objectName?: string, definitionName?: string, query?: { [key: string]: string }) {
+		let path = "discovery/definitions?";
 		if (AppUtility.isNotEmpty(serviceName)) {
-			path += "&x-service-name=" + serviceName.toLowerCase();
+			path += `x-service-name=${serviceName.toLowerCase()}&`;
 		}
 		if (AppUtility.isNotEmpty(objectName)) {
-			path += "&x-object-name=" + objectName.toLowerCase();
+			path += `x-object-name=${objectName.toLowerCase()}&`;
 		}
 		if (AppUtility.isNotEmpty(definitionName)) {
-			path += "&x-object-identity=" + definitionName.toLowerCase();
+			path += `x-object-identity=${definitionName.toLowerCase()}&`;
 		}
-		if (AppUtility.isNotEmpty(repositoryID)) {
-			path += "&x-repository-id=" + repositoryID.toLowerCase();
+		if (AppUtility.isObject(query, true)) {
+			Object.keys(query).forEach(key => path += `${key}=${encodeURIComponent(query[key])}&`);
 		}
-		if (AppUtility.isNotEmpty(entityID)) {
-			path += "&x-entity-id=" + entityID.toLowerCase();
-		}
-		return path;
+		return path + this.appConfig.getRelatedQuery(serviceName, undefined, json => {
+			if (AppUtility.isNotEmpty(serviceName) && AppUtility.isEquals(serviceName, json["related-service"])) {
+				delete json["related-service"];
+				delete json["active-id"];
+			}
+		});
 	}
 
-	public setDefinition(definition: any, serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
-		this.addDefinition(this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID), definition);
+	public setDefinition(definition: any, serviceName?: string, objectName?: string, definitionName?: string, query?: { [key: string]: string }) {
+		this.addDefinition(this.getDefinitionPath(serviceName, objectName, definitionName, query), definition);
 	}
 
-	public getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, repositoryID?: string, entityID?: string) {
-		return this.fetchDefinitionAsync(this.getDefinitionPath(serviceName, objectName, definitionName, repositoryID, entityID));
+	public async getDefinitionAsync(serviceName?: string, objectName?: string, definitionName?: string, query?: { [key: string]: string }) {
+		return await this.fetchDefinitionAsync(this.getDefinitionPath(serviceName, objectName, definitionName, query));
+	}
+
+	public getInstructionsAsync(service: string, language?: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		return super.fetchAsync(`/statics/instructions/${service}/${language || this.appConfig.language}.json`, onNext, onError);
 	}
 
 }

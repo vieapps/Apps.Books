@@ -1,11 +1,11 @@
 import { Subscription } from "rxjs";
 import { Component, OnInit, OnDestroy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { AppCrypto } from "../../../components/app.crypto";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsControl } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { BooksService } from "../../../services/books.service";
+import { AppCrypto } from "@components/app.crypto";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { AppFormsControl } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { BooksService } from "@services/books.service";
 
 @Component({
 	selector: "page-books-options",

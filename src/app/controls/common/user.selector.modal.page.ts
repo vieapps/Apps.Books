@@ -1,16 +1,15 @@
 import { Subscription } from "rxjs";
 import { List } from "linqts";
-import { Set } from "typescript-collections";
 import { Component, OnInit, OnDestroy, Input, ViewChild } from "@angular/core";
 import { IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
-import { AppUtility } from "../../components/app.utility";
-import { PlatformUtility } from "../../components/app.utility.platform";
-import { AppPagination, AppDataPagination, AppDataRequest } from "../../components/app.pagination";
-import { AppFormsService } from "../../components/forms.service";
-import { ConfigurationService } from "../../services/configuration.service";
-import { AuthenticationService } from "../../services/authentication.service";
-import { UsersService } from "../../services/users.service";
-import { UserProfile } from "../../models/user";
+import { AppUtility, HashSet } from "@components/app.utility";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { AppPagination, AppDataPagination, AppDataRequest } from "@components/app.pagination";
+import { AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { UsersService } from "@services/users.service";
+import { UserProfile } from "@models/user";
 
 @Component({
 	selector: "page-users-selector",
@@ -29,12 +28,18 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 	}
 
 	/** Set to 'true' to allow select multiple users */
-	@Input() multiple: boolean;
+	@Input() private multiple: boolean;
 
 	/** Set to 'true' to hide all email addresses */
 	@Input() hideEmails: boolean;
 
+	@ViewChild(IonSearchbar, { static: true }) private searchCtrl: IonSearchbar;
+	@ViewChild(IonInfiniteScroll, { static: true }) private infiniteScrollCtrl: IonInfiniteScroll;
+
+	private subscription: Subscription;
+
 	profiles = new Array<UserProfile>();
+	results = new Array<UserProfile>();
 	searching = false;
 	pageNumber = 0;
 	pagination: AppDataPagination;
@@ -49,11 +54,7 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 		cancel: "Cancel",
 		search: "Search"
 	};
-	selected = new Set<string>();
-	subscription: Subscription;
-
-	@ViewChild(IonSearchbar, { static: true }) private searchCtrl: IonSearchbar;
-	@ViewChild(IonInfiniteScroll, { static: true }) private infiniteScrollCtrl: IonInfiniteScroll;
+	selected = new HashSet<string>();
 
 	ngOnInit() {
 		this.multiple = this.multiple === undefined ? true : this.multiple;
@@ -79,11 +80,11 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 	}
 
 	track(index: number, profile: UserProfile) {
-		return this.searching ? `${index}.${profile.ID}` : `${profile.ID}@${index}`;
+		return `${profile.ID}@${index}`;
 	}
 
 	openSearch() {
-		this.profiles = [];
+		this.results = [];
 		this.searching = true;
 		PlatformUtility.focus(this.searchCtrl);
 	}
@@ -92,21 +93,22 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 		this.cancelSearch();
 		if (AppUtility.isNotEmpty(event.detail.value)) {
 			this.filterBy.Query = event.detail.value;
-			this.profiles = [];
+			this.results = [];
+			this.selected.clear();
 			this.startSearchAsync(() => this.infiniteScrollCtrl.disabled = false, AppPagination.getDefault());
 		}
 	}
 
-	onClearSearch(event: any) {
+	onClearSearch() {
 		this.cancelSearch();
 		this.filterBy.Query = undefined;
-		this.profiles = [];
+		this.results = [];
+		this.selected.clear();
 	}
 
-	onCancelSearch(event: any) {
+	onCancelSearch() {
+		this.onClearSearch();
 		this.searching = false;
-		this.onClearSearch(event);
-		this.startSearchAsync();
 	}
 
 	async onInfiniteScrollAsync() {
@@ -131,7 +133,18 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 			this.pageNumber++;
 			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, `profile@${this.usersSvc.name}`.toLowerCase());
 			this.pagination.PageNumber = this.pageNumber;
-			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
+			if (this.searching) {
+				(data !== undefined ? data.Objects as Array<any> : []).forEach(o => this.results.push(UserProfile.get(o.ID)));
+			}
+			else {
+				const objects = new List(data !== undefined ? (data.Objects as Array<any>).map(o => UserProfile.get(o.ID)) : UserProfile.instances.toArray().map(o => o as UserProfile)).OrderBy(o => o.Name).ThenByDescending(o => o.LastAccess);
+				this.profiles = data === undefined
+					? objects.Take(this.pageNumber * this.pagination.PageSize).ToArray()
+					: this.profiles.concat(objects.ToArray());
+			}
+			if (onNext !== undefined) {
+				onNext();
+			}
 		};
 		if (this.searching) {
 			this.subscription = this.usersSvc.search(this.request, onNextAsync);
@@ -151,22 +164,7 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 		}
 	}
 
-	private prepareResults(onNext?: () => void, results?: Array<any>) {
-		if (this.searching) {
-			(results || []).forEach(o => this.profiles.push(UserProfile.get(o.ID)));
-		}
-		else {
-			const objects = new List(results === undefined ? UserProfile.all : results.map(o => UserProfile.get(o.ID))).OrderBy(o => o.Name).ThenByDescending(o => o.LastAccess);
-			this.profiles = results === undefined
-				? objects.Take(this.pageNumber * this.pagination.PageSize).ToArray()
-				: this.profiles.concat(objects.ToArray());
-		}
-		if (onNext !== undefined) {
-			onNext();
-		}
-	}
-
-	select(id: string, event: any) {
+	select(event: any, id: string) {
 		if (event.detail.checked) {
 			if (!this.multiple) {
 				this.selected.clear();
@@ -178,9 +176,9 @@ export class UsersSelectorModalPage implements OnInit, OnDestroy {
 		}
 	}
 
-	closeAsync(users?: Array<string>) {
-		return users === undefined || users.length > 0
-			? this.appFormsSvc.hideModalAsync(users)
+	closeAsync(ids?: Array<string>) {
+		return ids === undefined || ids.length > 0
+			? this.appFormsSvc.hideModalAsync(ids)
 			: new Promise<void>(() => {});
 	}
 

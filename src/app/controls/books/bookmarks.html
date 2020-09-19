@@ -1,11 +1,11 @@
 <ion-list #list class="ion-margin-vertical">
-	<ion-list-header *ngIf="bookmarks.length > 0" [color]="configSvc.color">
+	<ion-list-header *ngIf="bookmarks.length > 0" [color]="color">
 		<ion-label>
 			{{ labels.header }}
 		</ion-label>
 	</ion-list-header>
 	<ion-item-sliding *ngFor="let bookmark of bookmarks; trackBy: trackBookmark">
-		<ion-item [color]="configSvc.color" (click)="openAsync(bookmark)">
+		<ion-item [color]="color" (click)="openAsync(bookmark)">
 			<div>
 				<h2>
 					{{ getTitle(bookmark) }}
@@ -31,7 +31,7 @@
 			</ion-item-option>
 		</ion-item-options>
 	</ion-item-sliding>
-	<ion-item *ngIf="profile && bookmarks.length > 0" [color]="configSvc.color" class="sync">
+	<ion-item *ngIf="profile && bookmarks.length > 0" [color]="color" class="sync">
 		<div>
 			<span class="ion-float-end">
 				<label>

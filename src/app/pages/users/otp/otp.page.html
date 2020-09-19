@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar [color]="configSvc.color">
+	<ion-toolbar [color]="color">
 		<ion-buttons slot="end">
 			<ion-button color="primary" (click)="doneAsync()">
 				{{ labels.buttons.done }}
@@ -11,9 +11,9 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color" class="ion-padding">
+<ion-content [color]="color" class="ion-padding">
 	<ion-list>
-		<ion-item [color]="configSvc.color">
+		<ion-item [color]="color">
 			<ion-label>
 				{{ labels.status }}
 				<span>
@@ -25,12 +25,12 @@
 				{{ labels.buttons.on }}
 			</ion-button>
 		</ion-item>
-		<ion-list-header *ngIf="required && providers.length > 0" [color]="configSvc.color">
+		<ion-list-header *ngIf="required && providers.length > 0" [color]="color">
 			<ion-label>
 				{{ labels.providers }}
 			</ion-label>
 		</ion-list-header>
-		<ion-item *ngFor="let provider of providers" [color]="configSvc.color">
+		<ion-item *ngFor="let provider of providers" [color]="color">
 			<ion-label>
 				{{ provider.Label }} @ {{ provider.Time | time:locale:'dd/MM/yyyy hh:mm a' }}
 			</ion-label>
@@ -39,7 +39,7 @@
 				{{ labels.buttons.delete }}
 			</ion-button>
 		</ion-item>
-		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color">
+		<ion-item *ngIf="provision.uri !== ''" [color]="color">
 			<div class="ion-text-wrap">
 				<div>
 					{{ labels.qrcode.image }}
@@ -55,13 +55,13 @@
 				</div>
 			</div>
 		</ion-item>
-		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color" [class.invalid]="!provision.value || provision.value.length < 5 || provision.value.length > 10">
+		<ion-item *ngIf="provision.uri !== ''" [color]="color" [class.invalid]="!provision.value || provision.value.length < 5 || provision.value.length > 10">
 			<ion-label position="stacked">
 				{{ labels.qrcode.control }}
 			</ion-label>
 			<ion-input required minlength="5" maxlength="10" [(ngModel)]="provision.value"></ion-input>
 		</ion-item>
-		<ion-item *ngIf="provision.uri !== ''" [color]="configSvc.color" [class.invalid]="!password">
+		<ion-item *ngIf="provision.uri !== ''" [color]="color" [class.invalid]="!password">
 			<ion-label position="stacked">
 				{{ labels.password.label }}
 			</ion-label>

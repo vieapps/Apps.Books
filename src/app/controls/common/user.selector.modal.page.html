@@ -20,15 +20,31 @@
 			[cancelButtonText]="labels.cancel"
 			[hidden]="!searching"
 			(ionChange)="onStartSearch($event)"
-			(ionClear)="onClearSearch($event)"
-			(ionCancel)="onCancelSearch($event)"></ion-searchbar>
+			(ionClear)="onClearSearch()"
+			(ionCancel)="onCancelSearch()"></ion-searchbar>
 	</ion-toolbar>
 </ion-header>
 
 <ion-content [color]="configSvc.color">
-	<ion-list class="ion-padding-end">
+	<ion-list *ngIf="!searching" class="ion-padding-end">
 		<ion-item *ngFor="let profile of profiles; trackBy: track" [color]="configSvc.color" detail="false">
-			<ion-checkbox slot="end" [checked]="selected.contains(profile.ID)" (ionChange)="select(profile.ID, $event)"></ion-checkbox>
+			<ion-checkbox slot="end" [checked]="selected.contains(profile.ID)" (ionChange)="select($event, profile.ID)"></ion-checkbox>
+			<ion-label>
+				<ion-thumbnail class="ion-float-start ion-padding-end">
+					<img [src]="profile.avatarURI" />
+				</ion-thumbnail>
+				<span>
+					{{ profile.Name }}
+					<span class="ion-float-end">
+						{{ profile.getEmail(hideEmails) }}
+					</span>
+				</span>
+			</ion-label>
+		</ion-item>
+	</ion-list>
+	<ion-list *ngIf="searching" class="ion-padding-end">
+		<ion-item *ngFor="let profile of results; trackBy: track" [color]="configSvc.color" detail="false">
+			<ion-checkbox slot="end" [checked]="selected.contains(profile.ID)" (ionChange)="select($event, profile.ID)"></ion-checkbox>
 			<ion-label>
 				<ion-thumbnail class="ion-float-start ion-padding-end">
 					<img [src]="profile.avatarURI" />

@@ -15,17 +15,23 @@
 		"buttons": {
 			"yes": "Yes",
 			"no": "No",
-			"done": "Done",
 			"ok": "OK",
+			"done": "Done",
 			"add": "Add",
+			"moderate": "Moderate",
 			"create": "Create new",
 			"update": "Update",
 			"delete": "Delete",
+			"edit": "Edit",
+			"view": "View",
 			"save": "Save",
 			"cancel": "Cancel",
 			"close": "Close",
 			"select": "Select",
-			"search": "Search"
+			"search": "Search",
+			"upload": "Upload",
+			"download": "Download",
+			"refresh": "Refresh"
 		},
 		"messages": {
 			"loading": "Loading...",
@@ -44,6 +50,11 @@
 				"searching": "searching...",
 				"noresults": "no matched result is found"
 			}
+		},
+		"audits": {
+			"identity": "Identity",
+			"label": "Management information",
+			"info": "Created by {{creator}} at {{created}} - {{modifier}} was modified at {{modified}}"
 		}
 	},
 	"privileges": {
@@ -109,12 +120,40 @@
 	},
 	"status": {
 		"approval": {
+			"label": "Approval status",
 			"Draft": "Draft",
 			"Pending": "Pending",
 			"Rejected": "Rejected",
 			"Approved": "Approved",
 			"Published": "Published",
 			"Archieved": "Archieved"
+		}
+	},
+	"events": {
+		"label": "Events",
+		"Create": "Create",
+		"Update": "Update",
+		"Delete": "Delete"
+	},
+	"files": {
+		"thumbnails": {
+			"label": "Thumbnail image",
+			"current": "Current",
+			"new": "Newly selected"
+		},
+		"attachments": {
+			"segment": "Attachments",
+			"label": "Attached files",
+			"confirm": "Are you sure you want to delete '{{name}}' file?",
+			"upload": "Upload",
+			"download": "Download",
+			"controls": {
+				"title": "Title",
+				"description": "Description",
+				"shared": "Shared to use in the whole system",
+				"tracked": "Track all activities",
+				"filename": "Filename"
+			}
 		}
 	}
 }

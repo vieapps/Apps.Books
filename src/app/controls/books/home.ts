@@ -1,11 +1,10 @@
-import { List } from "linqts";
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, EventEmitter } from "@angular/core";
 import { registerLocaleData } from "@angular/common";
-import { AppUtility } from "../../components/app.utility";
-import { AppEvents } from "../../components/app.events";
-import { ConfigurationService } from "../../services/configuration.service";
-import { BooksService } from "../../services/books.service";
-import { Book } from "../../models/book";
+import { AppUtility } from "@components/app.utility";
+import { AppEvents } from "@components/app.events";
+import { ConfigurationService } from "@services/configuration.service";
+import { BooksService } from "@services/books.service";
+import { Book } from "@models/book";
 
 @Component({
 	selector: "control-book-home-screen",
@@ -16,7 +15,7 @@ import { Book } from "../../models/book";
 export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 
 	constructor(
-		public configSvc: ConfigurationService,
+		private configSvc: ConfigurationService,
 		private booksSvc: BooksService
 	) {
 		this.configSvc.locales.forEach(locale => registerLocaleData(this.configSvc.getLocaleData(locale)));
@@ -39,6 +38,10 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		books: "Articles & Books: "
 	};
 	books: Array<Book>;
+
+	get color() {
+		return this.configSvc.color;
+	}
 
 	get status() {
 		return this.configSvc.isReady ? this.booksSvc.status : undefined;
@@ -63,8 +66,8 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		AppEvents.on("App", info => {
 			if ("LanguageChanged" === info.args.Type) {
 				this.prepareResourcesAsync().then(async () => {
-					if (this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
-						await this.booksSvc.fetchIntroductionsAsync(() => this.updateIntroduction());
+					if (this.booksSvc.instructions[this.configSvc.appConfig.language] === undefined) {
+						await this.booksSvc.fetchInstructionsAsync(() => this.updateIntroduction());
 					}
 					else {
 						this.updateIntroduction();
@@ -74,7 +77,7 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 		}, "LanguageChangedEventHandlerOfBookHomeScreen");
 
 		AppEvents.on("Books", info => {
-			if ("InstroductionsUpdated" === info.args.Type) {
+			if ("InstructionsUpdated" === info.args.Type) {
 				this.updateIntroduction();
 			}
 		}, "IntroductionsChangedEventHandlerOfBookHomeScreen");
@@ -100,8 +103,8 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	private async initializeAsync() {
 		await this.prepareResourcesAsync();
 
-		if (this.booksSvc.introductions[this.configSvc.appConfig.language] === undefined) {
-			await this.booksSvc.fetchIntroductionsAsync(() => this.updateIntroduction());
+		if (this.booksSvc.instructions[this.configSvc.appConfig.language] === undefined) {
+			await this.booksSvc.fetchInstructionsAsync(() => this.updateIntroduction());
 		}
 		else {
 			this.updateIntroduction();
@@ -127,12 +130,12 @@ export class BookHomeScreenControl implements OnInit, OnDestroy, OnChanges {
 	}
 
 	private updateIntroduction() {
-		this.introduction = (this.booksSvc.introductions[this.configSvc.appConfig.language] || {}).introduction;
+		this.introduction = (this.booksSvc.instructions[this.configSvc.appConfig.language] || {}).introduction;
 		this.change.emit(this);
 	}
 
 	private updateBooks() {
-		this.books = AppUtility.getTopScores(new List(Book.instances.values()).OrderByDescending(book => book.LastUpdated).Take(60), 12, book => Book.get(book.ID));
+		this.books = AppUtility.getTopScores(Book.instances.toList().OrderByDescending(book => book.LastUpdated).Take(60), 12, book => Book.get(book.ID));
 		this.change.emit(this);
 	}
 

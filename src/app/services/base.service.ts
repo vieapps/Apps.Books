@@ -2,11 +2,11 @@ import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router, CanActivate } from "@angular/router";
 import { AppConfig } from "../app.config";
-import { AppRTU, AppXHR, AppRequestInfo, AppMessage } from "../components/app.apis";
-import { AppCrypto } from "../components/app.crypto";
-import { AppPagination } from "../components/app.pagination";
-import { AppUtility } from "../components/app.utility";
-import { PlatformUtility } from "../components/app.utility.platform";
+import { AppRTU, AppXHR, AppRequestInfo, AppMessage } from "@components/app.apis";
+import { AppCrypto } from "@components/app.crypto";
+import { AppPagination } from "@components/app.pagination";
+import { AppUtility } from "@components/app.utility";
+import { PlatformUtility } from "@components/app.utility.platform";
 
 /** Base class of all services */
 export class Base {
@@ -79,14 +79,14 @@ export class Base {
 		onError?: (error?: any) => void,
 		useXHR: boolean = false
 	) {
-		let useWS = AppRTU.isReady && !useXHR;
-		if (useWS) {
-			if (new Date().getTime() - AppRTU.pingTime > 130000) {
-				useWS = false;
+		let useWebSocket = AppRTU.isReady && !useXHR;
+		if (useWebSocket) {
+			if (new Date().getTime() - AppRTU.pingTime > 300000) { // 5 minutes
+				useWebSocket = false;
 				AppRTU.restart("[Base]: Ping period is too large...");
 			}
 		}
-		if (useWS) {
+		if (useWebSocket) {
 			const requestedPath = this.parseRequestedPath(request.Path);
 			this.send({
 				ServiceName: requestedPath.serviceName,
@@ -153,7 +153,7 @@ export class Base {
 	 * @param query The additional query
 	*/
 	protected getURI(objectName: string, objectID?: string, query?: string) {
-		return `${this.name.toLowerCase()}/${objectName.toLowerCase()}` + (AppUtility.isNotEmpty(objectID) ? "/" + objectID : "") + (AppUtility.isNotEmpty(query) ? "?" + query : "");
+		return `${this.name.toLowerCase()}/${objectName.toLowerCase()}` + (AppUtility.isNotEmpty(objectID) ? `/${objectID}` : "") + (AppUtility.isNotEmpty(query) ? `?${query}` : "");
 	}
 
 	/**
@@ -162,7 +162,7 @@ export class Base {
 	 * @param query The additional query
 	*/
 	protected getSearchURI(objectName: string, query?: string) {
-		return this.getURI(objectName, "search", "x-request={{request}}" + (query !== undefined ? "&" + query : ""));
+		return this.getURI(objectName, "search", "x-request={{request}}" + (query !== undefined ? `&${query}` : ""));
 	}
 
 	/**
@@ -172,9 +172,10 @@ export class Base {
 	 * @param onNext The handler to run when the process is completed
 	 * @param onError The handler to run when got any error
 	 * @param dontProcessPagination Set to true to by-pass process pagination
+	 * @param headers The additional header
 	*/
-	protected search(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean) {
-		return AppXHR.get(AppUtility.format(path, { request: AppUtility.toBase64Url(request) })).subscribe(
+	protected search(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination: boolean = false, headers?: { [header: string]: string }) {
+		return AppXHR.get(AppUtility.format(path, { request: AppUtility.toBase64Url(request) }), headers).subscribe(
 			data => {
 				if (AppUtility.isFalse(dontProcessPagination)) {
 					const requestedPath = this.parseRequestedPath(path);
@@ -195,27 +196,33 @@ export class Base {
 	 * @param onNext The handler to run when the process is completed
 	 * @param onError The handler to run when got any error
 	 * @param dontProcessPagination Set to true to by-pass process pagination
+	 * @param useXHR Set to true to use XHR, false to system decides
+	 * @param headers The additional header
 	*/
-	protected searchAsync(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination?: boolean, useXHR: boolean = false) {
+	protected async searchAsync(path: string, request: any = {}, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontProcessPagination: boolean = false, useXHR: boolean = false, headers?: { [header: string]: string }) {
 		const processPagination = AppUtility.isFalse(dontProcessPagination);
 		const requestedPath = processPagination ? this.parseRequestedPath(path) : undefined;
-		const pagination = processPagination ? AppPagination.get(request, `${requestedPath.objectName}@${requestedPath.serviceName}`.toLowerCase()) : undefined;
+		const paginationPrefix = processPagination ? `${requestedPath.objectName}@${requestedPath.serviceName}`.toLowerCase() : undefined;
+		const pagination = processPagination ? AppPagination.get(request, paginationPrefix) : undefined;
 		const pageNumber = processPagination && request.Pagination !== undefined ? request.Pagination.PageNumber : pagination !== undefined ? pagination.PageNumber : 0;
 		if (pagination !== undefined && (pageNumber < pagination.PageNumber || pagination.TotalPages <= pagination.PageNumber)) {
-			return new Promise<void>(onNext !== undefined ? () => onNext() : () => {});
+			if (onNext !== undefined) {
+				onNext();
+			}
 		}
 		else {
 			if (request.Pagination !== undefined && request.Pagination.PageNumber !== undefined) {
 				request.Pagination.PageNumber++;
 			}
-			return this.sendAsync(
+			await this.sendAsync(
 				{
 					Path: AppUtility.format(path, { request: AppUtility.toBase64Url(request) }),
-					Verb: "GET"
+					Verb: "GET",
+					Header: headers
 				},
 				data => {
 					if (processPagination) {
-						AppPagination.set(data, `${requestedPath.objectName}@${requestedPath.serviceName}`.toLowerCase());
+						AppPagination.set(data, paginationPrefix);
 					}
 					if (onNext !== undefined) {
 						onNext(data);

@@ -1,5 +1,4 @@
-import { Set } from "typescript-collections";
-import { AppUtility } from "../components/app.utility";
+import { AppUtility, HashSet } from "@components/app.utility";
 
 /** Working privileges of an individual business service */
 export class Privilege {
@@ -56,18 +55,18 @@ export class Privileges {
 		}
 	}
 
-	AdministrativeRoles = new Set<string>();
-	AdministrativeUsers = new Set<string>();
-	ModerateRoles = new Set<string>();
-	ModerateUsers = new Set<string>();
-	EditableRoles = new Set<string>();
-	EditableUsers = new Set<string>();
-	ContributiveRoles = new Set<string>();
-	ContributiveUsers = new Set<string>();
-	ViewableRoles = new Set<string>();
-	ViewableUsers = new Set<string>();
-	DownloadableRoles = new Set<string>();
-	DownloadableUsers = new Set<string>();
+	AdministrativeRoles = new HashSet<string>();
+	AdministrativeUsers = new HashSet<string>();
+	ModerateRoles = new HashSet<string>();
+	ModerateUsers = new HashSet<string>();
+	EditableRoles = new HashSet<string>();
+	EditableUsers = new HashSet<string>();
+	ContributiveRoles = new HashSet<string>();
+	ContributiveUsers = new HashSet<string>();
+	ViewableRoles = new HashSet<string>();
+	ViewableUsers = new HashSet<string>();
+	DownloadableRoles = new HashSet<string>();
+	DownloadableUsers = new HashSet<string>();
 
 	/** Gets the collection of privilege section names */
 	public static get sections() {
@@ -77,12 +76,10 @@ export class Privileges {
 	/** Deserializes data to object */
 	public static deserialize(json: any, privileges?: Privileges) {
 		privileges = privileges || new Privileges();
-		Object.getOwnPropertyNames(privileges).forEach(property => {
+		AppUtility.getProperties(privileges, true).map(info => info.name).forEach(property => {
 			const data = json[property];
 			if (AppUtility.isArray(data, true)) {
-				const set = new Set<string>();
-				(data as Array<string>).forEach(o => set.add(o));
-				privileges[property] = set;
+				privileges[property] = new HashSet<string>(data as Array<string>);
 			}
 		});
 		return privileges;
@@ -93,8 +90,8 @@ export class Privileges {
 		privileges = privileges || new Privileges();
 		const arraysOfPrivileges: { [key: string]: Array<string> } = {};
 		(sections || this.sections).forEach(section => {
-			arraysOfPrivileges[`${section}Roles`] = AppUtility.getArray(privileges[`${section}Roles`]);
-			arraysOfPrivileges[`${section}Users`] = AppUtility.getArray(privileges[`${section}Users`]);
+			arraysOfPrivileges[`${section}Roles`] = (privileges[`${section}Roles`] as HashSet<string>).toArray();
+			arraysOfPrivileges[`${section}Users`] = (privileges[`${section}Users`] as HashSet<string>).toArray();
 		});
 		return arraysOfPrivileges;
 	}
@@ -104,24 +101,29 @@ export class Privileges {
 		privileges = privileges || new Privileges();
 		arraysOfPrivileges = arraysOfPrivileges || {};
 		this.sections.forEach(section => {
-			privileges[`${section}Roles`] = AppUtility.toSet(arraysOfPrivileges[`${section}Roles`]);
-			privileges[`${section}Users`] = AppUtility.toSet(arraysOfPrivileges[`${section}Users`]);
+			privileges[`${section}Roles`] = new HashSet<string>(arraysOfPrivileges[`${section}Roles`]);
+			privileges[`${section}Users`] = new HashSet<string>(arraysOfPrivileges[`${section}Users`]);
 		});
 		return privileges;
 	}
 
+	/** Clones the privileges */
+	public static clonePrivileges(privileges: Privileges) {
+		return this.resetPrivileges(undefined, this.getPrivileges(privileges));
+	}
+
 	/** Gets the collection of roles */
 	public getRoles(section: string) {
-		return (AppUtility.isNotEmpty(section) ? this[`${section}Roles`] as Set<string> : undefined) || new Set<string>();
+		return (AppUtility.isNotEmpty(section) ? this[`${section}Roles`] as HashSet<string> : undefined) || new HashSet<string>();
 	}
 
 	/** Gets the collection of users */
 	public getUsers(section: string) {
-		return (AppUtility.isNotEmpty(section) ? this[`${section}Users`] as Set<string> : undefined) || new Set<string>();
+		return (AppUtility.isNotEmpty(section) ? this[`${section}Users`] as HashSet<string> : undefined) || new HashSet<string>();
 	}
 
 	private isEmpty(roles: Set<string>, users: Set<string>) {
-		return (roles === undefined || roles.size() < 1) && (users === undefined || users.size() < 1);
+		return (roles === undefined || roles.size < 1) && (users === undefined || users.size < 1);
 	}
 
 	/** Gets the state that determines is inherit from parent or not */

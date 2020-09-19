@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter } from "@angular/core";
 import { FormGroup } from "@angular/forms";
+import { AppFormsControl, AppFormsControlConfig, AppFormsSegment, AppFormsService } from "@components/forms.service";
+import { AppFormsControlComponent } from "@components/forms.control.component";
+import { AppUtility } from "@components/app.utility";
+import { PlatformUtility } from "@components/app.utility.platform";
 import { AppConfig } from "../app.config";
-import { AppFormsControl, AppFormsControlConfig, AppFormsSegment, AppFormsService } from "./forms.service";
-import { AppFormsControlComponent } from "./forms.control.component";
-import { AppUtility } from "./app.utility";
-import { PlatformUtility } from "./app.utility.platform";
 
 @Component({
 	selector: "app-form",
@@ -37,8 +37,14 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 	/** The value of the form controls */
 	@Input() value: any;
 
+	/** Set to true to use the form controls as view control */
+	@Input() asViewControls: boolean;
+
 	/** The event handler to run when the form was initialized */
 	@Output() init = new EventEmitter<AppFormsComponent>();
+
+	/** The event handler to run when the form's view was initialized */
+	@Output() afterViewInit = new EventEmitter<AppFormsComponent>();
 
 	/** The event handler to run when the form was submitted */
 	@Output() submit = new EventEmitter<AppFormsComponent>();
@@ -65,23 +71,28 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 			throw new Error("[Forms]: Controls or config of the form need to be initialized first (controls/config attributes)");
 		}
 
+		this.asViewControls = this.asViewControls !== undefined ? AppUtility.isTrue(this.asViewControls) : false;
+
 		if (this.controls.length < 1) {
 			console.warn("[Forms]: No control");
 		}
-		else {
+		else if (!this.asViewControls) {
 			this.appFormsSvc.buildForm(this.form, this.controls, this.value);
 			this.form["_controls"] = this.controls;
 			this.form["_segments"] = this.segments;
-			this.init.emit(this);
 		}
+
+		this.init.emit(this);
 	}
 
 	ngAfterViewInit() {
 		PlatformUtility.focus(this.controls.find(control => control.Options.AutoFocus), AppConfig.isRunningOnIOS ? 567 : 345);
+		this.afterViewInit.emit(this);
 	}
 
 	ngOnDestroy() {
 		this.init.unsubscribe();
+		this.afterViewInit.unsubscribe();
 		this.submit.unsubscribe();
 		this.refreshCaptcha.unsubscribe();
 		this.lastFocus.unsubscribe();
@@ -91,12 +102,12 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.submit.emit(this);
 	}
 
-	onRefreshCaptcha(event: AppFormsControlComponent) {
-		this.refreshCaptcha.emit(event);
+	onRefreshCaptcha(control: AppFormsControlComponent) {
+		this.refreshCaptcha.emit(control);
 	}
 
-	onLastFocus(event: AppFormsControlComponent) {
-		this.lastFocus.emit(event);
+	onLastFocus(control: AppFormsControlComponent) {
+		this.lastFocus.emit(control);
 	}
 
 	get gotSegments() {
@@ -107,16 +118,12 @@ export class AppFormsComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.segments.current = event.detail.value;
 	}
 
-	trackSegment(index: number, segment: AppFormsSegment) {
-		return `${segment.Name}@${index}`;
-	}
-
 	getControls(segment: AppFormsSegment) {
 		return this.controls.filter(control => AppUtility.isEquals(control.Segment, segment.Name));
 	}
 
-	trackControl(index: number, control: AppFormsControl) {
-		return `${control.Name}@${index}`;
+	track(index: number, item: any) {
+		return `${item.Name}@${index}`;
 	}
 
 }

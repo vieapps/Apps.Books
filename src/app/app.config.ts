@@ -1,6 +1,6 @@
-import { AppCrypto } from "./components/app.crypto";
-import { AppUtility } from "./components/app.utility";
-import { Account } from "./models/account";
+import { AppCrypto } from "@components/app.crypto";
+import { AppUtility } from "@components/app.utility";
+import { Account } from "@models/account";
 import vi_VN from "@angular/common/locales/vi";
 import en_US from "@angular/common/locales/en";
 
@@ -13,25 +13,31 @@ export class AppConfig {
 		apis: "https://apis.vieapps.net/",
 
 		/** Real-time Updater (if not provided, then use the APIs) */
-		updates: "https://rt.vieapps.net/",
+		updates: undefined as string,
 
 		/** Files HTTP service */
 		files: "https://fs.vieapps.net/",
 
-		/** URI to perform activation (on the web) */
-		activations: "https://viebooks.net/"
+		/** Portals HTTP service */
+		portals: "https://portals.vieapps.net/",
+
+		/** App on the web (to perform activation or other)) */
+		apps: "https://viebooks.net/",
+
+		/** Collection of all allowed embed medias (hosts/domains) */
+		medias: [] as Array<string>
 	};
 
 	/** Information of the app */
 	public static app = {
-		id: "vieapps-ngx-books",
 		name: "VIEApps NGX Books",
-		description: "Online Books from VIEApps.net",
-		version: "1.8.10",
-		copyright: "© 2016 - 2020 VIEApps.net",
+		description: "Free online books from VIEApps.net",
+		copyright: "© VIEApps.net",
 		license: "Apache-2.0",
-		frameworks: "ionic 5.0 - angular 8.2 - cordova 9.0",
 		homepage: "https://viebooks.net",
+		id: "vieapps-ngx-books",
+		version: "1.9.0",
+		frameworks: "ionic 5.3 - angular 8.2 - cordova 10.0",
 		mode: "",
 		platform: "",
 		os: "",
@@ -69,18 +75,13 @@ export class AppConfig {
 	/** Services in the app */
 	public static services = {
 		active: "Books",
+		activeID: "",
 		all: [
 			{
 				name: "Books",
 				objects: ["Book", "Category", "Statistic"]
 			}
 		] as Array<{ name: string, objects: Array<string> }>
-	};
-
-	/** Available organizations in the app */
-	public static organizations = {
-		all: new Array<string>(),
-		current: ""
 	};
 
 	/** User account registrations */
@@ -128,7 +129,7 @@ export class AppConfig {
 
 	/** Information for working with url (stack, host, ...) */
 	public static url = {
-		stack: new Array<{ url: string, params: { [key: string]: any } }>(),
+		stack: [] as Array<{ url: string, params: { [key: string]: any } }>,
 		home: "/home",
 		base: undefined as string,
 		host: undefined as string,
@@ -150,11 +151,21 @@ export class AppConfig {
 		}
 	};
 
+	/** URLs for downloading desktop apps */
+	public static get downloadURLs() {
+		const baseURL = `${this.URIs.apps}releases/${this.app.name.replace(/\s/g, "%20")}`;
+		return {
+			Windows: `${baseURL}%20Setup%20${this.app.version}.exe`,
+			Linux: `${baseURL}-${this.app.version}.AppImage`,
+			macOS: `${baseURL}-${this.app.version}.dmg`
+		};
+	}
+
 	/** Tracking information */
 	public static tracking = {
-		google: ["UA-3060572-8"],
+		google: new Array<string>(),
 		facebook: new Array<string>(),
-		domains: ["viebooks.net"],
+		domains: [],
 	};
 
 	/** Facebook integration */
@@ -191,7 +202,7 @@ export class AppConfig {
 
 	/** Gets the state that determines is web progressive app */
 	public static get isWebApp() {
-		return AppUtility.isEquals("PWA", this.app.mode);
+		return !this.isNativeApp && this.app.shell !== "Electron";
 	}
 
 	/** Gets the state that determines the app is running on iOS (native or web browser) */
@@ -237,7 +248,7 @@ export class AppConfig {
 
 	/** Gets the available locales for working with the app */
 	public static get locales() {
-		return this.languages.map(language => language.Value.replace("-", "_"));
+		return this.languages.map(language => language.Value).map(language => language.replace("-", "_"));
 	}
 
 	/** Gets the locale data for working with i18n globalization */
@@ -250,22 +261,25 @@ export class AppConfig {
 		}
 	}
 
-	/** Gets the JSON query with related service, culture language and host */
-	public static getRelatedJson(service?: string, additional?: { [key: string]: string }) {
+	/** Gets the related JSON with active/related service, culture language and host */
+	public static getRelatedJson(additional?: { [key: string]: string }, service?: string, activeID?: string, onPreCompleted?: (json: any) => void) {
 		const json: { [key: string]: string } = {
 			"language": this.language,
-			"host": this.url.host,
-			"related-service": (AppUtility.isNotEmpty(service) ? service : this.services.active).trim().toLowerCase()
+			"related-service": (AppUtility.isNotEmpty(service) ? service : this.services.active).trim().toLowerCase(),
+			"active-id": (AppUtility.isNotEmpty(activeID) ? activeID : this.services.activeID).trim().toLowerCase()
 		};
 		if (AppUtility.isObject(additional, true)) {
 			Object.keys(additional).forEach(key => json[key] = additional[key]);
 		}
+		if (onPreCompleted !== undefined) {
+			onPreCompleted(json);
+		}
 		return json;
 	}
 
-	/** Gets the query with related service, culture language and host */
-	public static getRelatedQuery(service?: string) {
-		return AppUtility.getQueryOfJson(this.getRelatedJson(service));
+	/** Gets the related query with active/related service, culture language and host */
+	public static getRelatedQuery(service?: string, activeID?: string, onPreCompleted?: (json: any) => void) {
+		return AppUtility.getQueryOfJson(this.getRelatedJson(undefined, service, activeID, onPreCompleted));
 	}
 
 	/** Gets the authenticated headers (JSON) for making requests to APIs */

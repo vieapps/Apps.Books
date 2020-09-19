@@ -1,20 +1,19 @@
 import { Subscription } from "rxjs";
-import { List } from "linqts";
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { registerLocaleData } from "@angular/common";
 import { IonContent, IonSearchbar, IonInfiniteScroll } from "@ionic/angular";
-import { AppEvents } from "../../../components/app.events";
-import { AppPagination, AppDataPagination, AppDataRequest } from "../../../components/app.pagination";
-import { AppUtility } from "../../../components/app.utility";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { PlatformUtility } from "../../../components/app.utility.platform";
-import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { AuthenticationService } from "../../../services/authentication.service";
-import { BooksService } from "../../../services/books.service";
-import { Book } from "../../../models/book";
-import { RatingPoint } from "../../../models/ratingpoint";
+import { AppEvents } from "@components/app.events";
+import { AppPagination, AppDataPagination, AppDataRequest } from "@components/app.pagination";
+import { AppUtility } from "@components/app.utility";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { BooksService } from "@services/books.service";
+import { Book } from "@models/book";
+import { RatingPoint } from "@models/rating.point";
 
 @Component({
 	selector: "page-books-list",
@@ -204,6 +203,10 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		}
 	}
 
+	private get paginationPrefix() {
+		return `book@${this.booksSvc.name}`.toLowerCase();
+	}
+
 	async initializeAsync() {
 		this.requestParams = this.configSvc.requestParams;
 		this.searching = this.configSvc.currentUrl.startsWith("/books/search");
@@ -234,7 +237,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 			}
 			else {
 				this.ratings = {};
-				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, `book@${this.booksSvc.name}`.toLowerCase()) || AppPagination.getDefault();
+				this.pagination = AppPagination.get({ FilterBy: this.filterBy, SortBy: this.sortBy }, this.paginationPrefix) || AppPagination.getDefault();
 				this.pagination.PageNumber = this.pageNumber;
 				await this.searchAsync(async () => await this.prepareActionsAsync());
 			}
@@ -292,7 +295,7 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 		this.request = AppPagination.buildRequest(this.filterBy, this.searching ? undefined : this.sortBy, this.pagination);
 		const onNextAsync = async (data: any) => {
 			this.pageNumber++;
-			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, `book@${this.booksSvc.name}`.toLowerCase());
+			this.pagination = data !== undefined ? AppPagination.getDefault(data) : AppPagination.get(this.request, this.paginationPrefix);
 			this.pagination.PageNumber = this.pageNumber;
 			this.prepareResults(onNext, data !== undefined ? data.Objects : undefined);
 			await TrackingUtility.trackAsync(this.title + ` [${this.pageNumber}]`, this.uri);
@@ -317,44 +320,42 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 
 	prepareResults(onNext?: () => void, results?: Array<any>) {
 		if (this.searching) {
-			(results || []).forEach(o => {
-				const book = Book.instances.getValue(o.ID);
+			(results || []).forEach(obj => {
+				const book = Book.instances.get(obj.ID);
 				this.books.push(book);
-				this.ratings[book.ID] = book.RatingPoints.getValue("General");
+				this.ratings[book.ID] = book.RatingPoints.get("General");
 			});
 		}
 		else {
-			// initialize the LINQ list
-			let objects = new List(results === undefined ? Book.instances.values() : results.map(o => Book.instances.getValue(o.ID)));
+			// prepare the predicate for filtering
+			const query = this.filtering && AppUtility.isNotEmpty(this.filterBy.Query)
+				? AppUtility.toANSI(this.filterBy.Query).trim().toLowerCase()
+				: "";
+			const category = this.category;
+			const filterByCategory = AppUtility.isNotEmpty(category);
+			const author = this.author;
+			const filterByAuthor = AppUtility.isNotEmpty(author);
+			const predicate: (book: Book) => boolean = this.filtering || results === undefined
+				? obj => query !== "" || filterByCategory || filterByAuthor
+					? (query !== "" ? obj.ansiTitle.indexOf(query) > -1 : true) && (filterByCategory ? obj.Category.startsWith(category) : true) && (filterByAuthor ? obj.Author === author : true)
+					: true
+				: _ => true;
 
-			// filter
-			if (this.filtering || results === undefined) {
-				const query = this.filtering && AppUtility.isNotEmpty(this.filterBy.Query)
-					? AppUtility.toANSI(this.filterBy.Query).trim().toLowerCase()
-					: "";
-				const category = this.category;
-				const filterByCategory = AppUtility.isNotEmpty(category);
-				const author = this.author;
-				const filterByAuthor = AppUtility.isNotEmpty(author);
-				if (query !== "" || filterByCategory || filterByAuthor) {
-					objects = objects.Where(o => {
-						return (query !== "" ? o.ansiTitle.indexOf(query) > -1 : true)
-							&& (filterByCategory ? o.Category.startsWith(category) : true)
-							&& (filterByAuthor ? o.Author === author : true);
-					});
-				}
-			}
+			// initialize the list
+			let objects = results === undefined
+				? Book.instances.toList(predicate)
+				: Book.toList(results).Where(predicate);
 
 			// sort
 			switch (this.sort) {
 				case "Chapters":
-					objects = objects.OrderByDescending(o => o.TotalChapters).ThenBy(o => o.LastUpdated);
+					objects = objects.OrderByDescending(obj => obj.TotalChapters).ThenBy(obj => obj.LastUpdated);
 					break;
 				case "Title":
-					objects = objects.OrderBy(o => o.Title).ThenByDescending(o => o.LastUpdated);
+					objects = objects.OrderBy(obj => obj.Title).ThenByDescending(obj => obj.LastUpdated);
 					break;
 				default:
-					objects = objects.OrderByDescending(o => o.LastUpdated);
+					objects = objects.OrderByDescending(obj => obj.LastUpdated);
 					break;
 			}
 
@@ -364,12 +365,12 @@ export class BooksListPage implements OnInit, OnDestroy, AfterViewInit {
 				}
 				else {
 					objects = objects.Take(this.pageNumber * this.pagination.PageSize);
-					objects.ForEach(o => this.ratings[o.ID] = o.RatingPoints.getValue("General"));
+					objects.ForEach(obj => this.ratings[obj.ID] = obj.RatingPoints.get("General"));
 					this.books = objects.ToArray();
 				}
 			}
 			else {
-				objects.ForEach(o => this.ratings[o.ID] = o.RatingPoints.getValue("General"));
+				objects.ForEach(obj => this.ratings[obj.ID] = obj.RatingPoints.get("General"));
 				this.books = this.books.concat(objects.ToArray());
 			}
 		}

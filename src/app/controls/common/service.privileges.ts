@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from "@angular/core";
-import { AppUtility } from "../../components/app.utility";
-import { AppFormsControl } from "../../components/forms.service";
-import { ConfigurationService } from "../../services/configuration.service";
-import { Privilege } from "../../models/privileges";
+import { AppUtility } from "@components/app.utility";
+import { AppFormsControl } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { Privilege } from "@models/privileges";
 
 @Component({
 	selector: "control-service-privileges",
@@ -18,13 +18,13 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 	}
 
 	/** The form control that contains this control */
-	@Input() control: AppFormsControl;
+	@Input() private control: AppFormsControl;
 
 	/** The name of the service */
-	@Input() service: string;
+	@Input() private service: string;
 
 	/** The privileges of the service */
-	@Input() privileges: Array<Privilege>;
+	@Input() private privileges: Array<Privilege>;
 
 	/** The position of labels (default is 'stacked') */
 	@Input() labelPosition: string;
@@ -33,10 +33,10 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 	@Input() selectInterface: string;
 
 	/** The event handler to run when the controls was initialized */
-	@Output() init: EventEmitter<ServicePrivilegesControl> = new EventEmitter<ServicePrivilegesControl>();
+	@Output() init = new EventEmitter<ServicePrivilegesControl>();
 
 	/** The event handler to run when the control was changed */
-	@Output() change = new EventEmitter<any>();
+	@Output() change = new EventEmitter();
 
 	roles = Privilege.privilegeRoles;
 	labels = {
@@ -72,7 +72,7 @@ export class ServicePrivilegesControl implements OnInit, OnDestroy {
 		});
 
 		this.prepareObjectRoles();
-		Promise.all([this.prepareLabelsAsync()]).then(() => this.init.emit(this));
+		this.prepareLabelsAsync().then(() => this.init.emit(this));
 	}
 
 	ngOnDestroy() {

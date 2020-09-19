@@ -1,7 +1,6 @@
-import { Dictionary, Set } from "typescript-collections";
-import { Privilege, Privileges } from "./privileges";
-import { UserProfile } from "./user";
-import { AppUtility } from "../components/app.utility";
+import { AppUtility, Dictionary, HashSet } from "@components/app.utility";
+import { Privilege, Privileges } from "@models/privileges";
+import { UserProfile } from "@models/user";
 
 /** Account of the app */
 export class Account {
@@ -29,14 +28,15 @@ export class Account {
 	};
 
 	/** Deserializes data to object */
-	public static deserialize(json: any = {}, account?: Account, onCompleted?: (account: Account, data: any) => void) {
+	public static deserialize(json: any, account?: Account, onCompleted?: (account: Account, data: any) => void) {
 		account = account || new Account();
 		AppUtility.copy(json, account, data => {
-			account.privileges = AppUtility.isArray(json.privileges, true)
-				? (json.privileges as Array<any>).map(o => Privilege.deserialize(o))
+			account.roles = (account.roles || []).filter((role, index, array) => array.indexOf(role) === index);
+			account.privileges = AppUtility.isArray(data.privileges, true)
+				? (data.privileges as Array<any>).map(o => Privilege.deserialize(o))
 				: new Array<Privilege>();
 			account.profile = data.profile !== undefined
-				? UserProfile.deserialize(data.profile)
+				? UserProfile.deserialize(data.profile, UserProfile.get(data.profile.ID))
 				: undefined;
 			if (onCompleted !== undefined) {
 				onCompleted(account, data);
@@ -48,7 +48,7 @@ export class Account {
 	/** Gets by identity */
 	public static get(id: string) {
 		return id !== undefined
-			? this.instances.getValue(id)
+			? this.instances.get(id)
 			: undefined;
 	}
 
@@ -56,7 +56,7 @@ export class Account {
 	public static set(account: Account) {
 		return account === undefined
 			? undefined
-			: this.instances.setValue(account.id, account) || account;
+			: this.instances.set(account.id, account) || account;
 	}
 
 	/** Updates into dictionary */
@@ -68,7 +68,7 @@ export class Account {
 
 	/** Checks to see the dictionary is contains the object by identity or not */
 	public static contains(id: string) {
-		return id !== undefined && this.instances.containsKey(id);
+		return id !== undefined && this.instances.contains(id);
 	}
 
 	/**
@@ -103,7 +103,7 @@ export class Account {
 	 * @param users The collection of identities that need to check with this account
 	 * @param roles The collection of roles that need to check with this account
 	*/
-	public isInPrivilege(users: Set<string>, roles: Set<string>) {
+	public isInPrivilege(users: HashSet<string>, roles: HashSet<string>) {
 		let isIn = users !== undefined && AppUtility.isNotEmpty(this.id) ? users.contains(this.id) : false;
 		while (!isIn && roles !== undefined) {
 			for (const role in this.roles) {

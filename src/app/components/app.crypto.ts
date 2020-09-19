@@ -44,7 +44,7 @@ export class AppCrypto {
 		if (preHash !== undefined) {
 			preHash(obj);
 		}
-		return this.md5(JSON.stringify(obj || {}));
+		return this.md5(JSON.stringify(obj || {}, (_, value) => typeof value === "undefined" ? null : value));
 	}
 
 	/** Signs the string with the specified key using HMAC SHA256 */
@@ -70,7 +70,7 @@ export class AppCrypto {
 	/** Encodes the JSON Web Token */
 	public static jwtEncode(jwt: any, key?: string) {
 		jwt.iat = Math.round(+new Date() / 1000);
-		const encoded = `${this.urlEncode(JSON.stringify({ typ: "JWT", alg: "HS256" }))}.${this.urlEncode(JSON.stringify(jwt))}`;
+		const encoded = this.urlEncode(JSON.stringify({ typ: "JWT", alg: "HS256" })) + "." + this.urlEncode(JSON.stringify(jwt, (_, value) => typeof value === "undefined" ? null : value));
 		return `${encoded}.${this.urlSign(encoded, key || this._jwt)}`;
 	}
 

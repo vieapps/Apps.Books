@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, Input, Output, EventEmitter } from "@angular/core";
-import { AppUtility } from "../../components/app.utility";
-import { AppFormsControl, AppFormsService } from "../../components/forms.service";
-import { ConfigurationService } from "../../services/configuration.service";
-import { AuthenticationService } from "../../services/authentication.service";
-import { UsersService } from "../../services/users.service";
-import { Privilege, Privileges } from "../../models/privileges";
-import { UserProfile } from "../../models/user";
+import { AppUtility } from "@components/app.utility";
+import { AppFormsControl, AppFormsService, AppFormsLookupValue } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { UsersService } from "@services/users.service";
+import { Privilege, Privileges } from "@models/privileges";
+import { UserProfile } from "@models/user";
 import { UsersSelectorModalPage } from "./user.selector.modal.page";
 
 @Component({
@@ -26,28 +26,33 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 	}
 
 	/** The form control that contains this control */
-	@Input() control: AppFormsControl;
+	@Input() private control: AppFormsControl;
 
 	/** The privileges of the service */
-	@Input() privileges: Privileges;
+	@Input() private privileges: Privileges;
 
 	/** Set to 'false' to don't allow to inherit the privileges from parent (default is true) */
-	@Input() allowInheritFromParent: boolean;
+	@Input() private allowInheritFromParent: boolean;
 
-	/** The function to prepare the name of a role */
-	@Input() prepareRoleNameFunction: (role: { id: string, name: string }) => Promise<void>;
+	/** The information for working with roles selector (prepare name function, modal component, modal properties) */
+	@Input() private rolesSelector: {
+		/** The function to prepare the information of a role */
+		prepare: (role: AppFormsLookupValue) => Promise<void>;
 
-	/** The component to show as the modal to select role(s) */
-	@Input() roleComponent: any;
+		/** The component to show as the modal to select role(s) */
+		modalComponent: any;
 
-	/** The properties of component to show as the modal to select role(s) */
-	@Input() roleComponentProps: { [key: string]: any };
+		/** The properties of modal component to to select role(s) */
+		modalComponentProperties: { [key: string]: any };
+	};
 
 	/** The event handler to run when the controls was initialized */
-	@Output() init: EventEmitter<ObjectPrivilegesControl> = new EventEmitter<ObjectPrivilegesControl>();
+	@Output() init = new EventEmitter<ObjectPrivilegesControl>();
 
 	/** The event handler to run when the control was changed */
-	@Output() change = new EventEmitter<any>();
+	@Output() change = new EventEmitter();
+
+	private current: Privileges;
 
 	inheritFromParent = {
 		allow: false,
@@ -76,14 +81,13 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 	initialized = false;
 	sections = Privileges.sections;
 
-	roles = {} as { [key: string]: Array<{ id: string, name: string }> };
-	users = {} as { [key: string]: Array<{ id: string, name: string }> };
+	roles = {} as { [key: string]: Array<AppFormsLookupValue> };
+	users = {} as { [key: string]: Array<AppFormsLookupValue> };
 
 	selectedRoles = {} as { [key: string]: Array<string> };
 	selectedUsers = {} as { [key: string]: Array<string> };
 
 	ngOnInit() {
-		this.privileges = this.privileges || new Privileges();
 		this.inheritFromParent.allow = this.allowInheritFromParent !== undefined
 			? AppUtility.isTrue(this.allowInheritFromParent)
 			: this.control === undefined || this.control.Extras === undefined
@@ -93,29 +97,41 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 					: this.control.Extras["allowInheritFromParent"] !== undefined
 						? AppUtility.isTrue(this.control.Extras["allowInheritFromParent"])
 						: true;
-		this.inheritFromParent.inherit = this.inheritFromParent.allow && this.privileges.isInheritFromParent;
-		if (this.prepareRoleNameFunction === undefined && this.control !== undefined && this.control.Extras !== undefined) {
-			this.prepareRoleNameFunction = typeof this.control.Extras["PrepareRoleName"] === "function" || typeof this.control.Extras["PrepareRoleNameFunction"] === "function"
-				? this.control.Extras["PrepareRoleName"] || this.control.Extras["PrepareRoleNameFunction"]
-				: typeof this.control.Extras["prepareRoleName"] === "function" || typeof this.control.Extras["prepareRoleNameFunction"] === "function"
-					? this.control.Extras["prepareRoleName"] || this.control.Extras["prepareRoleNameFunction"]
-					: (role: { id: string, name: string }) => new Promise<void>(() => role.name = role.id);
+		this.inheritFromParent.inherit = this.inheritFromParent.allow && (AppUtility.isNull(this.privileges) || this.privileges.isInheritFromParent);
+		this.privileges = this.privileges || new Privileges();
+
+		if (this.rolesSelector === undefined) {
+			this.rolesSelector = this.control !== undefined && this.control.Extras !== undefined
+				? this.control.Extras["RolesSelector"] || this.control.Extras["rolesSelector"] || this.control.Extras["RoleSelector"] || this.control.Extras["roleSelector"] || {}
+				: {};
 		}
-		if (this.roleComponent === undefined && this.control !== undefined && this.control.Extras !== undefined) {
-			this.roleComponent = this.control.Extras["RoleComponent"] || this.control.Extras["roleComponent"];
+		if (this.rolesSelector.prepare === undefined && this.control !== undefined && this.control.Extras !== undefined) {
+			this.rolesSelector.prepare = typeof this.control.Extras["PrepareRole"] === "function"
+				? this.control.Extras["PrepareRole"]
+				: typeof this.control.Extras["prepareRole"] === "function"
+					? this.control.Extras["prepareRole"]
+					: typeof this.control.Extras["PrepareRoleFunction"] === "function"
+						? this.control.Extras["PrepareRoleFunction"]
+						: typeof this.control.Extras["prepareRoleFunction"] === "function"
+							? this.control.Extras["prepareRoleFunction"]
+							: role => new Promise<void>(() => role.Label = role.Value);
 		}
-		if (this.roleComponentProps === undefined && this.control !== undefined && this.control.Extras !== undefined) {
-			this.roleComponent = this.control.Extras["RoleComponentProps"] || this.control.Extras["roleComponentProps"];
+		if (this.rolesSelector.modalComponent === undefined && this.control !== undefined && this.control.Extras !== undefined) {
+			this.rolesSelector.modalComponent = this.control.Extras["RoleModalComponent"] || this.control.Extras["roleModalComponent"];
 		}
+		if (this.rolesSelector.modalComponentProperties === undefined && this.control !== undefined && this.control.Extras !== undefined) {
+			this.rolesSelector.modalComponentProperties = this.control.Extras["RoleModalComponentProperties"] || this.control.Extras["roleModalComponentProperties"];
+		}
+
 		this.prepareRolesAndUsers();
-		Promise.all([this.prepareLabelsAsync()]).then(() => {
+		this.prepareLabelsAsync().then(() => {
 			this.initialized = true;
 			this.init.emit(this);
 		});
 	}
 
 	ngAfterViewInit() {
-		Promise.all([this.prepareNamesOfRolesAndUsersAsync()]).then(() => this.changeDetector.detectChanges());
+		this.prepareRolesAndUsersAsync().then(() => this.changeDetector.detectChanges());
 	}
 
 	ngOnDestroy() {
@@ -150,34 +166,42 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 
 	private prepareRolesAndUsers(sections?: Array<string>) {
 		const arraysOfPrivileges = Privileges.getPrivileges(this.privileges, sections);
-		(sections || this.sections).forEach(name => {
-			this.roles[name] = arraysOfPrivileges[`${name}Roles`].map(id => {
-				return { id: id, name: undefined };
+		(sections || this.sections).forEach(section => {
+			this.roles[section] = arraysOfPrivileges[`${section}Roles`].map(id => {
+				return { Value: id, Label: undefined };
 			});
-			this.users[name] = arraysOfPrivileges[`${name}Users`].map(id => {
-				return { id: id, name: undefined };
+			this.users[section] = arraysOfPrivileges[`${section}Users`].map(id => {
+				return { Value: id, Label: undefined };
 			});
 		});
 	}
 
-	private prepareNamesOfRolesAndUsersAsync(sections?: Array<string>) {
-		return Promise.all((sections || this.sections).map(async name => await Promise.all([
-			Promise.all(this.roles[name].filter(role => role.name === undefined).map(async role => {
-				if (Privilege.systemRoles.indexOf(role.id) > -1) {
-					role.name = await this.appFormsSvc.getResourceAsync(`privileges.roles.systems.${role.id}`);
+	private async prepareRolesAndUsersAsync(sections?: Array<string>) {
+		await Promise.all((sections || this.sections).map(async section => await Promise.all([
+			Promise.all(this.roles[section].filter(role => role.Label === undefined).map(async role => {
+				if (Privilege.systemRoles.indexOf(role.Value) > -1) {
+					role.Label = await this.appFormsSvc.getResourceAsync(`privileges.roles.systems.${role.Value}`);
 				}
 				else {
-					await this.prepareRoleNameFunction(role);
+					await this.rolesSelector.prepare(role);
 				}
 			})),
-			Promise.all(this.users[name].filter(user => user.name === undefined).map(async user => await this.userSvc.getProfileAsync(user.id, _ => user.name = (UserProfile.get(user.id) || new UserProfile()).Name)))
+			Promise.all(this.users[section].filter(user => user.Label === undefined).map(async user => {
+				let profile = UserProfile.get(user.Value);
+				if (profile === undefined) {
+					await this.userSvc.getProfileAsync(user.Value, _ => profile = (UserProfile.get(user.Value) || new UserProfile()), undefined, true);
+				}
+				user.Label = profile.Name;
+				user.Description = profile.getEmail();
+				user.Image = profile.avatarURI;
+			}))
 		])));
+		(sections || this.sections).forEach(section => this.users[section] = this.users[section].sort(AppUtility.getCompareFunction("Label", "Description")));
 	}
 
 	private emitChanges() {
-		const privileges = this.inheritFromParent.inherit ? new Privileges() : this.privileges;
+		const privileges = this.inheritFromParent.inherit ? undefined : this.privileges;
 		this.change.emit({
-			control: this.control,
 			privileges: privileges,
 			detail: {
 				value: privileges
@@ -190,7 +214,14 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 	}
 
 	onInheritFromParentChanged(event: any) {
-		this.inheritFromParent.inherit = AppUtility.isTrue(event.detail.checked);
+		const isInheritFromParent = AppUtility.isTrue(event.detail.checked);
+		this.inheritFromParent.inherit = isInheritFromParent;
+		if (isInheritFromParent) {
+			this.current = Privileges.resetPrivileges(undefined, Privileges.getPrivileges(this.privileges));
+		}
+		else {
+			this.privileges = Privileges.resetPrivileges(undefined, Privileges.getPrivileges(this.current));
+		}
 		this.emitChanges();
 	}
 
@@ -199,7 +230,7 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		return roles !== undefined && roles.length > 0 && roles.indexOf(id) > -1;
 	}
 
-	selectRole(section: string, id: string, event: any) {
+	selectRole(event: any, section: string, id: string) {
 		let roles = this.selectedRoles[section];
 		if (roles === undefined) {
 			roles = this.selectedRoles[section] = new Array<string>();
@@ -213,22 +244,22 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 	}
 
 	addRolesAsync(section: string) {
-		if (this.roleComponent === undefined) {
-			return this.appFormsSvc.showAlertAsync(undefined, undefined, "Role component is invalid");
+		if (this.rolesSelector.modalComponent === undefined) {
+			return this.appFormsSvc.showAlertAsync(undefined, "Roles selector component is invalid");
 		}
 
-		const componentProps: { [key: string]: any } = {};
-		if (this.roleComponentProps !== undefined) {
-			Object.keys(this.roleComponentProps).forEach(key => componentProps[key] = this.roleComponentProps[key]);
+		const modalProperties: { [key: string]: any } = {};
+		if (this.rolesSelector.modalComponentProperties !== undefined) {
+			Object.keys(this.rolesSelector.modalComponentProperties).forEach(key => modalProperties[key] = this.rolesSelector.modalComponentProperties[key]);
 		}
-		componentProps["section"] = section;
-		componentProps["multiple"] = true;
+		modalProperties["section"] = section;
+		modalProperties["multiple"] = true;
 
-		return this.appFormsSvc.showModalAsync(this.roleComponent, componentProps, async roles => {
-			AppUtility.updateSet(this.privileges.getRoles(section), roles as Array<string>);
+		return this.appFormsSvc.showModalAsync(this.rolesSelector.modalComponent, modalProperties, async roles => {
+			this.privileges.getRoles(section).update(roles as Array<string>);
 			this.prepareRolesAndUsers([section]);
 			this.emitChanges();
-			await this.prepareNamesOfRolesAndUsersAsync([section]);
+			await this.prepareRolesAndUsersAsync([section]);
 		});
 	}
 
@@ -238,11 +269,11 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 			undefined,
 			this.labels.confirmDelete,
 			async () => {
-				AppUtility.updateSet(this.privileges.getRoles(section), this.selectedRoles[section], false);
+				this.privileges.getRoles(section).update(this.selectedRoles[section], false);
 				this.selectedRoles[section] = [];
 				this.prepareRolesAndUsers([section]);
 				this.emitChanges();
-				await this.prepareNamesOfRolesAndUsersAsync([section]);
+				await this.prepareRolesAndUsersAsync([section]);
 			},
 			this.labels.buttons.ok,
 			this.labels.buttons.cancel
@@ -254,7 +285,7 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 		return users !== undefined && users.length > 0 && users.indexOf(id) > -1;
 	}
 
-	selectUser(section: string, id: string, event: any) {
+	selectUser(event: any, section: string, id: string) {
 		let users = this.selectedUsers[section];
 		if (users === undefined) {
 			users = this.selectedUsers[section] = new Array<string>();
@@ -269,10 +300,10 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 
 	async addUsersAsync(section: string) {
 		return this.appFormsSvc.showModalAsync(UsersSelectorModalPage, { section: section, multiple: true, hideEmails: !this.authSvc.isSystemAdministrator() }, async users => {
-			AppUtility.updateSet(this.privileges.getUsers(section), users as Array<string>);
+			this.privileges.getUsers(section).update(users as Array<string>);
 			this.prepareRolesAndUsers([section]);
 			this.emitChanges();
-			await this.prepareNamesOfRolesAndUsersAsync([section]);
+			await this.prepareRolesAndUsersAsync([section]);
 		});
 	}
 
@@ -282,11 +313,11 @@ export class ObjectPrivilegesControl implements OnInit, OnDestroy, AfterViewInit
 			undefined,
 			this.labels.confirmDelete,
 			async () => {
-				AppUtility.updateSet(this.privileges.getUsers(section), this.selectedUsers[section], false);
+				this.privileges.getUsers(section).update(this.selectedUsers[section], false);
 				this.selectedUsers[section] = [];
 				this.prepareRolesAndUsers([section]);
 				this.emitChanges();
-				await this.prepareNamesOfRolesAndUsersAsync([section]);
+				await this.prepareRolesAndUsersAsync([section]);
 			},
 			this.labels.buttons.ok,
 			this.labels.buttons.cancel

@@ -1,15 +1,14 @@
 import { Injectable } from "@angular/core";
-import { AppRTU } from "../components/app.apis";
-import { AppCrypto } from "../components/app.crypto";
-import { AppEvents } from "../components/app.events";
-import { AppUtility } from "../components/app.utility";
-import { Account } from "../models/account";
-import { Privileges } from "../models/privileges";
-import { Base as BaseService } from "./base.service";
-import { ConfigurationService } from "./configuration.service";
+import { AppRTU } from "@components/app.apis";
+import { AppCrypto } from "@components/app.crypto";
+import { AppEvents } from "@components/app.events";
+import { AppUtility } from "@components/app.utility";
+import { Account } from "@models/account";
+import { Privileges } from "@models/privileges";
+import { Base as BaseService } from "@services/base.service";
+import { ConfigurationService } from "@services/configuration.service";
 
 @Injectable()
-
 export class AuthenticationService extends BaseService {
 
 	constructor(
@@ -121,15 +120,15 @@ export class AuthenticationService extends BaseService {
 	}
 
 	private canDo(role: string, serviceName?: string, account?: Account) {
-		return "SystemAdministrator" === role
+		return AppUtility.isEquals("SystemAdministrator", role)
 			? this.isSystemAdministrator(account)
-			: "ServiceAdministrator" === role
+			: AppUtility.isEquals("ServiceAdministrator", role)
 				? this.isServiceAdministrator(serviceName, undefined, account)
-				: "ServiceModerator" === role
+				: AppUtility.isEquals("ServiceModerator", role)
 					? this.isServiceModerator(serviceName, undefined, account)
-					: "Authenticated" === role
+					: AppUtility.isEquals("Authenticated", role)
 						? this.configSvc.isAuthenticated
-						: "All" === role;
+						: AppUtility.isEquals("All", role);
 	}
 
 	/** Checks to see the visitor can register new account or not */
@@ -147,8 +146,8 @@ export class AuthenticationService extends BaseService {
 		return this.configSvc.appConfig.accountRegistrations.setServicePrivilegs && this.canDo(this.configSvc.appConfig.accountRegistrations.setServicePrivilegsRole);
 	}
 
-	public logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.createAsync(
+	public async logInAsync(email: string, password: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.createAsync(
 			"users/session",
 			{
 				Email: AppCrypto.rsaEncrypt(email),
@@ -186,8 +185,8 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public logInOTPAsync(userID: string, otpProvider: string, otpCode: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.updateAsync(
+	public async logInOTPAsync(userID: string, otpProvider: string, otpCode: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.updateAsync(
 			"users/session",
 			{
 				ID: AppCrypto.rsaEncrypt(userID),
@@ -211,8 +210,8 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.deleteAsync(
+	public async logOutAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.deleteAsync(
 			"users/session",
 			async data => {
 				AppEvents.broadcast("Session", { Type: "LogOut" });
@@ -239,8 +238,8 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.updateAsync(
+	public async resetPasswordAsync(email: string, captcha: string, onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.updateAsync(
 			`users/account/reset?uri=${this.configSvc.activateURI}&${this.configSvc.relatedQuery}`,
 			{
 				Email: AppCrypto.rsaEncrypt(email)
@@ -258,8 +257,8 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	public registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
-		return super.readAsync(
+	public async registerCaptchaAsync(onNext?: (data?: any) => void, onError?: (error?: any) => void) {
+		await super.readAsync(
 			`users/captcha?register=${this.configSvc.appConfig.session.id}`,
 			data => {
 				this.configSvc.appConfig.session.captcha = {
@@ -281,10 +280,10 @@ export class AuthenticationService extends BaseService {
 		);
 	}
 
-	private updateSessionAsync(data: any, onNext: (data?: any) => void) {
+	private async updateSessionAsync(data: any, onNext: (data?: any) => void) {
 		AppEvents.broadcast("Session", { Type: "LogIn" });
 		AppEvents.sendToElectron("Users", { Type: "LogIn", Data: data });
-		return this.configSvc.updateSessionAsync(data, () => AppRTU.start(() => {
+		await this.configSvc.updateSessionAsync(data, () => AppRTU.start(() => {
 			if (onNext !== undefined) {
 				onNext(data);
 			}

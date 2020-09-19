@@ -1,11 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 import { FormGroup } from "@angular/forms";
-import { AppUtility } from "../../../components/app.utility";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { AppFormsControl, AppFormsControlConfig, AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { AuthenticationService } from "../../../services/authentication.service";
-import { UsersService } from "../../../services/users.service";
+import { AppUtility } from "@components/app.utility";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { AppFormsControl, AppFormsControlConfig, AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { UsersService } from "@services/users.service";
 
 @Component({
 	selector: "page-users-register",
@@ -16,7 +16,7 @@ import { UsersService } from "../../../services/users.service";
 export class UsersRegisterPage implements OnInit {
 
 	constructor(
-		public configSvc: ConfigurationService,
+		private configSvc: ConfigurationService,
 		private appFormsSvc: AppFormsService,
 		private authSvc: AuthenticationService,
 		private usersSvc: UsersService
@@ -33,6 +33,10 @@ export class UsersRegisterPage implements OnInit {
 			icon: undefined as string
 		}
 	};
+
+	get color() {
+		return this.configSvc.color;
+	}
 
 	ngOnInit() {
 		this.prepareAsync();

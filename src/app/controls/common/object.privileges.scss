@@ -1,10 +1,10 @@
 section > div:first-of-type {
 	padding-bottom: 15px;
 }
+ion-list > ion-list-header > ion-label > span {
+	line-height: 32px;
+}
 section > div > label.header,
 ion-list.md > ion-list-header > ion-label > span {
 	line-height: 48px;
-}
-ion-list.ios > ion-list-header > ion-label > span {
-	line-height: 32px;
 }

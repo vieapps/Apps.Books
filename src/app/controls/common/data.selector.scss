@@ -1,0 +1,32 @@
+ion-list > ion-list-header > ion-label > ion-buttons,
+ion-list > ion-item > ion-checkbox {
+	margin-right: 15px;
+}
+ion-list.md > ion-list-header > ion-label > span {
+	line-height: 48px;
+}
+ion-list.ios > ion-list-header > ion-label > span {
+	line-height: 32px;
+}
+ion-list > ion-item > ion-label > ion-thumbnail {
+	height: 32px;
+	width: 48px;
+}
+ion-list > ion-item > ion-label > ion-thumbnail > img {
+	border-radius: 50%;
+}
+ion-list > ion-item > ion-label > span,
+ion-list > ion-item > ion-label > div {
+	display: block;
+}
+ion-list > ion-item > ion-label > span.one {
+	margin-top: 5px;
+}
+ion-list > ion-item > ion-label > span.atRight > span {
+	display: block;
+	float: right !important;
+}
+ion-list > ion-item > ion-label > span.atRight > span,
+ion-list > ion-item > ion-label > div {
+	font-size: 0.96em;
+}

@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar [color]="configSvc.color">
+	<ion-toolbar [color]="color">
 		<ion-buttons slot="start">
 			<ion-button color="secondary" [disabled]="processing" (click)="closeAsync()">
 				{{ labels.cancel }}
@@ -16,21 +16,21 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color" class="ion-padding-end">
+<ion-content [color]="color" class="ion-padding-end">
 	<ion-list>
 		<ion-radio-group [value]="mode" (ionChange)="onModeChanged($event)">
-			<ion-list-header [color]="configSvc.color">
+			<ion-list-header [color]="color">
 				<ion-label>
 					{{ labels.header }}
 				</ion-label>
 			</ion-list-header>
-			<ion-item [color]="configSvc.color">
+			<ion-item [color]="color">
 				<ion-label>
 					{{ labels.avatar }}
 				</ion-label>
 				<ion-radio value="Avatar"></ion-radio>
 			</ion-item>
-			<ion-item [color]="configSvc.color">
+			<ion-item [color]="color">
 				<ion-label>
 					{{ labels.gravatar }}
 				</ion-label>
@@ -38,7 +38,7 @@
 			</ion-item>
 		</ion-radio-group>
 		<control-image-cropper [settings]="imageCropperSettings" [hidden]="mode !== 'Avatar'"></control-image-cropper>
-		<ion-item [color]="configSvc.color" [hidden]="mode !== 'Gravatar'">
+		<ion-item [color]="color" [hidden]="mode !== 'Gravatar'">
 			<img [src]="gravatarURI" />
 		</ion-item>
 	</ion-list>

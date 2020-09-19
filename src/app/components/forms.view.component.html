@@ -1,0 +1,66 @@
+<ion-item *ngIf="visible && !isCustomControl && !isButtonsControl"
+	[color]="theme"
+	[class.file-picker]="isFilePickerControl">
+
+	<ion-buttons *ngIf="icon" style="background-color:var(--ion-color-base)" [slot]="iconSlot">
+		<ion-button tabindex="-1" [fill]="iconFill" [color]="iconColor" (click)="clickOnIcon($event)">
+			<ion-icon [name]="icon" slot="icon-only"></ion-icon>
+		</ion-button>
+	</ion-buttons>
+
+	<ion-label *ngIf="label" [position]="position">
+		{{ label }}
+	</ion-label>
+
+	<span *ngIf="isNumber" class="text number" #elementRef>
+		{{ value | number:'':locale }}
+	</span>
+
+	<span *ngIf="isDateTime" class="text date-time" #elementRef>
+		{{ value | date:datetimeFormat }}
+	</span>
+
+	<ion-checkbox *ngIf="isBoolean" [checked]="value" [disabled]="true" class="yesno" slot="end" #elementRef></ion-checkbox>
+
+	<span *ngIf="isMediumText" [innerHTML]="value" class="text medium" #elementRef></span>
+	
+	<div *ngIf="isLargeText" [innerHTML]="value" class="text large" #elementRef></div>
+
+	<span *ngIf="!isNumber && !isDateTime && !isBoolean && !isMediumText && !isLargeText && !isFilePickerControl" class="text" #elementRef>
+		{{ value }}
+	</span>
+	
+	<div *ngIf="isFilePickerControl">
+		<div *ngIf="control.Options.FilePickerOptions.AllowSelect" class="file-picker-input">
+			<input type="file" #elementRef
+				[accept]="control.Options.FilePickerOptions.Accept"
+				[multiple]="control.Options.FilePickerOptions.Multiple"
+				[placeholder]="control.Options.PlaceHolder"
+				(change)="onFilePickerChanged($event)" />
+		</div>
+		<div *ngIf="control.Options.FilePickerOptions.AllowPreview && control.value" class="image-picker-preview ion-padding-vertical">
+			<div *ngIf="value.current" class="current">
+				<img [src]="value.current" />
+			</div>
+			<div *ngIf="value.new" class="new">
+				<img [src]="value.new" />
+			</div>
+		</div>
+	</div>
+	
+</ion-item>
+
+<ion-buttons *ngIf="visible && isButtonsControl" style="background-color:var(--ion-color-base)" class="ion-padding" #elementRef>
+	<ion-button *ngFor="let button of control.SubControls.Controls;"
+		[fill]="button.Options.ButtonOptions.Fill"
+		[color]="button.Options.ButtonOptions.Color"
+		[disabled]="button.Options.Disabled"
+		[class]="button.Options.Css"
+		(click)="button.Options.ButtonOptions.OnClick($event, button)">
+		<ion-icon *ngIf="button.Options.ButtonOptions.Icon.Name" [icon]="button.Options.ButtonOptions.Icon.Name" [slot]="button.Options.ButtonOptions.Icon.Slot"></ion-icon>
+		{{ button.Options.Label }}
+	</ion-button>
+</ion-buttons>
+	
+<control-files-selector *ngIf="visible && isCustomControlOf('files-selector')" [control]="control" #elementRef></control-files-selector>
+	

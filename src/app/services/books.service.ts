@@ -1,18 +1,16 @@
-import { Dictionary } from "typescript-collections";
-import { List } from "linqts";
 import { Injectable } from "@angular/core";
-import { AppStorage } from "../components/app.storage";
-import { AppRTU, AppMessage } from "../components/app.apis";
-import { AppEvents } from "../components/app.events";
-import { AppUtility } from "../components/app.utility";
-import { PlatformUtility } from "../components/app.utility.platform";
-import { AppCustomCompleter } from "../components/app.completer";
-import { AppPagination } from "../components/app.pagination";
-import { CounterInfo } from "../models/counters";
-import { StatisticBase, StatisticInfo } from "../models/statistics";
-import { Book, Bookmark } from "../models/book";
-import { Base as BaseService } from "./base.service";
-import { ConfigurationService } from "./configuration.service";
+import { AppStorage } from "@components/app.storage";
+import { AppRTU, AppMessage } from "@components/app.apis";
+import { AppEvents } from "@components/app.events";
+import { AppUtility, Dictionary } from "@components/app.utility";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { AppCustomCompleter } from "@components/app.completer";
+import { AppPagination } from "@components/app.pagination";
+import { CounterInfo } from "@models/counters";
+import { StatisticBase, StatisticInfo } from "@models/statistics";
+import { Book, Bookmark } from "@models/book";
+import { Base as BaseService } from "@services/base.service";
+import { ConfigurationService } from "@services/configuration.service";
 
 @Injectable()
 
@@ -49,8 +47,8 @@ export class BooksService extends BaseService {
 
 				try {
 					const introductions = await this.requestAsync("GET", `/assets/books/${this.configSvc.appConfig.language}/introductions.json`);
-					if (this.introductions[this.configSvc.appConfig.language] === undefined) {
-						this.updateIntroductions(introductions as { [key: string]: string; });
+					if (this.instructions[this.configSvc.appConfig.language] === undefined) {
+						this.updateInstructions(introductions as { [key: string]: string; });
 					}
 				}
 				catch { }
@@ -69,14 +67,14 @@ export class BooksService extends BaseService {
 		}
 
 		await Promise.all([
-			this.loadIntroductionsAsync(async () => await this.fetchIntroductionsAsync()),
+			this.loadInstructionsAsync(async () => await this.fetchInstructionsAsync()),
 			this.loadStatisticsAsync(() => {
 				const numberOfCategories = this.configSvc.appConfig.extras["Books-Categories"] !== undefined
 					? (this.configSvc.appConfig.extras["Books-Categories"] as Array<StatisticInfo>).length
 					: 0;
 				let numberOfAuthors = 0;
 				if (this.configSvc.appConfig.extras["Books-Authors"] !== undefined) {
-					(this.configSvc.appConfig.extras["Books-Authors"] as Dictionary<string, Array<StatisticBase>>).values().forEach(info => numberOfAuthors += info.length);
+					(this.configSvc.appConfig.extras["Books-Authors"] as Dictionary<string, Array<StatisticBase>>).toArray().forEach(info => numberOfAuthors += info.length);
 				}
 				console.log(`[${this.name}]: The statistics are loaded` + "\n- " + `Number of categories: ${numberOfCategories}` + "\n- " + `Number of authors: ${numberOfAuthors}`);
 			}),
@@ -86,7 +84,7 @@ export class BooksService extends BaseService {
 		if (this.configSvc.isAuthenticated) {
 			await this.loadBookmarksAsync(() => {
 				const bookmarks = this.configSvc.appConfig.extras["Books-Bookmarks"] as Dictionary<string, Bookmark>;
-				console.log(`[${this.name}]: The bookmarks are loaded` + "\n- " + `Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size() : 0}`);
+				console.log(`[${this.name}]: The bookmarks are loaded` + "\n- " + `Number of bookmarks: ${bookmarks !== undefined ? bookmarks.size : 0}`);
 			});
 		}
 
@@ -277,7 +275,7 @@ export class BooksService extends BaseService {
 
 	public getAsync(id: string, onNext?: (data?: any) => void, onError?: (error?: any) => void, dontUpdateCounter: boolean = false) {
 		const book = Book.get(id);
-		return book !== undefined && (book.TOCs.length > 0 || book.Body !== "")
+		return book !== undefined && (book.TOCs.length > 0 || AppUtility.isNotEmpty(book.Body))
 			? new Promise<void>(() => {
 					if (!dontUpdateCounter) {
 						this.increaseCounters(id);
@@ -363,7 +361,7 @@ export class BooksService extends BaseService {
 	}
 
 	public increaseCounters(id: string, action?: string, onNext?: (data?: any) => void) {
-		if (Book.instances.containsKey(id)) {
+		if (Book.instances.contains(id)) {
 			super.send({
 				ServiceName: this.name,
 				ObjectName: "book",
@@ -385,7 +383,7 @@ export class BooksService extends BaseService {
 			? Book.get(data.ID)
 			: undefined;
 		if (book !== undefined && AppUtility.isArray(data.Counters, true)) {
-			(data.Counters as Array<any>).forEach(c => book.Counters.setValue(c.Type, CounterInfo.deserialize(c)));
+			(data.Counters as Array<any>).forEach(c => book.Counters.set(c.Type, CounterInfo.deserialize(c)));
 			AppEvents.broadcast("Books", { Type: "StatisticsUpdated", ID: book.ID });
 		}
 		if (onNext !== undefined) {
@@ -394,7 +392,7 @@ export class BooksService extends BaseService {
 	}
 
 	public generateFiles(id: string) {
-		if (Book.instances.containsKey(id)) {
+		if (Book.instances.contains(id)) {
 			super.send({
 				ServiceName: this.name,
 				ObjectName: "book",
@@ -490,41 +488,43 @@ export class BooksService extends BaseService {
 		}
 	}
 
-	public get introductions(): { [key: string]: { [key: string]: string } } {
-		return this.configSvc.appConfig.extras["Books-Introductions"] || {};
+	public get instructions(): { [key: string]: { [key: string]: string } } {
+		return this.configSvc.appConfig.extras["Books-Instructions"] || {};
 	}
 
-	private updateIntroductions(introduction: { [key: string]: string }) {
-		const introductions = this.introductions;
-		if (introduction !== undefined) {
-			introductions[this.configSvc.appConfig.language] = introduction;
-			AppEvents.broadcast("Books", { Type: "InstroductionsUpdated" });
+	private updateInstructions(instructions: { [key: string]: string }) {
+		const introductions = this.instructions;
+		if (instructions !== undefined) {
+			introductions[this.configSvc.appConfig.language] = instructions;
+			AppEvents.broadcast("Books", { Type: "InstructionsUpdated" });
 		}
-		this.configSvc.appConfig.extras["Books-Introductions"] = introductions;
+		this.configSvc.appConfig.extras["Books-Instructions"] = introductions;
 	}
 
-	private async loadIntroductionsAsync(onNext?: () => void) {
-		this.updateIntroductions(await AppStorage.getAsync("Books-Introductions"));
+	private async loadInstructionsAsync(onNext?: () => void) {
+		this.updateInstructions(await AppStorage.getAsync("Books-Instructions"));
 		if (onNext !== undefined) {
 			onNext();
 		}
 	}
 
-	private async storeIntroductionsAsync(onNext?: () => void) {
-		await AppStorage.setAsync("Books-Introductions", this.introductions);
+	private async storeInstructionsAsync(onNext?: () => void) {
+		await AppStorage.setAsync("Books-Instructions", this.instructions);
 		if (onNext !== undefined) {
 			onNext();
 		}
 	}
 
-	public async fetchIntroductionsAsync(onNext?: () => void) {
-		try {
-			this.updateIntroductions(await this.configSvc.getDefinitionAsync(this.name.toLowerCase(), "introductions"));
-			await this.storeIntroductionsAsync(onNext);
-		}
-		catch (error) {
-			this.showError("Error occurred while reading introductions", error);
-		}
+	public async fetchInstructionsAsync(onNext?: () => void) {
+		await this.configSvc.getInstructionsAsync(
+			this.name,
+			this.configSvc.appConfig.language,
+			async instructions => {
+				this.updateInstructions(instructions);
+				await this.storeInstructionsAsync(onNext);
+			},
+			error => this.showError("Error occurred while reading instructions", error)
+		);
 	}
 
 	public get categories(): Array<StatisticInfo> {
@@ -560,10 +560,10 @@ export class BooksService extends BaseService {
 		const authors = new Dictionary<string, Array<StatisticBase>>();
 		await Promise.all(AppUtility.getChars().map(async char => {
 			const authours = (await AppStorage.getAsync(`Books-Authors-${char}`) as Array<any> || []).map(s => StatisticBase.deserialize(s));
-			authors.setValue(char, authours);
+			authors.set(char, authours);
 		}));
 		this.configSvc.appConfig.extras["Books-Authors"] = authors;
-		if (this.authors.size() > 0) {
+		if (this.authors.size > 0) {
 			AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: authors });
 		}
 		if (onNext !== undefined) {
@@ -573,7 +573,7 @@ export class BooksService extends BaseService {
 
 	private async storeAuthorsAsync(onNext?: (authors?: Dictionary<string, Array<StatisticBase>>) => void) {
 		const authors = this.authors;
-		await Promise.all(AppUtility.getChars().map(char => AppStorage.setAsync(`Books-Authors-${char}`, authors.getValue(char) || [])));
+		await Promise.all(AppUtility.getChars().map(char => AppStorage.setAsync(`Books-Authors-${char}`, authors.get(char) || [])));
 		AppEvents.broadcast("Books", { Type: "AuthorsUpdated", Data: authors });
 		if (onNext !== undefined) {
 			onNext(this.authors);
@@ -590,8 +590,8 @@ export class BooksService extends BaseService {
 		};
 	}
 
-	private loadStatisticsAsync(onNext?: () => void) {
-		return Promise.all([
+	private async loadStatisticsAsync(onNext?: () => void) {
+		await Promise.all([
 			this.loadCategoriesAsync(),
 			this.loadAuthorsAsync()
 		]).then(() => {
@@ -616,7 +616,7 @@ export class BooksService extends BaseService {
 
 			case "Authors":
 				const authors = this.authors;
-				authors.setValue(message.Data.Char, (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s)));
+				authors.set(message.Data.Char, (message.Data.Objects as Array<any>).map(s => StatisticBase.deserialize(s)));
 				this.configSvc.appConfig.extras["Books-Authors"] = authors;
 				return this.storeAuthorsAsync();
 
@@ -649,7 +649,7 @@ export class BooksService extends BaseService {
 		const bookmarks = new Dictionary<string, Bookmark>();
 		(await AppStorage.getAsync("Books-Bookmarks") as Array<any> || []).forEach(data => {
 			const bookmark = Bookmark.deserialize(data);
-			bookmarks.setValue(bookmark.ID, bookmark);
+			bookmarks.set(bookmark.ID, bookmark);
 		});
 		this.configSvc.appConfig.extras["Books-Bookmarks"] = bookmarks;
 		if (onNext !== undefined) {
@@ -680,7 +680,7 @@ export class BooksService extends BaseService {
 			ServiceName: this.name,
 			ObjectName: "bookmarks",
 			Verb: "POST",
-			Body: new List(this.bookmarks.values()).OrderByDescending(b => b.Time).Take(30).ToArray()
+			Body: this.bookmarks.toList().OrderByDescending(b => b.Time).Take(30).ToArray()
 		}, onNext, onError);
 	}
 
@@ -690,16 +690,16 @@ export class BooksService extends BaseService {
 		}
 		(data.Objects as Array<any> || []).forEach(b => {
 			const bookmark = Bookmark.deserialize(b);
-			if (!this.bookmarks.containsKey(bookmark.ID)) {
-				this.bookmarks.setValue(bookmark.ID, bookmark);
+			if (!this.bookmarks.contains(bookmark.ID)) {
+				this.bookmarks.set(bookmark.ID, bookmark);
 			}
-			else if (bookmark.Time > this.bookmarks.getValue(bookmark.ID).Time) {
-				this.bookmarks.setValue(bookmark.ID, bookmark);
+			else if (bookmark.Time > this.bookmarks.get(bookmark.ID).Time) {
+				this.bookmarks.set(bookmark.ID, bookmark);
 			}
 		});
 		await this.storeBookmarksAsync(onNext);
 
-		this.bookmarks.values().filter(bookmark => !Book.instances.containsKey(bookmark.ID)).forEach(bookmark => super.send({
+		this.bookmarks.toArray(bookmark => !Book.instances.contains(bookmark.ID)).forEach(bookmark => super.send({
 			ServiceName: this.name,
 			ObjectName: "book",
 			Query: {
@@ -709,12 +709,12 @@ export class BooksService extends BaseService {
 	}
 
 	public updateBookmarkAsync(id: string, chapter: number, position: number, onNext?: () => void) {
-		const bookmark = this.bookmarks.getValue(id) || new Bookmark();
+		const bookmark = this.bookmarks.get(id) || new Bookmark();
 		bookmark.ID = id;
 		bookmark.Chapter = chapter;
 		bookmark.Position = position;
 		bookmark.Time = new Date();
-		this.bookmarks.setValue(bookmark.ID, bookmark);
+		this.bookmarks.set(bookmark.ID, bookmark);
 		return this.storeBookmarksAsync(onNext);
 	}
 

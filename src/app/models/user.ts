@@ -1,16 +1,19 @@
-import { Dictionary } from "typescript-collections";
+import { List } from "linqts";
+import { AppUtility, Dictionary } from "@components/app.utility";
+import { Base as BaseModel } from "@models/base";
+import { RatingPoint } from "@models/rating.point";
 import { AppConfig } from "../app.config";
-import { AppUtility } from "../components/app.utility";
-import { Base as BaseModel } from "./base";
-import { RatingPoint } from "./ratingpoint";
 
 /** Base user profile */
 export class UserProfileBase extends BaseModel {
 
-	constructor() {
+	constructor(
+		name?: string
+	) {
 		super();
 		delete this["Privileges"];
 		delete this["OriginalPrivileges"];
+		this.Name = AppUtility.isNotEmpty(name) ? name : "";
 	}
 
 	/** All user profile instances */
@@ -57,20 +60,26 @@ export class UserProfileBase extends BaseModel {
 	/** Gets by identity */
 	public static get(id: string) {
 		return id !== undefined
-			? this.instances.getValue(id)
+			? this.instances.get(id)
 			: undefined;
 	}
 
 	/** Sets by identity */
 	public static set(profile: UserProfileBase) {
-		return profile === undefined
-			? undefined
-			: this.instances.setValue(profile.ID, profile) || profile;
+		if (profile !== undefined) {
+			this.instances.set(profile.ID, profile);
+		}
+		return profile;
 	}
 
 	/** Checks to see the dictionary is contains the object by identity or not */
 	public static contains(id: string) {
-		return id !== undefined && this.instances.containsKey(id);
+		return id !== undefined && this.instances.contains(id);
+	}
+
+	/** Converts the array of objects to list */
+	public static toList(objects: Array<any>) {
+		return new List(objects.map(obj => this.get(obj.ID) || this.deserialize(obj, this.get(obj.ID))));
 	}
 
 	public get avatarURI() {
@@ -89,7 +98,7 @@ export class UserProfileBase extends BaseModel {
 			this.fullAddress = this.Address
 				+ (AppUtility.isNotEmpty(this.Province) ? (AppUtility.isNotEmpty(this.Address) ? ", " : "")
 				+ this.County + ", " + this.Province + ", " + this.Country : "");
-			this.ansiTitle = AppUtility.toANSI(this.Name + " " + this.fullAddress + " " + this.Email + " " + this.Mobile).toLowerCase();
+				this.ansiTitle = AppUtility.toANSI(this.Name + " " + this.fullAddress + " " + this.Email + " " + this.Mobile).toLowerCase();
 			if (onCompleted !== undefined) {
 				onCompleted(data);
 			}
@@ -105,8 +114,10 @@ export class UserProfileBase extends BaseModel {
 /** Full user profile (with related information from main service) */
 export class UserProfile extends UserProfileBase {
 
-	constructor() {
-		super();
+	constructor(
+		name?: string
+	) {
+		super(name);
 	}
 
 	Level = "Normal";
@@ -117,11 +128,6 @@ export class UserProfile extends UserProfileBase {
 	TotalContributions = 0;
 	LastSync = new Date();
 	RatingPoints = new Dictionary<string, RatingPoint>();
-
-	/** Gets all user profile instances */
-	public static get all() {
-		return this.instances.values() as Array<UserProfile>;
-	}
 
 	/** Deserializes data to object */
 	public static deserialize(json: any, profile?: UserProfile) {
@@ -147,11 +153,16 @@ export class UserProfile extends UserProfileBase {
 			: undefined;
 	}
 
+	/** Converts the array of objects to list */
+	public static toList(objects: Array<any>) {
+		return new List(objects.map(obj => this.get(obj.ID) || this.deserialize(obj, this.get(obj.ID))));
+	}
+
 	public copy(source: any, onCompleted?: (data: any) => void) {
 		super.copy(source, data => {
 			this.RatingPoints = new Dictionary<string, RatingPoint>();
 			if (AppUtility.isArray(data.RatingPoints, true)) {
-				(data.RatingPoints as Array<any>).forEach(o => this.RatingPoints.setValue(o.Type, RatingPoint.deserialize(o)));
+				(data.RatingPoints as Array<any>).forEach(o => this.RatingPoints.set(o.Type, RatingPoint.deserialize(o)));
 			}
 			if (onCompleted !== undefined) {
 				onCompleted(data);

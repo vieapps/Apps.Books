@@ -4,9 +4,9 @@ import { Keyboard } from "@ionic-native/keyboard/ngx";
 import { Clipboard } from "@ionic-native/clipboard/ngx";
 import { InAppBrowser } from "@ionic-native/in-app-browser/ngx";
 import { ElectronService } from "ngx-electron";
-import { AppConfig } from "../app.config";
-import { AppCrypto } from "./app.crypto";
-import { AppUtility } from "./app.utility";
+import { AppConfig } from "@app/app.config";
+import { AppCrypto } from "@components/app.crypto";
+import { AppUtility } from "@components/app.utility";
 
 /** Servicing component for working with app on a specific platform */
 export class PlatformUtility {
@@ -131,17 +131,20 @@ export class PlatformUtility {
 		return avatar;
 	}
 
-	/** Opens an uri in browser */
-	public static openURI(uri?: string) {
+	/** Opens an URI in browser */
+	public static openURI(uri?: string, target?: string) {
 		if (AppUtility.isNotEmpty(uri)) {
-			if (this._inappBrowser !== undefined) {
-				this._inappBrowser.create(uri, "_blank");
-			}
-			else if (this._electronService !== undefined) {
+			if (this._electronService !== undefined) {
 				this._electronService.shell.openExternal(uri);
 			}
+			else if (AppConfig.isNativeApp && this._inappBrowser !== undefined) {
+				this._inappBrowser.create(uri, target || "_blank", {
+					allowInlineMediaPlayback: "yes",
+					location: "yes"
+				});
+			}
 			else {
-				window.open(uri);
+				window.open(uri, target || "_blank");
 			}
 		}
 	}
@@ -243,10 +246,9 @@ export class PlatformUtility {
 	}
 
 	/** Gets the redirect URI for working with external */
-	public static getRedirectURI(path: string, addAsRedirectParam: boolean = true) {
-		const uri = this.parseURI(AppConfig.isWebApp ? window.location.href : AppConfig.URIs.activations);
-		return (uri.Scheme === "file" || uri.Scheme === "ionic" ? AppConfig.URIs.activations : uri.HostURI)
-			+ (AppConfig.url.base + (AppUtility.isTrue(addAsRedirectParam) ? `?redirect=${AppCrypto.urlEncode(path)}` : path)).replace(/\/\//g, "/");
+	public static getRedirectURI(path: string, addAsRedirectParam: boolean = false) {
+		return (AppConfig.isWebApp ? this.parseURI(window.location.href).HostURI + AppConfig.url.base : AppConfig.URIs.apps)
+			+ (AppUtility.isTrue(addAsRedirectParam) ? `home?redirect=${AppCrypto.urlEncode(path)}` : AppUtility.isNotEmpty(path) && path[0] === "/" ? path.substring(1) : path || "");
 	}
 
 	/** Gets the host name from an url */
@@ -273,30 +275,46 @@ export class PlatformUtility {
 	}
 
 	/** Copies the value into clipboard */
-	public static copyToClipboard(value: string) {
+	public static copyToClipboard(value: string, onNext?: () => void) {
 		if (AppConfig.isNativeApp) {
-			this._clipboard.copy(value).then(
-				() => {
-					if (AppConfig.isDebug) {
-						console.log("Clipboard copied...", value);
-					}
-				},
-				error => {
-					console.error(`Clipboard copy error => ${AppUtility.getErrorMessage(error)}`, JSON.stringify(error));
-				}
-			);
+			this.copyToNativeAppClipboard(value, onNext);
 		}
 		else {
-			const parentNode = window.document.body;
-			const textarea = this.appendElement({ value: value }, "textarea", parentNode) as HTMLTextAreaElement;
-			textarea.style.position = "fixed";
-			textarea.style.left = "0";
-			textarea.style.top = "0";
-			textarea.style.opacity = "0";
-			textarea.focus();
-			textarea.select();
-			window.document.execCommand("copy");
-			parentNode.removeChild(textarea);
+			this.copyToWebAppClipboard(value, onNext);
+		}
+	}
+
+	/** Copies the value into clipboard of the native app */
+	public static copyToNativeAppClipboard(value: string, onNext?: () => void) {
+		this._clipboard.copy(value).then(
+			() => {
+				if (AppConfig.isDebug) {
+					console.log("Copied...", value);
+				}
+				if (onNext !== undefined) {
+					onNext();
+				}
+			},
+			error => {
+				console.error(`Copy error => ${AppUtility.getErrorMessage(error)}`, JSON.stringify(error));
+			}
+		);
+	}
+
+	/** Copies the value into clipboard of the web app */
+	public static copyToWebAppClipboard(value: string, onNext?: () => void) {
+		const parentNode = window.document.body;
+		const textarea = this.appendElement({ value: value }, "textarea", parentNode) as HTMLTextAreaElement;
+		textarea.style.position = "fixed";
+		textarea.style.left = "0";
+		textarea.style.top = "0";
+		textarea.style.opacity = "0";
+		textarea.focus();
+		textarea.select();
+		window.document.execCommand("copy");
+		parentNode.removeChild(textarea);
+		if (onNext !== undefined) {
+			onNext();
 		}
 	}
 

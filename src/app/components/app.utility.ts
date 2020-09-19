@@ -1,7 +1,6 @@
 import { List } from "linqts";
-import { Set } from "typescript-collections";
 import { HttpErrorResponse } from "@angular/common/http";
-import { AppCrypto } from "./app.crypto";
+import { AppCrypto } from "@components/app.crypto";
 
 /** Decorator of an extension method */
 export function Extension(object: any) {
@@ -10,6 +9,207 @@ export function Extension(object: any) {
 		originalFunction = descriptor.value;
 		object.prototype[propertyKey] = (...args) => originalFunction(this, ...args);
 	};
+}
+
+/** HashSet */
+export class HashSet<T> extends Set<T>  {
+
+	constructor(values?: IterableIterator<T> | Array<T>) {
+		super();
+		this.update(values);
+	}
+
+	contains(value: T) {
+		return this.has(value);
+	}
+
+	update(values: IterableIterator<T> | Array<T>, add: boolean = true, clearBeforeUpdating: boolean = false) {
+		if (clearBeforeUpdating) {
+			this.clear();
+		}
+		if (values !== undefined) {
+			for (const value of values) {
+				if (!add) {
+					this.delete(value);
+				}
+				else if (!this.has(value)) {
+					this.add(value);
+				}
+			}
+		}
+		return this;
+	}
+
+	set(value: T) {
+		super.add(value);
+		return value;
+	}
+
+	remove(value: T) {
+		return this.delete(value);
+	}
+
+	concat(other: Set<T>) {
+		other.forEach(value => {
+			if (!this.has(value)) {
+				this.add(value);
+			}
+		});
+		return this;
+	}
+
+	union(other: Set<T>) {
+		return this.concat(other);
+	}
+
+	first(predicate?: (value: T) => boolean) {
+		if (this.size > 0) {
+			const values = this.values();
+			for (const value of values) {
+				if (predicate === undefined || predicate(value)) {
+					return value;
+				}
+			}
+		}
+		return undefined;
+	}
+
+	toArray(predicate?: (value: T) => boolean) {
+		if (this.size > 0 && predicate !== undefined) {
+			const array = new Array<T>();
+			this.forEach(value => {
+				if (predicate(value)) {
+					array.push(value);
+				}
+			});
+			return array;
+		}
+		return Array.from(this.values());
+	}
+
+	toList(predicate?: (value: T) => boolean) {
+		return new List(this.toArray(predicate));
+	}
+
+	filter(predicate: (value: T) => boolean) {
+		if (predicate !== undefined) {
+			const set = new HashSet<T>();
+			this.forEach(value => {
+				if (predicate(value)) {
+					set.add(value);
+				}
+			});
+			return set;
+		}
+		return this;
+	}
+
+	except(other: Set<T>) {
+		return this.filter(value => !other.has(value));
+	}
+
+	intersect(other: Set<T>) {
+		return this.filter(value => other.has(value));
+	}
+}
+
+/** Dictionary */
+export class Dictionary<TKey, TValue> extends Map<TKey, TValue> {
+
+	constructor(values?: IterableIterator<TValue> | Array<TValue>, keySelector?: (value: TValue) => TKey) {
+		super();
+		if (values !== undefined && keySelector !== undefined) {
+			for (const value of values) {
+				this.update(keySelector(value), value);
+			}
+		}
+	}
+
+	contains(key: TKey) {
+		return this.has(key);
+	}
+
+	add(key: TKey, value: TValue) {
+		this.set(key, value);
+		return value;
+	}
+
+	update(key: TKey, value: TValue, updater: (v: TValue, k: TKey) => TValue = (v, k) => v) {
+		if (this.has(key)) {
+			this.set(key, updater(this.get(key), key));
+		}
+		else {
+			this.set(key, value);
+		}
+		return this;
+	}
+
+	remove(key: TKey) {
+		return this.delete(key);
+	}
+
+	concat(other: Map<TKey, TValue>, resolve: (k: TKey, a: TValue, b: TValue) => TValue = (k, a, b) => b) {
+		other.forEach((value, key) => {
+			if (this.has(key)) {
+				this.set(key, resolve(key, this.get(key), value));
+			}
+			else {
+				this.set(key, value);
+			}
+		});
+		return this;
+	}
+
+	union(other: Map<TKey, TValue>, resolve: (k: TKey, a: TValue, b: TValue) => TValue = (k, a, b) => b) {
+		return this.concat(other, resolve);
+	}
+
+	first(predicate?: (value: TValue) => boolean) {
+		if (this.size > 0) {
+			const values = this.values();
+			for (const value of values) {
+				if (predicate === undefined || predicate(value)) {
+					return value;
+				}
+			}
+		}
+		return undefined;
+	}
+
+	toArray(predicate?: (value: TValue) => boolean) {
+		if (this.size > 0 && predicate !== undefined) {
+			const array = new Array<TValue>();
+			this.forEach((value, _) => {
+				if (predicate(value)) {
+					array.push(value);
+				}
+			});
+			return array;
+		}
+		return Array.from(this.values());
+	}
+
+	toList(predicate?: (value: TValue) => boolean) {
+		return new List(this.toArray(predicate));
+	}
+
+	filter(predicate: (value: TValue, key: TKey) => boolean) {
+		const dictionary = new Dictionary<TKey, TValue>();
+		this.forEach((value, key) => {
+			if (predicate(value, key)) {
+				dictionary.set(key, value);
+			}
+		});
+		return dictionary;
+	}
+
+	except(other: Map<TKey, TValue>) {
+		return this.filter((_, key) => !other.has(key));
+	}
+
+	intersect(other: Map<TKey, TValue>) {
+		return this.filter((_, key) => other.has(key));
+	}
 }
 
 /** Servicing component for working with app */
@@ -136,13 +336,26 @@ export class AppUtility {
 			: false;
 	}
 
+	/** Gets their own properties of an object */
+	public static getProperties<T>(obj: T, onlyWritable: boolean = false) {
+		const properties = new Array<{ name: string; info: PropertyDescriptor }>();
+		const ownProperties = Object.getOwnPropertyDescriptors(obj);
+		Object.keys(ownProperties).forEach(name => properties.push({
+			name: name,
+			info: ownProperties[name]
+		}));
+		return onlyWritable
+			? properties.filter(property => property.info.writable)
+			: properties;
+	}
+
 	/**
 	 * Copys data from the source (object or JSON) into the objects" properties
-	 * @param source The source (object or JSON) to copy data from
-	 * @param obj The instance of an object to copy data into
-	 * @param onCompleted The handler to run when copying process is completed
+	 * @param source The source to copy data from
+	 * @param target The instance of an object to copy data into
+	 * @param onCompleted The handler to run when the copy process is on-going completed with normalized data from source
 	*/
-	public static copy(source: any, obj: any, onCompleted?: (data: any) => void) {
+	public static copy<T>(source: any, target: T, onCompleted?: (data: any) => void) {
 		try {
 			const data = this.isNotEmpty(source)
 				? JSON.parse(source)
@@ -150,21 +363,21 @@ export class AppUtility {
 					? source
 					: {};
 
-			Object.getOwnPropertyNames(data).forEach(name => {
-				const type = typeof obj[name];
-				if (type !== "undefined" && type !== "function") {
-					obj[name] = this.isDate(obj[name])
-						? new Date(data[name])
-						: data[name];
-				}
+			this.getProperties(target, true).map(info => info.name).filter(name => typeof target[name] !== "function").forEach(name => {
+				const value = data[name];
+				target[name] = value === undefined || value === null
+					? undefined
+					: this.isDate(target[name]) ? new Date(value) : value;
 			});
 
 			if (onCompleted !== undefined) {
 				onCompleted(data);
 			}
+			return target;
 		}
 		catch (error) {
 			console.error(`[Utility]: Error occurred while copying object`, error);
+			return target;
 		}
 	}
 
@@ -174,17 +387,17 @@ export class AppUtility {
 	 * @param excluded The collection of excluded properties are not be deleted event value is undefined
 	 * @param onCompleted The handler to run when cleaning process is completed
 	*/
-	public static clean(obj: any, excluded?: Array<string>, onCompleted?: (obj: any) => void) {
-		Object.getOwnPropertyNames(obj).forEach(name => {
-			if (this.isNull(obj[name])) {
-				if (excluded === undefined || excluded.indexOf(name) < 0) {
+	public static clean<T>(obj: T, excluded?: Array<string>, onCompleted?: (obj: T) => void) {
+		this.getProperties(obj).forEach(info => {
+			if (this.isNull(obj[info.name])) {
+				if (excluded === undefined || excluded.indexOf(info.name) < 0) {
 					delete obj[name];
 				}
 			}
-			else if (this.isObject(obj[name])) {
-				this.clean(obj[name], excluded);
-				if (Object.getOwnPropertyNames(obj[name]).length < 1) {
-					delete obj[name];
+			else if (this.isObject(obj[info.name])) {
+				this.clean(obj[info.name], excluded);
+				if (this.getProperties(obj[info.name]).length < 1) {
+					delete obj[info.name];
 				}
 			}
 		});
@@ -201,10 +414,10 @@ export class AppUtility {
 	 * @param excluded The collection of excluded properties are not be deleted event value is undefined
 	 * @param onCompleted The handler to run when process is completed
 	*/
-	public static clone(source?: any, beRemovedOrCleanUndefined?: Array<string> | boolean, excluded?: Array<string>, onCompleted?: (obj: any) => void) {
+	public static clone<T>(source: T, beRemovedOrCleanUndefined?: Array<string> | boolean, excluded?: Array<string>, onCompleted?: (obj: any) => void) {
 		// clone
 		const exists = [];
-		const obj = JSON.parse(JSON.stringify(source, (key: string, value: any) => {
+		const obj = JSON.parse(JSON.stringify(source, (_, value) => {
 			if (this.isObject(value, true)) {
 				if (exists.indexOf(value) !== -1) {
 					return;
@@ -259,6 +472,28 @@ export class AppUtility {
 		};
 	}
 
+	/** Gets the sort function for sorting a sequence */
+	public static getSortFunction(sorts: Array<{ name: string, reverse?: boolean, primer?: (object: any) => any }>) {
+		// preprocess sorting options
+		const compareFn = (a: any, b: any): number => a === b ? 0 : a < b ? -1 : 1;
+		const sortBy = sorts.map(sort => {
+			return { name: sort.name, compare: (a: any, b: any) => (sort.reverse ? -1 : 1) * (sort.primer !== undefined ? compareFn(sort.primer(a), sort.primer(b)) : compareFn(a, b)) };
+		});
+
+		// final comparison function
+		return (a: any, b: any) => {
+			let result = 0;
+			for (let index = 0; index < sortBy.length; index++) {
+				const name = sortBy[index].name;
+				result = sortBy[index].compare(a[name], b[name]);
+				if (result !== 0) {
+					break;
+				}
+			}
+			return result;
+		};
+	}
+
 	/**
 	 * Removes an item from the sequence base on index
 	 * @param sequence The sequence for processing
@@ -297,9 +532,10 @@ export class AppUtility {
 		if (oldIndex !== newIndex && oldIndex > -1 && oldIndex < sequence.length && newIndex > -1 && newIndex < sequence.length) {
 			const items = sequence.splice(oldIndex, 1);
 			if (items !== undefined && items.length > 0) {
-				sequence.splice(newIndex < oldIndex ? newIndex : newIndex - 1, 0, items[0]);
+				this.insertAt(sequence, items[0], newIndex);
 			}
 		}
+		return sequence;
 	}
 
 	/**
@@ -391,57 +627,29 @@ export class AppUtility {
 	}
 
 	/** Parses the mustache-style (double braces) template to get the collection of params */
-	public static parse(template: string, noBraces?: boolean) {
-		const params = template.match(/{{([^{}]*)}}/g);
-		return this.isTrue(noBraces)
-			? params.map(param => param.match(/[\w\.]+/)[0])
-			: params;
+	public static parse(template: string) {
+		return template.match(/{{([^{}]*)}}/g).map(param => {
+			return {
+				token: param,
+				name: param.match(/[\w\.]+/)[0]
+			};
+		});
 	}
 
 	/** Formats the mustache-style (double braces) template with params */
 	public static format(template: string, params: { [key: string]: any }) {
-		return template.replace(/{{([^{}]*)}}/g, (str, param) => (params[param.trim()] || "").toString());
-	}
-
-	/** Gets the values as an array from a set */
-	public static getArray<T>(set: Set<T>) {
-		return set === undefined
-			? new Array<T>()
-			: set.toArray();
-	}
-
-	/** Updates the values of a set from values of an array */
-	public static updateSet<T>(set: Set<T>, array: Array<T>, add: boolean = true, clearBeforeUpdating: boolean = false) {
-		set = set || new Set<T>();
-		if (clearBeforeUpdating) {
-			set.clear();
-		}
-		if (array !== undefined && array.length > 0) {
-			array.forEach(value => {
-				if (add) {
-					set.add(value);
-				}
-				else {
-					set.remove(value);
-				}
-			});
-		}
-		return set;
-	}
-
-	/** Converts the array to a set */
-	public static toSet<T>(array: Array<T>) {
-		const set = new Set<T>();
-		if (array !== undefined && array.length > 0) {
-			array.forEach(value => set.add(value));
-		}
-		return set;
+		const tokenParams = this.parse(template);
+		Object.keys(params).forEach(key => {
+			const value = (params[key] || "").toString() as string;
+			tokenParams.filter(param => param.name === key).forEach(param => template = template.replace(this.toRegExp(`/${param.token}/g`), value));
+		});
+		return template;
 	}
 
 	/** Stringifys the JSON and encode as base64-url */
 	public static toBase64Url(json: any) {
 		return this.isObject(json, true)
-			? AppCrypto.urlEncode(JSON.stringify(json))
+			? AppCrypto.urlEncode(JSON.stringify(json, (_, value) => typeof value === "undefined" ? null : value))
 			: "";
 	}
 
@@ -449,6 +657,12 @@ export class AppUtility {
 	public static toArray(obj: any, separator?: any): Array<string> | Array<any> | Array<{ key: string, value: any }> {
 		if (this.isArray(obj)) {
 			return obj as Array<any>;
+		}
+		else if (obj instanceof Set) {
+			return Array.from((obj as Set<any>).values());
+		}
+		else if (obj instanceof Map) {
+			return Array.from((obj as Map<any, any>).values());
 		}
 		else if (this.isNotEmpty(obj)) {
 			const array = this.indexOf(obj as string, this.isNotEmpty(separator) ? separator : ",") > 0
@@ -491,6 +705,13 @@ export class AppUtility {
 			: 0;
 	}
 
+	/** Converts the regular expression string to RegExp object */
+	public static toRegExp(regex: string) {
+		const flags = regex.replace(/.*\/([gimy]*)$/, "$1");
+		const pattern = regex.replace(new RegExp("^/(.*?)/" + flags + "$"), "$1");
+		return new RegExp(pattern, flags);
+	}
+
 	/**
 	 * Converts date-time object to ISO 8601 date time string to use with date-picker
 	 * @param date the date value to convert
@@ -499,6 +720,9 @@ export class AppUtility {
 	 * @param useLocalTimezone true to use local time zone
 	*/
 	public static toIsoDateTime(date: string | number | Date, seconds: boolean = false, miliseconds: boolean = false, useLocalTimezone: boolean = true) {
+		if (date === undefined || date === null) {
+			return undefined;
+		}
 		const datetime = new Date(date);
 		if (useLocalTimezone) {
 			const timeOffsetInHours = (datetime.getTimezoneOffset() / 60) * (-1);

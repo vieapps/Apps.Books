@@ -1,9 +1,9 @@
 import { Subject } from "rxjs";
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
+import { AppCrypto } from "@components/app.crypto";
+import { AppUtility } from "@components/app.utility";
+import { PlatformUtility } from "@components/app.utility.platform";
 import { AppConfig } from "../app.config";
-import { AppCrypto } from "./app.crypto";
-import { AppUtility } from "./app.utility";
-import { PlatformUtility } from "./app.utility.platform";
 
 /** Presents the struct of a message type */
 export interface AppMessageType {
@@ -308,7 +308,14 @@ export class AppRTU {
 			}
 
 			// prepare
-			const json = JSON.parse(event.data || "{}");
+			let json: any;
+			try {
+				json = JSON.parse(event.data || "{}");
+			}
+			catch (error) {
+				console.error("[AppRTU]: Error occurred while parsing JSON data", error, event);
+				json = {};
+			}
 			const successCallback = AppUtility.isNotEmpty(json.ID) ? this._requests.successCallbacks[json.ID] : undefined;
 			const errorCallback = AppUtility.isNotEmpty(json.ID) ? this._requests.errorCallbacks[json.ID] : undefined;
 
@@ -481,7 +488,7 @@ export class AppRTU {
 			Body: requestInfo.Body || {},
 			Header: requestInfo.Header || {},
 			Extra: requestInfo.Extra || {}
-		});
+		}, (_, value) => typeof value === "undefined" ? null : value);
 		this._requests.counter++;
 		if (onSuccess !== undefined || onError !== undefined) {
 			this._requests.callbackableRequests[id] = request;
@@ -670,6 +677,26 @@ export class AppXHR {
 	*/
 	public static putAsync(path: string, body: any, headers?: any) {
 		return this.put(path, body, headers).toPromise();
+	}
+
+	/**
+		* Performs a request to APIs with "PATCH" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param body The JSON object that contains the body to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static patch(path: string, body: any, headers?: any) {
+		return this.sendRequest("PATCH", this.getURI(path), headers, body);
+	}
+
+	/**
+		* Performs a request to APIs with "PATCH" verb
+		* @param path Path of the end-point API's uri to perform the request
+		* @param body The JSON object that contains the body to perform the request
+		* @param headers Additional headers to perform the request
+	*/
+	public static patchAsync(path: string, body: any, headers?: any) {
+		return this.patch(path, body, headers).toPromise();
 	}
 
 	/**

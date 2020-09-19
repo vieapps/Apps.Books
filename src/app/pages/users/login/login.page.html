@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar [color]="configSvc.color">
+	<ion-toolbar [color]="color">
 		<ion-buttons slot="start">
 			<ion-back-button text="" icon="close"></ion-back-button>
 		</ion-buttons>
@@ -9,11 +9,11 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color" class="ion-padding">
+<ion-content [color]="color" class="ion-padding">
 
 	<div *ngIf="mode === 'login'">
 		<app-form
-			[color]="configSvc.color"
+			[color]="color"
 			[form]="login.form"
 			[config]="login.config"
 			[controls]="login.controls"
@@ -27,7 +27,7 @@
 				<ion-icon *ngIf="reset.button.icon" [icon]="reset.button.icon" slot="start"></ion-icon>
 				{{ reset.button.label }}
 			</ion-button>
-			<ion-button *ngIf="configSvc.appConfig.accountRegistrations.registrable && configSvc.screenWidth > 767" fill="clear" color="primary" (click)="registerAsync()" class="ion-float-end">
+			<ion-button *ngIf="registrable && screenWidth > 767" fill="clear" color="primary" (click)="registerAsync()" class="ion-float-end">
 				<ion-icon *ngIf="login.buttons.register.icon" [icon]="login.buttons.register.icon" slot="start"></ion-icon>
 				{{ login.buttons.register.label }}
 			</ion-button>
@@ -36,7 +36,7 @@
 
 	<div *ngIf="mode === 'otp'">
 		<app-form
-			[color]="configSvc.color"
+			[color]="color"
 			[form]="otp.form"
 			[config]="otp.config"
 			[controls]="otp.controls"
@@ -51,7 +51,7 @@
 
 	<div *ngIf="mode === 'reset'">
 		<app-form
-			[color]="configSvc.color"
+			[color]="color"
 			[form]="reset.form"
 			[config]="reset.config"
 			[controls]="reset.controls"

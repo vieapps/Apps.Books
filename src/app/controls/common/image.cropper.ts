@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ViewChild } from "@angular/core";
 import { ImageCropperComponent as HtmlImageCropper, CropperSettings as HtmlImageCropperSettings } from "ng2-img-cropper";
 import { Crop as NativeImageCropper } from "@ionic-native/crop/ngx";
-import { AppFormsControl, AppFormsService } from "../../components/forms.service";
-import { ConfigurationService } from "../../services/configuration.service";
-import { FilesService } from "../../services/files.service";
+import { AppFormsControl, AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { FilesService } from "@services/files.service";
 
 @Component({
 	selector: "control-image-cropper",
@@ -22,7 +22,7 @@ export class ImageCropperControl implements OnInit, OnDestroy {
 	}
 
 	/** Settings of the image cropper */
-	@Input() settings: {
+	@Input() private settings: {
 		currentImage?: string;
 		selectorWidth?: number;
 		selectorHeight?: number;
@@ -35,13 +35,15 @@ export class ImageCropperControl implements OnInit, OnDestroy {
 	};
 
 	/** The form control that contains this control */
-	@Input() control: AppFormsControl;
+	@Input() private control: AppFormsControl;
 
 	/** The event handler to run when the controls was initialized */
-	@Output() init: EventEmitter<any> = new EventEmitter();
+	@Output() init = new EventEmitter();
 
 	/** The event handler to run when the control was changed */
-	@Output() change = new EventEmitter<any>();
+	@Output() change = new EventEmitter();
+
+	@ViewChild(HtmlImageCropper, { static: false }) private htmlImageCropper: HtmlImageCropper;
 
 	htmlCropper: {
 		data: {
@@ -53,8 +55,6 @@ export class ImageCropperControl implements OnInit, OnDestroy {
 		settings: HtmlImageCropperSettings;
 	};
 
-	@ViewChild(HtmlImageCropper, { static: false }) private htmlImageCropper: HtmlImageCropper;
-
 	/** Gets the data of image cropper */
 	get data() {
 		return this.configSvc.isNativeApp ? undefined : this.htmlCropper.data;
@@ -62,7 +62,6 @@ export class ImageCropperControl implements OnInit, OnDestroy {
 
 	ngOnInit() {
 		this.settings = this.settings || {};
-
 		if (this.configSvc.isNativeApp) {
 			this.prepareNativeCropper();
 		}
@@ -131,7 +130,7 @@ export class ImageCropperControl implements OnInit, OnDestroy {
 				this.htmlImageCropper.setImage(image);
 				this.emitChanges();
 			},
-			this.settings.limitSize || 1024000,
+			this.settings.limitSize || this.configSvc.fileLimits.avatar,
 			async () => await this.appFormsSvc.showToastAsync(this.settings.limitExceedMessage || "Too big...")
 		);
 	}

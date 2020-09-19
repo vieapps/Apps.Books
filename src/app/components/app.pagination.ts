@@ -1,6 +1,5 @@
-import { Dictionary } from "typescript-collections";
-import { AppCrypto } from "./app.crypto";
-import { AppUtility } from "./app.utility";
+import { AppCrypto } from "@components/app.crypto";
+import { AppUtility, Dictionary } from "@components/app.utility";
 
 /** Presents a data pagination */
 export interface AppDataPagination {
@@ -80,7 +79,7 @@ export class AppPagination {
 	/** Gets a pagination */
 	public static get(info?: any, prefix?: string): AppDataPagination {
 		const key = this.getKey(info, prefix);
-		const pagination = AppUtility.isNotEmpty(key) ? this.instances.getValue(key) : undefined;
+		const pagination = AppUtility.isNotEmpty(key) ? this.instances.get(key) : undefined;
 		return pagination !== undefined
 			? {
 					TotalRecords: pagination.TotalRecords,
@@ -95,7 +94,7 @@ export class AppPagination {
 	public static set(info?: any, prefix?: string) {
 		const key = this.getKey(info, prefix);
 		if (AppUtility.isNotEmpty(key)) {
-			this.instances.setValue(key, this.getDefault(info));
+			this.instances.set(key, this.getDefault(info));
 		}
 	}
 

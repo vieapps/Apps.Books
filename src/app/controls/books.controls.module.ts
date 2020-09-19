@@ -1,12 +1,12 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { IonicModule } from "@ionic/angular";
-import { AppFormsModule } from "../components/forms.module";
-import { TimePipeModule } from "../components/time.pipe";
-import { BookHomeScreenControl } from "./books/home";
-import { BookmarksControl } from "./books/bookmarks";
-import { BookLinearItemControl } from "./books/item.linear";
-import { BookGridItemControl } from "./books/item.grid";
+import { AppFormsModule } from "@components/forms.module";
+import { TimePipeModule } from "@components/time.pipe";
+import { BookHomeScreenControl } from "@controls/books/home";
+import { BookmarksControl } from "@controls/books/bookmarks";
+import { BookLinearItemControl } from "@controls/books/item.linear";
+import { BookGridItemControl } from "@controls/books/item.grid";
 
 @NgModule({
 	providers: [],

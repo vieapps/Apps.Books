@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { AppEvents } from "../components/app.events";
-import { TrackingUtility } from "../components/app.utility.trackings";
-import { ConfigurationService } from "../services/configuration.service";
+import { AppEvents } from "@components/app.events";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { ConfigurationService } from "@services/configuration.service";
 
 @Component({
 	selector: "page-home",
@@ -12,13 +12,21 @@ import { ConfigurationService } from "../services/configuration.service";
 export class HomePage implements OnInit, OnDestroy {
 
 	constructor(
-		public configSvc: ConfigurationService
+		private configSvc: ConfigurationService
 	) {
 	}
 
 	title = "Home";
 	titleResource = "common.sidebar.home";
 	changes: any;
+
+	get color() {
+		return this.configSvc.color;
+	}
+
+	get activeService() {
+		return this.configSvc.appConfig.services.active;
+	}
 
 	ngOnInit() {
 		if (this.configSvc.isReady) {

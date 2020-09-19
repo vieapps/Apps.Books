@@ -1,5 +1,6 @@
-import { Privileges } from "./privileges";
-import { AppUtility } from "../components/app.utility";
+import { AppUtility } from "@components/app.utility";
+import { Privileges } from "@models/privileges";
+import { CounterInfo } from "@models/counters";
 
 /** Base of all model/entity classes */
 export abstract class Base {
@@ -40,16 +41,49 @@ export abstract class Base {
 	/** Copies data from source (object or JSON) and fill into this objects' properties */
 	public copy(source: any, onCompleted?: (data: any) => void) {
 		AppUtility.copy(source, this, data => {
-			if (AppUtility.isObject(data.Privileges, true)) {
-				this.Privileges = Privileges.deserialize(data.Privileges);
-			}
-			if (AppUtility.isObject(data.OriginalPrivileges, true)) {
-				this.OriginalPrivileges = Privileges.deserialize(data.OriginalPrivileges);
-			}
+			this.Privileges = AppUtility.isObject(data.Privileges, true)
+				? Privileges.deserialize(data.Privileges)
+				: undefined;
+			this.OriginalPrivileges = AppUtility.isObject(data.OriginalPrivileges, true)
+				? Privileges.deserialize(data.OriginalPrivileges)
+				: undefined;
 			if (onCompleted !== undefined) {
 				onCompleted(data);
 			}
 		});
 	}
 
+}
+
+export interface AttachmentInfo {
+	ID: string;
+	ServiceName: string;
+	ObjectName: string;
+	SystemID: string;
+	EntityInfo: string;
+	ObjectID: string;
+	Filename: string;
+	Size: number;
+	ContentType: string;
+	Downloads: CounterInfo;
+	IsShared: boolean;
+	IsTracked: boolean;
+	IsTemporary: boolean;
+	Title: string;
+	Description: string;
+	Created: Date;
+	CreatedID: string;
+	LastModified: Date;
+	LastModifiedID: string;
+	URI: string;
+	URIs: {
+		Direct: string;
+		Download: string;
+	};
+	isImage: boolean;
+	isVideo: boolean;
+	isAudio: boolean;
+	isText: boolean;
+	icon: string;
+	friendlyFilename: string;
 }

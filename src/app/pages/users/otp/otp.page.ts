@@ -1,10 +1,10 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { IonInput } from "@ionic/angular";
-import { TrackingUtility } from "../../../components/app.utility.trackings";
-import { PlatformUtility } from "../../../components/app.utility.platform";
-import { AppFormsService } from "../../../components/forms.service";
-import { ConfigurationService } from "../../../services/configuration.service";
-import { UsersService } from "../../../services/users.service";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { UsersService } from "@services/users.service";
 
 @Component({
 	selector: "page-users-otp",
@@ -15,7 +15,7 @@ import { UsersService } from "../../../services/users.service";
 export class UsersOtpPage implements OnInit {
 
 	constructor(
-		public configSvc: ConfigurationService,
+		private configSvc: ConfigurationService,
 		private appFormsSvc: AppFormsService,
 		private usersSvc: UsersService
 	) {
@@ -55,6 +55,10 @@ export class UsersOtpPage implements OnInit {
 	};
 
 	@ViewChild(IonInput, { static: false }) private otpCtrl: IonInput;
+
+	get color() {
+		return this.configSvc.color;
+	}
 
 	get locale() {
 		return this.configSvc.locale;
@@ -117,9 +121,9 @@ export class UsersOtpPage implements OnInit {
 				: await this.configSvc.getResourceAsync("users.profile.otp.status.provisioning");
 	}
 
-	provisonAsync() {
-		this.appFormsSvc.showLoadingAsync(this.title);
-		return this.usersSvc.prepare2FAMethodAsync(
+	async provisonAsync() {
+		await this.appFormsSvc.showLoadingAsync(this.title);
+		await this.usersSvc.prepare2FAMethodAsync(
 			async data => {
 				this.provision.info = data.Provisioning;
 				this.provision.uri = data.URI;

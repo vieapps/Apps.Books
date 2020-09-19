@@ -1,5 +1,5 @@
 <ion-header>
-	<ion-toolbar [color]="configSvc.color">
+	<ion-toolbar [color]="color">
 		<ion-buttons *ngIf="buttons.cancel" slot="start">
 			<ion-button color="secondary" (click)="buttons.cancel.handler()">
 				<ion-icon *ngIf="buttons.cancel.icon" [name]="buttons.cancel.icon" slot="start"></ion-icon>
@@ -18,24 +18,24 @@
 	</ion-toolbar>
 </ion-header>
 
-<ion-content [color]="configSvc.color" class="ion-padding">
+<ion-content [color]="color" class="ion-padding">
 
 	<app-form *ngIf="mode === 'profile' && update.config"
-		[color]="configSvc.color"
+		[color]="color"
 		[form]="update.form"
 		[config]="update.config"
 		[controls]="update.controls"
 		(init)="onFormInitialized($event)"></app-form>
 
 	<app-form *ngIf="mode === 'password' && password.config"
-		[color]="configSvc.color"
+		[color]="color"
 		[form]="password.form"
 		[config]="password.config"
 		[controls]="password.controls"
 		(init)="onFormInitialized($event)"></app-form>
 
 	<app-form *ngIf="mode === 'email' && email.config"
-		[color]="configSvc.color"
+		[color]="color"
 		[form]="email.form"
 		[config]="email.config"
 		[controls]="email.controls"

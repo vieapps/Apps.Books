@@ -1,12 +1,11 @@
-import { List } from "linqts";
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ViewChild } from "@angular/core";
 import { IonList } from "@ionic/angular";
-import { AppEvents } from "../../components/app.events";
-import { AppFormsService } from "../../components/forms.service";
-import { ConfigurationService } from "../../services/configuration.service";
-import { BooksService } from "../../services/books.service";
-import { UserProfile } from "../../models/user";
-import { Book, Bookmark } from "../../models/book";
+import { AppEvents } from "@components/app.events";
+import { AppFormsService } from "@components/forms.service";
+import { ConfigurationService } from "@services/configuration.service";
+import { BooksService } from "@services/books.service";
+import { UserProfile } from "@models/user";
+import { Book, Bookmark } from "@models/book";
 
 @Component({
 	selector: "control-book-bookmarks",
@@ -17,7 +16,7 @@ import { Book, Bookmark } from "../../models/book";
 export class BookmarksControl implements OnInit, OnDestroy {
 
 	constructor(
-		public configSvc: ConfigurationService,
+		private configSvc: ConfigurationService,
 		private appFormsSvc: AppFormsService,
 		private booksSvc: BooksService
 	) {
@@ -46,6 +45,10 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	};
 
 	@ViewChild("list", { static: true }) private list: IonList;
+
+	get color() {
+		return this.configSvc.color;
+	}
 
 	get locale() {
 		return this.configSvc.locale;
@@ -106,7 +109,7 @@ export class BookmarksControl implements OnInit, OnDestroy {
 	}
 
 	private prepareBookmarks() {
-		this.bookmarks = new List(this.booksSvc.bookmarks.values()).OrderByDescending(o => o.Time).ToArray();
+		this.bookmarks = this.booksSvc.bookmarks.toList().OrderByDescending(o => o.Time).ToArray();
 	}
 
 	private emitChanges() {

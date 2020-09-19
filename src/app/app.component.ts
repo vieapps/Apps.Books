@@ -4,17 +4,17 @@ import { HttpClient } from "@angular/common/http";
 import { Platform, MenuController } from "@ionic/angular";
 import { SplashScreen } from "@ionic-native/splash-screen/ngx";
 import { StatusBar } from "@ionic-native/status-bar/ngx";
-import { AppRTU, AppXHR } from "./components/app.apis";
-import { AppEvents } from "./components/app.events";
-import { AppCrypto } from "./components/app.crypto";
-import { AppUtility } from "./components/app.utility";
-import { AppFormsService } from "./components/forms.service";
-import { PlatformUtility } from "./components/app.utility.platform";
-import { TrackingUtility } from "./components/app.utility.trackings";
-import { ConfigurationService } from "./services/configuration.service";
-import { AuthenticationService } from "./services/authentication.service";
-import { UsersService } from "./services/users.service";
-import { BooksService } from "./services/books.service";
+import { AppRTU, AppXHR } from "@components/app.apis";
+import { AppEvents } from "@components/app.events";
+import { AppCrypto } from "@components/app.crypto";
+import { AppUtility } from "@components/app.utility";
+import { AppFormsService } from "@components/forms.service";
+import { PlatformUtility } from "@components/app.utility.platform";
+import { TrackingUtility } from "@components/app.utility.trackings";
+import { ConfigurationService } from "@services/configuration.service";
+import { AuthenticationService } from "@services/authentication.service";
+import { UsersService } from "@services/users.service";
+import { BooksService } from "@services/books.service";
 
 @Component({
 	selector: "app-root",
@@ -108,11 +108,11 @@ export class AppComponent implements OnInit {
 				this.configSvc.pushUrl((event as RoutesRecognized).url, (event as RoutesRecognized).state.root.queryParams);
 				const current = this.configSvc.getCurrentUrl();
 				AppEvents.broadcast("Navigating", { Url: current.url, Params: current.params });
-			}
-			else if (event instanceof NavigationEnd) {
-				if (new Date().getTime() - AppRTU.pingTime > 130000) {
+				if (new Date().getTime() - AppRTU.pingTime > 300000) { // 5 minutes
 					AppRTU.restart("[Router]: Ping period is too large...");
 				}
+			}
+			else if (event instanceof NavigationEnd) {
 				const current = this.configSvc.getCurrentUrl();
 				AppEvents.broadcast("Navigated", { Url: current.url, Params: current.params });
 			}
@@ -417,7 +417,7 @@ export class AppComponent implements OnInit {
 
 	private initializeAsync(onNext?: () => void, noInitializeSession?: boolean) {
 		return this.configSvc.initializeAsync(
-			async () => {
+			async _ => {
 				if (this.configSvc.isReady && this.configSvc.isAuthenticated) {
 					console.log("<AppComponent>: The session is initialized & registered (user)", this.configSvc.isDebug ? this.configSvc.isNativeApp ? JSON.stringify(this.configSvc.appConfig.session) : this.configSvc.appConfig.session : "");
 					this.finalize(onNext);
@@ -468,7 +468,6 @@ export class AppComponent implements OnInit {
 				app: appConfig.app,
 				session: appConfig.session,
 				services: appConfig.services,
-				organizations: appConfig.organizations,
 				accountRegistrations: appConfig.accountRegistrations,
 				options: appConfig.options,
 				languages: appConfig.languages

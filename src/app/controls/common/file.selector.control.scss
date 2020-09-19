@@ -1,0 +1,20 @@
+ion-list > ion-item > ion-label > span {
+	line-height: 20px;
+} 
+ion-list > ion-item > ion-label > span > ion-icon {
+	width: 20px;
+	height: 20px;
+	margin-right: 8px;
+}
+ion-list > ion-item > ion-label > div > span {
+	font-size: 90%;
+} 
+ion-list > ion-item > ion-label > div > a {
+	display: inline-block;
+	margin: 10px;
+	cursor: pointer;
+}
+ion-list > ion-item > ion-label > div > a > ion-icon {
+	width: 18px;
+	height: 18px;
+}
